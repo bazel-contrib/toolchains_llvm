@@ -1,0 +1,20 @@
+os:
+  - linux
+  - osx
+
+sudo: false
+dist: trusty
+
+osx_image: xcode9.3
+
+addons:
+  apt:
+    sources:
+    - sourceline: 'deb [arch=amd64] http://storage.googleapis.com/bazel-apt stable jdk1.8'
+      key_url: 'https://bazel.build/bazel-release.pub.gpg'
+    packages:
+    - bazel
+
+script:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install bazel; fi
+  - cd travis && tests/run_tests.sh

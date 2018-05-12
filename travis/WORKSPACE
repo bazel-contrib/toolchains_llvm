@@ -1,0 +1,38 @@
+# Copyright 2018 The Bazel Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+local_repository(
+    name = "com_grail_bazel_toolchain",
+    path = "..",
+)
+
+load("@com_grail_bazel_toolchain//toolchain:configure.bzl", "llvm_toolchain")
+
+llvm_toolchain(
+    name = "llvm_toolchain",
+    absolute_paths = True,
+    llvm_version = "6.0.0",
+    sha256 = {
+        "linux": "114e78b2f6db61aaee314c572e07b0d635f653adc5d31bd1cd0bf31a3db4a6e5",
+        "darwin": "0ef8e99e9c9b262a53ab8f2821e2391d041615dd3f3ff36fdf5370916b0f4268",
+    },
+    strip_prefix = {
+        "linux": "clang+llvm-6.0.0-x86_64-linux-gnu-ubuntu-14.04",
+        "darwin": "clang+llvm-6.0.0-x86_64-apple-darwin",
+    },
+    urls = {
+        "linux": ["http://releases.llvm.org/6.0.0/clang+llvm-6.0.0-x86_64-linux-gnu-ubuntu-14.04.tar.xz"],
+        "darwin": ["http://releases.llvm.org/6.0.0/clang+llvm-6.0.0-x86_64-apple-darwin.tar.xz"],
+    },
+)

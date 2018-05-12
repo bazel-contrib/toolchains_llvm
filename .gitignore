@@ -1,0 +1,3 @@
+/bazel-*
+travis/bazel-*
+.bazelrc
