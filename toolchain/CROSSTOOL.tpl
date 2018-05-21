@@ -66,6 +66,7 @@ toolchain {
 
   # C++
   cxx_flag: "-std=c++11"
+  cxx_flag: "-stdlib=libc++"
   # The linker has no way of knowing if there are C++ objects; so we always link C++ libraries.
   linker_flag: "%{toolchain_path_prefix}lib/libc++.a"
   linker_flag: "%{toolchain_path_prefix}lib/libc++abi.a"
@@ -215,6 +216,7 @@ toolchain {
 
   # C++
   cxx_flag: "-std=c++11"
+  cxx_flag: "-stdlib=libc++"
   # The linker has no way of knowing if there are C++ objects; so we always link C++ libraries.
   linker_flag: "%{toolchain_path_prefix}lib/libc++.a"
   linker_flag: "%{toolchain_path_prefix}lib/libc++abi.a"
@@ -298,7 +300,7 @@ toolchain {
       }
     }
   }
-  
+
   feature {
     name: "coverage"
   }
