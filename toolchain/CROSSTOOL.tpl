@@ -220,7 +220,11 @@ toolchain {
   # The linker has no way of knowing if there are C++ objects; so we always link C++ libraries.
   linker_flag: "%{toolchain_path_prefix}lib/libc++.a"
   linker_flag: "%{toolchain_path_prefix}lib/libc++abi.a"
+  linker_flag: "%{toolchain_path_prefix}lib/libunwind.a"
+  cxx_flag: "-DLIBCXX_USE_COMPILER_RT=YES"
+  linker_flag: "-rtlib=compiler-rt"
   linker_flag: "-lpthread"
+  linker_flag: "-ldl" # For libunwind
 
   # Linker
   linker_flag: "-lm"
