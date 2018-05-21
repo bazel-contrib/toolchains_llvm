@@ -12,7 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+cc_library(
+    name = "stdlib",
+    srcs = ["stdlib.cc"],
+    hdrs = ["stdlib.h"],
+)
+
 cc_test(
     name = "stdlib_test",
     srcs = ["stdlib_test.cc"],
+    deps = [":stdlib"],
 )

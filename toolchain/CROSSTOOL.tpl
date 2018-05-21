@@ -251,7 +251,7 @@ toolchain {
   tool_path {name: "objdump" path: "%{tools_path_prefix}bin/llvm-objdump" }
   tool_path {name: "strip" path: "/usr/bin/strip" }
   tool_path {name: "gcc" path: "%{tools_path_prefix}cc_wrapper.sh" }
-  tool_path {name: "ar" path: "%{tools_path_prefix}bin/llvm-ar" }
+  tool_path {name: "ar" path: "/usr/bin/libtool" }  # default archiver flags configuration is different for macOS.
 
   compilation_mode_flags {
     mode: FASTBUILD
