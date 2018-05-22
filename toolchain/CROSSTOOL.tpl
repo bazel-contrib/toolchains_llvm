@@ -32,7 +32,7 @@ toolchain {
   abi_libc_version: "local"
   compiler: "clang"
   host_system_name: "local"
-  needsPic: false
+  needsPic: true
   supports_gold_linker: false
   supports_incremental_linker: false
   supports_fission: false
