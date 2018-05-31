@@ -21,7 +21,6 @@ load("@com_grail_bazel_toolchain//toolchain:configure.bzl", "llvm_toolchain")
 
 llvm_toolchain(
     name = "llvm_toolchain",
-    absolute_paths = True,
     llvm_version = "6.0.0",
     sha256 = {
         "linux": "114e78b2f6db61aaee314c572e07b0d635f653adc5d31bd1cd0bf31a3db4a6e5",
