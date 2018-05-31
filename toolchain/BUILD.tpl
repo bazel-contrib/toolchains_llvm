@@ -23,7 +23,7 @@ filegroup(
 
 filegroup(
     name = "cc_wrapper",
-    srcs = ["cc_wrapper.sh"],
+    srcs = ["bin/cc_wrapper.sh"],
 )
 
 cc_toolchain_suite(
@@ -39,6 +39,9 @@ load("@com_grail_bazel_toolchain//toolchain:configure.bzl", "conditional_cc_tool
 conditional_cc_toolchain("cc-clang-linux", "k8", False, %{absolute_paths})
 conditional_cc_toolchain("cc-clang-darwin", "darwin", True, %{absolute_paths})
 
+## LLVM toolchain files
+# Needed when not using absolute paths.
+
 filegroup(
     name = "clang",
     srcs = [
@@ -52,7 +55,8 @@ filegroup(
     name = "ld",
     srcs = [
         "bin/ld.lld",
-        "bin/ld64.lld"
+        "bin/ld",
+        "bin/ld.gold",  # Dummy file on non-linux.
     ],
 )
 
@@ -60,17 +64,23 @@ filegroup(
     name = "include",
     srcs = glob([
         "include/c++/**",
-        "lib/clang/*/include/**",
+        "lib/clang/%{llvm_version}/include/**",
     ]),
 )
 
 filegroup(
     name = "lib",
-    srcs = [
-        "lib/libc++.a",
-        "lib/libc++abi.a",
-        "lib/libunwind.a",
-    ],
+    srcs = glob(
+        [
+            "lib/lib*.a",
+            "lib/clang/%{llvm_version}/lib/**/*.a",
+        ],
+        exclude = [
+            "lib/libLLVM*.a",
+            "lib/libclang*.a",
+            "lib/liblld*.a",
+        ],
+    ),
 )
 
 filegroup(
@@ -128,18 +138,7 @@ filegroup(
 
 filegroup(
     name = "binutils_components",
-    srcs = [
-        ":ar",
-        ":as",
-        ":dwp",
-        ":ld",
-        ":nm",
-        ":objcopy",
-        ":objdump",
-        ":profdata",
-        ":ranlib",
-        ":readelf",
-    ],
+    srcs = glob(["bin/*"]),
 )
 
 filegroup(

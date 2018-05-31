@@ -58,15 +58,18 @@ def _download_llvm(rctx):
 
 def _llvm_toolchain_impl(rctx):
   repo_path = str(rctx.path(""))
+  relative_path_prefix = "external/%s/" % rctx.name
   if rctx.attr.absolute_paths:
     toolchain_path_prefix = (repo_path + "/")
   else:
-    toolchain_path_prefix = "external/%s/" % rctx.name
+    toolchain_path_prefix = relative_path_prefix
 
   substitutions = {
       "%{llvm_version}": rctx.attr.llvm_version,
       "%{toolchain_path_prefix}": toolchain_path_prefix,
       "%{tools_path_prefix}": (repo_path + "/") if rctx.attr.absolute_paths else "",
+      "%{debug_toolchain_path_prefix}": relative_path_prefix,
+      "%{absolute_toolchain_path}": repo_path,
       "%{absolute_paths}": "True" if rctx.attr.absolute_paths else "False",
   }
 
@@ -75,7 +78,7 @@ def _llvm_toolchain_impl(rctx):
       Label("@com_grail_bazel_toolchain//toolchain:CROSSTOOL.tpl"),
       substitutions)
   rctx.template(
-      "cc_wrapper.sh",
+      "bin/cc_wrapper.sh",  # Co-located with the linker to help rules_go.
       Label("@com_grail_bazel_toolchain//toolchain:cc_wrapper.sh.tpl"),
       substitutions)
   rctx.template(
@@ -86,6 +89,17 @@ def _llvm_toolchain_impl(rctx):
       "BUILD",
       Label("@com_grail_bazel_toolchain//toolchain:BUILD.tpl"),
       substitutions)
+
+  rctx.symlink("/usr/bin/ar", "bin/ar")  # For GoLink.
+
+  # For GoCompile on macOS; compiler path is set from linker path.
+  # It also helps clang driver sometimes for the linker to be colocated with the compiler.
+  rctx.symlink("/usr/bin/ld", "bin/ld")
+  if rctx.os.name == "linux":
+    rctx.symlink("/usr/bin/ld.gold", "bin/ld.gold")
+  else:
+    # Add dummy file for non-linux so we don't have to put conditional logic in BUILD.
+    rctx.file("bin/ld.gold")
 
   # Repository implementation functions can be restarted, keep expensive ops at the end.
   if rctx.attr.urls:

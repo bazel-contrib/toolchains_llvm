@@ -13,17 +13,18 @@
 # limitations under the License.
 
 # Make variables if needed by build systems other than bazel, like R.
+# TODO: https://github.com/grailbio/rules_r/issues/1
 
-CC = %{toolchain_path_prefix}/bin/clang -std=c11
+CC = %{absolute_toolchain_path}/bin/clang -std=c11
 # Force compile packages with C++11 if they don't explicitly ask; this gives long vector support in Rcpp, etc.
-CXX = %{toolchain_path_prefix}/bin/clang++ -std=c++11
-CXX11 = %{toolchain_path_prefix}bin/clang++
-CXX14 = %{toolchain_path_prefix}bin/clang++
-CXX17 = %{toolchain_path_prefix}bin/clang++
+CXX = %{absolute_toolchain_path}/bin/clang++ -std=c++11
+CXX11 = %{absolute_toolchain_path}/bin/clang++
+CXX14 = %{absolute_toolchain_path}/bin/clang++
+CXX17 = %{absolute_toolchain_path}/bin/clang++
 
 CXX11STD = -std=c++11
 CXX14STD = -std=c++14
 CXX17STD = -std=c++1z
 
-LDFLAGS += -fuse-ld=lld %{toolchain_path_prefix}/lib/libc++.a %{toolchain_path_prefix}/lib/libc++abi.a %{toolchain_path_prefix}/lib/libunwind.a -rtlib=compiler-rt -lpthread -ldl
-CPPFLAGS += -B%{toolchain_path_prefix}bin -isystem %{toolchain_path_prefix}include/c++/v1 -isystem %{toolchain_path_prefix}lib/clang/%{llvm_version}/include -DLIBCXX_USE_COMPILER_RT=YES 
+LDFLAGS += -fuse-ld=lld -l:libc++.a -l:libc++abi.a -l:libunwind.a -rtlib=compiler-rt -lpthread -ldl
+CPPFLAGS += -stdlib=libc++ -fdebug-prefix-map="%{absolute_toolchain_path}=%{debug_absolute_toolchain_path}" -DLIBCXX_USE_COMPILER_RT=YES

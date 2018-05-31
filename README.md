@@ -31,29 +31,30 @@ Notes:
 
 - The LLVM toolchain archive is downloaded and extracted in the named
   repository.  People elsewhere have used wrapper scripts to avoid symlinking
-and get better control of the environment in which the toolchain binaries are
-run.
+  and get better control of the environment in which the toolchain binaries are
+  run.
 
 - Sandboxing the toolchain introduces a significant overhead (100ms per
-  action). To overcome this, one can use `--experimental_sandbox_fs=/dev/shm`.
-However, not all environments might have enough shared memory available to load
-all the files in memory. In order to avoid sandboxing the toolchain entirely,
-we can use absolute paths. When running bazel actions, these paths will be
-available from inside the sandbox as part of the / read-only mount.
+  action). To overcome this, one can use
+  `--experimental_sandbox_base=/dev/shm`.  However, not all environments might
+  have enough shared memory available to load all the files in memory. That is
+  why we have templated the paths to the toolchain as absolute paths. When
+  running bazel actions, these paths will be available from inside the sandbox
+  as part of the / read-only mount.
 
-- While the C++ toolchain itself works well with relative paths (except the
-  performance hit because of sandboxing), the go toolchain needs the linker and
-the linked libraries as absolute. This is a limitation of the cpp configuration
-fragment provided by skylark and used by the go toolchain.
+- The toolchain is known to also work with `rules_go`, both with absolute and
+  relative paths.
 
 - There is no R toolchain yet, so the Makevars file has been repurposed to
-  provide the right configuration, but only when the configure script for
-packages do not override the variables set in the Makevars.
+  provide the right configuration, but only when using `cc_deps` attribute of
+  `r_pkg`. All packages not using `cc_deps` are free to configure themselves.
+  The Makevars file provided will always use absolute paths. This implies that
+  the build actions are not reproducible across multiple workspaces, although
+  the build outputs can be.
 
 - The toolchain is almost hermetic but borrows system headers and libraries
-  from the user's system. If needed, one can package a sysroot for their build
-environment and set `builtin_sysroot` in CROSSTOOL. If using relative paths, be
-sure to add your sysroot files to the `all_files` attribute of the toolchain.
+  from the user's system. If needed, we can package a sysroot for our build
+  environment and set `builtin_sysroot` in CROSSTOOL.
 
 Other examples of toolchain configuration:
 

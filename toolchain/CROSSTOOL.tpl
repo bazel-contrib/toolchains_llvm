@@ -33,12 +33,12 @@ toolchain {
   compiler: "clang"
   host_system_name: "local"
   needsPic: true
-  supports_gold_linker: false
   supports_incremental_linker: false
   supports_fission: false
   supports_interface_shared_objects: false
   supports_normalizing_ar: false
   supports_start_end_lib: true
+  supports_gold_linker: true
   target_libc: "local"
   target_cpu: "k8"
   target_system_name: "local"
@@ -54,6 +54,7 @@ toolchain {
   unfiltered_cxx_flag: "-D__DATE__=\"redacted\""
   unfiltered_cxx_flag: "-D__TIMESTAMP__=\"redacted\""
   unfiltered_cxx_flag: "-D__TIME__=\"redacted\""
+  unfiltered_cxx_flag: "-fdebug-prefix-map=%{toolchain_path_prefix}=%{debug_toolchain_path_prefix}"
 
   # Security
   compiler_flag: "-U_FORTIFY_SOURCE"
@@ -65,20 +66,20 @@ toolchain {
   compiler_flag: "-Wall"
 
   # C++
-  cxx_flag: "-std=c++11"
+  cxx_flag: "-std=c++17"
   cxx_flag: "-stdlib=libc++"
   # The linker has no way of knowing if there are C++ objects; so we always link C++ libraries.
-  linker_flag: "%{toolchain_path_prefix}lib/libc++.a"
-  linker_flag: "%{toolchain_path_prefix}lib/libc++abi.a"
-  linker_flag: "%{toolchain_path_prefix}lib/libunwind.a"
+  linker_flag: "-l:libc++.a"
+  linker_flag: "-l:libc++abi.a"
+  linker_flag: "-l:libunwind.a"
   cxx_flag: "-DLIBCXX_USE_COMPILER_RT=YES"
   linker_flag: "-rtlib=compiler-rt"
-  linker_flag: "-lpthread"
-  linker_flag: "-ldl" # For libunwind
+  linker_flag: "-lpthread"  # For libunwind
+  linker_flag: "-ldl"  # For libunwind
 
   # Linker
   linker_flag: "-lm"
-  linker_flag: "-fuse-ld=lld"
+  linker_flag: "-fuse-ld=gold"
   linker_flag: "-Wl,--build-id=md5"
   linker_flag: "-Wl,--hash-style=gnu"
 
@@ -89,14 +90,11 @@ toolchain {
   cxx_builtin_include_directory: "/include"
   cxx_builtin_include_directory: "/usr/include"
   cxx_builtin_include_directory: "/usr/local/include"
-  compiler_flag: "-isystem%{toolchain_path_prefix}include/c++/v1"
-  compiler_flag: "-isystem%{toolchain_path_prefix}lib/clang/%{llvm_version}/include"
 
   objcopy_embed_flag: "-I"
   objcopy_embed_flag: "binary"
 
-  compiler_flag: "-B%{toolchain_path_prefix}bin"
-  tool_path {name: "ld" path: "%{tools_path_prefix}bin/ld.lld" }
+  tool_path {name: "ld" path: "%{tools_path_prefix}bin/ld.gold" }  # TODO: Switch to lld after https://reviews.llvm.org/D41978
   tool_path {name: "cpp" path: "%{tools_path_prefix}bin/clang-cpp" }
   tool_path {name: "dwp" path: "%{tools_path_prefix}bin/llvm-dwp" }
   tool_path {name: "gcov" path: "%{tools_path_prefix}bin/llvm-profdata" }
@@ -124,60 +122,6 @@ toolchain {
   }
 
   linking_mode_flags { mode: DYNAMIC }
-
-  feature {
-    name: "coverage"
-  }
-  feature {
-    name: "llvm_coverage_map_format"
-    flag_set {
-      action: "preprocess-assemble"
-      action: "c-compile"
-      action: "c++-compile"
-      action: "c++-module-compile"
-      flag_group {
-        flag: "-fprofile-instr-generate"
-        flag: "-fcoverage-mapping"
-        flag: "-g"
-      }
-    }
-    flag_set {
-      action: "c++-link-dynamic-library"
-      action: "c++-link-nodeps-dynamic-library"
-      action: "c++-link-executable"
-      flag_group {
-        flag: "-fprofile-instr-generate"
-      }
-    }
-    requires {
-      feature: "coverage"
-    }
-  }
-  feature {
-    name: "gcc_coverage_map_format"
-    flag_set {
-      action: "preprocess-assemble"
-      action: "c-compile"
-      action: "c++-compile"
-      action: "c++-module-compile"
-      flag_group {
-        flag: "-fprofile-arcs"
-        flag: "-ftest-coverage"
-        flag: "-g"
-      }
-    }
-    flag_set {
-      action: "c++-link-dynamic-library"
-      action: "c++-link-nodeps-dynamic-library"
-      action: "c++-link-executable"
-      flag_group {
-        flag: "-lgcov"
-      }
-    }
-    requires {
-      feature: "coverage"
-    }
-  }
 }
 
 toolchain {
@@ -189,7 +133,7 @@ toolchain {
   compiler: "clang"
   abi_version: "darwin_x86_64"
   abi_libc_version: "darwin_x86_64"
-  needsPic: true
+  needsPic: false
 
   builtin_sysroot: ""
 
@@ -202,6 +146,7 @@ toolchain {
   unfiltered_cxx_flag: "-D__DATE__=\"redacted\""
   unfiltered_cxx_flag: "-D__TIMESTAMP__=\"redacted\""
   unfiltered_cxx_flag: "-D__TIME__=\"redacted\""
+  unfiltered_cxx_flag: "-fdebug-prefix-map=%{toolchain_path_prefix}=%{debug_toolchain_path_prefix}"
 
   # Security
   compiler_flag: "-D_FORTIFY_SOURCE=1"
@@ -215,16 +160,11 @@ toolchain {
   compiler_flag: "-Wall"
 
   # C++
-  cxx_flag: "-std=c++11"
+  cxx_flag: "-std=c++17"
   cxx_flag: "-stdlib=libc++"
   # The linker has no way of knowing if there are C++ objects; so we always link C++ libraries.
-  linker_flag: "%{toolchain_path_prefix}lib/libc++.a"
-  linker_flag: "%{toolchain_path_prefix}lib/libc++abi.a"
-  linker_flag: "%{toolchain_path_prefix}lib/libunwind.a"
-  cxx_flag: "-DLIBCXX_USE_COMPILER_RT=YES"
-  linker_flag: "-rtlib=compiler-rt"
-  linker_flag: "-lpthread"
-  linker_flag: "-ldl" # For libunwind
+  linker_flag: "-lc++"
+  linker_flag: "-lc++abi"
 
   # Linker
   linker_flag: "-lm"
@@ -235,18 +175,13 @@ toolchain {
   cxx_builtin_include_directory: "%{toolchain_path_prefix}include/c++/v1"
   cxx_builtin_include_directory: "%{toolchain_path_prefix}lib/clang/%{llvm_version}/include"
   cxx_builtin_include_directory: "/usr/include"
-  cxx_builtin_include_directory: "/usr/include/linux"
   cxx_builtin_include_directory: "/System/Library/Frameworks"
   cxx_builtin_include_directory: "/Library/Frameworks"
-  #cxx_builtin_include_directory: "/Applications/Xcode.app/Contents/Developer"
-  compiler_flag: "-isystem%{toolchain_path_prefix}include/c++/v1"
-  compiler_flag: "-isystem%{toolchain_path_prefix}lib/clang/%{llvm_version}/include"
 
   objcopy_embed_flag: "-I"
   objcopy_embed_flag: "binary"
 
-  compiler_flag: "-B%{toolchain_path_prefix}bin"
-  tool_path {name: "ld" path: "/usr/bin/ld" }  # lld is not ready for macOS.
+  tool_path {name: "ld" path: "%{tools_path_prefix}bin/ld" }  # lld is not ready for macOS.
   tool_path {name: "cpp" path: "%{tools_path_prefix}bin/clang-cpp" }
   tool_path {name: "dwp" path: "%{tools_path_prefix}bin/llvm-dwp" }
   tool_path {name: "gcov" path: "%{tools_path_prefix}bin/llvm-profdata" }
@@ -254,8 +189,8 @@ toolchain {
   tool_path {name: "objcopy" path: "%{tools_path_prefix}bin/llvm-objcopy" }
   tool_path {name: "objdump" path: "%{tools_path_prefix}bin/llvm-objdump" }
   tool_path {name: "strip" path: "/usr/bin/strip" }
-  tool_path {name: "gcc" path: "%{tools_path_prefix}cc_wrapper.sh" }
-  tool_path {name: "ar" path: "/usr/bin/libtool" }  # default archiver flags configuration is different for macOS.
+  tool_path {name: "gcc" path: "%{tools_path_prefix}bin/cc_wrapper.sh" }
+  tool_path {name: "ar" path: "/usr/bin/libtool" }  # system provided libtool is preferred.
 
   compilation_mode_flags {
     mode: FASTBUILD
@@ -302,66 +237,6 @@ toolchain {
         flag: "-F%{framework_paths}"
         iterate_over: "framework_paths"
       }
-    }
-  }
-
-  feature {
-    name: "coverage"
-  }
-  feature {
-    name: "llvm_coverage_map_format"
-    flag_set {
-      action: "preprocess-assemble"
-      action: "c-compile"
-      action: "c++-compile"
-      action: "c++-module-compile"
-      action: "objc-compile"
-      action: "objc++-compile"
-      flag_group {
-        flag: "-fprofile-instr-generate"
-        flag: "-fcoverage-mapping"
-        flag: "-g"
-      }
-    }
-    flag_set {
-      action: "c++-link-dynamic-library"
-      action: "c++-link-nodeps-dynamic-library"
-      action: "c++-link-executable"
-      action: "objc-executable"
-      action: "objc++-executable"
-      flag_group {
-        flag: "-fprofile-instr-generate"
-      }
-    }
-    requires {
-      feature: "coverage"
-    }
-  }
-  feature {
-    name: "gcc_coverage_map_format"
-    flag_set {
-      action: "preprocess-assemble"
-      action: "c-compile"
-      action: "c++-compile"
-      action: "c++-module-compile"
-      action: "objc-compile"
-      action: "objc++-compile"
-      flag_group {
-        flag: "-fprofile-arcs"
-        flag: "-ftest-coverage"
-        flag: "-g"
-      }
-    }
-    flag_set {
-      action: "c++-link-dynamic-library"
-      action: "c++-link-nodeps-dynamic-library"
-      action: "c++-link-executable"
-      flag_group {
-        flag: "-lgcov"
-      }
-    }
-    requires {
-      feature: "coverage"
     }
   }
 }

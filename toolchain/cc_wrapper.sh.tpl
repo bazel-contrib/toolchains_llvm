@@ -27,7 +27,6 @@
 #
 set -eu
 
-export PATH=$(pwd -P):/usr/bin
 INSTALL_NAME_TOOL="/usr/bin/install_name_tool"
 
 LIBS=
@@ -53,8 +52,13 @@ done
 # Set-up the environment
 
 
-# Call the C++ compiler
-%{toolchain_path_prefix}bin/clang "$@"
+# Call the C++ compiler.
+if [[ "${PATH}" == *"%{toolchain_path_prefix}bin" ]]; then
+  # GoCompile sets the PATH to the directory containing the linker, and changes CWD.
+  clang "$@"
+else
+  %{toolchain_path_prefix}bin/clang "$@"
+fi
 
 function get_library_path() {
     for libdir in ${LIB_DIRS}; do
