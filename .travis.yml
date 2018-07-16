@@ -17,4 +17,4 @@ addons:
 
 script:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install bazel; fi
-  - cd travis && tests/run_tests.sh
+  - tests/run_tests.sh
