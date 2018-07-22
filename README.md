@@ -18,8 +18,13 @@ llvm_toolchain(
 )
 ```
 
-The in-built dictionary of URLs is good for Ubuntu 16.04 and macOS 10.13. For
-other environments, provide your own sources through the `urls` attribute.
+You can use the toolchain in your builds with
+`--crosstool_top=@llvm_toolchain//:toolchain`
+
+The toolchain should automatically detect your OS type, and use the right
+pre-built binary distribution from llvm.org. The detection is currently
+based on host OS, so docker based sandboxed builds, and remote execution
+builds can not be configured properly. We welcome PRs! :smile:
 
 For making changes to default settings for these toolchains, edit the
 CROSSTOOL.tpl file. The file is in ASCII protobuf format.
