@@ -122,6 +122,30 @@ toolchain {
   }
 
   linking_mode_flags { mode: DYNAMIC }
+
+  feature {
+    name: 'coverage'
+    provides: 'profile'
+    flag_set {
+      action: 'preprocess-assemble'
+      action: 'c-compile'
+      action: 'c++-compile'
+      action: 'c++-header-parsing'
+      action: 'c++-module-compile'
+      flag_group {
+        flag: '-fprofile-instr-generate'
+        flag: '-fcoverage-mapping'
+      }
+    }
+    flag_set {
+      action: 'c++-link-dynamic-library'
+      action: 'c++-link-nodeps-dynamic-library'
+      action: 'c++-link-executable'
+      flag_group {
+        flag: '-fprofile-instr-generate'
+      }
+    }
+  }
 }
 
 toolchain {
@@ -236,6 +260,30 @@ toolchain {
       flag_group {
         flag: "-F%{framework_paths}"
         iterate_over: "framework_paths"
+      }
+    }
+  }
+
+  feature {
+    name: 'coverage'
+    provides: 'profile'
+    flag_set {
+      action: 'preprocess-assemble'
+      action: 'c-compile'
+      action: 'c++-compile'
+      action: 'c++-header-parsing'
+      action: 'c++-module-compile'
+      flag_group {
+        flag: '-fprofile-instr-generate'
+        flag: '-fcoverage-mapping'
+      }
+    }
+    flag_set {
+      action: 'c++-link-dynamic-library'
+      action: 'c++-link-nodeps-dynamic-library'
+      action: 'c++-link-executable'
+      flag_group {
+        flag: '-fprofile-instr-generate'
       }
     }
   }
