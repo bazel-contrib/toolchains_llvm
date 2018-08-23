@@ -61,6 +61,8 @@ def _linux(llvm_version):
         os_name = "linux-sles%s" % version
     elif distname == "ubuntu":
         os_name = "linux-gnu-ubuntu-%s" % version
+    elif distname == "arch":
+        os_name = "linux-gnu-ubuntu-16.04"
     elif distname == "debian":
         os_name = "linux-gnu-debian%s" % version
     elif distname == "fedora":
