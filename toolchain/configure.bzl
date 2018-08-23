@@ -51,7 +51,7 @@ def _download_llvm_preconfigured(rctx):
 
     exec_result = rctx.execute([
         "/usr/bin/env",
-        "python",
+        "python2",
         rctx.path(rctx.attr._llvm_release_name),
         llvm_version,
     ])
