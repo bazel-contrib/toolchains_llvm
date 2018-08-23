@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Copyright 2018 The Bazel Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,7 +39,7 @@ def _linux(llvm_version):
         lines = release_file.readlines()
         info = dict()
         for line in lines:
-            line = line.decode('utf-8').strip()
+            line = line.strip()
             if not line:
                 continue
             [key, val] = line.split('=', 1)
@@ -79,7 +80,7 @@ def main():
     """Prints the pre-built distribution file name."""
 
     if len(sys.argv) != 2:
-        sys.exit("Usage: python %s llvm_version" % sys.argv[0])
+        sys.exit("Usage: %s llvm_version" % sys.argv[0])
 
     llvm_version = sys.argv[1]
 
