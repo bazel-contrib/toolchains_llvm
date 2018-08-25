@@ -49,15 +49,18 @@ def _download_llvm_preconfigured(rctx):
         url_base += [rctx.attr.llvm_mirror]
     url_base += ["https://releases.llvm.org"]
 
-    exec_result = rctx.execute([
-        rctx.path(rctx.attr._llvm_release_name),
-        llvm_version,
-    ])
-    if exec_result.return_code:
-        fail("Failed to detect host OS version: \n%s\n%s" % (exec_result.stdout, exec_result.stderr))
-    if exec_result.stderr:
-        print(exec_result.stderr)
-    basename = exec_result.stdout.strip()
+    if rctx.attr.distribution == "auto":
+        exec_result = rctx.execute([
+            rctx.path(rctx.attr._llvm_release_name),
+            llvm_version,
+        ])
+        if exec_result.return_code:
+            fail("Failed to detect host OS version: \n%s\n%s" % (exec_result.stdout, exec_result.stderr))
+        if exec_result.stderr:
+            print(exec_result.stderr)
+        basename = exec_result.stdout.strip()
+    else:
+        basename = rctx.attr.distribution
 
     if basename not in _sha256:
         fail("Unknown LLVM release: %s\nPlease ensure file name is correct." % basename)
@@ -146,9 +149,26 @@ llvm_toolchain = repository_rule(
             default = "6.0.0",
             doc = "One of the supported versions of LLVM.",
         ),
+        "distribution": attr.string(
+            default = "auto",
+            doc = ("LLVM pre-built binary distribution filename, must be one " +
+                   "listed on http://releases.llvm.org/download.html for the version " +
+                   "specified in the llvm_version attribute. A special value of " +
+                   "'auto' tries to detect the version based on host OS."),
+        ),
         "llvm_mirror": attr.string(
             doc = "Mirror base for LLVM binaries if using the pre-configured URLs.",
         ),
+        "absolute_paths": attr.bool(
+            default = False,
+            doc = "Whether to use absolute paths in CROSSTOOL. Avoids sandbox overhead.",
+        ),
+        "_llvm_release_name": attr.label(
+            default = "@com_grail_bazel_toolchain//toolchain:llvm_release_name.py",
+            allow_single_file = True,
+            doc = "Python module to output LLVM release name for the current OS.",
+        ),
+        # Following attributes are needed only when using a non-standard URL scheme.
         "urls": attr.string_list_dict(
             mandatory = False,
             doc = "URLs for each OS type (linux and darwin) if not using the pre-configured URLs.",
@@ -166,15 +186,6 @@ llvm_toolchain = repository_rule(
                 "darwin": "",
             },
             doc = "Path prefix to strip from the extracted files.",
-        ),
-        "absolute_paths": attr.bool(
-            default = False,
-            doc = "Whether to use absolute paths in CROSSTOOL. Avoids sandbox overhead.",
-        ),
-        "_llvm_release_name": attr.label(
-            default = "@com_grail_bazel_toolchain//toolchain:llvm_release_name.py",
-            allow_single_file = True,
-            doc = "Python module to output LLVM release name for the current OS.",
         ),
     },
     local = False,
