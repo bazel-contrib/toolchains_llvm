@@ -1,3 +1,4 @@
+#!/bin/bash
 # Copyright 2018 The Bazel Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,14 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-workspace(
-    name = "com_grail_bazel_toolchain",
-)
+set -euo pipefail
 
-load("@com_grail_bazel_toolchain//toolchain:configure.bzl", "llvm_toolchain")
-
-llvm_toolchain(
-    name = "llvm_toolchain",
-    absolute_paths = True,
-    llvm_version = "6.0.0",
-)
+bazel test \
+  --crosstool_top=@llvm_toolchain//:toolchain \
+  --copt=-v \
+  --linkopt=-Wl,-t \
+  --symlink_prefix=/ \
+  --color=yes \
+  --show_progress_rate_limit=30 \
+  --keep_going \
+  --test_output=errors \
+  //...

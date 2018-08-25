@@ -1,3 +1,4 @@
+#!/bin/bash
 # Copyright 2018 The Bazel Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,14 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-workspace(
-    name = "com_grail_bazel_toolchain",
-)
+set -euo pipefail
 
-load("@com_grail_bazel_toolchain//toolchain:configure.bzl", "llvm_toolchain")
+if ! command -v bazel; then
+  brew install bazel
+else
+  brew upgrade bazel || true
+fi
 
-llvm_toolchain(
-    name = "llvm_toolchain",
-    absolute_paths = True,
-    llvm_version = "6.0.0",
-)
+git_root=$(git rev-parse --show-toplevel)
+readonly git_root
+
+cd "${git_root}"
+
+tests/scripts/run_tests.sh
