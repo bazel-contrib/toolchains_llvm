@@ -16,7 +16,7 @@
 set -euo pipefail
 
 images=(
-"ubuntu:16.04"
+"debian:latest"
 )
 
 git_root=$(git rev-parse --show-toplevel)
@@ -25,11 +25,12 @@ readonly git_root
 for image in "${images[@]}"; do
   docker pull "${image}"
   docker run --rm -it --entrypoint=/bin/bash --volume="${git_root}:/src:ro" "${image}" -c """
-set -euo pipefail
+set -exuo pipefail
 
 # Common setup
+export DEBIAN_FRONTEND=noninteractive
 apt-get -qq update
-apt-get -qq -y install apt-utils curl pkg-config zip g++ zlib1g-dev unzip python >/dev/null
+apt-get -qq -y install apt-utils curl pkg-config zip g++ zlib1g-dev unzip python gnupg2 >/dev/null
 # The above command gives some verbose output that can not be silenced easily.
 # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=288778
 

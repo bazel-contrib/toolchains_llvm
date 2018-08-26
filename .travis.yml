@@ -9,9 +9,11 @@ matrix:
   include:
     - os: osx
       env: TEST_SH=mac_test.sh
-    - os: linux
-      # All linux tests are run through docker containers.
-      env: TEST_SH=ubuntu_test.sh
-
+    - env: TEST_SH=archlinux_test.sh
+    - env: TEST_SH=debian_test.sh
+    - env: TEST_SH=fedora_test.sh
+    - env: TEST_SH=ubuntu_14_04_test.sh
+    - env: TEST_SH=ubuntu_16_04_test.sh
+    - env: TEST_SH=ubuntu_18_04_test.sh
 
 script: "tests/scripts/${TEST_SH}"

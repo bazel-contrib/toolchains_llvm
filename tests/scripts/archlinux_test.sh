@@ -13,17 +13,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -exuo pipefail
+set -euo pipefail
 
-if ! command -v bazel; then
-  brew install bazel
-else
-  brew upgrade bazel || true
-fi
+images=(
+"base/archlinux:latest"
+)
 
 git_root=$(git rev-parse --show-toplevel)
 readonly git_root
 
-cd "${git_root}"
+for image in "${images[@]}"; do
+  docker pull "${image}"
+  docker run --rm -it --entrypoint=/bin/bash --volume="${git_root}:/src:ro" "${image}" -c """
+set -exuo pipefail
 
+# Install bazel
+pacman -Syu --noconfirm --quiet python gcc bazel
+
+# Run tests
+cd /src
 tests/scripts/run_tests.sh
+"""
+done

@@ -20,6 +20,5 @@ load("@com_grail_bazel_toolchain//toolchain:configure.bzl", "llvm_toolchain")
 
 llvm_toolchain(
     name = "llvm_toolchain",
-    absolute_paths = True,
     llvm_version = "6.0.0",
 )

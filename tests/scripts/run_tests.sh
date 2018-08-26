@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -euo pipefail
+set -exuo pipefail
 
 bazel test \
   --crosstool_top=@llvm_toolchain//:toolchain \

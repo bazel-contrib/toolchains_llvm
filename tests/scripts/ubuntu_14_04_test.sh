@@ -1,0 +1,50 @@
+#!/bin/bash
+# Copyright 2018 The Bazel Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+set -euo pipefail
+
+images=(
+"ubuntu:14.04"
+)
+
+git_root=$(git rev-parse --show-toplevel)
+readonly git_root
+
+for image in "${images[@]}"; do
+  docker pull "${image}"
+  docker run --rm -it --entrypoint=/bin/bash --volume="${git_root}:/src:ro" "${image}" -c """
+set -exuo pipefail
+
+# Common setup
+apt-get -qq update
+apt-get -qq -y install curl pkg-config zip g++ zlib1g-dev unzip python >/dev/null
+# The above command gives some verbose output that can not be silenced easily.
+# https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=288778
+
+# Install bazel
+version=0.16.0
+installer=\"bazel-\${version}-installer-linux-x86_64.sh\"
+installer_url=\"https://github.com/bazelbuild/bazel/releases/download/\${version}/\${installer}\"
+curl -L -s \"\${installer_url}\" -o \"\${installer}\"
+chmod u+x \"\${installer}\"
+./\"\${installer}\"
+rm \"\${installer}\"
+export PATH=\"\$PATH\":/usr/local/bin
+
+# Run tests
+cd /src
+tests/scripts/run_tests.sh
+"""
+done

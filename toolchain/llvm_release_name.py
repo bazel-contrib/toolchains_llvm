@@ -46,7 +46,7 @@ def _linux(llvm_version):
             info[key] = val
     if "ID" not in info:
         sys.exit("Could not find ID in /etc/os-release.")
-    distname = info["ID"]
+    distname = info["ID"].strip('\"')
 
     version = None
     if "VERSION_ID" in info:
@@ -60,16 +60,17 @@ def _linux(llvm_version):
         os_name = "unknown-freebsd-%s" % version
     elif distname == "suse":
         os_name = "linux-sles%s" % version
-    elif distname == "ubuntu":
-        os_name = "linux-gnu-ubuntu-%s" % version
-    elif distname == "arch":
+    elif distname == "ubuntu" and version.startswith("14.04"):
+        os_name = "linux-gnu-ubuntu-14.04"
+    elif distname in ["arch", "ubuntu"]:
         os_name = "linux-gnu-ubuntu-16.04"
-    elif distname == "debian":
-        os_name = "linux-gnu-debian%s" % version
-    elif distname == "fedora":
-        os_name = "linux-gnu-Fedora%s" % version
+    elif distname == "debian" and int(version) >= 8:
+        os_name = "linux-gnu-debian8"
+    elif ((distname == "fedora" and int(version) >= 27) or
+            (distname == "centos" and int(version) >= 7)):
+        os_name = "linux-gnu-Fedora27"
     else:
-        sys.exit("Unsupported linux distribution: %s" % distname)
+        sys.exit("Unsupported linux distribution and version: %s, %s" % (distname, version))
 
     return "clang+llvm-{llvm_version}-{arch}-{os_name}.tar.xz".format(
         llvm_version=llvm_version,

@@ -13,17 +13,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -exuo pipefail
+echo "This test is disabled because our supported versions of LLVM do not work with CentOS."
+exit 1
 
-if ! command -v bazel; then
-  brew install bazel
-else
-  brew upgrade bazel || true
-fi
+set -euo pipefail
+
+images=(
+"centos:7"
+)
 
 git_root=$(git rev-parse --show-toplevel)
 readonly git_root
 
-cd "${git_root}"
+for image in "${images[@]}"; do
+  docker pull "${image}"
+  docker run --rm -it --entrypoint=/bin/bash --volume="${git_root}:/src:ro" "${image}" -c """
+set -exuo pipefail
 
+# Install bazel
+curl -L -s https://copr.fedorainfracloud.org/coprs/vbatts/bazel/repo/epel-7/vbatts-bazel-epel-7.repo -o /etc/yum.repos.d/vbatts-bazel-epel-7.repo
+yum install -y -q gcc bazel
+
+# Run tests
+cd /src
 tests/scripts/run_tests.sh
+"""
+done
