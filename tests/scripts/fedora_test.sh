@@ -34,6 +34,6 @@ dnf install -qy python gcc bazel
 
 # Run tests
 cd /src
-tests/scripts/run_tests.sh
+tests/scripts/run_tests.sh -t llvm_toolchain_6_0_0
 """
 done
