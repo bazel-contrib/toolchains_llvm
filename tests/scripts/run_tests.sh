@@ -15,8 +15,21 @@
 
 set -exuo pipefail
 
+toolchain_name="llvm_toolchain"
+
+while getopts "t:h" opt; do
+  case "$opt" in
+    "t") toolchain_name="$OPTARG";;
+    "h") echo "Usage:"
+       echo "-t - Toolchain name to use for testing; default is llvm_toolchain"
+       exit 2
+       ;;
+    "?") echo "invalid option: -$OPTARG"; exit 1;;
+  esac
+done
+
 bazel test \
-  --crosstool_top=@llvm_toolchain//:toolchain \
+  --crosstool_top="@${toolchain_name}//:toolchain" \
   --copt=-v \
   --linkopt=-Wl,-t \
   --symlink_prefix=/ \

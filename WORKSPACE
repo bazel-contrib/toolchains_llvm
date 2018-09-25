@@ -22,3 +22,8 @@ llvm_toolchain(
     name = "llvm_toolchain",
     llvm_version = "7.0.0",
 )
+
+llvm_toolchain(
+    name = "llvm_toolchain_6_0_0",
+    llvm_version = "6.0.0",
+)
