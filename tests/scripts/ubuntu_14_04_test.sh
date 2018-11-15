@@ -34,7 +34,7 @@ apt-get -qq -y install curl pkg-config zip g++ zlib1g-dev unzip python >/dev/nul
 # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=288778
 
 # Install bazel
-version=0.16.0
+version=0.19.1
 installer=\"bazel-\${version}-installer-linux-x86_64.sh\"
 installer_url=\"https://github.com/bazelbuild/bazel/releases/download/\${version}/\${installer}\"
 curl -L -s \"\${installer_url}\" -o \"\${installer}\"
