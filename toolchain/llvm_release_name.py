@@ -62,7 +62,7 @@ def _linux(llvm_version):
         os_name = "linux-sles%s" % version
     elif distname == "ubuntu" and version.startswith("14.04"):
         os_name = "linux-gnu-ubuntu-14.04"
-    elif distname in ["arch", "ubuntu"]:
+    elif distname in ["arch", "ubuntu"] or (distname == "linuxmint" and version.startswith("18")):
         os_name = "linux-gnu-ubuntu-16.04"
     elif distname == "debian" and int(version) >= 8:
         os_name = "linux-gnu-debian8"
