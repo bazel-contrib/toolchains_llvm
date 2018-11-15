@@ -26,5 +26,9 @@ CXX11STD = -std=c++11
 CXX14STD = -std=c++14
 CXX17STD = -std=c++1z
 
-LDFLAGS += -fuse-ld=lld -l:libc++.a -l:libc++abi.a -l:libunwind.a -rtlib=compiler-rt -lpthread -ldl
-CPPFLAGS += -stdlib=libc++ -fdebug-prefix-map="%{absolute_toolchain_path}=%{debug_absolute_toolchain_path}" -DLIBCXX_USE_COMPILER_RT=YES
+CPPFLAGS += -stdlib=libc++ -fdebug-prefix-map="%{absolute_toolchain_path}=%{debug_toolchain_path_prefix}" -DLIBCXX_USE_COMPILER_RT=YES
+
+LDFLAGS = %{makevars_ld_flags} -rtlib=compiler-rt -lpthread -ldl -nostdlib++
+LDFLAGS += %{absolute_toolchain_path}/lib/libc++.a
+LDFLAGS += %{absolute_toolchain_path}/lib/libc++abi.a
+LDFLAGS += %{absolute_toolchain_path}/lib/libunwind.a

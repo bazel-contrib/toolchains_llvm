@@ -108,6 +108,13 @@ def _darwin_sdk_path(rctx):
         print(exec_result.stderr)
     return exec_result.stdout.strip()
 
+def _makevars_ld_flags(rctx):
+    if rctx.os.name == "mac os x":
+        return ""
+
+    # lld, as of LLVM 7, is experimental for Mach-O, so we use it only on linux.
+    return "-fuse-ld=lld"
+
 def _llvm_toolchain_impl(rctx):
     repo_path = str(rctx.path(""))
     relative_path_prefix = "external/%s/" % rctx.name
@@ -124,6 +131,7 @@ def _llvm_toolchain_impl(rctx):
         "%{darwin_sdk_path}": _darwin_sdk_path(rctx),
         "%{absolute_toolchain_path}": repo_path,
         "%{absolute_paths}": "True" if rctx.attr.absolute_paths else "False",
+        "%{makevars_ld_flags}": _makevars_ld_flags(rctx),
     }
 
     rctx.template(
