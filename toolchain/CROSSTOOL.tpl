@@ -15,6 +15,8 @@
 major_version: "unknown"
 minor_version: ""
 
+default_target_cpu: "" # Deprecated, but a required field in bazel 0.18 and less.
+
 # Dummy toolchain to satisfy constraints on cc_toolchain in local_config_cc;
 # these constraints are enforced even when nothing depends on local_config_cc.
 # The bug was introduced in bazel 0.19, and fixed in
