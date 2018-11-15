@@ -114,6 +114,7 @@ toolchain {
   compilation_mode_flags {
     mode: DBG
     compiler_flag: "-g"
+    compiler_flag: "-fstandalone-debug"
   }
 
   compilation_mode_flags {
