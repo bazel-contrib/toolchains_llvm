@@ -165,7 +165,7 @@ toolchain {
   abi_libc_version: "darwin_x86_64"
   needsPic: false
 
-  builtin_sysroot: ""
+  builtin_sysroot: "%{darwin_sdk_path}"
 
   # Working with symlinks
   compiler_flag: "-no-canonical-prefixes"
@@ -204,8 +204,8 @@ toolchain {
   # https://github.com/bazelbuild/bazel/blob/d61a185de8582d29dda7525bb04d8ffc5be3bd11/src/main/java/com/google/devtools/build/lib/rules/cpp/CcToolchain.java#L125
   cxx_builtin_include_directory: "%{toolchain_path_prefix}include/c++/v1"
   cxx_builtin_include_directory: "%{toolchain_path_prefix}lib/clang/%{llvm_version}/include"
-  cxx_builtin_include_directory: "/usr/include"
-  cxx_builtin_include_directory: "/System/Library/Frameworks"
+  cxx_builtin_include_directory: "%sysroot%/usr/include"
+  cxx_builtin_include_directory: "%sysroot%/System/Library/Frameworks"
   cxx_builtin_include_directory: "/Library/Frameworks"
 
   objcopy_embed_flag: "-I"

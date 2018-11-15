@@ -97,6 +97,17 @@ def _download_llvm(rctx):
 
     rctx.download_and_extract(urls, sha256 = sha256, stripPrefix = prefix)
 
+def _darwin_sdk_path(rctx):
+    if rctx.os.name != "mac os x":
+        return ""
+
+    exec_result = rctx.execute(["/usr/bin/xcrun", "--show-sdk-path", "--sdk", "macosx"])
+    if exec_result.return_code:
+        fail("Failed to detect OSX SDK path: \n%\n%s" % (exec_result.stdout, exec_result.stderr))
+    if exec_result.stderr:
+        print(exec_result.stderr)
+    return exec_result.stdout.strip()
+
 def _llvm_toolchain_impl(rctx):
     repo_path = str(rctx.path(""))
     relative_path_prefix = "external/%s/" % rctx.name
@@ -110,6 +121,7 @@ def _llvm_toolchain_impl(rctx):
         "%{toolchain_path_prefix}": toolchain_path_prefix,
         "%{tools_path_prefix}": (repo_path + "/") if rctx.attr.absolute_paths else "",
         "%{debug_toolchain_path_prefix}": relative_path_prefix,
+        "%{darwin_sdk_path}": _darwin_sdk_path(rctx),
         "%{absolute_toolchain_path}": repo_path,
         "%{absolute_paths}": "True" if rctx.attr.absolute_paths else "False",
     }
