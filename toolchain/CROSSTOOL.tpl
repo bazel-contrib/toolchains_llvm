@@ -12,26 +12,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-major_version: "local"
+major_version: "unknown"
 minor_version: ""
-default_target_cpu: "same_as_host"
 
-default_toolchain {
-  cpu: "k8"
-  toolchain_identifier: "clang-linux"
-}
-
-default_toolchain {
-  cpu: "darwin"
-  toolchain_identifier: "clang-darwin"
+# Dummy toolchain to satisfy constraints on cc_toolchain in local_config_cc;
+# these constraints are enforced even when nothing depends on local_config_cc.
+# The bug was introduced in bazel 0.19, and fixed in
+# https://github.com/bazelbuild/bazel/commit/683c302129b66a8999f986be5ae7e642707e978c
+toolchain {
+  toolchain_identifier: "local"
+  abi_version: "local"
+  abi_libc_version: "local"
+  compiler: "local"
+  host_system_name: "local"
+  target_system_name: "local"
+  target_cpu: "local"
+  target_libc: "local"
 }
 
 toolchain {
   toolchain_identifier: "clang-linux"
-  abi_version: "local"
-  abi_libc_version: "local"
+  abi_version: "clang"
+  abi_libc_version: "glibc_unknown"
   compiler: "clang"
-  host_system_name: "local"
+  host_system_name: "x86_64"
   needsPic: true
   supports_incremental_linker: false
   supports_fission: false
@@ -39,9 +43,9 @@ toolchain {
   supports_normalizing_ar: false
   supports_start_end_lib: true
   supports_gold_linker: true
-  target_libc: "local"
+  target_libc: "glibc_unknown"
   target_cpu: "k8"
-  target_system_name: "local"
+  target_system_name: "x86_64-unknown-linux-gnu"
 
   builtin_sysroot: ""
 
