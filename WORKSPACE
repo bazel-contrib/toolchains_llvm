@@ -16,7 +16,7 @@ workspace(
     name = "com_grail_bazel_toolchain",
 )
 
-load("@com_grail_bazel_toolchain//toolchain:configure.bzl", "llvm_toolchain")
+load("@com_grail_bazel_toolchain//toolchain:rules.bzl", "llvm_toolchain")
 
 llvm_toolchain(
     name = "llvm_toolchain",
@@ -26,4 +26,29 @@ llvm_toolchain(
 llvm_toolchain(
     name = "llvm_toolchain_6_0_0",
     llvm_version = "6.0.0",
+)
+
+## Toolchain example with a sysroot.
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+# This sysroot is used by github.com/vsco/bazel-toolchains.
+http_archive(
+    name = "org_chromium_sysroot_linux_x64",
+    build_file_content = """
+filegroup(
+  name = "sysroot",
+  srcs = glob(["*/**"]),
+  visibility = ["//visibility:public"],
+)
+""",
+    sha256 = "84656a6df544ecef62169cfe3ab6e41bb4346a62d3ba2a045dc5a0a2ecea94a3",
+    urls = ["https://commondatastorage.googleapis.com/chrome-linux-sysroot/toolchain/2202c161310ffde63729f29d27fe7bb24a0bc540/debian_stretch_amd64_sysroot.tar.xz"],
+)
+
+llvm_toolchain(
+    name = "llvm_toolchain_linux_sysroot",
+    llvm_version = "7.0.0",
+    sysroot = {
+        "linux": "@org_chromium_sysroot_linux_x64//:sysroot",
+    },
 )

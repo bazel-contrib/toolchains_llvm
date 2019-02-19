@@ -49,7 +49,7 @@ toolchain {
   target_cpu: "k8"
   target_system_name: "x86_64-unknown-linux-gnu"
 
-  builtin_sysroot: ""
+  builtin_sysroot: "%{sysroot_path}"
 
   # Working with symlinks; anticipated to be a future default.
   compiler_flag: "-no-canonical-prefixes"
@@ -75,6 +75,7 @@ toolchain {
   cxx_flag: "-std=c++17"
   cxx_flag: "-stdlib=libc++"
   # The linker has no way of knowing if there are C++ objects; so we always link C++ libraries.
+  linker_flag: "-L%{toolchain_path_prefix}lib"
   linker_flag: "-l:libc++.a"
   linker_flag: "-l:libc++abi.a"
   linker_flag: "-l:libunwind.a"
@@ -93,9 +94,9 @@ toolchain {
   # https://github.com/bazelbuild/bazel/blob/d61a185de8582d29dda7525bb04d8ffc5be3bd11/src/main/java/com/google/devtools/build/lib/rules/cpp/CcToolchain.java#L125
   cxx_builtin_include_directory: "%{toolchain_path_prefix}include/c++/v1"
   cxx_builtin_include_directory: "%{toolchain_path_prefix}lib/clang/%{llvm_version}/include"
-  cxx_builtin_include_directory: "/include"
-  cxx_builtin_include_directory: "/usr/include"
-  cxx_builtin_include_directory: "/usr/local/include"
+  cxx_builtin_include_directory: "%{sysroot_prefix}/include"
+  cxx_builtin_include_directory: "%{sysroot_prefix}/usr/include"
+  cxx_builtin_include_directory: "%{sysroot_prefix}/usr/local/include"
 
   objcopy_embed_flag: "-I"
   objcopy_embed_flag: "binary"
@@ -166,7 +167,7 @@ toolchain {
   abi_libc_version: "darwin_x86_64"
   needsPic: false
 
-  builtin_sysroot: "%{darwin_sdk_path}"
+  builtin_sysroot: "%{sysroot_path}"
 
   # Working with symlinks
   compiler_flag: "-no-canonical-prefixes"
@@ -205,8 +206,8 @@ toolchain {
   # https://github.com/bazelbuild/bazel/blob/d61a185de8582d29dda7525bb04d8ffc5be3bd11/src/main/java/com/google/devtools/build/lib/rules/cpp/CcToolchain.java#L125
   cxx_builtin_include_directory: "%{toolchain_path_prefix}include/c++/v1"
   cxx_builtin_include_directory: "%{toolchain_path_prefix}lib/clang/%{llvm_version}/include"
-  cxx_builtin_include_directory: "%sysroot%/usr/include"
-  cxx_builtin_include_directory: "%sysroot%/System/Library/Frameworks"
+  cxx_builtin_include_directory: "%{sysroot_prefix}/usr/include"
+  cxx_builtin_include_directory: "%{sysroot_prefix}/System/Library/Frameworks"
   cxx_builtin_include_directory: "/Library/Frameworks"
 
   objcopy_embed_flag: "-I"

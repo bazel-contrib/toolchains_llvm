@@ -26,6 +26,11 @@ filegroup(
     srcs = ["bin/cc_wrapper.sh"],
 )
 
+filegroup(
+    name = "sysroot_components",
+    srcs = [%{sysroot_label}],
+)
+
 cc_toolchain_suite(
     name = "toolchain",
     toolchains = {
@@ -36,7 +41,7 @@ cc_toolchain_suite(
     },
 )
 
-load("@com_grail_bazel_toolchain//toolchain:configure.bzl", "conditional_cc_toolchain")
+load("@com_grail_bazel_toolchain//toolchain:rules.bzl", "conditional_cc_toolchain")
 
 conditional_cc_toolchain("cc-clang-linux", "k8", False, %{absolute_paths})
 conditional_cc_toolchain("cc-clang-darwin", "darwin", True, %{absolute_paths})
@@ -90,6 +95,7 @@ filegroup(
     srcs = [
         ":clang",
         ":include",
+        ":sysroot_components",
     ],
 )
 
@@ -150,6 +156,7 @@ filegroup(
         ":clang",
         ":ld",
         ":lib",
+        ":sysroot_components",
     ],
 )
 

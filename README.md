@@ -10,7 +10,7 @@ http_archive(
     urls = ["https://github.com/grailbio/bazel-toolchain/archive/master.tar.gz"],
 )
 
-load("@com_grail_bazel_toolchain//toolchain:configure.bzl", "llvm_toolchain")
+load("@com_grail_bazel_toolchain//toolchain:rules.bzl", "llvm_toolchain")
 
 llvm_toolchain(
     name = "llvm_toolchain",
@@ -28,6 +28,9 @@ sandboxed builds, and remote execution builds will need toolchains configured
 manually through the `distribution` attribute. We expect the detection logic to
 grow through community contributions. We welcome PRs! :smile:
 
+See in-code documentation in [rules.bzl](toolchain/rules.bzl) for available
+attributes to `llvm_toolchain`.
+
 For making changes to default settings for these toolchains, edit the
 CROSSTOOL.tpl file. The file is in ASCII protobuf format.
 
@@ -39,6 +42,13 @@ Notes:
   repository.  People elsewhere have used wrapper scripts to avoid symlinking
   and get better control of the environment in which the toolchain binaries are
   run.
+
+- A sysroot can be specified through the `sysroot` attribute. This can be either
+  a path on the user's system, or a bazel `filegroup` like label. One way to
+  create a sysroot is to use `docker export` to get a single archive of the
+  entire filesystem for the image you want. Another way is to use the build
+  scripts provided by the
+  [Chromium project](https://chromium.googlesource.com/chromium/src/+/HEAD/docs/linux_sysroot.md).
 
 - Sandboxing the toolchain introduces a significant overhead (100ms per
   action). To overcome this, one can use
@@ -57,10 +67,6 @@ Notes:
   The Makevars file provided will always use absolute paths. This implies that
   the build actions are not reproducible across multiple workspaces, although
   the build outputs can be.
-
-- The toolchain is almost hermetic but borrows system headers and libraries
-  from the user's system. If needed, we can package a sysroot for our build
-  environment and set `builtin_sysroot` in CROSSTOOL.
 
 Other examples of toolchain configuration:
 

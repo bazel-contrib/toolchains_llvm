@@ -12,12 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This BUILD file exports the templates and static files needed for dynamic toolchain configuration.
-# See internal/configure.bzl for how they are used.
-
-exports_files(
-    glob(
-        ["*"],
-        exclude = ["BUILD.bazel"],
-    ),
-)
+exports_files(["llvm_release_name.py"])
