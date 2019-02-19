@@ -61,13 +61,6 @@ Notes:
 - The toolchain is known to also work with `rules_go`, both with absolute and
   relative paths.
 
-- There is no R toolchain yet, so the Makevars file has been repurposed to
-  provide the right configuration, but only when using `cc_deps` attribute of
-  `r_pkg`. All packages not using `cc_deps` are free to configure themselves.
-  The Makevars file provided will always use absolute paths. This implies that
-  the build actions are not reproducible across multiple workspaces, although
-  the build outputs can be.
-
 Other examples of toolchain configuration:
 
 https://github.com/bazelbuild/bazel/wiki/Building-with-a-custom-toolchain

@@ -46,7 +46,6 @@ def llvm_toolchain_impl(rctx):
         "%{sysroot_path}": sysroot_path,
         "%{sysroot_prefix}": "%sysroot%" if sysroot_path else "",
         "%{sysroot_label}": "\"%s\"" % str(sysroot) if sysroot else "",
-        "%{absolute_toolchain_path}": repo_path,
         "%{absolute_paths}": "True" if rctx.attr.absolute_paths else "False",
         "%{makevars_ld_flags}": _makevars_ld_flags(rctx),
     }
