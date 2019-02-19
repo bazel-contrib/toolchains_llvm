@@ -53,7 +53,7 @@ done
 
 
 # Call the C++ compiler.
-if [[ "${PATH}" == *"%{toolchain_path_prefix}bin" ]]; then
+if [[ "${PATH}:" == *"%{toolchain_path_prefix}bin:"* ]]; then
   # GoCompile sets the PATH to the directory containing the linker, and changes CWD.
   clang "$@"
 else
