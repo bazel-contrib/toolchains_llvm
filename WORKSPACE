@@ -20,7 +20,7 @@ load("@com_grail_bazel_toolchain//toolchain:rules.bzl", "llvm_toolchain")
 
 llvm_toolchain(
     name = "llvm_toolchain",
-    llvm_version = "7.0.0",
+    llvm_version = "8.0.0",
 )
 
 llvm_toolchain(
@@ -47,7 +47,7 @@ filegroup(
 
 llvm_toolchain(
     name = "llvm_toolchain_linux_sysroot",
-    llvm_version = "7.0.0",
+    llvm_version = "8.0.0",
     sysroot = {
         "linux": "@org_chromium_sysroot_linux_x64//:sysroot",
     },
