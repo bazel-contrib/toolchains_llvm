@@ -97,10 +97,8 @@ def conditional_cc_toolchain(name, cpu, darwin, absolute_paths = False):
             all_files = ":empty",
             compiler_files = ":empty",
             dwp_files = ":empty",
-            dynamic_runtime_libs = [":empty"],
             linker_files = ":empty",
             objcopy_files = ":empty",
-            static_runtime_libs = [":empty"],
             strip_files = ":empty",
             supports_param_files = 0 if darwin else 1,
         )
@@ -116,10 +114,8 @@ def conditional_cc_toolchain(name, cpu, darwin, absolute_paths = False):
             all_files = name + "-all-files",
             compiler_files = name + "-compiler-files",
             dwp_files = ":empty",
-            dynamic_runtime_libs = [":empty"],
             linker_files = name + "-linker-files",
             objcopy_files = ":objcopy",
-            static_runtime_libs = [":empty"],
             strip_files = ":empty",
             supports_param_files = 0 if darwin else 1,
         )
