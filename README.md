@@ -51,15 +51,15 @@ Notes:
   [Chromium project](https://chromium.googlesource.com/chromium/src/+/HEAD/docs/linux_sysroot.md).
 
 - Sandboxing the toolchain introduces a significant overhead (100ms per
-  action). To overcome this, one can use
+  action, as of mid 2018). To overcome this, one can use
   `--experimental_sandbox_base=/dev/shm`.  However, not all environments might
-  have enough shared memory available to load all the files in memory. That is
-  why we have templated the paths to the toolchain as absolute paths. When
-  running bazel actions, these paths will be available from inside the sandbox
-  as part of the / read-only mount.
+  have enough shared memory available to load all the files in memory. If this
+  is a concern, you may set the attribute for using absolute paths, which will
+  substitute templated paths to the toolchain as absolute paths. When running
+  bazel actions, these paths will be available from inside the sandbox as part of
+  the / read-only mount. Note that this will make your builds non-hermetic.
 
-- The toolchain is known to also work with `rules_go`, both with absolute and
-  relative paths.
+- The toolchain is known to also work with `rules_go`.
 
 Other examples of toolchain configuration:
 
