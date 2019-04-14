@@ -61,6 +61,10 @@ Notes:
 
 - The toolchain is known to also work with `rules_go`.
 
+- The LLVM toolchain also provides several tools like `clang-format`. You can
+  depend on these tools directly in the bin directory of the toolchain. For
+  example, `@llvm_toolchain//:bin/clang-format` is a valid and visible target.
+
 Other examples of toolchain configuration:
 
 https://github.com/bazelbuild/bazel/wiki/Building-with-a-custom-toolchain
