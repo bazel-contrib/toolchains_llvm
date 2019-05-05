@@ -32,9 +32,8 @@ See in-code documentation in [rules.bzl](toolchain/rules.bzl) for available
 attributes to `llvm_toolchain`.
 
 For making changes to default settings for these toolchains, edit the
-CROSSTOOL.tpl file. The file is in ASCII protobuf format.
-
-https://github.com/bazelbuild/bazel/wiki/About-the-CROSSTOOL
+cc_toolchain_config template. See [tutorial](
+https://github.com/bazelbuild/bazel/blob/master/site/docs/tutorial/cc-toolchain-config.md).
 
 Notes:
 

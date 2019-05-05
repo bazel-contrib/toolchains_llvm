@@ -14,9 +14,12 @@
 
 load(
     "@com_grail_bazel_toolchain//toolchain/internal:configure.bzl",
-    "conditional_cc_toolchain",
+    _conditional_cc_toolchain = "conditional_cc_toolchain",
     _llvm_toolchain_impl = "llvm_toolchain_impl",
 )
+
+# Symbols exported for public visibility.
+conditional_cc_toolchain = _conditional_cc_toolchain
 
 llvm_toolchain = repository_rule(
     attrs = {
@@ -44,7 +47,7 @@ llvm_toolchain = repository_rule(
         ),
         "absolute_paths": attr.bool(
             default = False,
-            doc = "Whether to use absolute paths in CROSSTOOL. Avoids sandbox overhead.",
+            doc = "Use absolute paths in the toolchain. Avoids sandbox overhead.",
         ),
         "_llvm_release_name": attr.label(
             default = "@com_grail_bazel_toolchain//toolchain/tools:llvm_release_name.py",
