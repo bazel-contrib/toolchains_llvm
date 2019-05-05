@@ -30,9 +30,8 @@ for image in "${images[@]}"; do
   docker run --rm -it --entrypoint=/bin/bash --volume="${git_root}:/src:ro" "${image}" -c """
 set -exuo pipefail
 
-# Install bazel
-curl -L -s https://copr.fedorainfracloud.org/coprs/vbatts/bazel/repo/epel-7/vbatts-bazel-epel-7.repo -o /etc/yum.repos.d/vbatts-bazel-epel-7.repo
-yum install -y -q gcc bazel
+# Install dependencies
+yum install -y -q gcc
 
 # Run tests
 cd /src

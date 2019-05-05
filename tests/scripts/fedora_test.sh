@@ -27,10 +27,9 @@ for image in "${images[@]}"; do
   docker run --rm -it --entrypoint=/bin/bash --volume="${git_root}:/src:ro" "${image}" -c """
 set -exuo pipefail
 
-# Install bazel
+# Install dependencies
 dnf install -qy dnf-plugins-core
-dnf copr enable -y vbatts/bazel
-dnf install -qy python gcc bazel
+dnf install -qy python gcc
 
 # Run tests
 cd /src

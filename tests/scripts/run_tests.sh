@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -exuo pipefail
+set -euo pipefail
 
 toolchain_name="llvm_toolchain"
 
@@ -28,7 +28,19 @@ while getopts "t:h" opt; do
   esac
 done
 
-bazel test \
+os="$(uname -s | tr "[:upper:]" "[:lower:]")"
+readonly os
+readonly url="https://github.com/philwo/bazelisk/releases/download/v0.0.4/bazelisk-${os}-amd64"
+
+bazelisk="${TMPDIR:-/tmp}/bazelisk"
+readonly bazelisk
+
+curl -L -sSf -o "${bazelisk}" "${url}"
+chmod a+x "${bazelisk}"
+
+set -x
+"${bazelisk}" version
+"${bazelisk}" test \
   --crosstool_top="@${toolchain_name}//:toolchain" \
   --copt=-v \
   --linkopt=-Wl,-t \

@@ -34,12 +34,6 @@ apt-get -qq -y install apt-utils curl pkg-config zip g++ zlib1g-dev unzip python
 # The above command gives some verbose output that can not be silenced easily.
 # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=288778
 
-# Install bazel
-echo 'deb [arch=amd64] http://storage.googleapis.com/bazel-apt stable jdk1.8' | tee /etc/apt/sources.list.d/bazel.list
-curl -s https://bazel.build/bazel-release.pub.gpg | apt-key add -
-apt-get -qq update
-apt-get -qq -y install bazel >/dev/null
-
 # Run tests
 cd /src
 tests/scripts/run_tests.sh

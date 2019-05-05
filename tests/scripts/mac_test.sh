@@ -15,12 +15,6 @@
 
 set -exuo pipefail
 
-if ! command -v bazel; then
-  brew install bazel
-else
-  brew upgrade bazel || true
-fi
-
 git_root=$(git rev-parse --show-toplevel)
 readonly git_root
 
