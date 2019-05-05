@@ -30,17 +30,19 @@ done
 
 os="$(uname -s | tr "[:upper:]" "[:lower:]")"
 readonly os
-readonly url="https://github.com/philwo/bazelisk/releases/download/v0.0.4/bazelisk-${os}-amd64"
+# github API is rate limited, making use of bazelisk unpredictable because bazelisk uses the API to fetch bazel release information.
+#readonly url="https://github.com/philwo/bazelisk/releases/download/v0.0.4/bazelisk-${os}-amd64"
+readonly url="https://github.com/bazelbuild/bazel/releases/download/0.25.0/bazel-0.25.0-${os}-x86_64"
 
-bazelisk="${TMPDIR:-/tmp}/bazelisk"
-readonly bazelisk
+bazel="${TMPDIR:-/tmp}/bazel"
+readonly bazel
 
-curl -L -sSf -o "${bazelisk}" "${url}"
-chmod a+x "${bazelisk}"
+curl -L -sSf -o "${bazel}" "${url}"
+chmod a+x "${bazel}"
 
 set -x
-"${bazelisk}" version
-"${bazelisk}" test \
+"${bazel}" version
+"${bazel}" test \
   --crosstool_top="@${toolchain_name}//:toolchain" \
   --copt=-v \
   --linkopt=-Wl,-t \
