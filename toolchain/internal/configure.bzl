@@ -29,6 +29,12 @@ def _makevars_ld_flags(rctx):
     # lld, as of LLVM 7, is experimental for Mach-O, so we use it only on linux.
     return "-fuse-ld=lld"
 
+def _include_dirs_str(rctx, cpu):
+    dirs = rctx.attr.cxx_builtin_include_directories.get(cpu)
+    if not dirs:
+        return ""
+    return ("\n" + 12 * " ").join(["\"%s\"," % d for d in dirs])
+
 def llvm_toolchain_impl(rctx):
     repo_path = str(rctx.path(""))
     relative_path_prefix = "external/%s/" % rctx.name
@@ -48,6 +54,8 @@ def llvm_toolchain_impl(rctx):
         "%{sysroot_label}": "\"%s\"" % str(sysroot) if sysroot else "",
         "%{absolute_paths}": "True" if rctx.attr.absolute_paths else "False",
         "%{makevars_ld_flags}": _makevars_ld_flags(rctx),
+        "%{k8_additional_cxx_builtin_include_directories}": _include_dirs_str(rctx, "k8"),
+        "%{darwin_additional_cxx_builtin_include_directories}": _include_dirs_str(rctx, "darwin"),
     }
 
     rctx.template(

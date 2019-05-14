@@ -42,6 +42,12 @@ llvm_toolchain = repository_rule(
                    "path. Else, the value will be assumed to be a label containing the files and " +
                    "the sysroot path will be taken as the path to the package of this label."),
         ),
+        "cxx_builtin_include_directories": attr.string_list_dict(
+            mandatory = False,
+            doc = ("Additional builtin include directories to be added to the default system " +
+                   "directories, keyed by the CPU type (e.g. k8 or darwin). See documentation " +
+                   "for bazel's create_cc_toolchain_config_info."),
+        ),
         "llvm_mirror": attr.string(
             doc = "Mirror base for LLVM binaries if using the pre-configured URLs.",
         ),

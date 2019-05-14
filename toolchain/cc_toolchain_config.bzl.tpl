@@ -488,6 +488,8 @@ def _impl(ctx):
             "%{sysroot_prefix}/include",
             "%{sysroot_prefix}/usr/include",
             "%{sysroot_prefix}/usr/local/include",
+        ] + [
+            %{k8_additional_cxx_builtin_include_directories}
         ]
     elif (ctx.attr.cpu == "darwin"):
         cxx_builtin_include_directories = [
@@ -496,6 +498,8 @@ def _impl(ctx):
             "%{sysroot_prefix}/usr/include",
             "%{sysroot_prefix}/System/Library/Frameworks",
             "/Library/Frameworks",
+        ] + [
+            %{darwin_additional_cxx_builtin_include_directories}
         ]
     else:
         fail("Unreachable")
