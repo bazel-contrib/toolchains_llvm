@@ -224,7 +224,7 @@ def _impl(ctx):
                     flag_group(
                         flags = [
                             # Security
-                            "-D_FORTIFY_SOURCE=0",  # https://github.com/google/sanitizers/issues/247
+                            "-U_FORTIFY_SOURCE",  # https://github.com/google/sanitizers/issues/247
                             "-fstack-protector",
                             "-fno-omit-frame-pointer",
                             # Diagnostics
