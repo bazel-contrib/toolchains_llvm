@@ -206,12 +206,13 @@ def _impl(ctx):
                     ),
                 ],
             ),
+        ] + ([
             flag_set(
                 actions = all_link_actions,
                 flag_groups = [flag_group(flags = ["-Wl,--gc-sections"])],
                 with_features = [with_feature_set(features = ["opt"])],
             ),
-        ],
+        ] if ctx.attr.cpu == "k8" else []),
     )
 
     default_compile_flags_feature = feature(
