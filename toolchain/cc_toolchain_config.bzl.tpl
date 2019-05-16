@@ -155,6 +155,8 @@ def _impl(ctx):
             "-lc++",
             "-lc++abi",
             "-headerpad_max_install_names",
+            "-undefined",
+            "dynamic_lookup",
         ]
     else:
         fail("Unreachable")
