@@ -52,6 +52,8 @@ def _linux(llvm_version):
     if "VERSION_ID" in info:
         version = info["VERSION_ID"].strip('"')
 
+    major_llvm_version = int(llvm_version.split(".")[0])
+
     # NOTE: Many of these systems are untested because I do not have access to them.
     # If you find this mapping wrong, please send a Pull Request on Github.
     if arch in ["aarch64", "armv7a", "mips", "mipsel"]:
@@ -66,8 +68,10 @@ def _linux(llvm_version):
         os_name = "linux-gnu-ubuntu-18.04"
     elif distname in ["arch", "ubuntu"] or (distname == "linuxmint" and version.startswith("18")):
         os_name = "linux-gnu-ubuntu-16.04"
-    elif distname == "debian" and int(version) >= 8:
+    elif distname == "debian" and int(version) == 8 and major_llvm_version < 7:
         os_name = "linux-gnu-debian8"
+    elif distname == "debian" and int(version) >= 9 and major_llvm_version >= 7:
+        os_name = "linux-gnu-ubuntu-16.04"
     elif ((distname == "fedora" and int(version) >= 27) or
           (distname == "centos" and int(version) >= 7)):
         os_name = "linux-gnu-Fedora27"

@@ -36,6 +36,6 @@ apt-get -qq -y install apt-utils curl pkg-config zip g++ zlib1g-dev unzip python
 
 # Run tests
 cd /src
-tests/scripts/run_tests.sh -t llvm_toolchain_6_0_0
+tests/scripts/run_tests.sh
 """
 done

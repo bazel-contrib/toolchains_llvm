@@ -23,11 +23,6 @@ llvm_toolchain(
     llvm_version = "8.0.0",
 )
 
-llvm_toolchain(
-    name = "llvm_toolchain_6_0_0",
-    llvm_version = "6.0.0",
-)
-
 ## Toolchain example with a sysroot.
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
