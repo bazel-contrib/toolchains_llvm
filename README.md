@@ -16,10 +16,11 @@ llvm_toolchain(
     name = "llvm_toolchain",
     llvm_version = "8.0.0",
 )
-```
 
-You can use the toolchain in your builds with
-`--crosstool_top=@llvm_toolchain//:toolchain`
+load("@llvm_toolchain//:toolchains.bzl", "llvm_register_toolchains")
+
+llvm_register_toolchains()
+```
 
 The toolchain can automatically detect your OS type, and use the right
 pre-built binary distribution from llvm.org. The detection is currently
@@ -34,6 +35,13 @@ attributes to `llvm_toolchain`.
 For making changes to default settings for these toolchains, edit the
 cc_toolchain_config template. See [tutorial](
 https://github.com/bazelbuild/bazel/blob/master/site/docs/tutorial/cc-toolchain-config.md).
+
+For overriding toolchains on the command line, please use the
+`--extra_toolchains` flag in lieu of the deprecated `--crosstools_top` flag.
+For example, `--extra_toolchains=@llvm_toolchain//:cc-toolchain-linux`.
+
+If you would like to use the older method of selecting toolchains, you can
+continue to do so with `--crosstool_top=@llvm_toolchain//:toolchain`.
 
 Notes:
 

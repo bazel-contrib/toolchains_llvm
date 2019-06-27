@@ -1,4 +1,3 @@
-#!/bin/bash
 # Copyright 2018 The Bazel Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,26 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -euo pipefail
-
-images=(
-"fedora:latest"
-)
-
-git_root=$(git rev-parse --show-toplevel)
-readonly git_root
-
-for image in "${images[@]}"; do
-  docker pull "${image}"
-  docker run --rm -it --entrypoint=/bin/bash --volume="${git_root}:/src:ro" "${image}" -c """
-set -exuo pipefail
-
-# Install dependencies
-dnf install -qy dnf-plugins-core
-dnf install -qy python gcc
-
-# Run tests
-cd /src
-tests/scripts/run_tests.sh
-"""
-done
+def llvm_register_toolchains():
+    native.register_toolchains(
+        "@%{repo_name}//:cc-toolchain-linux",
+        "@%{repo_name}//:cc-toolchain-darwin",
+    )

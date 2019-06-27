@@ -64,7 +64,7 @@ toolchain(
         "@bazel_tools//platforms:osx",
     ],
     toolchain = ":cc-clang-darwin",
-    toolchain_type = "@bazel_tools//cpp:toolchain_type",
+    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
 )
 
 toolchain(
@@ -78,7 +78,7 @@ toolchain(
         "@bazel_tools//platforms:linux",
     ],
     toolchain = ":cc-clang-linux",
-    toolchain_type = "@bazel_tools//cpp:toolchain_type",
+    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
 )
 
 load("@com_grail_bazel_toolchain//toolchain:rules.bzl", "conditional_cc_toolchain")

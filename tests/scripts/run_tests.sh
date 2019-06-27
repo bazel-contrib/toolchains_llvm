@@ -15,7 +15,7 @@
 
 set -euo pipefail
 
-toolchain_name="llvm_toolchain"
+toolchain_name=""
 
 while getopts "t:h" opt; do
   case "$opt" in
@@ -30,10 +30,10 @@ done
 
 os="$(uname -s | tr "[:upper:]" "[:lower:]")"
 readonly os
-# github API is rate limited, making use of bazelisk unpredictable because bazelisk uses the API to fetch bazel release information.
-#readonly url="https://github.com/philwo/bazelisk/releases/download/v0.0.4/bazelisk-${os}-amd64"
-readonly url="https://github.com/bazelbuild/bazel/releases/download/0.25.0/bazel-0.25.0-${os}-x86_64"
 
+# Use bazelisk to catch migration problems.
+# Value of BAZELISK_GITHUB_TOKEN is set as a secret on Travis.
+readonly url="https://github.com/bazelbuild/bazelisk/releases/download/v0.0.8/bazelisk-${os}-amd64"
 bazel="${TMPDIR:-/tmp}/bazel"
 readonly bazel
 
@@ -42,8 +42,8 @@ chmod a+x "${bazel}"
 
 set -x
 "${bazel}" version
-"${bazel}" test \
-  --crosstool_top="@${toolchain_name}//:toolchain" \
+"${bazel}" --migrate test \
+  --extra_toolchains="${toolchain_name}" \
   --copt=-v \
   --linkopt=-Wl,-t \
   --symlink_prefix=/ \

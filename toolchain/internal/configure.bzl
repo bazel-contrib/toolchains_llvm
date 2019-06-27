@@ -45,6 +45,7 @@ def llvm_toolchain_impl(rctx):
 
     sysroot_path, sysroot = _sysroot_path(rctx)
     substitutions = {
+        "%{repo_name}": rctx.name,
         "%{llvm_version}": rctx.attr.llvm_version,
         "%{toolchain_path_prefix}": toolchain_path_prefix,
         "%{tools_path_prefix}": (repo_path + "/") if rctx.attr.absolute_paths else "",
@@ -58,6 +59,11 @@ def llvm_toolchain_impl(rctx):
         "%{darwin_additional_cxx_builtin_include_directories}": _include_dirs_str(rctx, "darwin"),
     }
 
+    rctx.template(
+        "toolchains.bzl",
+        Label("@com_grail_bazel_toolchain//toolchain:toolchains.bzl.tpl"),
+        substitutions,
+    )
     rctx.template(
         "cc_toolchain_config.bzl",
         Label("@com_grail_bazel_toolchain//toolchain:cc_toolchain_config.bzl.tpl"),
