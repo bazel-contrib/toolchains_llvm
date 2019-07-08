@@ -60,6 +60,21 @@ _llvm_distributions = {
     "clang+llvm-8.0.0-x86_64-linux-sles11.3.tar.xz": "7e2846ff60c181d1f27d97c23c25a2295f5730b6d88612ddd53b4cbb8177c4b9",
 }
 
+def _python(rctx):
+    # Get path of the python interpreter.
+
+    python3 = rctx.which("python3")
+    python = rctx.which("python")
+    python2 = rctx.which("python2")
+    if python3:
+        return python3
+    elif python:
+        return python
+    elif python2:
+        return python2
+    else:
+        fail("python not found")
+
 def download_llvm_preconfigured(rctx):
     llvm_version = rctx.attr.llvm_version
 
@@ -70,6 +85,7 @@ def download_llvm_preconfigured(rctx):
 
     if rctx.attr.distribution == "auto":
         exec_result = rctx.execute([
+            _python(rctx),
             rctx.path(rctx.attr._llvm_release_name),
             llvm_version,
         ])
