@@ -192,7 +192,6 @@ filegroup(
 filegroup(
     name = "linker_components",
     srcs = [
-        ":ar",
         ":clang",
         ":ld",
         ":lib",

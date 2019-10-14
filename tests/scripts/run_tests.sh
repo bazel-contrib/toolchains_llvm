@@ -42,7 +42,7 @@ chmod a+x "${bazel}"
 
 set -x
 "${bazel}" version
-"${bazel}" --migrate test \
+"${bazel}" --migrate --bazelrc=/dev/null test \
   --extra_toolchains="${toolchain_name}" \
   --copt=-v \
   --linkopt=-Wl,-t \
