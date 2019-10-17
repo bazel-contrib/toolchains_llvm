@@ -1,6 +1,8 @@
 LLVM toolchain for Bazel [![Build Status](https://travis-ci.org/grailbio/bazel-toolchain.svg?branch=master)](https://travis-ci.org/grailbio/bazel-toolchain)
 =================
 
+NOTE: As of 2200d53, this project requires bazel 1.0 or up.
+
 To use this toolchain, include this section in your WORKSPACE:
 ```python
 # Change master to the git tag you want.
