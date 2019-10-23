@@ -194,6 +194,7 @@ filegroup(
     srcs = [
         ":clang",
         ":ld",
+        ":ar",
         ":lib",
         ":sysroot_components",
     ],
