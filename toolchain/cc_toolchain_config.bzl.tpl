@@ -185,7 +185,7 @@ def _impl(ctx):
                 flag_groups = [
                     flag_group(
                         flags = [
-                            # Do not resolve our smylinked resource prefixes to real paths.
+                            # Do not resolve our symlinked resource prefixes to real paths.
                             "-no-canonical-prefixes",
                             # Reproducibility
                             "-Wno-builtin-macro-redefined",
