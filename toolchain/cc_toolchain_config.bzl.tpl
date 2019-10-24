@@ -150,14 +150,7 @@ def _impl(ctx):
             "-fuse-ld=lld",
             # The linker has no way of knowing if there are C++ objects; so we always link C++ libraries.
             "-L%{toolchain_path_prefix}/lib",
-            "-l:libc++.a",
-            "-l:libc++abi.a",
-            "-l:libunwind.a",
-            # Compiler runtime features.
-            "-rtlib=compiler-rt",
-            # To support libunwind.
-            "-lpthread",
-            "-ldl",
+            "-lstdc++",
             # Other linker flags.
             "-Wl,--build-id=md5",
             "-Wl,--hash-style=gnu",
