@@ -18,8 +18,10 @@ import platform
 import sys
 
 def _darwin(llvm_version):
-    return "clang+llvm-{llvm_version}-x86_64-apple-darwin.tar.xz".format(
-        llvm_version=llvm_version)
+    major_llvm_version = int(llvm_version.split(".")[0])
+    suffix = "darwin-apple" if major_llvm_version >= 9 else "apple-darwin"
+    return "clang+llvm-{llvm_version}-x86_64-{suffix}.tar.xz".format(
+        llvm_version=llvm_version, suffix=suffix)
 
 def _windows(llvm_version):
     if platform.machine().endswith('64'):
