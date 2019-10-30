@@ -44,6 +44,7 @@ set -x
 "${bazel}" version
 "${bazel}" --migrate --bazelrc=/dev/null test \
   --extra_toolchains="${toolchain_name}" \
+  --incompatible_enable_cc_toolchain_resolution \
   --copt=-v \
   --linkopt=-Wl,-t \
   --symlink_prefix=/ \
