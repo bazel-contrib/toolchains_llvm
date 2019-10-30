@@ -17,8 +17,11 @@
 import platform
 import sys
 
+def _major_llvm_version(llvm_version):
+    return int(llvm_version.split(".")[0])
+
 def _darwin(llvm_version):
-    major_llvm_version = int(llvm_version.split(".")[0])
+    major_llvm_version = _major_llvm_version(llvm_version)
     suffix = "darwin-apple" if major_llvm_version >= 9 else "apple-darwin"
     return "clang+llvm-{llvm_version}-x86_64-{suffix}.tar.xz".format(
         llvm_version=llvm_version, suffix=suffix)
@@ -54,7 +57,7 @@ def _linux(llvm_version):
     if "VERSION_ID" in info:
         version = info["VERSION_ID"].strip('"')
 
-    major_llvm_version = int(llvm_version.split(".")[0])
+    major_llvm_version = _major_llvm_version(llvm_version)
 
     # NOTE: Many of these systems are untested because I do not have access to them.
     # If you find this mapping wrong, please send a Pull Request on Github.
