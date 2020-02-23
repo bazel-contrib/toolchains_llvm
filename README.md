@@ -12,6 +12,10 @@ http_archive(
     urls = ["https://github.com/grailbio/bazel-toolchain/archive/master.tar.gz"],
 )
 
+load("@com_grail_bazel_toolchain//toolchain:deps.bzl", "bazel_toolchain_dependencies")
+
+bazel_toolchain_dependencies()
+
 load("@com_grail_bazel_toolchain//toolchain:rules.bzl", "llvm_toolchain")
 
 llvm_toolchain(

@@ -21,6 +21,7 @@ load(
     "@com_grail_bazel_toolchain//toolchain/internal:sysroot.bzl",
     _sysroot_path = "sysroot_path",
 )
+load("@rules_cc//cc:defs.bzl", _cc_toolchain = "cc_toolchain")
 
 def _makevars_ld_flags(rctx):
     if rctx.os.name == "mac os x":
@@ -107,7 +108,7 @@ def conditional_cc_toolchain(name, darwin, absolute_paths = False):
     toolchain_identifier = "clang-darwin" if darwin else "clang-linux"
 
     if absolute_paths:
-        native.cc_toolchain(
+        _cc_toolchain(
             name = name,
             toolchain_config = toolchain_config,
             all_files = ":empty",
@@ -123,7 +124,7 @@ def conditional_cc_toolchain(name, darwin, absolute_paths = False):
         native.filegroup(name = name + "-all-files", srcs = [":all_components"] + extra_files)
         native.filegroup(name = name + "-compiler-files", srcs = [":compiler_components"] + extra_files)
         native.filegroup(name = name + "-linker-files", srcs = [":linker_components"] + extra_files)
-        native.cc_toolchain(
+        _cc_toolchain(
             name = name,
             toolchain_config = toolchain_config,
             all_files = name + "-all-files",
