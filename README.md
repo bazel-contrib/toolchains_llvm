@@ -39,7 +39,7 @@ cc_toolchain_config template. See [tutorial](
 https://github.com/bazelbuild/bazel/blob/master/site/docs/tutorial/cc-toolchain-config.md).
 
 For overriding toolchains on the command line, please use the
-`--extra_toolchains` flag in lieu of the deprecated `--crosstools_top` flag.
+`--extra_toolchains` flag in lieu of the deprecated `--crosstool_top` flag.
 For example, `--extra_toolchains=@llvm_toolchain//:cc-toolchain-linux`.
 
 If you would like to use the older method of selecting toolchains, you can
