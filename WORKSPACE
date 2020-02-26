@@ -24,7 +24,9 @@ load("@com_grail_bazel_toolchain//toolchain:rules.bzl", "llvm_toolchain")
 
 llvm_toolchain(
     name = "llvm_toolchain",
-    llvm_version = "9.0.0",
+    # LLVM 9.0.0 needs /usr/lib/libtinfo.so.5 that is not very straightforward
+    # to set up in all linux distros we test.
+    llvm_version = "8.0.0",
 )
 
 load("@llvm_toolchain//:toolchains.bzl", "llvm_register_toolchains")
