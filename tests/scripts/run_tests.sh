@@ -42,7 +42,9 @@ chmod a+x "${bazel}"
 
 set -x
 "${bazel}" version
-"${bazel}" --migrate --bazelrc=/dev/null test \
+# TODO: Turn on --migrate when it is working again.
+# Currently, incompatible_load_proto_toolchain_for_javalite_from_com_google_protobuf is not available.
+"${bazel}" --bazelrc=/dev/null test \
   --extra_toolchains="${toolchain_name}" \
   --incompatible_enable_cc_toolchain_resolution \
   --copt=-v \
