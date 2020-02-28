@@ -148,7 +148,10 @@ filegroup(
 
 filegroup(
     name = "as",
-    srcs = ["bin/llvm-as"],
+    srcs = [
+        "bin/clang",
+        "bin/llvm-as",
+    ],
 )
 
 filegroup(
