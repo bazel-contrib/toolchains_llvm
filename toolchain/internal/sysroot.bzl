@@ -35,6 +35,8 @@ def sysroot_path(rctx):
         sysroot = rctx.attr.sysroot.get("linux", default = "")
     elif rctx.os.name == "mac os x":
         sysroot = rctx.attr.sysroot.get("darwin", default = "")
+    elif rctx.os.name.startswith("windows"):
+        sysroot = rctx.attr.sysroot.get("win64", default = "")
     else:
         fail("Unsupported OS: " + rctx.os.name)
 

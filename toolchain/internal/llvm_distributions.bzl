@@ -149,6 +149,10 @@ def download_llvm(rctx):
         urls = rctx.attr.urls.get("darwin", default = [])
         sha256 = rctx.attr.sha256.get("darwin", default = "")
         prefix = rctx.attr.strip_prefix.get("darwin", default = "")
+    elif rctx.os.name.startswith("windows"):
+        urls = rctx.attr.urls.get("win64", default = [])
+        sha256 = rctx.attr.sha256.get("win64", default = "")
+        prefix = rctx.attr.strip_prefix.get("win64", default = "")
     else:
         fail("Unsupported OS: " + rctx.os.name)
 
