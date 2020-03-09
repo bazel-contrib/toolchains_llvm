@@ -82,8 +82,10 @@ def _linux(llvm_version):
     elif ((distname == "fedora" and int(version) >= 27) or
           (distname == "centos" and int(version) >= 7)) and major_llvm_version < 7:
         os_name = "linux-gnu-Fedora27"
-    elif distname in ["fedora", "centos"] and major_llvm_version >= 7:
+    elif distname == "centos" and major_llvm_version >= 7:
         os_name = "linux-gnu-ubuntu-16.04"
+    elif distname == "fedora" and major_llvm_version >= 7:
+        os_name = "linux-gnu-ubuntu-18.04"
     else:
         sys.exit("Unsupported linux distribution and version: %s, %s" % (distname, version))
 
