@@ -15,5 +15,8 @@ matrix:
     - env: TEST_SH=ubuntu_16_04_test.sh
     - env: TEST_SH=ubuntu_18_04_test.sh
     - env: TEST_SH=linux_sysroot_test.sh
+    - env: TEST_SH=run_external_tests.sh
+    - os: osx
+      env: TEST_SH=run_external_tests.sh
 
 script: "tests/scripts/${TEST_SH}"
