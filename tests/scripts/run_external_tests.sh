@@ -28,6 +28,9 @@ curl -L -sSf -o "${bazel}" "${url}"
 chmod a+x "${bazel}"
 
 "${bazel}" version
+
+# We exclude cc_libs_test from rules_go because it assumes that stdlibc++ has
+# been dynamically linked, but we link it statically on linux.
 "${bazel}" --bazelrc=/dev/null test \
   --incompatible_enable_cc_toolchain_resolution \
   --symlink_prefix=/ \
@@ -36,5 +39,5 @@ chmod a+x "${bazel}"
   --keep_going \
   --test_output=errors \
   @openssl//:libssl \
-  $(bazel query 'attr(timeout, short, tests(@com_google_absl//absl/...))') \
-  @io_bazel_rules_go//tests/core/cgo:all
+  $("${bazel}" query 'attr(timeout, short, tests(@com_google_absl//absl/...))') \
+  $("${bazel}" query 'tests(@io_bazel_rules_go//tests/core/cgo:all) except @io_bazel_rules_go//tests/core/cgo:cc_libs_test')
