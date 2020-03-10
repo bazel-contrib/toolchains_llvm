@@ -1,4 +1,4 @@
-LLVM toolchain for Bazel [![Build Status](https://travis-ci.org/grailbio/bazel-toolchain.svg?branch=master)](https://travis-ci.org/grailbio/bazel-toolchain)
+LLVM toolchain for Bazel ![Build Status](https://github.com/grailbio/bazel-toolchain/workflows/CI/badge.svg?branch=master)
 =================
 
 NOTE: As of 2200d53, this project requires bazel 1.0 or up.
