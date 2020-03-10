@@ -110,7 +110,6 @@ def conditional_cc_toolchain(name, darwin, absolute_paths = False):
     if absolute_paths:
         _cc_toolchain(
             name = name,
-            toolchain_config = toolchain_config,
             all_files = ":empty",
             compiler_files = ":empty",
             dwp_files = ":empty",
@@ -118,22 +117,25 @@ def conditional_cc_toolchain(name, darwin, absolute_paths = False):
             objcopy_files = ":empty",
             strip_files = ":empty",
             supports_param_files = 0 if darwin else 1,
+            toolchain_config = toolchain_config,
         )
     else:
         extra_files = [":cc_wrapper"] if darwin else []
         native.filegroup(name = name + "-all-files", srcs = [":all_components"] + extra_files)
+        native.filegroup(name = name + "-archiver-files", srcs = [":ar"] + extra_files)
+        native.filegroup(name = name + "-assembler-files", srcs = [":as"] + extra_files)
         native.filegroup(name = name + "-compiler-files", srcs = [":compiler_components"] + extra_files)
         native.filegroup(name = name + "-linker-files", srcs = [":linker_components"] + extra_files)
         _cc_toolchain(
             name = name,
-            toolchain_config = toolchain_config,
             all_files = name + "-all-files",
+            ar_files = name + "-archiver-files",
+            as_files = name + "-assembler-files",
             compiler_files = name + "-compiler-files",
-            ar_files = ":ar",
-            as_files = ":as",
             dwp_files = ":empty",
             linker_files = name + "-linker-files",
             objcopy_files = ":objcopy",
             strip_files = ":empty",
             supports_param_files = 0 if darwin else 1,
+            toolchain_config = toolchain_config,
         )
