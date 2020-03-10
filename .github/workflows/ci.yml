@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+        script: [run_tests.sh, run_external_tests.sh]
+    steps:
+    - uses: actions/checkout@v2
+    - name: test
+      env:
+        BAZELISK_GITHUB_TOKEN: ${{ secrets.BAZELISK_GITHUB_TOKEN }}
+      run: tests/scripts/${{ matrix.script }}
+  container_test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        script: [archlinux, debian, fedora, ubuntu_16_04, ubuntu_18_04, linux_sysroot]
+    steps:
+    - uses: actions/checkout@v2
+    - name: test
+      env:
+        BAZELISK_GITHUB_TOKEN: ${{ secrets.BAZELISK_GITHUB_TOKEN }}
+      run: tests/scripts/${{ matrix.script }}_test.sh
