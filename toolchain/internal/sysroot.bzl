@@ -18,7 +18,7 @@ def _darwin_sdk_path(rctx):
 
     exec_result = rctx.execute(["/usr/bin/xcrun", "--show-sdk-path", "--sdk", "macosx"])
     if exec_result.return_code:
-        fail("Failed to detect OSX SDK path: \n%\n%s" % (exec_result.stdout, exec_result.stderr))
+        fail("Failed to detect OSX SDK path: \n%s\n%s" % (exec_result.stdout, exec_result.stderr))
     if exec_result.stderr:
         print(exec_result.stderr)
     return exec_result.stdout.strip()
