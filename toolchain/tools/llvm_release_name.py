@@ -83,7 +83,7 @@ def _linux(llvm_version):
           (distname == "centos" and int(version) >= 7)) and major_llvm_version < 7:
         os_name = "linux-gnu-Fedora27"
     elif distname == "centos" and major_llvm_version >= 7:
-        os_name = "linux-gnu-ubuntu-16.04"
+        os_name = "linux-sles11.3"
     elif distname == "fedora" and major_llvm_version >= 7:
         os_name = "linux-gnu-ubuntu-18.04"
     else:
