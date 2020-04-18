@@ -22,7 +22,7 @@ def _major_llvm_version(llvm_version):
 
 def _darwin(llvm_version):
     major_llvm_version = _major_llvm_version(llvm_version)
-    suffix = "darwin-apple" if major_llvm_version >= 9 else "apple-darwin"
+    suffix = "darwin-apple" if major_llvm_version == 9 else "apple-darwin"
     return "clang+llvm-{llvm_version}-x86_64-{suffix}.tar.xz".format(
         llvm_version=llvm_version, suffix=suffix)
 
