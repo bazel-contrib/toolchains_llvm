@@ -41,7 +41,10 @@ def sysroot_path(rctx):
     if not sysroot:
         return (_default_sysroot(rctx), None)
 
-    if sysroot[0] == "/" and sysroot[1] != "/":
+    # If the sysroot is an absolute path, use it as-is. Check for things that
+    # start with "/" and not "//" to identify absolute paths, but also support
+    # passing the sysroot as "/" to indicate the root directory.
+    if sysroot[0] == "/" and (len(sysroot) == 1 or sysroot[1] != "/"):
         return (sysroot, None)
 
     sysroot = Label(sysroot)
