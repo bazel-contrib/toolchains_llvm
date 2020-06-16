@@ -89,6 +89,8 @@ def _linux(llvm_version):
         os_name = "linux-sles11.3"
     elif distname == "fedora" and major_llvm_version >= 7:
         os_name = "linux-gnu-ubuntu-18.04"
+    elif distname == "amzn" and major_llvm_version >= 7:
+        os_name = "linux-gnu-ubuntu-18.04"
     else:
         sys.exit("Unsupported linux distribution and version: %s, %s" % (distname, version))
 
