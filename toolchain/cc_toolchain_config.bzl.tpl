@@ -498,10 +498,13 @@ def _impl(ctx):
     if (ctx.attr.cpu == "darwin"):
         features.extend([framework_paths_feature])
 
+    cxx_builtin_include_directories = [
+        "%{toolchain_path_prefix}include/c++/v1",
+        "%{toolchain_path_prefix}lib/clang/%{llvm_version}/include",
+        "%{toolchain_path_prefix}lib64/clang/%{llvm_version}/include",
+    ]
     if (ctx.attr.cpu == "k8"):
-        cxx_builtin_include_directories = [
-            "%{toolchain_path_prefix}include/c++/v1",
-            "%{toolchain_path_prefix}lib/clang/%{llvm_version}/include",
+        cxx_builtin_include_directories += [
             "%{sysroot_prefix}/include",
             "%{sysroot_prefix}/usr/include",
             "%{sysroot_prefix}/usr/local/include",
@@ -509,9 +512,7 @@ def _impl(ctx):
             %{k8_additional_cxx_builtin_include_directories}
         ]
     elif (ctx.attr.cpu == "darwin"):
-        cxx_builtin_include_directories = [
-            "%{toolchain_path_prefix}include/c++/v1",
-            "%{toolchain_path_prefix}lib/clang/%{llvm_version}/include",
+        cxx_builtin_include_directories += [
             "%{sysroot_prefix}/usr/include",
             "%{sysroot_prefix}/System/Library/Frameworks",
             "/Library/Frameworks",
