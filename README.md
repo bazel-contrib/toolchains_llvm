@@ -1,4 +1,4 @@
-LLVM toolchain for Bazel ![Build Status](https://github.com/grailbio/bazel-toolchain/workflows/Tests/badge.svg?branch=master)
+LLVM toolchain for Bazel ![Tests](https://github.com/grailbio/bazel-toolchain/workflows/Tests/badge.svg?branch=master) ![Migration](https://github.com/grailbio/bazel-toolchain/workflows/Migration/badge.svg?branch=master)
 =================
 
 NOTE: As of 2200d53, this project requires bazel 1.0 or up.

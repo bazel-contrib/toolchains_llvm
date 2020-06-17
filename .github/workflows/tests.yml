@@ -20,19 +20,6 @@ jobs:
       env:
         BAZELISK_GITHUB_TOKEN: ${{ secrets.BAZELISK_GITHUB_TOKEN }}
       run: tests/scripts/${{ matrix.script }}
-  migration_test:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        script: [run_tests.sh, run_external_tests.sh]
-    steps:
-    - uses: actions/checkout@v2
-    - name: test
-      env:
-        BAZELISK_GITHUB_TOKEN: ${{ secrets.BAZELISK_GITHUB_TOKEN }}
-        TEST_MIGRATION: true
-      run: tests/scripts/${{ matrix.script }}
   container_test:
     runs-on: ubuntu-latest
     strategy:
