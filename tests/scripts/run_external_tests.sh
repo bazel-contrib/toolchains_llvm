@@ -31,7 +31,7 @@ chmod a+x "${bazel}"
 
 # We exclude cc_libs_test from rules_go because it assumes that stdlibc++ has
 # been dynamically linked, but we link it statically on linux.
-"${bazel}" --bazelrc=/dev/null test \
+"${bazel}" ${TEST_MIGRATION+"--migrate"} --bazelrc=/dev/null test \
   --incompatible_enable_cc_toolchain_resolution \
   --symlink_prefix=/ \
   --color=yes \

@@ -42,7 +42,7 @@ chmod a+x "${bazel}"
 
 set -x
 "${bazel}" version
-"${bazel}" --migrate --bazelrc=/dev/null test \
+"${bazel}" ${TEST_MIGRATION+"--migrate"} --bazelrc=/dev/null test \
   --extra_toolchains="${toolchain_name}" \
   --incompatible_enable_cc_toolchain_resolution \
   --copt=-v \
