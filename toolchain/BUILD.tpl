@@ -18,6 +18,9 @@ load("@rules_cc//cc:defs.bzl", "cc_toolchain_suite")
 
 exports_files(["Makevars"])
 
+# Some targets may need to directly depend on these files.
+exports_files(glob(["bin/*", "lib/*"]))
+
 filegroup(
     name = "empty",
     srcs = [],
