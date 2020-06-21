@@ -91,7 +91,7 @@ def _linux(llvm_version):
     elif (distname == "ubuntu" and version.startswith("20")) or (distname == "pop" and version.startswith("20")):
         # use ubuntu 18.04 clang LLVM release for ubuntu 20.04
         os_name = "linux-gnu-ubuntu-18.04"
-    elif distname in ["arch", "ubuntu", "manjaro"] or (distname == "linuxmint" and version.startswith("18")):
+    elif distname in ["ubuntu", "manjaro"] or (distname == "linuxmint" and version.startswith("18")):
         os_name = "linux-gnu-ubuntu-16.04"
     elif distname == "debian" and (version is None or int(version) == 10):
         os_name = "linux-gnu-ubuntu-18.04"
@@ -108,6 +108,12 @@ def _linux(llvm_version):
         os_name = "linux-gnu-ubuntu-18.04"
     elif distname == "amzn" and major_llvm_version >= 7:
         os_name = "linux-gnu-ubuntu-18.04"
+    elif distname == "arch" and major_llvm_version >= 11:
+        os_name = "linux-gnu-ubuntu-20.04"
+    elif distname == "arch" and major_llvm_version >= 10:
+        os_name = "linux-gnu-ubuntu-18.04"
+    elif distname == "arch" and major_llvm_version >= 7:
+        os_name = "linux-gnu-ubuntu-16.04"
     else:
         sys.exit("Unsupported linux distribution and version: %s, %s" % (distname, version))
 
