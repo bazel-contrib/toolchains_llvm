@@ -17,6 +17,8 @@
 import platform
 import sys
 
+_known_distros = ["freebsd", "suse", "ubuntu", "arch", "manjaro", "debian", "fedora", "centos"]
+
 def _major_llvm_version(llvm_version):
     return int(llvm_version.split(".")[0])
 
@@ -52,6 +54,12 @@ def _linux(llvm_version):
     if "ID" not in info:
         sys.exit("Could not find ID in /etc/os-release.")
     distname = info["ID"].strip('\"')
+
+    if distname not in _known_distros:
+        for distro in info["ID_LIKE"].strip('\"').split(' '):
+            if distro in known_distros:
+                distname = distro
+                break
 
     version = None
     if "VERSION_ID" in info:
