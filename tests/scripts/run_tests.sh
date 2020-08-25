@@ -33,7 +33,8 @@ readonly os
 
 # Use bazelisk to catch migration problems.
 # Value of BAZELISK_GITHUB_TOKEN is set as a secret on Travis.
-readonly url="https://github.com/bazelbuild/bazelisk/releases/download/v1.0/bazelisk-${os}-amd64"
+readonly bazelisk_version="v1.6.1"
+readonly url="https://github.com/bazelbuild/bazelisk/releases/download/${bazelisk_version}/bazelisk-${os}-amd64"
 bazel="${TMPDIR:-/tmp}/bazelisk"
 readonly bazel
 
