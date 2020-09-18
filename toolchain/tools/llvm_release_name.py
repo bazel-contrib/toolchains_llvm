@@ -83,7 +83,7 @@ def _linux(llvm_version):
         os_name = "linux-gnu-ubuntu-18.04"
     elif (distname == "ubuntu" and version.startswith("18.04")) or (distname == "linuxmint" and version.startswith("19")):
         os_name = "linux-gnu-ubuntu-18.04"
-    elif (distname == "ubuntu" and version.startswith("20")):
+    elif (distname == "ubuntu" and version.startswith("20")) or (distname == "pop" and version.startswith("20")):
         # use ubuntu 18.04 clang LLVM release for ubuntu 20.04
         os_name = "linux-gnu-ubuntu-18.04"
     elif distname in ["arch", "ubuntu", "manjaro"] or (distname == "linuxmint" and version.startswith("18")):
