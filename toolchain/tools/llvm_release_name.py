@@ -57,7 +57,7 @@ def _linux(llvm_version):
 
     if distname not in _known_distros:
         for distro in info["ID_LIKE"].strip('\"').split(' '):
-            if distro in known_distros:
+            if distro in _known_distros:
                 distname = distro
                 break
 
