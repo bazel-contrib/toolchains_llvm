@@ -193,17 +193,10 @@ def download_llvm_preconfigured(rctx):
 
 # Download LLVM from the user-provided URLs and return True. If URLs were not provided, return
 # False.
-def download_llvm(rctx):
-    if rctx.os.name == "linux":
-        urls = rctx.attr.urls.get("linux", default = [])
-        sha256 = rctx.attr.sha256.get("linux", default = "")
-        prefix = rctx.attr.strip_prefix.get("linux", default = "")
-    elif rctx.os.name == "mac os x":
-        urls = rctx.attr.urls.get("darwin", default = [])
-        sha256 = rctx.attr.sha256.get("darwin", default = "")
-        prefix = rctx.attr.strip_prefix.get("darwin", default = "")
-    else:
-        fail("Unsupported OS: " + rctx.os.name)
+def download_llvm(rctx, shortos):
+    urls = rctx.attr.urls.get(shortos, default = [])
+    sha256 = rctx.attr.sha256.get(shortos, default = "")
+    prefix = rctx.attr.strip_prefix.get(shortos, default = "")
 
     if not urls:
         return False
