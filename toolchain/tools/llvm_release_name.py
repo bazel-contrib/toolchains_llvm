@@ -85,7 +85,6 @@ def _linux(llvm_version):
         else:
             # release 11.0.0 started providing packaging for ubuntu 20
             os_name = "linux-gnu-ubuntu-20.04"
-            
     elif (distname == "ubuntu" and version.startswith("18.04")) or (distname == "linuxmint" and version.startswith("19")):
         os_name = "linux-gnu-ubuntu-18.04"
     elif (distname == "ubuntu" and version.startswith("20")) or (distname == "pop" and version.startswith("20")):
@@ -94,7 +93,12 @@ def _linux(llvm_version):
     elif distname in ["arch", "ubuntu", "manjaro"] or (distname == "linuxmint" and version.startswith("18")):
         os_name = "linux-gnu-ubuntu-16.04"
     elif distname == "debian" and (version is None or int(version) == 10):
-        os_name = "linux-gnu-ubuntu-18.04"
+        # LLVM version 11 was not released for 18.04, but was released for
+        # 20.04.
+        if major_llvm_version < 11:
+            os_name = "linux-gnu-ubuntu-18.04"
+        else:
+            os_name = "linux-gnu-ubuntu-20.04"
     elif distname == "debian" and int(version) == 9 and major_llvm_version >= 7:
         os_name = "linux-gnu-ubuntu-16.04"
     elif distname == "debian" and int(version) == 8 and major_llvm_version < 7:
