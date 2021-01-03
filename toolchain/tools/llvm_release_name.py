@@ -99,7 +99,10 @@ def _linux(llvm_version):
         except ValueError:
             pass
         if int_version is None or int_version == 10:
-            os_name = "linux-gnu-ubuntu-18.04"
+            if major_llvm_version < 11:
+                os_name = "linux-gnu-ubuntu-18.04"
+            else:
+                os_name = "linux-gnu-ubuntu-20.04"
         elif int_version == 9 and major_llvm_version >= 7:
             os_name = "linux-gnu-ubuntu-16.04"
         elif int_version == 8 and major_llvm_version < 7:
