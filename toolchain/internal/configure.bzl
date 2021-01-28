@@ -109,6 +109,9 @@ def llvm_register_toolchains():
     if not _download_llvm(rctx):
         _download_llvm_preconfigured(rctx)
 
+    rctx.execute(["cp", "lib/libc++.a", "lib/libc++-static.a"])
+    rctx.execute(["cp", "lib/libc++abi.a", "lib/libc++abi-static.a"])
+
 def conditional_cc_toolchain(name, darwin, absolute_paths = False):
     # Toolchain macro for BUILD file to use conditional logic.
 
