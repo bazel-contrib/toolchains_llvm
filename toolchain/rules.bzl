@@ -48,7 +48,7 @@ llvm_toolchain = repository_rule(
                    "directories, keyed by the CPU type (e.g. k8 or darwin). See documentation " +
                    "for bazel's create_cc_toolchain_config_info."),
         ),
-        "llvm_mirror": attr.string(
+        "llvm_mirror_prefixes": attr.string_list(
             doc = "Mirror base for LLVM binaries if using the pre-configured URLs.",
         ),
         "absolute_paths": attr.bool(

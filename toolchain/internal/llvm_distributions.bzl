@@ -156,8 +156,8 @@ def download_llvm_preconfigured(rctx):
     llvm_version = rctx.attr.llvm_version
 
     mirror_base = []
-    if rctx.attr.llvm_mirror:
-        mirror_base += [rctx.attr.llvm_mirror]
+    if rctx.attr.llvm_mirror_prefixes:
+        mirror_base += rctx.attr.llvm_mirror_prefixes
 
     if rctx.attr.distribution == "auto":
         exec_result = rctx.execute([
@@ -181,7 +181,7 @@ def download_llvm_preconfigured(rctx):
         "{0}{1}".format(_llvm_distributions_base_url[llvm_version], url_suffix),
     ]
     urls += [
-        "{0}/{1}".format(base, url_suffix)
+        "{0}{1}".format(base, url_suffix)
         for base in mirror_base
     ]
 
