@@ -160,7 +160,7 @@ def _impl(ctx):
             "-ldl",
             # Other linker flags.
             "-Wl,--build-id=md5",
-            "-Wl,--hash-style=gnu",
+            "-Wl,--hash-style=both",
             "-Wl,-z,relro,-z,now",
         ]
     elif ctx.attr.cpu == "darwin":
