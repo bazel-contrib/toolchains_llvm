@@ -543,6 +543,7 @@ def _impl(ctx):
     cxx_builtin_include_directories = [
         "%{toolchain_path_prefix}include/c++/v1",
         "%{toolchain_path_prefix}lib/clang/%{llvm_version}/include",
+        "%{toolchain_path_prefix}/lib/clang/%{llvm_version}/share",
         "%{toolchain_path_prefix}lib64/clang/%{llvm_version}/include",
     ]
     if (ctx.attr.cpu == "k8"):
