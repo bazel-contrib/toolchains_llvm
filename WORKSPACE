@@ -87,8 +87,6 @@ http_archive(
     urls = ["https://www.openssl.org/source/openssl-1.1.1c.tar.gz"],
 )
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-
 http_archive(
     name = "io_bazel_rules_go",
     sha256 = "8e968b5fcea1d2d64071872b12737bbb5514524ee5f0a4f54f5920266c261acb",
