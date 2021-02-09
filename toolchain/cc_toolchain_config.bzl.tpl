@@ -201,7 +201,7 @@ def cc_toolchain_config(name, cpu):
         "k8": {
             "ld": "%{tools_path_prefix}bin/ld.lld",
             "gcc": "%{tools_path_prefix}bin/clang",
-            "objdump": "%{tools_path_prefix}bin/llvm-ar",
+            "ar": "%{tools_path_prefix}bin/llvm-ar",
         },
         "darwin": {
             # ld.lld Mach-O support is still experimental:
