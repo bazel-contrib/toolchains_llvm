@@ -1,3 +1,16 @@
+# Copyright 2018 The Bazel Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 load(
     "@bazel_tools//tools/cpp:unix_cc_toolchain_config.bzl",
@@ -34,7 +47,7 @@ def cc_toolchain_config(name, cpu):
             "clang",
             "glibc_unknown",
             "%{sysroot_path}",
-        )
+        ),
     }[cpu]
 
 
@@ -159,7 +172,6 @@ def cc_toolchain_config(name, cpu):
     ## NOTE: make variables are missing here; unix_cc_toolchain_config doesn't
     ## pass these to `create_cc_toolchain_config_info`.
 
-
     # Start-end group linker support:
     # This was added to `lld` in this patch: http://reviews.llvm.org/D18814
     #
@@ -183,13 +195,13 @@ def cc_toolchain_config(name, cpu):
         "nm": "%{tools_path_prefix}bin/llvm-nm",
         "objcopy": "%{tools_path_prefix}bin/llvm-objcopy",
         "objdump": "%{tools_path_prefix}bin/llvm-objdump",
-        "strip": strip_binary
+        "strip": strip_binary,
     }
     tool_paths.update({
         "k8": {
             "ld": "%{tools_path_prefix}bin/ld.lld",
             "gcc": "%{tools_path_prefix}bin/clang",
-            "objdump": "%{tools_path_prefix}bin/llvm-ar"
+            "objdump": "%{tools_path_prefix}bin/llvm-ar",
         },
         "darwin": {
             # ld.lld Mach-O support is still experimental:
@@ -197,9 +209,10 @@ def cc_toolchain_config(name, cpu):
             # See `cc_wrapper.sh.tpl` for details:
             "gcc": "%{tools_path_prefix}bin/cc_wrapper.sh",
             # No idea why we use `libtool` instead of `llvm-ar` on macOS:
-            "ar": "/usr/bin/libtool"
-        }
+            "ar": "/usr/bin/libtool",
+        },
     }[cpu])
+
 
     # Source: https://cs.opensource.google/bazel/bazel/+/master:tools/cpp/unix_cc_toolchain_config.bzl
     bazel_cc_toolchain_config(
@@ -229,9 +242,9 @@ def cc_toolchain_config(name, cpu):
         # This was only added in bazel v4.0.0.
         #
         # See: https://github.com/bazelbuild/bazel/commit/da345f1f249ebf28bec88c6e0d63260dfaef14e9
-        ** (
-            { "builtin_sysroot": builtin_sysroot }
+        **(
+            {"builtin_sysroot": builtin_sysroot}
             if int("%{bazel_version}".split(".")[0]) >= 4
             else {}
-        ),
+        )
     )
