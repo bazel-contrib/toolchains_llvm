@@ -56,6 +56,7 @@ def llvm_register_toolchains():
     substitutions = {
         "%{repo_name}": rctx.name,
         "%{llvm_version}": rctx.attr.llvm_version,
+        "%{bazel_version}": native.bazel_version,
         "%{toolchain_path_prefix}": toolchain_path_prefix,
         "%{tools_path_prefix}": (repo_path + "/") if rctx.attr.absolute_paths else "",
         "%{debug_toolchain_path_prefix}": relative_path_prefix,
@@ -113,7 +114,6 @@ def conditional_cc_toolchain(name, darwin, absolute_paths = False):
     # Toolchain macro for BUILD file to use conditional logic.
 
     toolchain_config = "local_darwin" if darwin else "local_linux"
-    toolchain_identifier = "clang-darwin" if darwin else "clang-linux"
 
     if absolute_paths:
         _cc_toolchain(
