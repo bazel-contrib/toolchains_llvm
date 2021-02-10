@@ -172,13 +172,6 @@ def cc_toolchain_config(name, cpu):
     ## NOTE: make variables are missing here; unix_cc_toolchain_config doesn't
     ## pass these to `create_cc_toolchain_config_info`.
 
-    # Start-end group linker support:
-    # This was added to `lld` in this patch: http://reviews.llvm.org/D18814
-    #
-    # The oldest version of LLVM that we support is 6.0.0 which was released
-    # after the above patch was merged, so we just set this to `True`:
-    supports_start_end_lib = True
-
 
     # Tool paths:
     # `llvm-strip` was introduced in V7 (https://reviews.llvm.org/D46407):
@@ -212,6 +205,16 @@ def cc_toolchain_config(name, cpu):
             "ar": "/usr/bin/libtool",
         },
     }[cpu])
+
+
+    # Start-end group linker support:
+    # This was added to `lld` in this patch: http://reviews.llvm.org/D18814
+    #
+    # The oldest version of LLVM that we support is 6.0.0 which was released
+    # after the above patch was merged, so we just set this to `True` when `lld`
+    # is being used as the linker, which is always... except on macOS since
+    # `lld` Mach-O support is still experimental.
+    supports_start_end_lib = tool_paths["ld"].endswith("ld.lld")
 
 
     # Source: https://cs.opensource.google/bazel/bazel/+/master:tools/cpp/unix_cc_toolchain_config.bzl
