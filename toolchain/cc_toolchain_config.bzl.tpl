@@ -244,10 +244,14 @@ def cc_toolchain_config(name, cpu):
 
         # This was only added in bazel v4.0.0.
         #
+        # `native.bazel_version` might give us back an empty string if a local dev build
+        # of bazel is being used; in this case we'll assume the version is at least
+        # 4.0.0.
+        #
         # See: https://github.com/bazelbuild/bazel/commit/da345f1f249ebf28bec88c6e0d63260dfaef14e9
         **(
             {"builtin_sysroot": builtin_sysroot}
-            if int("%{bazel_version}".split(".")[0]) >= 4
+            if int(("%{bazel_version}" or "4.0.0").split(".")[0]) >= 4
             else {}
         )
     )
