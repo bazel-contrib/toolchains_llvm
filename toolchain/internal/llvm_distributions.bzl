@@ -123,6 +123,18 @@ _llvm_distributions = {
     "clang+llvm-11.0.0-amd64-pc-solaris2.11.tar.xz": "031699337d703fe42843a8326f94079fd67e46b60f25be5bdf47664e158e0b43",
     "clang+llvm-11.0.0-x86_64-apple-darwin.tar.xz": "b93886ab0025cbbdbb08b46e5e403a462b0ce034811c929e96ed66c2b07fe63a",
 
+    # 11.1.0
+    "clang+llvm-11.1.0-aarch64-linux-gnu.tar.xz": "18df38247af3fba0e0e2991fb00d7e3cf3560b4d3509233a14af699ef0039e1c",
+    "clang+llvm-11.1.0-amd64-unknown-freebsd11.tar.xz": "645e24018aa2694d8ccb44139f44a0d3af97fa8eab785faecb7a228ebe76ac7e",
+    "clang+llvm-11.1.0-amd64-unknown-freebsd12.tar.xz": "430284b75248ab2dd3ebb8718d8bbb19cc8b9b62f4707ae47a61827b3ba59836",
+    "clang+llvm-11.1.0-armv7a-linux-gnueabihf.tar.xz": "18a3c3aedf1181aa18da3f5d0a2c67366c6d5fb398ac00e461298d9584be5c68",
+    "clang+llvm-11.1.0-i386-unknown-freebsd11.tar.xz": "ddc451c1094d0c8912160912d7c20d28087782758e0a8d145f301a18ddcea558",
+    "clang+llvm-11.1.0-i386-unknown-freebsd12.tar.xz": "3c23d3b97f869382b33878d8a5210056c60d5e749acfeea0354682bb013f5a20",
+    "clang+llvm-11.1.0-powerpc64le-linux-rhel-7.4.tar.xz": "8ff13bb70f1eb8efe61b1899e4d05d6f15c18a14a9ffa883f54f243b060fa778",
+    "clang+llvm-11.1.0-powerpc64le-linux-ubuntu-18.04.tar.xz": "2741183e4ea5fccc86ec2d9ce226edcf00da90b07731b04540edb5025cc695c1",
+    "clang+llvm-11.1.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz": "c691a558967fb7709fb81e0ed80d1f775f4502810236aa968b4406526b43bee1",
+    "clang+llvm-11.1.0-x86_64-linux-gnu-ubuntu-20.10.tar.xz": "29b07422da4bcea271a88f302e5f84bd34380af137df18e33251b42dd20c26d7",
+
     # 12.0.0
     "clang+llvm-12.0.0-armv7a-linux-gnueabihf.tar.xz": "697d432c2572e48fc04118fc7cec63c9477ef2e8a7cca2c0b32e52f9705ab1cc",
     "clang+llvm-12.0.0-i386-unknown-freebsd11.tar.xz": "8298a026f74165bf6088c1c942c22bd7532b12cd2b916f7673bdaf522abe41b0",
@@ -149,6 +161,7 @@ _llvm_distributions_base_url = {
     "10.0.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
     "10.0.1": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
     "11.0.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
+    "11.1.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
     "12.0.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
 }
 
