@@ -65,6 +65,7 @@ def llvm_register_toolchains():
         "%{absolute_paths}": "True" if rctx.attr.absolute_paths else "False",
         "%{makevars_ld_flags}": _makevars_ld_flags(rctx),
         "%{k8_additional_cxx_builtin_include_directories}": _include_dirs_str(rctx, "k8"),
+        "%{aarch64_additional_cxx_builtin_include_directories}": _include_dirs_str(rctx, "aarch64"),
         "%{darwin_additional_cxx_builtin_include_directories}": _include_dirs_str(rctx, "darwin"),
     }
 

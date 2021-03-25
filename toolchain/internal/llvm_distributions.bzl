@@ -191,13 +191,25 @@ def download_llvm_preconfigured(rctx):
         stripPrefix = basename[:(len(basename) - len(".tar.xz"))],
     )
 
+def _arch(rctx):
+    exec_result = rctx.execute([
+        _python(rctx),
+        "-c",
+        "import platform; print(platform.machine())"
+    ])
+    if exec_result.return_code:
+        fail("Failed to detect machine architecture: \n%s\n%s" % (exec_result.stdout, exec_result.stderr))
+    return exec_result.stdout.strip()
+
+
 # Download LLVM from the user-provided URLs and return True. If URLs were not provided, return
 # False.
 def download_llvm(rctx):
     if rctx.os.name == "linux":
-        urls = rctx.attr.urls.get("linux", default = [])
-        sha256 = rctx.attr.sha256.get("linux", default = "")
-        prefix = rctx.attr.strip_prefix.get("linux", default = "")
+        key = "linux-{}".format(_arch(rctx))
+        urls = rctx.attr.urls.get(key, default = [])
+        sha256 = rctx.attr.sha256.get(key, default = "")
+        prefix = rctx.attr.strip_prefix.get(key, default = "")
     elif rctx.os.name == "mac os x":
         urls = rctx.attr.urls.get("darwin", default = [])
         sha256 = rctx.attr.sha256.get("darwin", default = "")

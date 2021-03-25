@@ -39,9 +39,11 @@ filegroup(
 cc_toolchain_suite(
     name = "toolchain",
     toolchains = {
-        "k8|clang": ":cc-clang-linux",
+        "k8|clang": ":cc-clang-amd64-linux",
+        "aarch64|clang": ":cc-clang-aarch64-linux",
         "darwin|clang": ":cc-clang-darwin",
-        "k8": ":cc-clang-linux",
+        "k8": ":cc-clang-amd64-linux",
+        "aarch64": ":cc-clang-aarch64-linux",
         "darwin": ":cc-clang-darwin",
     },
 )
@@ -73,7 +75,7 @@ toolchain(
 )
 
 toolchain(
-    name = "cc-toolchain-linux",
+    name = "cc-toolchain-amd64-linux",
     exec_compatible_with = [
         "@platforms//cpu:x86_64",
         "@platforms//os:linux",
@@ -82,13 +84,28 @@ toolchain(
         "@platforms//cpu:x86_64",
         "@platforms//os:linux",
     ],
-    toolchain = ":cc-clang-linux",
+    toolchain = ":cc-clang-amd64-linux",
+    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
+)
+
+toolchain(
+    name = "cc-toolchain-aarch64-linux",
+    exec_compatible_with = [
+        "@platforms//cpu:aarch64",
+        "@platforms//os:linux",
+    ],
+    target_compatible_with = [
+        "@platforms//cpu:aarch64",
+        "@platforms//os:linux",
+    ],
+    toolchain = ":cc-clang-aarch64-linux",
     toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
 )
 
 load("@com_grail_bazel_toolchain//toolchain:rules.bzl", "conditional_cc_toolchain")
 
-conditional_cc_toolchain("cc-clang-linux", False, %{absolute_paths})
+conditional_cc_toolchain("cc-clang-amd64-linux", False, %{absolute_paths})
+conditional_cc_toolchain("cc-clang-aarch64-linux", False, %{absolute_paths})
 conditional_cc_toolchain("cc-clang-darwin", True, %{absolute_paths})
 
 ## LLVM toolchain files

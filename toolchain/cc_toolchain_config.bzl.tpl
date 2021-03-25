@@ -34,12 +34,16 @@ def _impl(ctx):
     if (ctx.attr.cpu == "darwin"):
         toolchain_identifier = "clang-darwin"
     elif (ctx.attr.cpu == "k8"):
-        toolchain_identifier = "clang-linux"
+        toolchain_identifier = "clang-amd64-linux"
+    elif (ctx.attr.cpu == "aarch64"):
+        toolchain_identifier = "clang-aarch64-linux"
     else:
         fail("Unreachable")
 
     if (ctx.attr.cpu == "k8"):
         host_system_name = "x86_64"
+    elif (ctx.attr.cpu == "aarch64"):
+        host_system_name = "aarch64"
     elif (ctx.attr.cpu == "darwin"):
         host_system_name = "x86_64-apple-macosx"
     else:
@@ -49,6 +53,8 @@ def _impl(ctx):
         target_system_name = "x86_64-apple-macosx"
     elif (ctx.attr.cpu == "k8"):
         target_system_name = "x86_64-unknown-linux-gnu"
+    elif (ctx.attr.cpu == "aarch"):
+        target_system_name = "aarch-unknown-linux-gnu"
     else:
         fail("Unreachable")
 
@@ -56,10 +62,14 @@ def _impl(ctx):
         target_cpu = "darwin"
     elif (ctx.attr.cpu == "k8"):
         target_cpu = "k8"
+    elif (ctx.attr.cpu == "aarch64"):
+        target_cpu = "aarch64"
     else:
         fail("Unreachable")
 
     if (ctx.attr.cpu == "k8"):
+        target_libc = "glibc_unknown"
+    elif (ctx.attr.cpu == "aarch64"):
         target_libc = "glibc_unknown"
     elif (ctx.attr.cpu == "darwin"):
         target_libc = "macosx"
@@ -67,12 +77,15 @@ def _impl(ctx):
         fail("Unreachable")
 
     if (ctx.attr.cpu == "darwin" or
+        ctx.attr.cpu == "aarch64" or
         ctx.attr.cpu == "k8"):
         compiler = "clang"
     else:
         fail("Unreachable")
 
     if (ctx.attr.cpu == "k8"):
+        abi_version = "clang"
+    elif (ctx.attr.cpu == "aarch64"):
         abi_version = "clang"
     elif (ctx.attr.cpu == "darwin"):
         abi_version = "darwin_x86_64"
@@ -83,12 +96,15 @@ def _impl(ctx):
         abi_libc_version = "darwin_x86_64"
     elif (ctx.attr.cpu == "k8"):
         abi_libc_version = "glibc_unknown"
+    elif (ctx.attr.cpu == "aarch64"):
+        abi_libc_version = "glibc_unknown"
     else:
         fail("Unreachable")
 
     cc_target_os = None
 
     if (ctx.attr.cpu == "darwin" or
+        ctx.attr.cpu == "aarch64" or
         ctx.attr.cpu == "k8"):
         builtin_sysroot = "%{sysroot_path}"
     else:
@@ -144,7 +160,7 @@ def _impl(ctx):
 
     action_configs = []
 
-    if ctx.attr.cpu == "k8":
+    if ctx.attr.cpu in ("k8", "aarch64"):
         linker_flags = [
             # Use the lld linker.
             "-fuse-ld=lld",
@@ -228,7 +244,7 @@ def _impl(ctx):
                 flag_groups = [flag_group(flags = ["-Wl,--gc-sections"])],
                 with_features = [with_feature_set(features = ["opt"])],
             ),
-        ] if ctx.attr.cpu == "k8" else []),
+        ] if ctx.attr.cpu in ("k8", "aarch64") else []),
     )
 
     default_compile_flags_feature = feature(
@@ -503,7 +519,7 @@ def _impl(ctx):
         "%{toolchain_path_prefix}lib/clang/%{llvm_version}/include",
         "%{toolchain_path_prefix}lib64/clang/%{llvm_version}/include",
     ]
-    if (ctx.attr.cpu == "k8"):
+    if (ctx.attr.cpu in ("k8", "aarch64")):
         cxx_builtin_include_directories += [
             "%{sysroot_prefix}/include",
             "%{sysroot_prefix}/usr/include",
@@ -531,12 +547,12 @@ def _impl(ctx):
                 value = "-Wframe-larger-than=100000000 -Wno-vla",
             ),
         ]
-    elif (ctx.attr.cpu == "k8"):
+    elif (ctx.attr.cpu in ("k8", "aarch64")):
         make_variables = []
     else:
         fail("Unreachable")
 
-    if (ctx.attr.cpu == "k8"):
+    if (ctx.attr.cpu in ("k8", "aarch64")):
         tool_paths = [
             tool_path(
                 name = "ld",
@@ -647,6 +663,7 @@ cc_toolchain_config = rule(
             values = [
                 "darwin",
                 "k8",
+                "aarch64",
             ],
         ),
     },
