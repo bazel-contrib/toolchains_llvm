@@ -39,9 +39,11 @@ filegroup(
 cc_toolchain_suite(
     name = "toolchain",
     toolchains = {
-        "k8|clang": ":cc-clang-linux",
+        "k8|clang": ":cc-clang-k8-linux",
+        "aarch64|clang": ":cc-clang-aarch64-linux",
         "darwin|clang": ":cc-clang-darwin",
-        "k8": ":cc-clang-linux",
+        "k8": ":cc-clang-k8-linux",
+        "aarch64": ":cc-clang-aarch64-linux",
         "darwin": ":cc-clang-darwin",
     },
 )
@@ -49,8 +51,13 @@ cc_toolchain_suite(
 load(":cc_toolchain_config.bzl", "cc_toolchain_config")
 
 cc_toolchain_config(
-    name = "local_linux",
+    name = "local_linux_k8",
     cpu = "k8",
+)
+
+cc_toolchain_config(
+    name = "local_linux_aarch64",
+    cpu = "aarch64",
 )
 
 cc_toolchain_config(
@@ -73,7 +80,7 @@ toolchain(
 )
 
 toolchain(
-    name = "cc-toolchain-linux",
+    name = "cc-toolchain-k8-linux",
     exec_compatible_with = [
         "@platforms//cpu:x86_64",
         "@platforms//os:linux",
@@ -82,14 +89,29 @@ toolchain(
         "@platforms//cpu:x86_64",
         "@platforms//os:linux",
     ],
-    toolchain = ":cc-clang-linux",
+    toolchain = ":cc-clang-k8-linux",
+    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
+)
+
+toolchain(
+    name = "cc-toolchain-aarch64-linux",
+    exec_compatible_with = [
+        "@platforms//cpu:aarch64",
+        "@platforms//os:linux",
+    ],
+    target_compatible_with = [
+        "@platforms//cpu:aarch64",
+        "@platforms//os:linux",
+    ],
+    toolchain = ":cc-clang-aarch64-linux",
     toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
 )
 
 load("@%{parent_repo_name}//toolchain:rules.bzl", "conditional_cc_toolchain")
 
-conditional_cc_toolchain("cc-clang-linux", False, %{absolute_paths})
-conditional_cc_toolchain("cc-clang-darwin", True, %{absolute_paths})
+conditional_cc_toolchain("cc-clang-k8-linux", "local_linux_k8", False, %{absolute_paths})
+conditional_cc_toolchain("cc-clang-aarch64-linux", "local_linux_aarch64", False, %{absolute_paths})
+conditional_cc_toolchain("cc-clang-darwin", "local_darwin", True, %{absolute_paths})
 
 ## LLVM toolchain files
 # Needed when not using absolute paths.

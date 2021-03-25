@@ -45,8 +45,8 @@ llvm_toolchain = repository_rule(
         "cxx_builtin_include_directories": attr.string_list_dict(
             mandatory = False,
             doc = ("Additional builtin include directories to be added to the default system " +
-                   "directories, keyed by the CPU type (e.g. k8 or darwin). See documentation " +
-                   "for bazel's create_cc_toolchain_config_info."),
+                   "directories, keyed by the CPU type (e.g. k8, aarch64 or darwin). See " +
+                   "documentation for bazel's create_cc_toolchain_config_info."),
         ),
         "llvm_mirror": attr.string(
             doc = "Mirror base for LLVM binaries if using the pre-configured URLs.",
@@ -63,7 +63,8 @@ llvm_toolchain = repository_rule(
         # Following attributes are needed only when using a non-standard URL scheme.
         "urls": attr.string_list_dict(
             mandatory = False,
-            doc = "URLs for each OS type (linux and darwin) if not using the pre-configured URLs.",
+            doc = ("URLs for each OS type and arch pairs (linux-x86_64, linux-aarch64 and darwin) " +
+                   "if not using the pre-configured URLs."),
         ),
         "sha256": attr.string_dict(
             mandatory = False,

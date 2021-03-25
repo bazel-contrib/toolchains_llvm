@@ -76,6 +76,7 @@ def llvm_register_toolchains():
         "%{absolute_paths}": "True" if rctx.attr.absolute_paths else "False",
         "%{makevars_ld_flags}": _makevars_ld_flags(rctx),
         "%{k8_additional_cxx_builtin_include_directories}": _include_dirs_str(rctx, "k8"),
+        "%{aarch64_additional_cxx_builtin_include_directories}": _include_dirs_str(rctx, "aarch64"),
         "%{darwin_additional_cxx_builtin_include_directories}": _include_dirs_str(rctx, "darwin"),
     }
 
@@ -120,11 +121,8 @@ def llvm_register_toolchains():
     if not _download_llvm(rctx, shortos):
         _download_llvm_preconfigured(rctx)
 
-def conditional_cc_toolchain(name, darwin, absolute_paths = False):
+def conditional_cc_toolchain(name, toolchain_config, darwin, absolute_paths = False):
     # Toolchain macro for BUILD file to use conditional logic.
-
-    toolchain_config = "local_darwin" if darwin else "local_linux"
-    toolchain_identifier = "clang-darwin" if darwin else "clang-linux"
 
     if absolute_paths:
         _cc_toolchain(
@@ -151,7 +149,7 @@ def conditional_cc_toolchain(name, darwin, absolute_paths = False):
             ar_files = name + "-archiver-files",
             as_files = name + "-assembler-files",
             compiler_files = name + "-compiler-files",
-            dwp_files = ":empty",
+            dwp_files = ":dwp",
             linker_files = name + "-linker-files",
             objcopy_files = ":objcopy",
             strip_files = ":empty",

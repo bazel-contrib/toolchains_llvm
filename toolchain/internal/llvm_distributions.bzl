@@ -256,12 +256,26 @@ def download_llvm_preconfigured(rctx):
         auth = _get_auth(rctx, urls),
     )
 
+def _arch(rctx):
+    exec_result = rctx.execute([
+        _python(rctx),
+        "-c",
+        "import platform; print(platform.machine())",
+    ])
+    if exec_result.return_code:
+        fail("Failed to detect machine architecture: \n%s\n%s" % (exec_result.stdout, exec_result.stderr))
+    return exec_result.stdout.strip()
+
 # Download LLVM from the user-provided URLs and return True. If URLs were not provided, return
 # False.
 def download_llvm(rctx, shortos):
-    urls = rctx.attr.urls.get(shortos, default = [])
-    sha256 = rctx.attr.sha256.get(shortos, default = "")
-    prefix = rctx.attr.strip_prefix.get(shortos, default = "")
+    if shortos == "linux":
+        key = "linux-{}".format(_arch(rctx))
+    else:
+        key = shortos
+    urls = rctx.attr.urls.get(key, default = [])
+    sha256 = rctx.attr.sha256.get(key, default = "")
+    prefix = rctx.attr.strip_prefix.get(key, default = "")
 
     if not urls:
         return False
