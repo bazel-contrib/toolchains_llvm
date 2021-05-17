@@ -17,7 +17,7 @@
 import platform
 import sys
 
-_known_distros = ["freebsd", "suse", "ubuntu", "arch", "manjaro", "debian", "fedora", "centos"]
+_known_distros = ["freebsd", "suse", "ubuntu", "arch", "manjaro", "debian", "fedora", "centos", "amzn"]
 
 def _major_llvm_version(llvm_version):
     return int(llvm_version.split(".")[0])
@@ -85,7 +85,6 @@ def _linux(llvm_version):
         else:
             # release 11.0.0 started providing packaging for ubuntu 20
             os_name = "linux-gnu-ubuntu-20.04"
-            
     elif (distname == "ubuntu" and version.startswith("18.04")) or (distname == "linuxmint" and version.startswith("19")):
         os_name = "linux-gnu-ubuntu-18.04"
     elif (distname == "ubuntu" and version.startswith("20")) or (distname == "pop" and version.startswith("20")):
@@ -106,14 +105,19 @@ def _linux(llvm_version):
         os_name = "linux-sles11.3"
     elif distname == "fedora" and major_llvm_version >= 7:
         os_name = "linux-gnu-ubuntu-18.04"
-    elif distname == "amzn" and major_llvm_version >= 7:
-        os_name = "linux-gnu-ubuntu-18.04"
     elif distname == "arch" and major_llvm_version >= 11:
         os_name = "linux-gnu-ubuntu-20.04"
     elif distname == "arch" and major_llvm_version >= 10:
         os_name = "linux-gnu-ubuntu-18.04"
     elif distname == "arch" and major_llvm_version >= 7:
         os_name = "linux-gnu-ubuntu-16.04"
+    elif distname == "amzn":
+        # Based on the ID_LIKE field, sles seems like the closest available
+        # distro for which LLVM releases are widely available.
+        if major_llvm_version >= 11:
+            os_name = "linux-sles12.4"
+        else:
+            os_name = "linux-sles11.3"
     else:
         sys.exit("Unsupported linux distribution and version: %s, %s" % (distname, version))
 
