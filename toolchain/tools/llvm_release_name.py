@@ -71,12 +71,6 @@ def _linux(llvm_version):
     # If you find this mapping wrong, please send a Pull Request on Github.
     if arch in ["aarch64", "armv7a", "mips", "mipsel"]:
         os_name = "linux-gnu"
-    # amzn linux was defaulting to sles11.3 because of a typo, this is likely the closest distro based on the ID_LIKE field
-    elif distname == "amzn":
-        if major_llvm_version >= 11:
-            os_name = "linux-sles12.4"
-        else:
-            os_name = "linux-sles11.3"
     elif distname == "freebsd":
         os_name = "unknown-freebsd-%s" % version
     elif distname == "suse":
@@ -91,7 +85,6 @@ def _linux(llvm_version):
         else:
             # release 11.0.0 started providing packaging for ubuntu 20
             os_name = "linux-gnu-ubuntu-20.04"
-            
     elif (distname == "ubuntu" and version.startswith("18.04")) or (distname == "linuxmint" and version.startswith("19")):
         os_name = "linux-gnu-ubuntu-18.04"
     elif (distname == "ubuntu" and version.startswith("20")) or (distname == "pop" and version.startswith("20")):
@@ -118,6 +111,13 @@ def _linux(llvm_version):
         os_name = "linux-gnu-ubuntu-18.04"
     elif distname == "arch" and major_llvm_version >= 7:
         os_name = "linux-gnu-ubuntu-16.04"
+    elif distname == "amzn":
+        # Based on the ID_LIKE field, sles seems like the closest available
+        # distro for which LLVM releases are widely available.
+        if major_llvm_version >= 11:
+            os_name = "linux-sles12.4"
+        else:
+            os_name = "linux-sles11.3"
     else:
         sys.exit("Unsupported linux distribution and version: %s, %s" % (distname, version))
 
