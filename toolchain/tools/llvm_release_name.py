@@ -17,7 +17,7 @@
 import platform
 import sys
 
-_known_distros = ["freebsd", "suse", "ubuntu", "arch", "manjaro", "debian", "fedora", "centos"]
+_known_distros = ["freebsd", "suse", "ubuntu", "arch", "manjaro", "debian", "fedora", "centos", "amzn"]
 
 def _major_llvm_version(llvm_version):
     return int(llvm_version.split(".")[0])
