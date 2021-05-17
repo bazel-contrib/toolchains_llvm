@@ -72,7 +72,7 @@ def _linux(llvm_version):
     if arch in ["aarch64", "armv7a", "mips", "mipsel"]:
         os_name = "linux-gnu"
     # amzn linux was defaulting to sles11.3 because of a typo, this is likely the closest distro
-    elif distname == "amzn":
+    elif distname == "amzn" and major_llvm_version >= 11:
         os_name = "linux-sles12.4"
     elif distname == "freebsd":
         os_name = "unknown-freebsd-%s" % version
