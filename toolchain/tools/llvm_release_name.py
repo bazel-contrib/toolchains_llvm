@@ -17,7 +17,7 @@
 import platform
 import sys
 
-_known_distros = ["freebsd", "suse", "ubuntu", "arch", "manjaro", "debian", "fedora", "centos", "amzn"]
+_known_distros = ["freebsd", "suse", "ubuntu", "arch", "manjaro", "debian", "fedora", "centos", "amzn", "raspbian"]
 
 def _major_llvm_version(llvm_version):
     return int(llvm_version.split(".")[0])
@@ -126,6 +126,9 @@ def _linux(llvm_version):
             os_name = "linux-sles12.4"
         else:
             os_name = "linux-sles11.3"
+    elif distname == "raspbian":
+        arch = "armv7a"
+        os_name = "linux-gnueabihf"
     else:
         sys.exit("Unsupported linux distribution and version: %s, %s" % (distname, version))
 
