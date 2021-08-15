@@ -189,30 +189,125 @@ LLVM_ARCH_TO_BAZEL_PLATFORM_CPU_ARM_SUBARCHS = {
     "64e":       "arm64e"
 }
 
-# and
-# [OS][o] constraints.
+# A mapping from [LLVM target triple][tt] [operating systems][o] to Bazel
+# platform [operating systems][baz-o] constraints.
+#
+# [tt]: https://llvm.org/doxygen/Triple_8h_source.html
+# [o]: https://llvm.org/doxygen/classllvm_1_1Triple.html#a3cfefc755ab656000934f91193afb1cd
+# [baz-o]: https://github.com/bazelbuild/platforms/blob/main/os/BUILD
+#
+# See: https://github.com/llvm/llvm-project/blob/944dfa4975e8d55ca9d97f6eb7222ff1d0f7291a/llvm/lib/Support/Triple.cpp#L505-L541
+LLVM_OS_TO_BAZEL_PLATFORM_OS = {
+    "ananas":     None,
+    "cloudabi":   None,
+    "darwin":     None,
+    "dragonfly":  None,
+    "freebsd":    "freebsd",
+    "fuchsia":    None,
+    "ios":        "ios",
+    "kfreebsd":   None,
+    "linux":      "linux",
+    "lv2":        None,
+    "macos":      "macos",
+    "netbsd":     None,
+    "openbsd":    "openbsd",
+    "solaris":    None,
+    "win32":      None,
+    "windows":    "windows",
+    "zos":        None,
+    "haiku":      None,
+    "minix":      None,
+    "rtems":      None,
+    "nacl":       None,
+    "aix":        None,
+    "cuda":       None,
+    "nvcl":       None,
+    "amdhsa":     None,
+    "ps4":        None,
+    "elfiamcu":   None,
+    "tvos":       "tvos",
+    "watchos":    "watchos",
+    "mesa3d":     None,
+    "contiki":    None,
+    "amdpal":     None,
+    "hermit":     None,
+    "hurd":       None,
+    "wasi":       "wasi",
+    "emscripten": None,
 
-def cpu_constraint(arch):
-    constraint = None
+    # No OS; bare metal.
+    "none":       "none",
+}
+
+# A mapping from [LLVM target triple][tt] [environments][e] to Bazel
+# platform constraints.
+#
+# [tt]: https://llvm.org/doxygen/Triple_8h_source.html
+# [e]: https://llvm.org/doxygen/classllvm_1_1Triple.html#a1778f5c464f88710033f7e11e84a9324
+#
+# See: https://github.com/llvm/llvm-project/blob/944dfa4975e8d55ca9d97f6eb7222ff1d0f7291a/llvm/lib/Support/Triple.cpp#L544-L568
+LLVM_ENV_TO_BAZEL_PLATFORM_CONSTRAINTS = {
+    "eabihf":     None,
+    "eabi":       None,
+    "gnuabin32":  None,
+    "gnuabi64":   None,
+    "gnueabihf":  None,
+    "gnueabi":    None,
+    "gnux32":     None,
+    "gnu_ilp32":  None,
+    "code16":     None,
+    "gnu":        None,
+    "android":    "os:android",
+    "musleabihf": None,
+    "musleabi":   None,
+    "muslx32":    None,
+    "musl":       None,
+    "msvc":       None,
+    "itanium":    None,
+    "cygnus":     None,
+    "coreclr":    None,
+    "simulator":  None,
+    "macabi":     None,
+}
+
+def prefix_list_or_single(constraint_base, constraints):
+    if type(constraints) == "list":
+        return ["{}:{}".format(constraint_base, c) for c in constraints]
+    elif constraints:
+        return "{}:{}".format(constraint_base, constraints)
+    else:
+        return []
+
+def cpu_constraints(arch):
+    constraints = None
 
     if arch.startswith("arm"):
-        constraint = LLVM_ARCH_TO_BAZEL_PLATFORM_CPU_ARM_SUBARCHS.get(arch[len("arm"):])
+        constraints = LLVM_ARCH_TO_BAZEL_PLATFORM_CPU_ARM_SUBARCHS.get(arch[len("arm"):])
 
         # If a more specific constraint isn't available, fall back to "arm":
-        if not constraint: constraint = "arm"
+        if not constraints: constraints = "arm"
     elif arch.startswith("thumb"):
-        constraint = LLVM_ARCH_TO_BAZEL_PLATFORM_CPU_ARM_SUBARCHS.get(arch[len("thumb"):])
+        constraints = LLVM_ARCH_TO_BAZEL_PLATFORM_CPU_ARM_SUBARCHS.get(arch[len("thumb"):])
     else:
         if arch not in LLVM_ARCH_TO_BAZEL_PLATFORM_CPU:
             fail("Unrecognized architecture: `{}`.".format(arch))
-        constraint = LLVM_ARCH_TO_BAZEL_PLATFORM_CPU.get(arch)
+        constraints = LLVM_ARCH_TO_BAZEL_PLATFORM_CPU.get(arch)
 
-    if type(constraint) == "list":
-        return ["@platforms//cpu:".format(c) for c in constraint]
-    elif constraint:
-        return "@platforms//cpu:".format(constraint)
+    return prefix_list_or_single("@platforms//cpu", constraints)
+
+def os_constraints(os):
+    # NOTE: we do not error if the given OS name is not in our table.
+    constraints = LLVM_OS_TO_BAZEL_PLATFORM_OS.get(os)
+
+    return prefix_list_or_single("@platforms//os", constraints)
+
+def env_constraints(env):
+    if env in LLVM_ENV_TO_BAZEL_PLATFORM_CONSTRAINTS:
+        constraints = LLVM_ENV_TO_BAZEL_PLATFORM_CONSTRAINTS[env]
+
+        return prefix_list_or_single("@platforms//", constraints)
     else:
-        return []
+        fail("Unrecognized environment in target triple: `{}`.")
 
 def target_triple_to_constraints(triple):
     # [As per LLVM](https://llvm.org/doxygen/Triple_8h_source.html), a triple
@@ -221,6 +316,8 @@ def target_triple_to_constraints(triple):
 
     if len(parts) == 3: parts.append(None)
     if len(parts) != 4: fail("`{}` is not a valid target triple.")
-    arch, vendor, os, env = parts
+    arch, _vendor, os, env = parts
 
+    # NOTE: we don't generate constraints from the vendor part.
 
+    return cpu_constraints(arch) + os_constraints(os) + env_constraints(env)
