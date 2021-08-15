@@ -274,7 +274,7 @@ def prefix_list_or_single(constraint_base, constraints):
     if type(constraints) == "list":
         return ["{}:{}".format(constraint_base, c) for c in constraints]
     elif constraints:
-        return "{}:{}".format(constraint_base, constraints)
+        return ["{}:{}".format(constraint_base, constraints)]
     else:
         return []
 
@@ -302,22 +302,40 @@ def os_constraints(os):
     return prefix_list_or_single("@platforms//os", constraints)
 
 def env_constraints(env):
+    # `env` is optional:
+    if not env: return []
+
     if env in LLVM_ENV_TO_BAZEL_PLATFORM_CONSTRAINTS:
         constraints = LLVM_ENV_TO_BAZEL_PLATFORM_CONSTRAINTS[env]
 
         return prefix_list_or_single("@platforms//", constraints)
     else:
-        fail("Unrecognized environment in target triple: `{}`.")
+        fail("Unrecognized environment in target triple: `{}`.".format(env))
 
-def target_triple_to_constraints(triple):
+def split_target_triple(triple):
+    """Splits a target triple into its parts.
+
+    Args:
+      triple: the triple to split
+
+    Returns:
+      the triple's constituent architecture, vendor, operating system, and env
+      parts
+    """
+
     # [As per LLVM](https://llvm.org/doxygen/Triple_8h_source.html), a triple
     # consists of: `arch-vendor-operating_system(-environment)?`.
     parts = triple.split("-")
 
-    if len(parts) == 3: parts.append(None)
-    if len(parts) != 4: fail("`{}` is not a valid target triple.")
-    arch, _vendor, os, env = parts
+    if len(parts) == 3:
+        parts.append(None)
+    if len(parts) != 4:
+        fail("`{}` is not a valid target triple.".format(triple))
+
+    return parts
+
+def target_triple_to_constraints(triple):
+    arch, _vendor, os, env = split_target_triple(triple)
 
     # NOTE: we don't generate constraints from the vendor part.
-
     return cpu_constraints(arch) + os_constraints(os) + env_constraints(env)
