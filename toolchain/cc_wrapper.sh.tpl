@@ -56,8 +56,19 @@ done
 if [[ "${PATH}:" == *"%{toolchain_path_prefix}bin:"* ]]; then
   # GoCompile sets the PATH to the directory containing the linker, and changes CWD.
   clang "$@"
-else
+elif [[ -f %{toolchain_path_prefix}bin/clang ]]; then
   %{toolchain_path_prefix}bin/clang "$@"
+else
+    # Some consumers of `CcToolchainConfigInfo`s will use a PWD that *isn't*
+    # the execroot (i.e. `cmake` from `rules_foreign_cc`). For cases like this,
+    # we'll try to find `clang` by assuming it's next to this script.
+    potential_clang_path="$(dirname "${0}")/clang"
+    if [[ -f ${potential_clang_path} ]]; then
+        "${potential_clang_path}" "${@}"
+    else
+        echo "ERROR: could not find clang; PWD is: $(pwd)."
+        exit 5
+    fi
 fi
 
 function get_library_path() {
