@@ -55,6 +55,10 @@ llvm_toolchain = repository_rule(
             default = False,
             doc = "Use absolute paths in the toolchain. Avoids sandbox overhead.",
         ),
+        "extra_targets": attr.string_list(
+            default = [],
+            doc = "Extra target triples to configure toolchains for.",
+        ),
         "_llvm_release_name": attr.label(
             default = "@com_grail_bazel_toolchain//toolchain/tools:llvm_release_name.py",
             allow_single_file = True,

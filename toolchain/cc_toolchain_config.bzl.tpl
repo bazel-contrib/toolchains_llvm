@@ -17,8 +17,8 @@ load(
     bazel_cc_toolchain_config = "cc_toolchain_config",
 )
 
-def cc_toolchain_config(name, cpu):
-    if not (cpu == "darwin" or cpu == "k8"):
+def cc_toolchain_config(name, host_platform):
+    if not (host_platform == "darwin" or host_platform == "k8"):
         fail("Unreachable")
 
     # `builtin_sysroot` support – required to use the `%sysroot%` prefix – was
@@ -57,7 +57,7 @@ def cc_toolchain_config(name, cpu):
             "glibc_unknown",
             "%{sysroot_path}",
         ),
-    }[cpu]
+    }[host_platform]
 
 
     # Unfiltered compiler flags:
@@ -74,7 +74,7 @@ def cc_toolchain_config(name, cpu):
 
 
     # Linker flags:
-    if cpu == "k8":
+    if host_platform == "k8":
         linker_flags = [
             # Use the lld linker.
             "-fuse-ld=lld",
@@ -94,7 +94,7 @@ def cc_toolchain_config(name, cpu):
             "-Wl,--hash-style=gnu",
             "-Wl,-z,relro,-z,now",
         ]
-    elif cpu == "darwin":
+    elif host_platform == "darwin":
         linker_flags = [
             # Difficult to guess options to statically link C++ libraries with
             # the macOS linker.
@@ -112,7 +112,7 @@ def cc_toolchain_config(name, cpu):
         "-no-canonical-prefixes",
     ] + linker_flags
 
-    opt_link_flags = ["-Wl,--gc-sections"] if cpu == "k8" else []
+    opt_link_flags = ["-Wl,--gc-sections"] if host_platform == "k8" else []
 
 
     # Default compiler flags:
@@ -163,7 +163,7 @@ def cc_toolchain_config(name, cpu):
     # If not, we'll just substitute in the `builtin_sysroot` path directly.
     sysroot_for_include_dirs = "%{sysroot_prefix}" if sysroot_prefix_supported else builtin_sysroot
 
-    if (cpu == "k8"):
+    if (host_platform == "k8"):
         cxx_builtin_include_directories += [
             "{}/include".format(sysroot_for_include_dirs),
             "{}/usr/include".format(sysroot_for_include_dirs),
@@ -171,7 +171,7 @@ def cc_toolchain_config(name, cpu):
         ] + [
             %{k8_additional_cxx_builtin_include_directories}
         ]
-    elif (cpu == "darwin"):
+    elif (host_platform == "darwin"):
         cxx_builtin_include_directories += [
             "{}/usr/include".format(sysroot_for_include_dirs),
             "{}/System/Library/Frameworks".format(sysroot_for_include_dirs),
@@ -218,7 +218,7 @@ def cc_toolchain_config(name, cpu):
             # No idea why we use `libtool` instead of `llvm-ar` on macOS:
             "ar": "/usr/bin/libtool",
         },
-    }[cpu])
+    }[host_platform])
 
 
     # Start-end group linker support:

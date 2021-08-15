@@ -13,6 +13,12 @@
 # limitations under the License.
 
 load(
+    "@com_grail_bazel_toolchain//toolchain/internal:extra_targets.bzl",
+    _cpu_constraints = "cpu_constraints",
+    _split_target_triple = "split_target_triple",
+    _target_triple_to_constraints = "target_triple_to_constraints",
+)
+load(
     "@com_grail_bazel_toolchain//toolchain/internal:llvm_distributions.bzl",
     _download_llvm = "download_llvm",
     _download_llvm_preconfigured = "download_llvm_preconfigured",
@@ -30,11 +36,111 @@ def _makevars_ld_flags(rctx):
     # lld, as of LLVM 7, is experimental for Mach-O, so we use it only on linux.
     return "-fuse-ld=lld"
 
-def _include_dirs_str(rctx, cpu):
-    dirs = rctx.attr.cxx_builtin_include_directories.get(cpu)
+def _include_dirs_str(rctx, host_platform):
+    dirs = rctx.attr.cxx_builtin_include_directories.get(host_platform)
     if not dirs:
         return ""
     return ("\n" + 12 * " ").join(["\"%s\"," % d for d in dirs])
+
+def _extra_toolchains_for_toolchain_suite(target_triple):
+    arch, _vendor, _os, _env = _split_target_triple(target_triple)
+    cpu_constraints = _cpu_constraints(arch)
+
+    # This is more than a little broken.
+    #
+    # `cc_toolchain_suite` only allows us to associate a toolchain with a
+    # particular `--cpu` and `--compiler` value and does not provide any way
+    # to "select" a toolchain based on the host platform, just on the target
+    # cpu. So, we are unable to add the macOS toolchains to the suite.
+    #
+    # See: https://docs.bazel.build/versions/main/be/c-cpp.html#cc_toolchain_suite.toolchains
+    #
+    # Worse, absent documentation/consensus for what values of `--cpu` are
+    # commonly used, we just use the CPU values for the `@platforms//cpu`
+    # constraint; these may or may not match what is commonly used and what
+    # users are putting in their platform mappings.
+    #
+    # See: https://docs.bazel.build/versions/main/platforms-intro.html#platform-mappings
+    #
+    # Since toolchain resolution is what will be supported in the future (for
+    # which we do the right thing), this isn't the end of the world. It's
+    # unclear if it's possible for us to do better here though. (TODO)
+
+    if len(cpu_constraints) > 0:
+        return "# For `{}`:".format(target_triple) + ''.join([
+        """
+        "{cpu}": ":cc-clang-linux_${target}",
+        "{cpu}|clang": ":cc-clang-linux_${target}",\n""".format(
+            cpu = cpu,
+            target = target_triple,
+        )
+            for cpu in cpu_constraints
+        ])
+    else:
+        return ""
+
+
+def _extra_cc_toolchain_config(target_triple):
+    target_constraints = _target_triple_to_constraints(target_triple)
+
+    return """
+# For `{target}`:
+
+cc_toolchain_config(
+    name = "local_linux_{target}",
+    host_platform = "k8",
+    # TODO
+)
+
+cc_toolchain_config(
+    name = "local_darwin_{target}",
+    host_platform = "darwin",
+    # TODO
+)
+
+toolchain(
+    name = "cc-toolchain-linux_{target}",
+    exec_compatible_with = [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:linux",
+    ],
+    target_compatible_with = [
+        {target_constraints}
+    ],
+    toolchain = ":cc-clang-linux_{target}",
+    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
+)
+
+toolchain(
+    name = "cc-toolchain-darwin_{target}",
+    exec_compatible_with = [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:osx",
+    ],
+    target_compatible_with = [
+        {target_constraints}
+    ],
+    toolchain = ":cc-clang-darwin_{target}",
+    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
+)
+""".format(
+    target = target_triple,
+    target_constraints = '\n        '.join([
+        '"{}",'.format(c) for c in target_constraints
+    ])
+)
+
+def _extra_conditional_cc_toolchain_config(rctx, target_triple):
+    absolute_paths = rctx.attr.absolute_paths
+
+    return """
+# For `{target}`:
+conditional_cc_toolchain("cc-clang-linux_{target}", ":local_linux_{target}", False, {abs_paths})
+conditional_cc_toolchain("cc-clang-darwin_{target}", ":local_darwin_{target}", True, {abs_paths})
+""".format(
+        target = target_triple,
+        abs_paths = absolute_paths,
+    )
 
 def llvm_toolchain_impl(rctx):
     if rctx.os.name.startswith("windows"):
@@ -67,6 +173,27 @@ def llvm_register_toolchains():
         "%{makevars_ld_flags}": _makevars_ld_flags(rctx),
         "%{k8_additional_cxx_builtin_include_directories}": _include_dirs_str(rctx, "k8"),
         "%{darwin_additional_cxx_builtin_include_directories}": _include_dirs_str(rctx, "darwin"),
+
+        "%{extra_cc_toolchain_config}": '\n'.join([
+            _extra_cc_toolchain_config(t) for t in rctx.attr.extra_targets
+        ]),
+        "%{extra_conditional_cc_toolchain_config}": '\n'.join([
+            _extra_conditional_cc_toolchain_config(rctx, t) for t in rctx.attr.extra_targets
+        ]),
+        "%{extra_toolchains_for_toolchain_suite}": '        \n'.join([
+            _extra_toolchains_for_toolchain_suite(t) for t in rctx.attr.extra_targets
+        ]),
+        "%{extra_toolchains_for_registration}": '        \n'.join([
+            "# For `{target}`:\n".format(target = target) + ''.join([
+                """        "@{repo}//:cc-toolchain-{host}_{target}",\n""".format(
+                    repo = rctx.name,
+                    host = host,
+                    target = target,
+                )
+                for host in ["linux", "darwin"]
+            ])
+            for target in rctx.attr.extra_targets
+        ]),
     }
 
     rctx.template(
@@ -110,11 +237,8 @@ def llvm_register_toolchains():
     if not _download_llvm(rctx):
         _download_llvm_preconfigured(rctx)
 
-def conditional_cc_toolchain(name, darwin, absolute_paths = False):
+def conditional_cc_toolchain(name, toolchain_config, host_is_darwin, absolute_paths = False):
     # Toolchain macro for BUILD file to use conditional logic.
-
-    toolchain_config = "local_darwin" if darwin else "local_linux"
-
     if absolute_paths:
         _cc_toolchain(
             name = name,
@@ -124,11 +248,11 @@ def conditional_cc_toolchain(name, darwin, absolute_paths = False):
             linker_files = ":empty",
             objcopy_files = ":empty",
             strip_files = ":empty",
-            supports_param_files = 0 if darwin else 1,
+            supports_param_files = 0 if host_is_darwin else 1,
             toolchain_config = toolchain_config,
         )
     else:
-        extra_files = [":cc_wrapper"] if darwin else []
+        extra_files = [":cc_wrapper"] if host_is_darwin else []
         native.filegroup(name = name + "-all-files", srcs = [":all_components"] + extra_files)
         native.filegroup(name = name + "-archiver-files", srcs = [":ar"] + extra_files)
         native.filegroup(name = name + "-assembler-files", srcs = [":as"] + extra_files)
@@ -144,6 +268,6 @@ def conditional_cc_toolchain(name, darwin, absolute_paths = False):
             linker_files = name + "-linker-files",
             objcopy_files = ":objcopy",
             strip_files = ":empty",
-            supports_param_files = 0 if darwin else 1,
+            supports_param_files = 0 if host_is_darwin else 1,
             toolchain_config = toolchain_config,
         )
