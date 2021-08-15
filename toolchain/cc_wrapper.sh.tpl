@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# OS X relpath is not really working. This is a wrapper script around gcc
+# OS X realpath is not really working. This is a wrapper script around gcc
 # to simulate relpath behavior.
 #
 # This wrapper uses install_name_tool to replace all paths in the binary

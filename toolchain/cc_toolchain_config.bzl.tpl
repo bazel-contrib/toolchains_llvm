@@ -21,6 +21,15 @@ def cc_toolchain_config(name, cpu):
     if not (cpu == "darwin" or cpu == "k8"):
         fail("Unreachable")
 
+    # `builtin_sysroot` support – required to use the `%sysroot%` prefix – was
+    # only added in bazel v4.0.0.
+    #
+    # `native.bazel_version` might give us back an empty string if a local dev build
+    # of bazel is being used; in this case we'll assume the version is at least
+    # 4.0.0.
+    #
+    # See: https://github.com/bazelbuild/bazel/commit/da345f1f249ebf28bec88c6e0d63260dfaef14e9
+    sysroot_prefix_supported = int(("%{bazel_version}" or "4.0.0").split(".")[0]) >= 4
 
     # A bunch of variables that get passed straight through to
     # `create_cc_toolchain_config_info`.
@@ -53,7 +62,7 @@ def cc_toolchain_config(name, cpu):
 
     # Unfiltered compiler flags:
     unfiltered_compile_flags = [
-        # Do not resolve our smylinked resource prefixes to real paths.
+        # Do not resolve our symlinked resource prefixes to real paths.
         "-no-canonical-prefixes",
         # Reproducibility
         "-Wno-builtin-macro-redefined",
@@ -149,18 +158,23 @@ def cc_toolchain_config(name, cpu):
         "%{toolchain_path_prefix}lib64/clang/%{llvm_version}/include",
     ]
 
+    # If `builtin_sysroot` is supported, use the `sysroot_prefix` here.
+    #
+    # If not, we'll just substitute in the `builtin_sysroot` path directly.
+    sysroot_for_include_dirs = "%{sysroot_prefix}" if sysroot_prefix_supported else builtin_sysroot
+
     if (cpu == "k8"):
         cxx_builtin_include_directories += [
-            "%{sysroot_prefix}/include",
-            "%{sysroot_prefix}/usr/include",
-            "%{sysroot_prefix}/usr/local/include",
+            "{}/include".format(sysroot_for_include_dirs),
+            "{}/usr/include".format(sysroot_for_include_dirs),
+            "{}/usr/local/include".format(sysroot_for_include_dirs),
         ] + [
             %{k8_additional_cxx_builtin_include_directories}
         ]
     elif (cpu == "darwin"):
         cxx_builtin_include_directories += [
-            "%{sysroot_prefix}/usr/include",
-            "%{sysroot_prefix}/System/Library/Frameworks",
+            "{}/usr/include".format(sysroot_for_include_dirs),
+            "{}/System/Library/Frameworks".format(sysroot_for_include_dirs),
             "/Library/Frameworks",
         ] + [
             %{darwin_additional_cxx_builtin_include_directories}
@@ -244,14 +258,10 @@ def cc_toolchain_config(name, cpu):
 
         # This was only added in bazel v4.0.0.
         #
-        # `native.bazel_version` might give us back an empty string if a local dev build
-        # of bazel is being used; in this case we'll assume the version is at least
-        # 4.0.0.
-        #
         # See: https://github.com/bazelbuild/bazel/commit/da345f1f249ebf28bec88c6e0d63260dfaef14e9
         **(
             {"builtin_sysroot": builtin_sysroot}
-            if int(("%{bazel_version}" or "4.0.0").split(".")[0]) >= 4
+            if sysroot_prefix_supported
             else {}
         )
     )
