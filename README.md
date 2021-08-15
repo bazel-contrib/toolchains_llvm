@@ -46,6 +46,14 @@ For overriding toolchains on the command line, please use the
 `--extra_toolchains` flag in lieu of the deprecated `--crosstool_top` flag.
 For example, `--extra_toolchains=@llvm_toolchain//:cc-toolchain-linux`.
 
+Note: you may need to add `build --incompatible_enable_cc_toolchain_resolution`
+to your `.bazelrc` to enable toolchain resolution for `cc` toolchains (see
+[this][enable-cc-toolchain-res] issue). If you do this, the
+`llvm_register_toolchains` call in `WORKSPACE` shown in the example above should
+be sufficient to get Bazel to use the toolchain.
+
+[enable-cc-toolchain-res]: https://github.com/bazelbuild/bazel/issues/7260
+
 If you would like to use the older method of selecting toolchains, you can
 continue to do so with `--crosstool_top=@llvm_toolchain//:toolchain`.
 
