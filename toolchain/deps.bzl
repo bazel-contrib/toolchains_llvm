@@ -23,3 +23,13 @@ def bazel_toolchain_dependencies():
             strip_prefix = "rules_cc-726dd8157557f1456b3656e26ab21a1646653405",
             urls = ["https://github.com/bazelbuild/rules_cc/archive/726dd8157557f1456b3656e26ab21a1646653405.tar.gz"],
         )
+
+    if not native.existing_rule("platforms"):
+        http_archive(
+            name = "platforms",
+            urls = [
+                "https://mirror.bazel.build/github.com/bazelbuild/platforms/releases/download/0.0.4/platforms-0.0.4.tar.gz",
+                "https://github.com/bazelbuild/platforms/releases/download/0.0.4/platforms-0.0.4.tar.gz",
+            ],
+            sha256 = "079945598e4b6cc075846f7fd6a9d0857c33a7afc0de868c2ccb96405225135d",
+        )
