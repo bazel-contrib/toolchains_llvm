@@ -3,6 +3,8 @@ Helpers for configuring toolchains that target platforms different than the
 host platform.
 """
 
+load("//toolchain/internal/extra_targets:wasi.bzl", "get_wasi_sysroot", "install_wasi_compiler_rt")
+
 # A mapping from [LLVM target triple][tt] [architectures][a] to Bazel platform
 # [CPU][c]s.
 #
