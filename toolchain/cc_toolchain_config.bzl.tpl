@@ -17,7 +17,32 @@ load(
     bazel_cc_toolchain_config = "cc_toolchain_config",
 )
 
-def cc_toolchain_config(name, host_platform):
+def cc_toolchain_config(name, host_platform, custom_target_triple = None, overrides = {}):
+    """Creates a `clang` based `CcToolchain`.
+
+    Args:
+        name: name of the toolchain to create
+        host_platform: execution target for the toolchain
+            This can be "darwin" (macOS) or "k8" (Linux).
+        custom_target_triple: the target to compile for
+            If not specified the toolchain created will target the host
+            platform.
+        overrides:
+            ```
+            {
+                "target_system_name": string,
+                "target_cpu": string,
+                "target_libc": string,
+                "abi_version": string,
+                "abi_libc_version": string,
+                "sysroot_path": string,
+
+                "extra_compile_flags": list[string],
+                "omit_hosted_linker_flags": bool,
+                "omit_cxx_stdlib_flag": bool,
+            }
+            ```
+    """
     if not (host_platform == "darwin" or host_platform == "k8"):
         fail("Unreachable")
 
@@ -59,6 +84,13 @@ def cc_toolchain_config(name, host_platform):
         ),
     }[host_platform]
 
+    # Overrides:
+    target_system_name = overrides.get("target_system_name", target_system_name)
+    target_cpu = overrides.get("target_cpu", target_cpu)
+    target_libc = overrides.get("target_libc", target_libc)
+    abi_version = overrides.get("abi_version", abi_version)
+    abi_libc_version = overrides.get("abi_libc_version", abi_libc_version)
+    builtin_sysroot = overrides.get("sysroot_path", builtin_sysroot)
 
     # Unfiltered compiler flags:
     unfiltered_compile_flags = [
@@ -70,10 +102,13 @@ def cc_toolchain_config(name, host_platform):
         "-D__TIMESTAMP__=\"redacted\"",
         "-D__TIME__=\"redacted\"",
         "-fdebug-prefix-map=%{toolchain_path_prefix}=%{debug_toolchain_path_prefix}",
-    ]
+    ] + overrides.get("extra_compile_flags", [])
 
+    if custom_target_triple:
+        unfiltered_compile_flags.append("--target={}".format(custom_target_triple))
 
     # Linker flags:
+    enable_hosted_linker_flags = not overrides.get("omit_hosted_linker_flags", False)
     if host_platform == "k8":
         linker_flags = [
             # Use the lld linker.
@@ -83,17 +118,21 @@ def cc_toolchain_config(name, host_platform):
             "-L%{toolchain_path_prefix}/lib",
             "-l:libc++.a",
             "-l:libc++abi.a",
-            "-l:libunwind.a",
-            # Compiler runtime features.
-            "-rtlib=compiler-rt",
-            # To support libunwind.
-            "-lpthread",
-            "-ldl",
             # Other linker flags.
             "-Wl,--build-id=md5",
             "-Wl,--hash-style=gnu",
             "-Wl,-z,relro,-z,now",
         ]
+
+        if enable_hosted_linker_flags:
+            linker_flags += [
+                "-l:libunwind.a",
+                # Compiler runtime features.
+                "-rtlib=compiler-rt",
+                # To support libunwind.
+                "-lpthread",
+                "-ldl",
+            ]
     elif host_platform == "darwin":
         linker_flags = [
             # Difficult to guess options to statically link C++ libraries with
@@ -139,8 +178,10 @@ def cc_toolchain_config(name, host_platform):
         "-fdata-sections",
     ]
 
-    cxx_flags = ["-std=c++17", "-stdlib=libc++"]
-
+    # Some targets *can't* pick between `libc++` and `libstdc++` so the
+    # `-stdlib` is just unused and emits a warnings.
+    add_cxx_stdlib_flag = not overrides.get("omit_cxx_stdlib_flag", False)
+    cxx_flags = ["-std=c++17"] + ["-stdlib=libc++"] if add_cxx_stdlib_flag else []
 
     # Coverage flags:
     coverage_compile_flags = ["-fprofile-instr-generate", "-fcoverage-mapping"]

@@ -272,13 +272,13 @@ LLVM_ENV_TO_BAZEL_PLATFORM_CONSTRAINTS = {
 
 def prefix_list_or_single(constraint_base, constraints):
     if type(constraints) == "list":
-        return ["{}:{}".format(constraint_base, c) for c in constraints]
+        return ["{}{}".format(constraint_base, c) for c in constraints]
     elif constraints:
-        return ["{}:{}".format(constraint_base, constraints)]
+        return ["{}{}".format(constraint_base, constraints)]
     else:
         return []
 
-def cpu_constraints(arch):
+def cpu_names(arch):
     constraints = None
 
     if arch.startswith("arm"):
@@ -293,13 +293,16 @@ def cpu_constraints(arch):
             fail("Unrecognized architecture: `{}`.".format(arch))
         constraints = LLVM_ARCH_TO_BAZEL_PLATFORM_CPU.get(arch)
 
-    return prefix_list_or_single("@platforms//cpu", constraints)
+    return prefix_list_or_single("", constraints)
+
+def cpu_constraints(arch):
+    return prefix_list_or_single("@platforms//cpu:", cpu_names(arch))
 
 def os_constraints(os):
     # NOTE: we do not error if the given OS name is not in our table.
     constraints = LLVM_OS_TO_BAZEL_PLATFORM_OS.get(os)
 
-    return prefix_list_or_single("@platforms//os", constraints)
+    return prefix_list_or_single("@platforms//os:", constraints)
 
 def env_constraints(env):
     # `env` is optional:
@@ -339,3 +342,20 @@ def target_triple_to_constraints(triple):
 
     # NOTE: we don't generate constraints from the vendor part.
     return cpu_constraints(arch) + os_constraints(os) + env_constraints(env)
+
+# TODO: this kind of logic is what needs to be filled in for other targets:
+def overrides_for_target(triple):
+    arch, _vendor, os, _env = split_target_triple(triple)
+
+    if arch == "wasm32" or arch == "wasm64":
+        return {
+            "omit_hosted_linker_flags": True,
+        }
+    else:
+        print(
+            ("`{}` support has not been added to bazel-toolchain; you may " +
+            "need to manually adjust compiler flags and toolchain " +
+            "configurations yourself!").format(triple)
+        )
+
+        return {}

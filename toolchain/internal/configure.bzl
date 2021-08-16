@@ -14,7 +14,8 @@
 
 load(
     "@com_grail_bazel_toolchain//toolchain/internal:extra_targets.bzl",
-    _cpu_constraints = "cpu_constraints",
+    _cpu_names = "cpu_names",
+    _overrides_for_target = "overrides_for_target",
     _split_target_triple = "split_target_triple",
     _target_triple_to_constraints = "target_triple_to_constraints",
 )
@@ -44,7 +45,7 @@ def _include_dirs_str(rctx, host_platform):
 
 def _extra_toolchains_for_toolchain_suite(target_triple):
     arch, _vendor, _os, _env = _split_target_triple(target_triple)
-    cpu_constraints = _cpu_constraints(arch)
+    cpus = _cpu_names(arch)
 
     # This is more than a little broken.
     #
@@ -66,7 +67,7 @@ def _extra_toolchains_for_toolchain_suite(target_triple):
     # which we do the right thing), this isn't the end of the world. It's
     # unclear if it's possible for us to do better here though. (TODO)
 
-    if len(cpu_constraints) > 0:
+    if len(cpus) > 0:
         return "# For `{}`:".format(target_triple) + ''.join([
         """
         "{cpu}": ":cc-clang-linux_${target}",
@@ -74,28 +75,66 @@ def _extra_toolchains_for_toolchain_suite(target_triple):
             cpu = cpu,
             target = target_triple,
         )
-            for cpu in cpu_constraints
+            for cpu in cpus
         ])
     else:
         return ""
 
 
-def _extra_cc_toolchain_config(target_triple):
+def _extra_cc_toolchain_config(target_triple, extra_sysroots):
     target_constraints = _target_triple_to_constraints(target_triple)
+    arch, _vendor, os, _env = _split_target_triple(target_triple)
 
+    extra_overrides = _overrides_for_target(target_triple)
+
+    # Use the architecture as the CPU name if there is no @platforms//cpu value
+    # for the architecture.
+    cpu = (_cpu_names(arch) + [arch])[0]
+
+    sysroot_override = ""
+    sysroot_definition = ""
+    if target_triple in extra_sysroots:
+        label, path = extra_sysroots[target_triple]
+        sysroot_override = """"sysroot_path" = "{path}",""".format(path = path)
+
+        if label:
+            sysroot_definition = """
+filegroup(
+    name = "sysroot_components-{target_triple}",
+    srcs = ["{label}"],
+)
+
+""".format(
+    target_triple = target_triple,
+    label = label,
+)
+
+    overrides_var_name = target_triple.replace("-", "_").upper() + "_OVERRIDES"
     return """
 # For `{target}`:
+
+{sysroot_definition}
+{overrides_var_name} = {{
+    "target_system_name": "{target}",
+    "target_cpu": "{cpu}",
+    "target_libc": "{os}",
+    "abi_libc_version": "{os}",
+    {sysroot_override}
+}}
+{overrides_var_name}.update({extra_overrides})
 
 cc_toolchain_config(
     name = "local_linux_{target}",
     host_platform = "k8",
-    # TODO
+    custom_target_triple = "{target}",
+    overrides = {overrides_var_name},
 )
 
 cc_toolchain_config(
     name = "local_darwin_{target}",
     host_platform = "darwin",
-    # TODO
+    custom_target_triple = "{target}",
+    overrides = {overrides_var_name},
 )
 
 toolchain(
@@ -125,9 +164,15 @@ toolchain(
 )
 """.format(
     target = target_triple,
+    cpu = cpu,
+    os = os,
+    sysroot_override = sysroot_override,
+    extra_overrides = extra_overrides,
+    sysroot_definition = sysroot_definition,
     target_constraints = '\n        '.join([
         '"{}",'.format(c) for c in target_constraints
-    ])
+    ]),
+    overrides_var_name = overrides_var_name,
 )
 
 def _extra_conditional_cc_toolchain_config(rctx, target_triple, extra_sysroots):
@@ -189,7 +234,7 @@ def llvm_register_toolchains():
         "%{darwin_additional_cxx_builtin_include_directories}": _include_dirs_str(rctx, "darwin"),
 
         "%{extra_cc_toolchain_config}": '\n'.join([
-            _extra_cc_toolchain_config(t) for t in rctx.attr.extra_targets
+            _extra_cc_toolchain_config(t, extra_sysroots) for t in rctx.attr.extra_targets
         ]),
         "%{extra_conditional_cc_toolchain_config}": '\n'.join([
             _extra_conditional_cc_toolchain_config(rctx, t, extra_sysroots) for t in rctx.attr.extra_targets
