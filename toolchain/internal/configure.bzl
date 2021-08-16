@@ -15,6 +15,7 @@
 load(
     "@com_grail_bazel_toolchain//toolchain/internal:extra_targets.bzl",
     _cpu_names = "cpu_names",
+    _extra_target_setup = "extra_target_setup",
     _overrides_for_target = "overrides_for_target",
     _split_target_triple = "split_target_triple",
     _target_triple_to_constraints = "target_triple_to_constraints",
@@ -295,6 +296,10 @@ def llvm_register_toolchains():
     # Repository implementation functions can be restarted, keep expensive ops at the end.
     if not _download_llvm(rctx):
         _download_llvm_preconfigured(rctx)
+
+    # Finally, do additional set up for the extra targets:
+    for target in rctx.attr.extra_targets:
+        _extra_target_setup(rctx, target)
 
 def conditional_cc_toolchain(
     name,

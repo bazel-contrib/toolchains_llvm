@@ -391,7 +391,17 @@ def sysroot_for_target(rctx, triple):
 
         return None
 
+# Runs *after* the toolchain has been fetched and extracted.
 def extra_target_setup(rctx, triple):
     arch, _vendor, os, _env = split_target_triple(triple)
 
-
+    # TODO: I think compiler_rt for wasi can be used on
+    # `wasm32-unknown-unknown` too.
+    if arch == "wasm32" and (os == "wasi" or os == "unknown" or os == "none"):
+        install_wasi_compiler_rt(rctx)
+    else:
+        print(
+            ("`{}` support has not been added to bazel-toolchain; you may " +
+            "need to grab compiler_rt or do additional toolchain setup " +
+            "yourself!" + README).format(triple)
+        )

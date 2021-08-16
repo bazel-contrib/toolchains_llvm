@@ -54,7 +54,7 @@ def get_wasi_sysroot(rctx):
         )
 
         print(
-            "\n\nIt worked! Feel free to make a PR adding `{}` as the WASI URL for LLVM {} with sha256 = `{}`.\n\n".format(
+            "\n\nIt worked! Feel free to make a PR adding `{}` as the WASI sysroot URL for LLVM {} with sha256 = `{}`.\n\n".format(
                 url,
                 llvm_major_version,
                 res.sha256
@@ -104,4 +104,34 @@ def wasi_compiler_rt_url(llvm_major_version):
     return "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-{v}/libclang_rt.builtins-wasm32-wasi-{v}.0.tar.gz".format(v = llvm_major_version)
 
 def install_wasi_compiler_rt(rctx):
-    pass
+    llvm_version = rctx.attr.llvm_version
+    llvm_major_version = int(llvm_version.split(".")[0])
+    common_download_params = {
+        "output": "lib/clang/{}/lib/wasi".format(llvm_version),
+        "stripPrefix": "lib/wasi",
+        "canonical_id": str(llvm_major_version),
+    }
+
+    if llvm_major_version in WASI_COMPILER_RT_LINKS:
+        url, sha = WASI_COMPILER_RT_LINKS[llvm_major_version]
+        rctx.download_and_extract(
+            url = url,
+            sha256 = sha,
+            **common_download_params
+        )
+    else:
+        url = wasi_compiler_rt_url(llvm_major_version)
+        print("We don't have a WASI compiler_rt URL for LLVM {}; we'll try to use `{}`..".format(llvm_major_version, url))
+
+        res = rctx.download_and_extract(
+            url = url,
+            **common_download_params
+        )
+
+        print(
+            "\n\nIt worked! Feel free to make a PR adding `{}` as the WASI compiler_rt URL for LLVM {} with sha256 = `{}`.\n\n".format(
+                url,
+                llvm_major_version,
+                res.sha256
+            )
+        )
