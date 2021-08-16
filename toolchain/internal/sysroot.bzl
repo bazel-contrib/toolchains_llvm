@@ -23,14 +23,14 @@ def _darwin_sdk_path(rctx):
         print(exec_result.stderr)
     return exec_result.stdout.strip()
 
-def _default_sysroot(rctx):
+def _default_host_sysroot(rctx):
     if rctx.os.name == "mac os x":
         return _darwin_sdk_path(rctx)
     else:
         return ""
 
 # Return the sysroot path and the label to the files, if sysroot is not a system path.
-def sysroot_path(rctx):
+def host_sysroot_path(rctx):
     if rctx.os.name == "linux":
         sysroot = rctx.attr.sysroot.get("linux", default = "")
     elif rctx.os.name == "mac os x":
@@ -39,7 +39,7 @@ def sysroot_path(rctx):
         fail("Unsupported OS: " + rctx.os.name)
 
     if not sysroot:
-        return (_default_sysroot(rctx), None)
+        return (_default_host_sysroot(rctx), None)
 
     # If the sysroot is an absolute path, use it as-is. Check for things that
     # start with "/" and not "//" to identify absolute paths, but also support

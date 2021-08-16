@@ -32,8 +32,8 @@ filegroup(
 )
 
 filegroup(
-    name = "sysroot_components",
-    srcs = [%{sysroot_label}],
+    name = "host_sysroot_components",
+    srcs = [%{host_sysroot_label}],
 )
 
 cc_toolchain_suite(
@@ -92,8 +92,8 @@ toolchain(
 
 load("@com_grail_bazel_toolchain//toolchain:rules.bzl", "conditional_cc_toolchain")
 
-conditional_cc_toolchain("cc-clang-linux", ":local_linux", False, %{absolute_paths})
-conditional_cc_toolchain("cc-clang-darwin", ":local_darwin", True, %{absolute_paths})
+conditional_cc_toolchain("cc-clang-linux", ":local_linux", False, ":host_sysroot_components", %{absolute_paths})
+conditional_cc_toolchain("cc-clang-darwin", ":local_darwin", True, ":host_sysroot_components", %{absolute_paths})
 %{extra_conditional_cc_toolchain_config}
 
 ## LLVM toolchain files
@@ -141,11 +141,11 @@ filegroup(
 )
 
 filegroup(
-    name = "compiler_components",
+    name = "host_compiler_components",
     srcs = [
         ":clang",
         ":include",
-        ":sysroot_components",
+        ":host_sysroot_components",
     ],
 )
 
@@ -203,21 +203,21 @@ filegroup(
 )
 
 filegroup(
-    name = "linker_components",
+    name = "host_linker_components",
     srcs = [
         ":clang",
         ":ld",
         ":ar",
         ":lib",
-        ":sysroot_components",
+        ":host_sysroot_components",
     ],
 )
 
 filegroup(
-    name = "all_components",
+    name = "all_host_components",
     srcs = [
         ":binutils_components",
-        ":compiler_components",
-        ":linker_components",
+        ":host_compiler_components",
+        ":host_linker_components",
     ],
 )

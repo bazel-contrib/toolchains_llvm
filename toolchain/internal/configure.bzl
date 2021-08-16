@@ -25,7 +25,7 @@ load(
 )
 load(
     "@com_grail_bazel_toolchain//toolchain/internal:sysroot.bzl",
-    _sysroot_path = "sysroot_path",
+    _host_sysroot_path = "host_sysroot_path",
 )
 load("@rules_cc//cc:defs.bzl", _cc_toolchain = "cc_toolchain")
 
@@ -130,16 +130,24 @@ toolchain(
     ])
 )
 
-def _extra_conditional_cc_toolchain_config(rctx, target_triple):
+def _extra_conditional_cc_toolchain_config(rctx, target_triple, extra_sysroots):
     absolute_paths = rctx.attr.absolute_paths
+
+    sysroot_label = ":host_sysroot_components" # this is the fallback
+    if target_triple in extra_sysroots:
+        label, _path = extra_sysroots[target_triple]
+        if label:
+            # defined by `_extra_cc_toolchain_config`
+            sysroot_label = ":sysroot_components_{}".format(target_triple)
 
     return """
 # For `{target}`:
-conditional_cc_toolchain("cc-clang-linux_{target}", ":local_linux_{target}", False, {abs_paths})
-conditional_cc_toolchain("cc-clang-darwin_{target}", ":local_darwin_{target}", True, {abs_paths})
+conditional_cc_toolchain("cc-clang-linux_{target}", ":local_linux_{target}", False, "{sysroot_label}", {abs_paths})
+conditional_cc_toolchain("cc-clang-darwin_{target}", ":local_darwin_{target}", True, "{sysroot_label}", {abs_paths})
 """.format(
         target = target_triple,
         abs_paths = absolute_paths,
+        sysroot_label = sysroot_label,
     )
 
 def llvm_toolchain_impl(rctx):
@@ -158,7 +166,13 @@ def llvm_register_toolchains():
     else:
         toolchain_path_prefix = relative_path_prefix
 
-    sysroot_path, sysroot = _sysroot_path(rctx)
+    # TODO:
+    extra_sysroots = {
+
+    }
+
+    host_sysroot_path, host_sysroot = _host_sysroot_path(rctx)
+    host_sysroot_label = "\"%s\"" % str(host_sysroot) if host_sysroot else ""
     substitutions = {
         "%{repo_name}": rctx.name,
         "%{llvm_version}": rctx.attr.llvm_version,
@@ -166,9 +180,9 @@ def llvm_register_toolchains():
         "%{toolchain_path_prefix}": toolchain_path_prefix,
         "%{tools_path_prefix}": (repo_path + "/") if rctx.attr.absolute_paths else "",
         "%{debug_toolchain_path_prefix}": relative_path_prefix,
-        "%{sysroot_path}": sysroot_path,
-        "%{sysroot_prefix}": "%sysroot%" if sysroot_path else "",
-        "%{sysroot_label}": "\"%s\"" % str(sysroot) if sysroot else "",
+        "%{host_sysroot_path}": host_sysroot_path,
+        "%{sysroot_prefix}": "%sysroot%",
+        "%{host_sysroot_label}": host_sysroot_label,
         "%{absolute_paths}": "True" if rctx.attr.absolute_paths else "False",
         "%{makevars_ld_flags}": _makevars_ld_flags(rctx),
         "%{k8_additional_cxx_builtin_include_directories}": _include_dirs_str(rctx, "k8"),
@@ -178,7 +192,7 @@ def llvm_register_toolchains():
             _extra_cc_toolchain_config(t) for t in rctx.attr.extra_targets
         ]),
         "%{extra_conditional_cc_toolchain_config}": '\n'.join([
-            _extra_conditional_cc_toolchain_config(rctx, t) for t in rctx.attr.extra_targets
+            _extra_conditional_cc_toolchain_config(rctx, t, extra_sysroots) for t in rctx.attr.extra_targets
         ]),
         "%{extra_toolchains_for_toolchain_suite}": '        \n'.join([
             _extra_toolchains_for_toolchain_suite(t) for t in rctx.attr.extra_targets
@@ -237,7 +251,13 @@ def llvm_register_toolchains():
     if not _download_llvm(rctx):
         _download_llvm_preconfigured(rctx)
 
-def conditional_cc_toolchain(name, toolchain_config, host_is_darwin, absolute_paths = False):
+def conditional_cc_toolchain(
+    name,
+    toolchain_config,
+    host_is_darwin,
+    sysroot_label,
+    absolute_paths = False,
+):
     # Toolchain macro for BUILD file to use conditional logic.
     if absolute_paths:
         _cc_toolchain(
@@ -253,11 +273,15 @@ def conditional_cc_toolchain(name, toolchain_config, host_is_darwin, absolute_pa
         )
     else:
         extra_files = [":cc_wrapper"] if host_is_darwin else []
-        native.filegroup(name = name + "-all-files", srcs = [":all_components"] + extra_files)
+        native.filegroup(name = name + "-compiler_components", srcs = [":clang", ":include", sysroot_label])
+        native.filegroup(name = name + "-linker_components", srcs = [":clang", ":ld", ":ar", ":lib", sysroot_label])
+        native.filegroup(name = name + "-all_components", srcs = [":binutils_components", name + "-compiler_components", name + "-linker_components"])
+
+        native.filegroup(name = name + "-all-files", srcs = [name + "-all_components"] + extra_files)
         native.filegroup(name = name + "-archiver-files", srcs = [":ar"] + extra_files)
         native.filegroup(name = name + "-assembler-files", srcs = [":as"] + extra_files)
-        native.filegroup(name = name + "-compiler-files", srcs = [":compiler_components"] + extra_files)
-        native.filegroup(name = name + "-linker-files", srcs = [":linker_components"] + extra_files)
+        native.filegroup(name = name + "-compiler-files", srcs = [name + "-compiler_components"] + extra_files)
+        native.filegroup(name = name + "-linker-files", srcs = [name + "-linker_components"] + extra_files)
         _cc_toolchain(
             name = name,
             all_files = name + "-all-files",

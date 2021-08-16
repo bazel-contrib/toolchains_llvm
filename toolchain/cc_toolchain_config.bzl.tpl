@@ -44,7 +44,7 @@ def cc_toolchain_config(name, host_platform):
             "clang",
             "darwin_x86_64",
             "darwin_x86_64",
-            "%{sysroot_path}",
+            "%{host_sysroot_path}",
         ),
         "k8": (
             "clang-linux",
@@ -55,7 +55,7 @@ def cc_toolchain_config(name, host_platform):
             "clang",
             "clang",
             "glibc_unknown",
-            "%{sysroot_path}",
+            "%{host_sysroot_path}",
         ),
     }[host_platform]
 
