@@ -86,6 +86,188 @@ Notes:
   depend on these tools directly in the bin directory of the toolchain. For
   example, `@llvm_toolchain//:bin/clang-format` is a valid and visible target.
 
+## Setting Up Toolchains for Other Targets
+
+### Using `extra_targets`
+
+```starlark
+load("@com_grail_bazel_toolchain//toolchain:rules.bzl", "llvm_toolchain")
+llvm_toolchain(
+    name = "llvm_toolchain",
+    llvm_version = "8.0.0",
+    extra_targets = [
+      "wasm32-unknown-wasi",
+    ],
+
+    # Extra targets can have their sysroots overriden too:
+    sysroots: {
+        "linux": "@some_example_sysroot_repo//:linux_sysroot",
+        "darwin": "@some_example_sysroot_repo//:macos_sysroot",
+
+        "linux_wasm32-unknown-wasi": "@some_example_sysroot_repo//:wasi_sysroot",
+        "darwin_wasm32-unknown-wasi": "@some_example_sysroot_repo//:wasi_sysroot",
+    }
+)
+
+load("@llvm_toolchain//:toolchains.bzl", "llvm_register_toolchains")
+llvm_register_toolchains()
+
+http_archive(
+    name = "some_example_sysroot_repo",
+    ...
+)
+```
+
+The toolchain that is created will have the appropriate constraints so that Bazel
+will pick it when resolving a toolchain for a particular platform. For example:
+
+```starlark
+platform(
+    name = "wasi",
+    constraints = [
+        "@platforms//os:wasi",
+        "@platforms//cpu:wasm32",
+    ]
+)
+
+cc_library(
+    name = "test",
+    srcs = [...],
+)
+```
+
+Running `bazel build //:test --platforms //:wasm` should use the configured
+`wasm32-unknown-wasi` toolchain and produce an object file with wasm32 assembly
+in it.
+
+Note that this should work also work with rules that apply a
+[transition][transition] to require that a target be built for a particular
+platform.
+
+[transition]: https://docs.bazel.build/versions/main/skylark/config.html#user-defined-transitions
+
+Currently only the `wasm32-unknown-wasi` extra target is fully implemented/tested.
+Other targets *can* be specified but are unlikely to work as the glue needed to
+fetch their sysroots/compiler-rt (i.e. `libclang_rt.builtins-...`) is not yet
+implemented.
+
+### Manually
+
+For other targets (or if you just want to make modifications to the toolchains that the machinery in this repo produces) you can set up a toolchain manually. The process for doing so looks something like this:
+
+```starlark
+# WORKSPACE
+# (parts to set up `@llvm_toolchain` have been elided; see above)
+
+llvm_toolchain(
+    name = "llvm_toolchain",
+    llvm_version = "8.0.0",
+
+    # NOTE: This is required to set up toolchains outside of `@llvm_toolchain`, unfortunately
+    absolute_paths = True,
+ )
+
+# This registers the default toolchains.
+load("@llvm_toolchain//:toolchains.bzl", "llvm_register_toolchains", "register_toolchain")
+
+llvm_register_toolchains()
+
+# Now let's make our own:
+http_archive(
+    name = "thumbv7-sysroot",
+    urls = ["example.com"],
+)
+register_toolchain("//tests:custom_toolchain_example")
+
+# BUILD file:
+# Example Custom Toolchain:
+load("@llvm_toolchain//:cc_toolchain_config.bzl", "cc_toolchain_config")
+
+# Docs for this function and `overrides` are in `cc_toolchain_config.bzl.tpl`.
+cc_toolchain_config(
+    name = "custom_toolchain_example_config",
+    host_platform = "linux",
+    custom_target_triple = "thumbv7em-unknown-none-gnueabihf",
+    overrides = {
+        "target_system_name": "thumbv7em-unknown-none-gnueabihf",
+        "target_cpu": "thumbv7em",
+        "target_libc": "unknown",
+        "abi_libc_version": "unknown",
+
+        # If you omit this, be sure to depend on
+        # `@llvm_toolchain:host_sysroot_components`.
+        # "sysroot_path": "external/thumbv7-sysroot/sysroot",
+
+        "extra_compile_flags": [
+            "-mthumb",
+            "-mcpu=cortex-m4",
+            "-mfpu=fpv4-sp-d16",
+            "-mfloat-abi=hard",
+        ],
+        "omit_hosted_linker_flags": True,
+        "omit_cxx_stdlib_flag": False,
+        "use_llvm_ar_instead_of_libtool_on_macos": True,
+    }
+)
+
+load("@com_grail_bazel_toolchain//toolchain:rules.bzl", "conditional_cc_toolchain")
+conditional_cc_toolchain(
+    name = "custom_toolchain",
+    toolchain_config = ":custom_toolchain_example_config",
+    host_is_darwin = False,
+
+    sysroot_label = "@llvm_toolchain//:host_sysroot_components", # use this if not overriding
+    # sysroot_label = "@thumbv7-sysroot//:sysroot", # override
+
+    absolute_paths = True, # this is required for toolchains set up outside of `@llvm_toolchain`, unfortunately
+    llvm_repo_label_prefix = "@llvm_toolchain//",
+)
+
+# Constraints come from here: https://github.com/bazelbuild/platforms
+toolchain(
+    name = "custom_toolchain_example",
+    exec_compatible_with = [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:linux",
+    ],
+    target_compatible_with = [
+        "@platforms//cpu:armv7", # `v7e-mf` has not yet made it to stable Bazel?
+        # "@platforms//os:none",
+    ],
+    toolchain = ":custom_toolchain",
+    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
+)
+```
+
+As with the `wasm32-unknown-wasi` example above, you can "use" the toolchain by
+creating a platform matching the constraints which the toolchain satisfies and
+then either specifying that platform globally (on the command line) or for a
+particular target via a transition.
+
+Here's an example of using `target_compatible_with` on a target to get it to
+only build with the toolchain registered above:
+
+```starlark
+platform(
+    name = "arm",
+    constraint_values = [
+        "@platforms//cpu:armv7",
+        # "@platforms//os:none",
+    ]
+)
+
+cc_library(
+    name = "custom_target_test",
+    srcs = ["test.cc"],
+    target_compatible_with = [
+        "@platforms//cpu:armv7",
+    ]
+)
+```
+
+Ultimately the goal is to add support for extra targets directly in this repo;
+PRs are very welcome :-).
+
 Other examples of toolchain configuration:
 
 https://github.com/bazelbuild/bazel/wiki/Building-with-a-custom-toolchain

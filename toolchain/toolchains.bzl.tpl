@@ -19,3 +19,5 @@ def llvm_register_toolchains():
 
         %{extra_toolchains_for_registration}
     )
+
+def register_toolchain(t): native.register_toolchains(t)
