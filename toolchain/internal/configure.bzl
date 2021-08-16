@@ -302,29 +302,49 @@ def conditional_cc_toolchain(
     host_is_darwin,
     sysroot_label,
     absolute_paths = False,
+    llvm_repo_label_prefix = None,
 ):
+    # If not specified, use the repo of the callee.
+    if not llvm_repo_label_prefix:
+        llvm_repo_label_prefix = ""
+
     # Toolchain macro for BUILD file to use conditional logic.
     if absolute_paths:
+        empty = "{}:empty".format(llvm_repo_label_prefix)
+
         _cc_toolchain(
             name = name,
-            all_files = ":empty",
-            compiler_files = ":empty",
-            dwp_files = ":empty",
-            linker_files = ":empty",
-            objcopy_files = ":empty",
-            strip_files = ":empty",
+            all_files = empty,
+            compiler_files = empty,
+            dwp_files = empty,
+            linker_files = empty,
+            objcopy_files = empty,
+            strip_files = empty,
             supports_param_files = 0 if host_is_darwin else 1,
             toolchain_config = toolchain_config,
         )
     else:
-        extra_files = [":cc_wrapper"] if host_is_darwin else []
-        native.filegroup(name = name + "-compiler_components", srcs = [":clang", ":include", sysroot_label])
-        native.filegroup(name = name + "-linker_components", srcs = [":clang", ":ld", ":ar", ":lib", sysroot_label])
-        native.filegroup(name = name + "-all_components", srcs = [":binutils_components", name + "-compiler_components", name + "-linker_components"])
+        r = llvm_repo_label_prefix
+
+        cc_wrapper = "{}:cc_wrapper".format(r)
+        clang = "{}:clang".format(r)
+        include = "{}:include".format(r)
+        ld = "{}:ld".format(r)
+        ar = "{}:ar".format(r)
+        lib = "{}:lib".format(r)
+        binutils_components = "{}:binutils_components".format(r)
+        as_ = "{}:as".format(r)
+        empty = "{}:empty".format(r)
+        objcopy = "{}:objcopy".format(r)
+
+        extra_files = [cc_wrapper] if host_is_darwin else []
+        native.filegroup(name = name + "-compiler_components", srcs = [clang, include, sysroot_label])
+        native.filegroup(name = name + "-linker_components", srcs = [clang, ld, ar, lib, sysroot_label])
+        native.filegroup(name = name + "-all_components", srcs = [binutils_components, name + "-compiler_components", name + "-linker_components"])
 
         native.filegroup(name = name + "-all-files", srcs = [name + "-all_components"] + extra_files)
-        native.filegroup(name = name + "-archiver-files", srcs = [":ar"] + extra_files)
-        native.filegroup(name = name + "-assembler-files", srcs = [":as"] + extra_files)
+        native.filegroup(name = name + "-archiver-files", srcs = [ar] + extra_files)
+        native.filegroup(name = name + "-assembler-files", srcs = [as_] + extra_files)
         native.filegroup(name = name + "-compiler-files", srcs = [name + "-compiler_components"] + extra_files)
         native.filegroup(name = name + "-linker-files", srcs = [name + "-linker_components"] + extra_files)
         _cc_toolchain(
@@ -333,10 +353,10 @@ def conditional_cc_toolchain(
             ar_files = name + "-archiver-files",
             as_files = name + "-assembler-files",
             compiler_files = name + "-compiler-files",
-            dwp_files = ":empty",
+            dwp_files = empty,
             linker_files = name + "-linker-files",
-            objcopy_files = ":objcopy",
-            strip_files = ":empty",
+            objcopy_files = objcopy,
+            strip_files = empty,
             supports_param_files = 0 if host_is_darwin else 1,
             toolchain_config = toolchain_config,
         )
