@@ -40,6 +40,7 @@ def cc_toolchain_config(name, host_platform, custom_target_triple = None, overri
                 "extra_compile_flags": list[string],
                 "omit_hosted_linker_flags": bool,
                 "omit_cxx_stdlib_flag": bool,
+                "use_llvm_ar_instead_of_libtool_on_macos": bool,
             }
             ```
     """
@@ -151,6 +152,9 @@ def cc_toolchain_config(name, host_platform, custom_target_triple = None, overri
         "-no-canonical-prefixes",
     ] + linker_flags
 
+    if custom_target_triple:
+        link_flags.append("--target={}".format(custom_target_triple))
+
     opt_link_flags = ["-Wl,--gc-sections"] if host_platform == "k8" else []
 
 
@@ -261,6 +265,8 @@ def cc_toolchain_config(name, host_platform, custom_target_triple = None, overri
         },
     }[host_platform])
 
+    if overrides.get("use_llvm_ar_instead_of_libtool_on_macos", False) and host_platform == "darwin":
+        tool_paths["ar"] = "%{tools_path_prefix}bin/llvm-ar"
 
     # Start-end group linker support:
     # This was added to `lld` in this patch: http://reviews.llvm.org/D18814
