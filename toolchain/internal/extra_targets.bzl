@@ -344,6 +344,10 @@ def target_triple_to_constraints(triple):
     return cpu_constraints(arch) + os_constraints(os) + env_constraints(env)
 
 # TODO: this kind of logic is what needs to be filled in for other targets:
+
+README = "\n\nSee https://github.com/grailbio/bazel-toolchain/blob/master/README.md#setting-up-toolchains-for-other-targets" + \
+    " for more information."
+
 def overrides_for_target(triple):
     arch, _vendor, os, _env = split_target_triple(triple)
 
@@ -361,3 +365,31 @@ def overrides_for_target(triple):
         )
 
         return {}
+
+def sysroot_for_target(rctx, triple):
+    arch, _vendor, os, _env = split_target_triple(triple)
+
+    if not rctx.path("sysroots").exists:
+        rctx.file(
+            "sysroots/BUILD",
+            content = "",
+            executable = False,
+        )
+
+    # TODO: I think this sysroot can be used on `wasm32-unknown-unknown` too;
+    # it seems to gate all wasi functionality correctly.
+    if arch == "wasm32" and (os == "wasi" or os == "unknown" or os == "none"):
+        return get_wasi_sysroot(rctx)
+    else:
+        print(
+            ("`{}` support has not been added to bazel-toolchain; you may " +
+            "need to find a sysroot and manually configure a toolchain " +
+            "yourself!" + README).format(triple)
+        )
+
+        return None
+
+def extra_target_setup(rctx, triple):
+    arch, _vendor, os, _env = split_target_triple(triple)
+
+

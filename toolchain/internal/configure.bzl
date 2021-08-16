@@ -27,6 +27,7 @@ load(
 load(
     "@com_grail_bazel_toolchain//toolchain/internal:sysroot.bzl",
     _host_sysroot_path = "host_sysroot_path",
+    _target_sysroot_path = "target_sysroot_path",
 )
 load("@rules_cc//cc:defs.bzl", _cc_toolchain = "cc_toolchain")
 
@@ -94,13 +95,13 @@ def _extra_cc_toolchain_config(target_triple, extra_sysroots):
     sysroot_override = ""
     sysroot_definition = ""
     if target_triple in extra_sysroots:
-        label, path = extra_sysroots[target_triple]
-        sysroot_override = """"sysroot_path" = "{path}",""".format(path = path)
+        path, label = extra_sysroots[target_triple]
+        sysroot_override = """"sysroot_path": "{path}",""".format(path = path)
 
         if label:
             sysroot_definition = """
 filegroup(
-    name = "sysroot_components-{target_triple}",
+    name = "sysroot_components_{target_triple}",
     srcs = ["{label}"],
 )
 
@@ -180,7 +181,7 @@ def _extra_conditional_cc_toolchain_config(rctx, target_triple, extra_sysroots):
 
     sysroot_label = ":host_sysroot_components" # this is the fallback
     if target_triple in extra_sysroots:
-        label, _path = extra_sysroots[target_triple]
+        _path, label = extra_sysroots[target_triple]
         if label:
             # defined by `_extra_cc_toolchain_config`
             sysroot_label = ":sysroot_components_{}".format(target_triple)
@@ -211,9 +212,8 @@ def llvm_register_toolchains():
     else:
         toolchain_path_prefix = relative_path_prefix
 
-    # TODO:
     extra_sysroots = {
-
+        target: _target_sysroot_path(rctx, target) for target in rctx.attr.extra_targets
     }
 
     host_sysroot_path, host_sysroot = _host_sysroot_path(rctx)

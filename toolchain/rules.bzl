@@ -40,7 +40,13 @@ llvm_toolchain = repository_rule(
                    "the set of files that form the sysroot for the compiler. If the value begins " +
                    "with exactly one forward slash '/', then the value is assumed to be a system " +
                    "path. Else, the value will be assumed to be a label containing the files and " +
-                   "the sysroot path will be taken as the path to the package of this label."),
+                   "the sysroot path will be taken as the path to the package of this label." +
+                   "" +
+                   "Note that this can also be used to specify sysroots for additional targets " +
+                   "configured with `extra_targets`. For example, to specify sysroots for the " +
+                   "toolchain for `wasm32-unknown-unknown`, use " +
+                   "`{ 'linux_wasm32-unknown-unknown': '...', 'darwin_wasm32-unknown-unknown': " +
+                   "'...' }`."),
         ),
         "cxx_builtin_include_directories": attr.string_list_dict(
             mandatory = False,
