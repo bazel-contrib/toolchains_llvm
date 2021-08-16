@@ -27,11 +27,21 @@ llvm_toolchain(
     # LLVM 9.0.0 needs /usr/lib/libtinfo.so.5 that is not very straightforward
     # to set up in all linux distros we test.
     llvm_version = "8.0.0",
+    extra_targets = [
+        "wasm32-unknown-wasi",
+    ],
+    # absolute_paths = True,
 )
 
-load("@llvm_toolchain//:toolchains.bzl", "llvm_register_toolchains")
+load("@llvm_toolchain//:toolchains.bzl", "llvm_register_toolchains", "register_toolchain")
 
 llvm_register_toolchains()
+
+# http_archive(
+#     name = "thumbv7-sysroot",
+#     urls = ["example.com"],
+# )
+register_toolchain("//tests:custom_toolchain_example")
 
 ## Toolchain example with a sysroot.
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")

@@ -14,6 +14,46 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
+# config_setting(
+#     name = "no_shared_objects",
+#     values = {
+#         "features": "-supports_dynamic_linker",
+#     }
+# )
+
+platform(
+    name = "wasm",
+    constraint_values = [
+        "@platforms//cpu:wasm32",
+        "@platforms//os:wasi",
+        # ":no_shared_objects",
+    ],
+)
+
+cc_library(
+    name = "stdlib-wasm",
+    srcs = ["stdlib.cc"],
+    hdrs = ["stdlib.h"],
+    features = [
+        "-supports_dynamic_linker",
+    ],
+    target_compatible_with = [
+        "@platforms//cpu:wasm32",
+        "@platforms//os:wasi",
+    ],
+)
+
+# TODO: add a rule that transitions --platform to `//test:wasm` to ensure that
+# toolchain resolution picks `@llvm_toolchain//:cc-clang-*_wasm32-unknown-unknown`.
+#
+# also have it set `--features=-supports_dynamic_linker`; ideally this would be in
+# the toolchain definition but the downside of switching to using
+# `unix_cc_toolchain_config.bzl` is that we lose this knob
+#
+# it's not clear yet if supporting different targets runs counter to using
+# `unix_cc_toolchain_config.bzl` altogether – so far things are manageable but
+# it's already apparent that we'll be sacrificing some power/configurability
+
 cc_library(
     name = "stdlib",
     srcs = ["stdlib.cc"],
@@ -33,4 +73,83 @@ sh_test(
         "@llvm_toolchain//:bin/clang-format",
         "@llvm_toolchain//:lib/libc++.a",
     ],
+)
+
+# TODO: Eventually expose a nicer function for this that's less boilerplate-y
+#
+# It should be generated and do things like fail immediately if absolute_paths != True, etc.
+
+# Example Custom Toolchain:
+load("@llvm_toolchain//:cc_toolchain_config.bzl", "cc_toolchain_config")
+
+# Docs for this function and `overrides` are in `cc_toolchain_config.bzl.tpl`.
+cc_toolchain_config(
+    name = "custom_toolchain_example_config",
+    host_platform = "darwin",
+    custom_target_triple = "thumbv7em-unknown-none-gnueabihf",
+    overrides = {
+        "target_system_name": "thumbv7em-unknown-none-gnueabihf",
+        "target_cpu": "thumbv7em",
+        "target_libc": "unknown",
+        "abi_libc_version": "unknown",
+
+        # If you omit this, be sure to depend on
+        # `@llvm_toolchain:host_sysroot_components`.
+        # "sysroot_path": "external/thumbv7-sysroot/sysroot", # TODO: check
+
+        "extra_compile_flags": [
+            "-mthumb",
+            "-mcpu=cortex-m4",
+            "-mfpu=fpv4-sp-d16",
+            "-mfloat-abi=hard",
+        ],
+        "omit_hosted_linker_flags": True,
+        "omit_cxx_stdlib_flag": False,
+        "use_llvm_ar_instead_of_libtool_on_macos": True,
+    }
+)
+
+load("@com_grail_bazel_toolchain//toolchain:rules.bzl", "conditional_cc_toolchain")
+conditional_cc_toolchain(
+    name = "custom_toolchain",
+    toolchain_config = ":custom_toolchain_example_config",
+    host_is_darwin = True, # TODO
+
+    sysroot_label = "@llvm_toolchain//:host_sysroot_components", # use this if not overriding
+    # sysroot_label = "@thumbv7-sysroot//:sysroot", # override
+
+    absolute_paths = True, # this is required for toolchains set up outside of `@llvm_toolchain`, unfortunately
+    llvm_repo_label_prefix = "@llvm_toolchain//",
+)
+
+# Constraints come from here: https://github.com/bazelbuild/platforms
+toolchain(
+    name = "custom_toolchain_example",
+    exec_compatible_with = [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:osx",
+    ],
+    target_compatible_with = [
+        "@platforms//cpu:armv7", # `v7e-mf` has not yet made it to stable Bazel?
+        # "@platforms//os:none",
+    ],
+    toolchain = ":custom_toolchain",
+    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
+)
+
+platform(
+    name = "arm",
+    constraint_values = [
+        "@platforms//cpu:armv7",
+        # "@platforms//os:none",
+    ]
+)
+
+cc_library(
+    name = "custom_target_test",
+    srcs = ["stdlib.cc"],
+    hdrs = ["stdlib.h"],
+    target_compatible_with = [
+        "@platforms//cpu:armv7",
+    ]
 )
