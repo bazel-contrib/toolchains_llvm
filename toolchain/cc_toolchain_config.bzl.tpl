@@ -140,10 +140,13 @@ def cc_toolchain_config(name, host_platform, custom_target_triple = None, overri
             # the macOS linker.
             "-lc++",
             "-lc++abi",
-            "-headerpad_max_install_names",
-            "-undefined",
-            "dynamic_lookup",
         ]
+
+        if enable_hosted_linker_flags:
+            linker_flags += [
+                "-headerpad_max_install_names",
+                "-undefined", "dynamic_lookup",
+            ]
     else:
         fail("Unreachable")
 

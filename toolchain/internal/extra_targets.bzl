@@ -350,12 +350,14 @@ def overrides_for_target(triple):
     if arch == "wasm32" or arch == "wasm64":
         return {
             "omit_hosted_linker_flags": True,
+            "omit_cxx_stdlib_flag": True,
+            "use_llvm_ar_instead_of_libtool_on_macos": True,
         }
     else:
         print(
             ("`{}` support has not been added to bazel-toolchain; you may " +
             "need to manually adjust compiler flags and toolchain " +
-            "configurations yourself!").format(triple)
+            "configurations yourself!" + README).format(triple)
         )
 
         return {}
