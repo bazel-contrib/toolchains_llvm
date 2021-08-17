@@ -260,7 +260,7 @@ def cc_toolchain_config(name, cpu):
         #
         # See: https://github.com/bazelbuild/bazel/commit/da345f1f249ebf28bec88c6e0d63260dfaef14e9
         **(
-            {"builtin_sysroot": builtin_sysroot}
+            {"builtin_sysroot": builtin_sysroot or "/"}
             if sysroot_prefix_supported
             else {}
         )
