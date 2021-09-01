@@ -22,6 +22,9 @@ _known_distros = ["freebsd", "suse", "ubuntu", "arch", "manjaro", "debian", "fed
 def _major_llvm_version(llvm_version):
     return int(llvm_version.split(".")[0])
 
+def _minor_llvm_version(llvm_version):
+    return int(llvm_version.split(".")[1])
+
 def _darwin(llvm_version):
     major_llvm_version = _major_llvm_version(llvm_version)
     suffix = "darwin-apple" if major_llvm_version == 9 else "apple-darwin"
@@ -74,7 +77,7 @@ def _linux(llvm_version):
     elif distname == "freebsd":
         os_name = "unknown-freebsd-%s" % version
     elif distname == "suse":
-        os_name = "linux-sles%s" % version
+        os_name = _resolve_version_for_suse(major_llvm_version, _minor_llvm_version(llvm_version))
     elif (distname == "ubuntu" and version.startswith("20.10")) and (llvm_version in ["11.0.1", "11.1.0"]):
         os_name = "linux-gnu-ubuntu-20.10"
     elif ((distname == "ubuntu" and (version.startswith("20.04") or version.startswith("18.04"))) or
@@ -136,6 +139,15 @@ def _linux(llvm_version):
         llvm_version=llvm_version,
         arch=arch,
         os_name=os_name)
+
+def _resolve_version_for_suse(major_llvm_version, minor_llvm_version):
+        if major_llvm_version < 10:
+            os_name = "linux-sles11.3"
+        elif major_llvm_version == 10 and minor_llvm_version == 0:
+            os_name = "linux-sles11.3"
+        else:
+            os_name = "linux-sles12.4"
+        return os_name
 
 def main():
     """Prints the pre-built distribution file name."""
