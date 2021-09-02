@@ -92,7 +92,7 @@ def _linux(llvm_version):
         os_name = "linux-gnu-ubuntu-18.04"
     elif distname in ["ubuntu", "manjaro"] or (distname == "linuxmint" and version.startswith("18")):
         os_name = "linux-gnu-ubuntu-16.04"
-    elif distname == "debian" and (version is None or int(version) == 10):
+    elif distname == "debian" and (version is None or int(version) == 10 or int(version) == 11):
         os_name = "linux-gnu-ubuntu-18.04"
     elif distname == "debian" and int(version) == 9 and major_llvm_version >= 7:
         os_name = "linux-gnu-ubuntu-16.04"
