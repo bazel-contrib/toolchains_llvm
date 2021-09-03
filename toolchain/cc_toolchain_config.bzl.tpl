@@ -38,6 +38,7 @@ def cc_toolchain_config(name, host_platform, custom_target_triple = None, overri
                 "sysroot_path": string,
 
                 "extra_compile_flags": list[string],
+                "extra_linker_flags": list[string],
                 "omit_hosted_linker_flags": bool,
                 "omit_cxx_stdlib_flag": bool,
                 "use_llvm_ar_instead_of_libtool_on_macos": bool,
@@ -153,7 +154,7 @@ def cc_toolchain_config(name, host_platform, custom_target_triple = None, overri
     link_flags = [
         "-lm",
         "-no-canonical-prefixes",
-    ] + linker_flags
+    ] + linker_flags + overrides.get("extra_linker_flags", [])
 
     if custom_target_triple:
         link_flags.append("--target={}".format(custom_target_triple))
