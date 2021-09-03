@@ -34,7 +34,7 @@ def _default_host_sysroot(rctx):
 # Takes a sysroot absolute path or label and returns a (path, label) pair.
 #
 # If given an absolute path, the label will be `None`.
-def _process_sysroot(sysroot):
+def process_sysroot(sysroot):
     # If the sysroot is an absolute path, use it as-is. Check for things that
     # start with "/" and not "//" to identify absolute paths, but also support
     # passing the sysroot as "/" to indicate the root directory.
@@ -62,14 +62,14 @@ def target_sysroot_path(rctx, target_triple):
     else:
         fail("Unsupported OS: " + rctx.os.name)
 
-    if sysroot: return _process_sysroot(sysroot)
+    if sysroot: return process_sysroot(sysroot)
 
     # If that didn't work, consult `sysroot_for_target`:
     sysroot = sysroot_for_target(rctx, target_triple)
 
     # `sysroot_for_target` always returns a Label but it's fine; we can still
-    # call `_process_sysroot_`
-    if sysroot: return _process_sysroot(sysroot)
+    # call `process_sysroot_`
+    if sysroot: return process_sysroot(sysroot)
 
     # Finally, as a last resort just use the default sysroot (an absolute path):
     return (_default_host_sysroot(rctx), None)
