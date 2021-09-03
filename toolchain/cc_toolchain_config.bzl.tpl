@@ -62,7 +62,7 @@ def cc_toolchain_config(name, host_platform, custom_target_triple = None, overri
     toolchain_identifier, host_system_name, target_system_name, target_cpu, \
     target_libc, compiler, abi_version, abi_libc_version, builtin_sysroot = {
         "darwin": (
-            "clang-darwin",
+            "clang-darwin-" + (custom_target_triple or "x86_64"),
             "x86_64-apple-macosx",
             "x86_64-apple-macosx",
             "darwin",
@@ -73,7 +73,7 @@ def cc_toolchain_config(name, host_platform, custom_target_triple = None, overri
             "%{host_sysroot_path}",
         ),
         "k8": (
-            "clang-linux",
+            "clang-linux-" + (custom_target_triple or "x86_64"),
             "x86_64",
             "x86_64-unknown-linux-gnu",
             "k8",
