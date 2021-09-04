@@ -13,6 +13,6 @@ jobs:
     - uses: actions/checkout@v2
     - name: test
       env:
-        BAZELISK_GITHUB_TOKEN: ${{ secrets.BAZELISK_GITHUB_TOKEN }}
+        BAZELISK_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         TEST_MIGRATION: true
       run: tests/scripts/run_tests.sh

@@ -19,7 +19,7 @@ os="$(uname -s | tr "[:upper:]" "[:lower:]")"
 readonly os
 
 # Use bazelisk for latest bazel version.
-# Value of BAZELISK_GITHUB_TOKEN is set as a secret on Travis.
+# Value of BAZELISK_GITHUB_TOKEN is set from a GitHub Actions secret (tests.yml/migration.yml).
 readonly url="https://github.com/bazelbuild/bazelisk/releases/download/v1.0/bazelisk-${os}-amd64"
 bazel="${TMPDIR:-/tmp}/bazelisk"
 readonly bazel
