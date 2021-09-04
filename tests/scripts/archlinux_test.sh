@@ -16,7 +16,7 @@
 set -euo pipefail
 
 images=(
-"archlinux/base:latest"
+"archlinux:latest"
 )
 
 git_root=$(git rev-parse --show-toplevel)
