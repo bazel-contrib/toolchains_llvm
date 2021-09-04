@@ -85,4 +85,5 @@ def host_sysroot_path(rctx):
 
     if not sysroot:
         return (_default_host_sysroot(rctx), None)
-
+    else:
+        return process_sysroot(sysroot)
