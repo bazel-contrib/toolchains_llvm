@@ -45,7 +45,7 @@ def _include_dirs_str(rctx, host_platform):
         return ""
     return ("\n" + 12 * " ").join(["\"%s\"," % d for d in dirs])
 
-def _extra_toolchains_for_toolchain_suite(target_triple):
+def _extra_toolchains_for_toolchain_suite(target_triple, cpus_in_toolchain_suite):
     arch, _vendor, _os, _env = _split_target_triple(target_triple)
     cpus = _cpu_names(arch)
 
@@ -69,11 +69,25 @@ def _extra_toolchains_for_toolchain_suite(target_triple):
     # which we do the right thing), this isn't the end of the world. It's
     # unclear if it's possible for us to do better here though. (TODO)
 
+    # Bazel complains if we have multiple entries in a `cc_toolchain_suite` for
+    # a particular "cpu" so we only take the first target triple's toolchain
+    # that provides a toolchain for a particular "cpu".
+    #
+    # i.e. if given `wasm32-unknown-unknown` and `wasm32-unknown-wasi` as
+    # `extra_targets` – both of which are suitable toolchains for
+    # `cpu = "wasm32"` – whichever hits this function first will be used as
+    # the "wasm32" entry in the generated `cc_toolchain_suite`.
+    #
+    # This is definitely not great but as mentioned, toolchain resolution is
+    # really what users should be using anyways.
+    cpus = [ c for c in cpus if c not in cpus_in_toolchain_suite ]
+    cpus_in_toolchain_suite.update(**{ c: None for c in cpus })
+
     if len(cpus) > 0:
         return "# For `{}`:".format(target_triple) + ''.join([
         """
-        "{cpu}": ":cc-clang-linux_${target}",
-        "{cpu}|clang": ":cc-clang-linux_${target}",\n""".format(
+        "{cpu}": ":cc-clang-linux_{target}",
+        "{cpu}|clang": ":cc-clang-linux_{target}",\n""".format(
             cpu = cpu,
             target = target_triple,
         )
@@ -217,6 +231,8 @@ def llvm_register_toolchains():
         target: _target_sysroot_path(rctx, target) for target in rctx.attr.extra_targets
     }
 
+    cpus_already_in_toolchain_suite = {}
+
     host_sysroot_path, host_sysroot = _host_sysroot_path(rctx)
     host_sysroot_label = "\"%s\"" % str(host_sysroot) if host_sysroot else ""
     substitutions = {
@@ -240,8 +256,9 @@ def llvm_register_toolchains():
         "%{extra_conditional_cc_toolchain_config}": '\n'.join([
             _extra_conditional_cc_toolchain_config(rctx, t, extra_sysroots) for t in rctx.attr.extra_targets
         ]),
-        "%{extra_toolchains_for_toolchain_suite}": '        \n'.join([
-            _extra_toolchains_for_toolchain_suite(t) for t in rctx.attr.extra_targets
+        "%{extra_toolchains_for_toolchain_suite}": '\n        '.join([
+            _extra_toolchains_for_toolchain_suite(t, cpus_already_in_toolchain_suite)
+            for t in rctx.attr.extra_targets
         ]),
         "%{extra_toolchains_for_registration}": '        \n'.join([
             "# For `{target}`:\n".format(target = target) + ''.join([
