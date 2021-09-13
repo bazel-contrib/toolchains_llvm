@@ -126,10 +126,20 @@ def cc_toolchain_config(name, host_platform, custom_target_triple = None, overri
         linker_flags = [
             # Use the lld linker.
             "-fuse-ld=lld",
-            # The linker has no way of knowing if there are C++ objects; so we
-            # always link C++ libraries.
-            "-L%{toolchain_path_prefix}/lib",
         ]
+
+        # If we're compiling for the host, we want to include the lib folder in
+        # the library search directories so that any static libs we specify get
+        # picked up.
+        #
+        # If we're *not* compiling for the host we do not want to include these
+        # since they'll interfere with the sysroot for the target and, if these
+        # come first on the command line, potentially cause the linker to try
+        # to use the wrong version of libc++ and friends.
+        if not custom_target_triple:
+            linker_flags += [
+                "-L%{toolchain_path_prefix}/lib",
+            ]
 
         # Unless the target has a compelling reason not to want to do so (i.e.
         # has a special linker that doesn't support this syntax), we'd like to

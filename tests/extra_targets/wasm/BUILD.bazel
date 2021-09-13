@@ -48,7 +48,7 @@ wasm_file(
 )
 
 build_test(
-    name = "wasm_build_chk",
+    name = "wasm-build-chk",
     targets = [":test.wasm"],
 )
 
@@ -68,6 +68,6 @@ wasi_file(
 )
 
 build_test(
-    name = "wasi_build_chk",
+    name = "wasi-build-chk",
     targets = [":test.wasi"],
 )
