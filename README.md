@@ -250,7 +250,7 @@ then either specifying that platform globally (on the command line) or for a
 particular target via a transition.
 
 Here's an example of using `target_compatible_with` on a target to get it to
-only build with the toolchain registered above:
+only build when an appropriate target platform is specified:
 
 ```starlark
 platform(
@@ -272,6 +272,8 @@ cc_library(
 
 Ultimately the goal is to add support for extra targets directly in this repo;
 PRs are very welcome :-).
+
+## Misc
 
 Other examples of toolchain configuration:
 

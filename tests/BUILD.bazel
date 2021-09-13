@@ -14,12 +14,7 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
-# config_setting(
-#     name = "no_shared_objects",
-#     values = {
-#         "features": "-supports_dynamic_linker",
-#     }
-# )
+package(default_visibility = [":__subpackages__"])
 
 platform(
     name = "wasm",

@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-package(default_visibility = ["//visibility:public"])
-
 load("@rules_cc//cc:defs.bzl", "cc_toolchain_suite")
+
+package(default_visibility = ["//visibility:public"])
 
 exports_files(["Makevars"])
 
