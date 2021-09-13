@@ -151,10 +151,15 @@ Also note that the order of the triples in `extra_targets` influences how toolch
 [t-res]: https://docs.bazel.build/versions/main/toolchains.html#toolchain-resolution
 [extra-target-pitfalls-comment]: WORKSPACE#L31-L63
 
-Currently only the `wasm32-unknown-wasi` extra target is fully implemented/tested.
+Currently only the following extra targets are implemented/tested at all:
+  - `wasm32-unknown-wasi`
+  - `wasm32-unknown-none`
+
 Other targets *can* be specified but are unlikely to work as the glue needed to
 fetch their sysroots/compiler-rt (i.e. `libclang_rt.builtins-...`) is not yet
 implemented.
+
+[`tests/extra_targets`](tests/extra_targets) contains some examples that use the extra toolchains configured in this repo's workspace.
 
 ### Manually
 
