@@ -134,7 +134,7 @@ def cc_toolchain_config(name, host_platform, custom_target_triple = None, overri
         # Unless the target has a compelling reason not to want to do so (i.e.
         # has a special linker that doesn't support this syntax), we'd like to
         # prefer _statically_ linking the C++ libraries:
-        prefer_static_cxx_libs_on_linux_hosts =
+        prefer_static_cxx_libs_on_linux_hosts = \
             overrides.get("prefer_static_cxx_libs_on_linux_hosts", True)
         linker_flags += [
             "-l:libc++.a",

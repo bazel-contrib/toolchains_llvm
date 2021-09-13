@@ -359,7 +359,29 @@ def overrides_for_target(rctx, triple):
         overrides = {
             "omit_hosted_linker_flags": True,
             "omit_cxx_stdlib_flag": True,
+
+            # libtool doesn't seem to be able to handle wasm
             "use_llvm_ar_instead_of_libtool_on_macos": True,
+
+            # lld ultimately shells out to `wasm-ld` which does *not* support
+            # start end groups for libraries which is why this override is
+            # important
+            "custom_linker_tool": {
+                "darwin": "wasm-ld",
+                "k8": "wasm-ld",
+            },
+
+            # wasm-ld doesn't understand `-l:libfoo.a` style syntax unfortunately
+            "prefer_static_cxx_libs_on_linux_hosts": False,
+
+            # not yet supported on wasm; see: https://github.com/WebAssembly/tool-conventions/issues/133
+            "linker_include_build_id_on_linux_hosts": False,
+
+            # not support by `wasm-ld`:
+            "linker_use_gnu_hash_style_on_linux_hosts": False,
+
+            # not applicable for wasm (we're not dynamically linking):
+            "linker_use_elf_hardening_so_flags_on_linux_hosts": False,
         }
 
         # `clang-12` specifically uses `-mthread-model posix` by default
@@ -374,7 +396,7 @@ def overrides_for_target(rctx, triple):
         # See: https://github.com/WebAssembly/wasi-sdk/issues/173
         if llvm_major_version == 12:
             overrides.update({
-                "extra_compile_flags": ["-mthread-model=single"],
+                "extra_compile_flags": ["-mthread-model", "single"],
             })
 
         return overrides
