@@ -45,7 +45,15 @@ def _include_dirs_str(rctx, host_platform):
         return ""
     return ("\n" + 12 * " ").join(["\"%s\"," % d for d in dirs])
 
-def _extra_toolchains_for_toolchain_suite(target_triple, cpus_in_toolchain_suite):
+def _host_os(rctx):
+    os_name = rctx.os.name
+
+    if os_name == "mac os x": return "darwin"
+    elif os_name == "linux": return "linux"
+    else:
+        fail("Unsupported OS: " + os_name)
+
+def _extra_toolchains_for_toolchain_suite(target_triple, cpus_in_toolchain_suite, host_os):
     arch, _vendor, _os, _env = _split_target_triple(target_triple)
     cpus = _cpu_names(arch)
 
@@ -54,7 +62,12 @@ def _extra_toolchains_for_toolchain_suite(target_triple, cpus_in_toolchain_suite
     # `cc_toolchain_suite` only allows us to associate a toolchain with a
     # particular `--cpu` and `--compiler` value and does not provide any way
     # to "select" a toolchain based on the host platform, just on the target
-    # cpu. So, we are unable to add the macOS toolchains to the suite.
+    # cpu. The `toolchains` param on `cc_toolchain_suite` is also
+    # non-configurable (and I don't know of a good way to select on _host_
+    # platform anyways) so to get around this, we only emit the toolchain
+    # entries for the current host platform here (i.e. we fix on the host OS
+    # at repo rule evaluation time rather than letting Bazel take care of it
+    # later like we do most everywhere else). Ultimately, this is fine.
     #
     # See: https://docs.bazel.build/versions/main/be/c-cpp.html#cc_toolchain_suite.toolchains
     #
@@ -86,15 +99,18 @@ def _extra_toolchains_for_toolchain_suite(target_triple, cpus_in_toolchain_suite
     if len(cpus) > 0:
         return "# For `{}`:".format(target_triple) + ''.join([
         """
-        "{cpu}": ":cc-clang-linux_{target}",
-        "{cpu}|clang": ":cc-clang-linux_{target}",\n""".format(
+        "{cpu}": ":cc-clang-{host_os}_{target}",
+        "{cpu}|clang": ":cc-clang-{host_os}_{target}",\n""".format(
             cpu = cpu,
+            host_os = host_os,
             target = target_triple,
         )
             for cpu in cpus
         ])
     else:
-        return ""
+        return "# No `cc_toolchain_suite` entries for `{}`.".format(
+            target_triple
+        )
 
 
 def _extra_cc_toolchain_config(target_triple, extra_sysroots):
@@ -232,6 +248,7 @@ def llvm_register_toolchains():
     }
 
     cpus_already_in_toolchain_suite = {}
+    host_os = _host_os(rctx)
 
     host_sysroot_path, host_sysroot = _host_sysroot_path(rctx)
     host_sysroot_label = "\"%s\"" % str(host_sysroot) if host_sysroot else ""
@@ -257,7 +274,7 @@ def llvm_register_toolchains():
             _extra_conditional_cc_toolchain_config(rctx, t, extra_sysroots) for t in rctx.attr.extra_targets
         ]),
         "%{extra_toolchains_for_toolchain_suite}": '\n        '.join([
-            _extra_toolchains_for_toolchain_suite(t, cpus_already_in_toolchain_suite)
+            _extra_toolchains_for_toolchain_suite(t, cpus_already_in_toolchain_suite, host_os)
             for t in rctx.attr.extra_targets
         ]),
         "%{extra_toolchains_for_registration}": '        \n'.join([
