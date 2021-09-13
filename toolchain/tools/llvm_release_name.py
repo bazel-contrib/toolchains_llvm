@@ -89,7 +89,8 @@ def _linux(llvm_version):
             os_name = "linux-gnu-ubuntu-20.04"
     elif ((distname == "ubuntu" and version.startswith("18.04")) or
         (distname == "linuxmint" and version.startswith("19")) or
-        (distname == "debian" and (version is None or int(version) == 10))):
+        (distname == "fedora" and major_llvm_version >= 7) or
+        (distname == "debian" and (version is None or int(version) == 10 or int(version) == 11))):
         if major_llvm_version > 10:
             # LLVM seems to have stopped providing binary packages for ubuntu 18.04.
             os_name = "linux-gnu-ubuntu-16.04"
@@ -106,12 +107,14 @@ def _linux(llvm_version):
         os_name = "linux-gnu-Fedora27"
     elif distname == "centos" and major_llvm_version >= 7:
         os_name = "linux-sles11.3"
-    elif distname == "fedora" and major_llvm_version >= 7:
-        os_name = "linux-gnu-ubuntu-18.04"
     elif distname == "arch" and major_llvm_version >= 11:
         os_name = "linux-gnu-ubuntu-20.04"
     elif distname == "arch" and major_llvm_version >= 10:
-        os_name = "linux-gnu-ubuntu-18.04"
+        if major_llvm_version > 10:
+            # LLVM seems to have stopped providing binary packages for ubuntu 18.04.
+            os_name = "linux-gnu-ubuntu-16.04"
+        else:
+            os_name = "linux-gnu-ubuntu-18.04"
     elif distname == "arch" and major_llvm_version >= 7:
         os_name = "linux-gnu-ubuntu-16.04"
     elif distname == "amzn":
