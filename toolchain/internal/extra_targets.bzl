@@ -378,10 +378,10 @@ def sysroot_for_target(rctx, triple):
             executable = False,
         )
 
-    # TODO: I think this sysroot can be used on `wasm32-unknown-unknown` too;
+    # NOTE: I think this sysroot can be used on `wasm32-unknown-unknown` too;
     # it seems to gate all wasi functionality correctly.
     if arch == "wasm32" and (os == "wasi" or os == "unknown" or os == "none"):
-        return get_wasi_sysroot(rctx)
+        return get_wasi_sysroot(rctx, for_non_wasi = os != "wasi")
     else:
         print(
             ("`{}` support has not been added to bazel-toolchain; you may " +
@@ -398,7 +398,7 @@ def extra_target_setup(rctx, triple):
     # TODO: I think compiler_rt for wasi can be used on
     # `wasm32-unknown-unknown` too.
     if arch == "wasm32" and (os == "wasi" or os == "unknown" or os == "none"):
-        install_wasi_compiler_rt(rctx)
+        install_wasi_compiler_rt(rctx, for_non_wasi = os != "wasi")
     else:
         print(
             ("`{}` support has not been added to bazel-toolchain; you may " +
