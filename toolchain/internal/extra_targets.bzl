@@ -350,15 +350,34 @@ def target_triple_to_constraints(triple):
 README = "\n\nSee https://github.com/grailbio/bazel-toolchain/blob/master/README.md#setting-up-toolchains-for-other-targets" + \
     " for more information."
 
-def overrides_for_target(triple):
+def overrides_for_target(rctx, triple):
     arch, _vendor, os, _env = split_target_triple(triple)
+    llvm_version = rctx.attr.llvm_version
+    llvm_major_version = int(llvm_version.split(".")[0])
 
     if arch == "wasm32" or arch == "wasm64":
-        return {
+        overrides = {
             "omit_hosted_linker_flags": True,
             "omit_cxx_stdlib_flag": True,
             "use_llvm_ar_instead_of_libtool_on_macos": True,
         }
+
+        # `clang-12` specifically uses `-mthread-model posix` by default
+        # which causes `libc++` to define `__STDCPP_THREADS__` which doesn't
+        # play nice with the WASI libc defines.
+        #
+        # This is "fixed" in newer versions of LLVM:
+        # https://reviews.llvm.org/D96091
+        #
+        # But for `clang-12` we need to pass in `-mthread-model single`.
+        #
+        # See: https://github.com/WebAssembly/wasi-sdk/issues/173
+        if llvm_major_version == 12:
+            overrides.update({
+                "extra_compile_flags": ["-mthread-model=single"],
+            })
+
+        return overrides
     else:
         print(
             ("`{}` support has not been added to bazel-toolchain; you may " +

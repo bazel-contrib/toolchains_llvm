@@ -113,11 +113,11 @@ def _extra_toolchains_for_toolchain_suite(target_triple, cpus_in_toolchain_suite
         )
 
 
-def _extra_cc_toolchain_config(target_triple, extra_sysroots):
+def _extra_cc_toolchain_config(rctx, target_triple, extra_sysroots):
     target_constraints = _target_triple_to_constraints(target_triple)
     arch, _vendor, os, _env = _split_target_triple(target_triple)
 
-    extra_overrides = _overrides_for_target(target_triple)
+    extra_overrides = _overrides_for_target(rctx, target_triple)
 
     # Use the architecture as the CPU name if there is no @platforms//cpu value
     # for the architecture.
@@ -268,7 +268,7 @@ def llvm_register_toolchains():
         "%{darwin_additional_cxx_builtin_include_directories}": _include_dirs_str(rctx, "darwin"),
 
         "%{extra_cc_toolchain_config}": '\n'.join([
-            _extra_cc_toolchain_config(t, extra_sysroots) for t in rctx.attr.extra_targets
+            _extra_cc_toolchain_config(rctx, t, extra_sysroots) for t in rctx.attr.extra_targets
         ]),
         "%{extra_conditional_cc_toolchain_config}": '\n'.join([
             _extra_conditional_cc_toolchain_config(rctx, t, extra_sysroots) for t in rctx.attr.extra_targets
