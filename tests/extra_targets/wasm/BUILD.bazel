@@ -1,0 +1,73 @@
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load(":transitions.bzl", "wasm_file", "wasi_file")
+
+# config_setting(
+#     name = "no_shared_objects",
+#     values = {
+#         "features": "-supports_dynamic_linker",
+#     }
+# )
+
+# cc_library(
+#     name = "stdlib-wasm",
+#     srcs = ["stdlib.cc"],
+#     hdrs = ["stdlib.h"],
+#     features = [
+#         "-supports_dynamic_linker",
+#     ],
+#     target_compatible_with = [
+#         "@platforms//cpu:wasm32",
+#         "@platforms//os:wasi",
+#     ],
+# )
+
+# TODO: add a rule that transitions --platforms to `//test:wasm` to ensure that
+# toolchain resolution picks `@llvm_toolchain//:cc-clang-*_wasm32-unknown-unknown`.
+#
+# also have it set `--features=-supports_dynamic_linker`; ideally this would be in
+# the toolchain definition but the downside of switching to using
+# `unix_cc_toolchain_config.bzl` is that we lose this knob
+#
+# it's not clear yet if supporting different targets runs counter to using
+# `unix_cc_toolchain_config.bzl` altogether – so far things are manageable but
+# it's already apparent that we'll be sacrificing some power/configurability
+
+###############################################################################
+
+platform(
+    name = "wasm",
+    constraint_values = [
+        "@platforms//cpu:wasm32",
+        "@platforms//os:none",
+    ],
+)
+
+wasm_file(
+    name = "test.wasm",
+    src = "//tests:simple_binary",
+)
+
+build_test(
+    name = "wasm_build_chk",
+    targets = [":test.wasm"],
+)
+
+###############################################################################
+
+platform(
+    name = "wasi",
+    constraint_values = [
+        "@platforms//cpu:wasm32",
+        "@platforms//os:wasi",
+    ],
+)
+
+wasi_file(
+    name = "test.wasi",
+    src = "//tests:stdlib_binary",
+)
+
+build_test(
+    name = "wasi_build_chk",
+    targets = [":test.wasi"],
+)
