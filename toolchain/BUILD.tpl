@@ -114,6 +114,9 @@ filegroup(
         "bin/ld.lld",
         "bin/ld",
         "bin/ld.gold",  # Dummy file on non-linux.
+        "bin/wasm-ld",
+        "bin/lld",
+        "bin/lld-link",
     ],
 )
 
