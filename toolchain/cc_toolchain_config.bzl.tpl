@@ -253,15 +253,19 @@ def cc_toolchain_config(name, host_platform, custom_target_triple = None, overri
         "objdump": "%{tools_path_prefix}bin/llvm-objdump",
         "strip": strip_binary,
     }
+    linker_tool = overrides.get("custom_linker_tool", {
+        "k8": "ld.lld",
+        # ld.lld Mach-O support is still experimental:
+        "darwin": "ld",
+    })
     tool_paths.update({
         "k8": {
-            "ld": "%{tools_path_prefix}bin/ld.lld",
+            "ld": "%{tools_path_prefix}bin/{}".format(linker_tool["k8"]),
             "gcc": "%{tools_path_prefix}bin/clang",
             "ar": "%{tools_path_prefix}bin/llvm-ar",
         },
         "darwin": {
-            # ld.lld Mach-O support is still experimental:
-            "ld": "%{tools_path_prefix}bin/ld",
+            "ld": "%{tools_path_prefix}bin/{}".format(linker_tool["darwin"]),
             # See `cc_wrapper.sh.tpl` for details:
             "gcc": "%{tools_path_prefix}bin/cc_wrapper.sh",
             # No idea why we use `libtool` instead of `llvm-ar` on macOS:
@@ -278,7 +282,8 @@ def cc_toolchain_config(name, host_platform, custom_target_triple = None, overri
     # The oldest version of LLVM that we support is 6.0.0 which was released
     # after the above patch was merged, so we just set this to `True` when `lld`
     # is being used as the linker, which is always... except on macOS since
-    # `lld` Mach-O support is still experimental.
+    # `lld` Mach-O support is still experimental (and potentially for extra
+    # targets).
     supports_start_end_lib = tool_paths["ld"].endswith("ld.lld")
 
 
