@@ -96,7 +96,7 @@ llvm_toolchain(
     name = "llvm_toolchain",
     llvm_version = "8.0.0",
     extra_targets = [
-      "wasm32-unknown-wasi",
+        "wasm32-unknown-wasi",
     ],
 
     # Extra targets can have their sysroots overriden too:
@@ -145,6 +145,11 @@ Note that this should work also work with rules that apply a
 platform.
 
 [transition]: https://docs.bazel.build/versions/main/skylark/config.html#user-defined-transitions
+
+Also note that the order of the triples in `extra_targets` influences how toolchains will be considered during [toolchain resolution][t-res] as does using a target triple ending with `-unknown` instead of `-none` (as a rule of thumb, prefer `-none` over `-unknown` unless you have a good reason not to). See [this comment][extra-target-pitfalls-comment] for some context.
+
+[t-res]: https://docs.bazel.build/versions/main/toolchains.html#toolchain-resolution
+[extra-target-pitfalls-comment]: WORKSPACE#L31-L63
 
 Currently only the `wasm32-unknown-wasi` extra target is fully implemented/tested.
 Other targets *can* be specified but are unlikely to work as the glue needed to

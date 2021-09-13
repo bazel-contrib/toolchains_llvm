@@ -28,6 +28,40 @@ llvm_toolchain(
     # to set up in all linux distros we test.
     llvm_version = "8.0.0",
     extra_targets = [
+        # NOTE: we do *not* use `wasm32-unknown-unknown` here; using `unknown`
+        # makes the generated toolchain have no OS constraint which will result
+        # in toolchain resolution matching the toolchain even for targets that
+        # do have an OS.
+        #
+        # For example `wasm-unknown-unknown` which has no OS constraint will
+        # match `wasm-unknown-wasi` which has an `os:wasi` constraint: even
+        # though we'd _rather_ use `wasm32-unknown-wasi` when targeting
+        # `wasm32-unknown-wasi`, it's not _wrong_ to use `wasm32-unknown-none`
+        # since it *will* produce code that can run on `wasm32-unknown-wasi`
+        # systems.
+        #
+        # In other words, the target platform has to satisfy the toolchain's
+        # constraints, not the other way around.
+        #
+        # What we'd really like is for individual *targets* that require stdlib
+        # and "platform" functionality to be able to say they need "os:wasi"
+        # and thus need to be built with `wasm32-unknown-wasi` but this isn't
+        # how toolchain resolution works; targets only filter the execution
+        # platforms.
+        #
+        # The real solution is to actually specify an OS constraint even for
+        # `unknown` target triple toolchains OR to always put `unknown` target
+        # triple toolchains behind their OS-constraint-having peers in this
+        # list so toolchain resolution will pick them as a _last_ resort.
+        #
+        # For now we don't map `unknown` to `os:none` in case there are
+        # situations where this behavior is desirable (i.e. you want to fall
+        # back to `thumbv7em-unknown-unknown` when you're asked to build for
+        # a triple like `thumbv7em-unknown-netbsd`).
+        #
+        # Note that there is no default constraint for `//platforms/os`:
+        # https://github.com/bazelbuild/platforms/blob/98939346da932eef0b54cf808622f5bb0928f00b/os/BUILD#L14
+        "wasm32-unknown-none",
         "wasm32-unknown-wasi",
     ],
     # absolute_paths = True,
@@ -36,11 +70,6 @@ llvm_toolchain(
 load("@llvm_toolchain//:toolchains.bzl", "llvm_register_toolchains", "register_toolchain")
 
 llvm_register_toolchains()
-
-# http_archive(
-#     name = "thumbv7-sysroot",
-#     urls = ["example.com"],
-# )
 register_toolchain("//tests:custom_toolchain_example")
 
 ## Toolchain example with a sysroot.
