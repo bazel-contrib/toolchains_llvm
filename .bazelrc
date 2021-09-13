@@ -1,0 +1,3 @@
+# For testing purposes only! Note that CI passes in `--bazelrc=/dev/null` and
+# does *not* use this file.
+build --incompatible_enable_cc_toolchain_resolution
