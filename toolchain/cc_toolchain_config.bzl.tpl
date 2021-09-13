@@ -39,9 +39,20 @@ def cc_toolchain_config(name, host_platform, custom_target_triple = None, overri
 
                 "extra_compile_flags": list[string],
                 "extra_linker_flags": list[string],
-                "omit_hosted_linker_flags": bool,
-                "omit_cxx_stdlib_flag": bool,
-                "use_llvm_ar_instead_of_libtool_on_macos": bool,
+                "custom_linker_tool": {
+                    "darwin": string,
+                    "k8": string,
+                },
+                "omit_hosted_linker_flags": bool = False,
+
+                "linker_include_build_id_on_linux_hosts": bool = True,
+                "linker_use_gnu_hash_style_on_linux_hosts": bool = True,
+                "linker_use_elf_hardening_so_flags_on_linux_hosts": bool = True,
+
+                "prefer_static_cxx_libs_on_linux_hosts": bool = True,
+                "omit_cxx_stdlib_flag": bool = False,
+
+                "use_llvm_ar_instead_of_libtool_on_macos": bool = False,
             }
             ```
     """
@@ -118,12 +129,19 @@ def cc_toolchain_config(name, host_platform, custom_target_triple = None, overri
             # The linker has no way of knowing if there are C++ objects; so we
             # always link C++ libraries.
             "-L%{toolchain_path_prefix}/lib",
+        ]
+
+        # Unless the target has a compelling reason not to want to do so (i.e.
+        # has a special linker that doesn't support this syntax), we'd like to
+        # prefer _statically_ linking the C++ libraries:
+        prefer_static_cxx_libs_on_linux_hosts =
+            overrides.get("prefer_static_cxx_libs_on_linux_hosts", True)
+        linker_flags += [
             "-l:libc++.a",
             "-l:libc++abi.a",
-            # Other linker flags.
-            "-Wl,--build-id=md5",
-            "-Wl,--hash-style=gnu",
-            "-Wl,-z,relro,-z,now",
+        ] if prefer_static_cxx_libs_on_linux_hosts else [
+            "-lc++",
+            "-lc++abi",
         ]
 
         if enable_hosted_linker_flags:
@@ -135,6 +153,14 @@ def cc_toolchain_config(name, host_platform, custom_target_triple = None, overri
                 "-lpthread",
                 "-ldl",
             ]
+
+        # Other linker flags.
+        if overrides.get("linker_include_build_id_on_linux_hosts", True):
+            linker_flags += ["-Wl,--build-id=md5"]
+        if overrides.get("linker_use_gnu_hash_style_on_linux_hosts", True):
+            linker_flags += ["-Wl,--hash-style=gnu"]
+        if overrides.get("linker_use_elf_hardening_so_flags_on_linux_hosts", True):
+            linker_flags += ["-Wl,-z,relro,-z,now"]
     elif host_platform == "darwin":
         linker_flags = [
             # Difficult to guess options to statically link C++ libraries with
