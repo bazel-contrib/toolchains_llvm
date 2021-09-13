@@ -16,43 +16,26 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 package(default_visibility = [":__subpackages__"])
 
-platform(
-    name = "wasm",
-    constraint_values = [
-        "@platforms//cpu:wasm32",
-        "@platforms//os:wasi",
-        # ":no_shared_objects",
-    ],
+cc_binary(
+    name = "simple_binary",
+    srcs = ["simple.cc"],
 )
 
-cc_library(
-    name = "stdlib-wasm",
-    srcs = ["stdlib.cc"],
-    hdrs = ["stdlib.h"],
-    features = [
-        "-supports_dynamic_linker",
-    ],
-    target_compatible_with = [
-        "@platforms//cpu:wasm32",
-        "@platforms//os:wasi",
-    ],
+cc_test(
+    name = "simple_test",
+    srcs = ["simple.cc"],
 )
-
-# TODO: add a rule that transitions --platform to `//test:wasm` to ensure that
-# toolchain resolution picks `@llvm_toolchain//:cc-clang-*_wasm32-unknown-unknown`.
-#
-# also have it set `--features=-supports_dynamic_linker`; ideally this would be in
-# the toolchain definition but the downside of switching to using
-# `unix_cc_toolchain_config.bzl` is that we lose this knob
-#
-# it's not clear yet if supporting different targets runs counter to using
-# `unix_cc_toolchain_config.bzl` altogether – so far things are manageable but
-# it's already apparent that we'll be sacrificing some power/configurability
 
 cc_library(
     name = "stdlib",
     srcs = ["stdlib.cc"],
     hdrs = ["stdlib.h"],
+)
+
+cc_binary(
+    name = "stdlib_binary",
+    srcs = ["stdlib_test.cc"],
+    deps = [":stdlib"],
 )
 
 cc_test(
