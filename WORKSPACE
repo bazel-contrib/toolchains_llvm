@@ -24,9 +24,7 @@ load("@com_grail_bazel_toolchain//toolchain:rules.bzl", "llvm_toolchain")
 
 llvm_toolchain(
     name = "llvm_toolchain",
-    # LLVM 9.0.0 needs /usr/lib/libtinfo.so.5 that is not very straightforward
-    # to set up in all linux distros we test.
-    llvm_version = "10.0.0",
+    llvm_version = "12.0.0",
     extra_targets = [
         # NOTE: we do *not* use `wasm32-unknown-unknown` here; using `unknown`
         # makes the generated toolchain have no OS constraint which will result

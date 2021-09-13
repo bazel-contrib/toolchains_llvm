@@ -28,7 +28,8 @@ for image in "${images[@]}"; do
 set -exuo pipefail
 
 # Install dependencies
-pacman -Syu --noconfirm --quiet python gcc tar
+pacman -Syu --noconfirm --quiet python gcc tar ncurses
+link /lib/libtinfo.so.6 /lib/libtinfo.so.5
 
 # Run tests
 cd /src
