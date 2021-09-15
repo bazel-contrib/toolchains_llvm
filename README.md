@@ -100,13 +100,13 @@ llvm_toolchain(
     ],
 
     # Extra targets can have their sysroots overriden too:
-    sysroots: {
+    sysroot = {
         "linux": "@some_example_sysroot_repo//:linux_sysroot",
         "darwin": "@some_example_sysroot_repo//:macos_sysroot",
 
         "linux_wasm32-unknown-wasi": "@some_example_sysroot_repo//:wasi_sysroot",
         "darwin_wasm32-unknown-wasi": "@some_example_sysroot_repo//:wasi_sysroot",
-    }
+    },
 )
 
 load("@llvm_toolchain//:toolchains.bzl", "llvm_register_toolchains")
