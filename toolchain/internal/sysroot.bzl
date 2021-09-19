@@ -30,13 +30,8 @@ def _default_sysroot(rctx):
         return ""
 
 # Return the sysroot path and the label to the files, if sysroot is not a system path.
-def sysroot_path(rctx):
-    if rctx.os.name == "linux":
-        sysroot = rctx.attr.sysroot.get("linux", default = "")
-    elif rctx.os.name == "mac os x":
-        sysroot = rctx.attr.sysroot.get("darwin", default = "")
-    else:
-        fail("Unsupported OS: " + rctx.os.name)
+def sysroot_path(rctx, shortos):
+    sysroot = rctx.attr.sysroot.get(shortos, default = "")
 
     if not sysroot:
         return (_default_sysroot(rctx), None)

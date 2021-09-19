@@ -36,14 +36,15 @@ def _include_dirs_str(rctx, cpu):
         return ""
     return ("\n" + 12 * " ").join(["\"%s\"," % d for d in dirs])
 
+def _make_shortos(x):
+    if x == "linux":
+        return "linux"
+    elif x == "mac os x":
+        return "darwin"
+    fail("Unsupported OS: " + x)
+
 def llvm_toolchain_impl(rctx):
-    if rctx.os.name.startswith("windows"):
-        rctx.file("BUILD")
-        rctx.file("toolchains.bzl", """
-def llvm_register_toolchains():
-    pass
-        """)
-        return
+    shortos = _make_shortos(rctx.os.name)
 
     repo_path = str(rctx.path(""))
     relative_path_prefix = "external/%s/" % rctx.name
@@ -52,7 +53,7 @@ def llvm_register_toolchains():
     else:
         toolchain_path_prefix = relative_path_prefix
 
-    sysroot_path, sysroot = _sysroot_path(rctx)
+    sysroot_path, sysroot = _sysroot_path(rctx, shortos)
     substitutions = {
         "%{parent_repo_name}": rctx.attr._llvm_release_name.workspace_name,
         "%{repo_name}": rctx.name,
@@ -107,7 +108,7 @@ def llvm_register_toolchains():
         rctx.file("bin/ld.gold")
 
     # Repository implementation functions can be restarted, keep expensive ops at the end.
-    if not _download_llvm(rctx):
+    if not _download_llvm(rctx, shortos):
         _download_llvm_preconfigured(rctx)
 
 def conditional_cc_toolchain(name, darwin, absolute_paths = False):
