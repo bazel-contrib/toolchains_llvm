@@ -13,7 +13,7 @@
 # limitations under the License.
 
 load(
-    "@com_grail_bazel_toolchain//toolchain/internal:configure.bzl",
+    "//toolchain/internal:configure.bzl",
     _conditional_cc_toolchain = "conditional_cc_toolchain",
     _llvm_toolchain_impl = "llvm_toolchain_impl",
 )
@@ -56,7 +56,7 @@ llvm_toolchain = repository_rule(
             doc = "Use absolute paths in the toolchain. Avoids sandbox overhead.",
         ),
         "_llvm_release_name": attr.label(
-            default = "@com_grail_bazel_toolchain//toolchain/tools:llvm_release_name.py",
+            default = "//toolchain/tools:llvm_release_name.py",
             allow_single_file = True,
             doc = "Python module to output LLVM release name for the current OS.",
         ),

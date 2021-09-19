@@ -13,12 +13,12 @@
 # limitations under the License.
 
 load(
-    "@com_grail_bazel_toolchain//toolchain/internal:llvm_distributions.bzl",
+    "//toolchain/internal:llvm_distributions.bzl",
     _download_llvm = "download_llvm",
     _download_llvm_preconfigured = "download_llvm_preconfigured",
 )
 load(
-    "@com_grail_bazel_toolchain//toolchain/internal:sysroot.bzl",
+    "//toolchain/internal:sysroot.bzl",
     _sysroot_path = "sysroot_path",
 )
 load("@rules_cc//cc:defs.bzl", _cc_toolchain = "cc_toolchain")
@@ -54,6 +54,7 @@ def llvm_register_toolchains():
 
     sysroot_path, sysroot = _sysroot_path(rctx)
     substitutions = {
+        "%{parent_repo_name}": rctx.attr._llvm_release_name.workspace_name,
         "%{repo_name}": rctx.name,
         "%{llvm_version}": rctx.attr.llvm_version,
         "%{toolchain_path_prefix}": toolchain_path_prefix,
@@ -70,27 +71,27 @@ def llvm_register_toolchains():
 
     rctx.template(
         "toolchains.bzl",
-        Label("@com_grail_bazel_toolchain//toolchain:toolchains.bzl.tpl"),
+        Label("//toolchain:toolchains.bzl.tpl"),
         substitutions,
     )
     rctx.template(
         "cc_toolchain_config.bzl",
-        Label("@com_grail_bazel_toolchain//toolchain:cc_toolchain_config.bzl.tpl"),
+        Label("//toolchain:cc_toolchain_config.bzl.tpl"),
         substitutions,
     )
     rctx.template(
         "bin/cc_wrapper.sh",  # Co-located with the linker to help rules_go.
-        Label("@com_grail_bazel_toolchain//toolchain:cc_wrapper.sh.tpl"),
+        Label("//toolchain:cc_wrapper.sh.tpl"),
         substitutions,
     )
     rctx.template(
         "Makevars",
-        Label("@com_grail_bazel_toolchain//toolchain:Makevars.tpl"),
+        Label("//toolchain:Makevars.tpl"),
         substitutions,
     )
     rctx.template(
         "BUILD",
-        Label("@com_grail_bazel_toolchain//toolchain:BUILD.tpl"),
+        Label("//toolchain:BUILD.tpl"),
         substitutions,
     )
 

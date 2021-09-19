@@ -86,7 +86,7 @@ toolchain(
     toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
 )
 
-load("@com_grail_bazel_toolchain//toolchain:rules.bzl", "conditional_cc_toolchain")
+load("@%{parent_repo_name}//toolchain:rules.bzl", "conditional_cc_toolchain")
 
 conditional_cc_toolchain("cc-clang-linux", False, %{absolute_paths})
 conditional_cc_toolchain("cc-clang-darwin", True, %{absolute_paths})
