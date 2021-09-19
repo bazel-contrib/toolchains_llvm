@@ -41,7 +41,7 @@ def _make_shortos(x):
         return "linux"
     elif x == "mac os x":
         return "darwin"
-    elif rctx.os.name.startswith("windows"):
+    elif x.startswith("windows"):
         return "windows"
     fail("Unsupported OS: " + x)
 
