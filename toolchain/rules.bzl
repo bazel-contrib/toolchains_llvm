@@ -73,6 +73,14 @@ llvm_toolchain = repository_rule(
             mandatory = False,
             doc = "Path prefix to strip from the extracted files.",
         ),
+        "netrc": attr.string(
+            mandatory = False,
+            doc = "Path to the netrc file for authenticated LLVM URL downloads.",
+        ),
+        "auth_patterns": attr.string_dict(
+            mandatory = False,
+            doc = "An optional dict mapping host names to custom authorization patterns.",
+        ),
     },
     local = False,
     implementation = _llvm_toolchain_impl,

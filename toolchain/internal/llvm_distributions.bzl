@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@bazel_tools//tools/build_defs/repo:utils.bzl", "read_netrc", "use_netrc")
+
 # If a new LLVM version is missing from this list, please add the shasum here
 # and send a PR on github. To compute the shasum block, you can use the script
 # utils/llvm_checksums.sh
@@ -165,6 +167,31 @@ def _python(rctx):
     else:
         fail("python not found")
 
+def _get_auth(ctx, urls):
+    """
+    Given the list of URLs obtain the correct auth dict.
+
+    Based on:
+    https://github.com/bazelbuild/bazel/blob/793964e8e4268629d82fabbd08bf1a7718afa301/tools/build_defs/repo/http.bzl#L42
+    """
+    if ctx.attr.netrc:
+        netrc = read_netrc(ctx, ctx.attr.netrc)
+        return use_netrc(netrc, urls, ctx.attr.auth_patterns)
+
+    if "HOME" in ctx.os.environ and not ctx.os.name.startswith("windows"):
+        netrcfile = "%s/.netrc" % (ctx.os.environ["HOME"])
+        if ctx.execute(["test", "-f", netrcfile]).return_code == 0:
+            netrc = read_netrc(ctx, netrcfile)
+            return use_netrc(netrc, urls, ctx.attr.auth_patterns)
+
+    if "USERPROFILE" in ctx.os.environ and ctx.os.name.startswith("windows"):
+        netrcfile = "%s/.netrc" % (ctx.os.environ["USERPROFILE"])
+        if ctx.path(netrcfile).exists:
+            netrc = read_netrc(ctx, netrcfile)
+            return use_netrc(netrc, urls, ctx.attr.auth_patterns)
+
+    return {}
+
 def download_llvm_preconfigured(rctx):
     llvm_version = rctx.attr.llvm_version
 
@@ -202,6 +229,7 @@ def download_llvm_preconfigured(rctx):
         urls,
         sha256 = _llvm_distributions[basename],
         stripPrefix = basename[:(len(basename) - len(".tar.xz"))],
+        auth = _get_auth(rctx, urls),
     )
 
 # Download LLVM from the user-provided URLs and return True. If URLs were not provided, return
@@ -221,5 +249,10 @@ def download_llvm(rctx):
     if not urls:
         return False
 
-    rctx.download_and_extract(urls, sha256 = sha256, stripPrefix = prefix)
+    rctx.download_and_extract(
+        urls,
+        sha256 = sha256,
+        stripPrefix = prefix,
+        auth = _get_auth(rctx, urls),
+    )
     return True
