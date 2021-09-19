@@ -41,10 +41,19 @@ def _make_shortos(x):
         return "linux"
     elif x == "mac os x":
         return "darwin"
+    elif rctx.os.name.startswith("windows"):
+        return "windows"
     fail("Unsupported OS: " + x)
 
 def llvm_toolchain_impl(rctx):
     shortos = _make_shortos(rctx.os.name)
+    if shortos == "windows":
+        rctx.file("BUILD")
+        rctx.file("toolchains.bzl", """
+def llvm_register_toolchains():
+    pass
+        """)
+        return
 
     repo_path = str(rctx.path(""))
     relative_path_prefix = "external/%s/" % rctx.name
