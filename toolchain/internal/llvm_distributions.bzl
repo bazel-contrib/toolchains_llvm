@@ -174,21 +174,18 @@ def _get_auth(ctx, urls):
     Based on:
     https://github.com/bazelbuild/bazel/blob/793964e8e4268629d82fabbd08bf1a7718afa301/tools/build_defs/repo/http.bzl#L42
     """
+    netrcpath = None
     if ctx.attr.netrc:
-        netrc = read_netrc(ctx, ctx.attr.netrc)
+        netrcpath = ctx.attr.netrc
+    elif not ctx.os.name.startswith("windows"):
+        if "HOME" in ctx.os.environ:
+            netrcpath = "%s/.netrc" % (ctx.os.environ["HOME"])
+    elif "USERPROFILE" in ctx.os.environ:
+        netrcpath = "%s/.netrc" % (ctx.os.environ["USERPROFILE"])
+
+    if netrcpath and ctx.path(netrcpath).exists:
+        netrc = read_netrc(ctx, netrcpath)
         return use_netrc(netrc, urls, ctx.attr.auth_patterns)
-
-    if "HOME" in ctx.os.environ and not ctx.os.name.startswith("windows"):
-        netrcfile = "%s/.netrc" % (ctx.os.environ["HOME"])
-        if ctx.execute(["test", "-f", netrcfile]).return_code == 0:
-            netrc = read_netrc(ctx, netrcfile)
-            return use_netrc(netrc, urls, ctx.attr.auth_patterns)
-
-    if "USERPROFILE" in ctx.os.environ and ctx.os.name.startswith("windows"):
-        netrcfile = "%s/.netrc" % (ctx.os.environ["USERPROFILE"])
-        if ctx.path(netrcfile).exists:
-            netrc = read_netrc(ctx, netrcfile)
-            return use_netrc(netrc, urls, ctx.attr.auth_patterns)
 
     return {}
 
