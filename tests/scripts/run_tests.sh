@@ -42,14 +42,23 @@ chmod a+x "${bazel}"
 
 set -x
 "${bazel}" version
-"${bazel}" ${TEST_MIGRATION+"--migrate"} --bazelrc=/dev/null test \
-  --extra_toolchains="${toolchain_name}" \
-  --incompatible_enable_cc_toolchain_resolution \
-  --copt=-v \
-  --linkopt=-Wl,-t \
-  --symlink_prefix=/ \
-  --color=yes \
-  --show_progress_rate_limit=30 \
-  --keep_going \
-  --test_output=errors \
-  //...
+
+test_args=(
+  --extra_toolchains="${toolchain_name}"
+  --incompatible_enable_cc_toolchain_resolution
+  --copt=-v
+  --linkopt=-Wl,-t
+  --symlink_prefix=/
+  --color=yes
+  --show_progress_rate_limit=30
+  --keep_going
+  --test_output=errors
+)
+if [[ "${TEST_MIGRATION:-}" ]]; then
+  # We can not use bazelisk to test migration because bazelisk does not allow
+  # us to selectively ignore a migration flag.
+  test_args+=("--all_incompatible_changes")
+  # This flag is not quite ready -- https://github.com/bazelbuild/bazel/issues/7347
+  test_args+=("--incompatible_disallow_struct_provider_syntax=false")
+fi
+"${bazel}"  --bazelrc=/dev/null test "${test_args[@]}" //...

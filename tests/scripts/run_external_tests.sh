@@ -38,13 +38,22 @@ chmod a+x "${bazel}"
 #   link it statically on linux.
 # - opts_test from rules_go because its include path assumes that the main repo is rules_go (see
 #   https://github.com/bazelbuild/rules_go/issues/2955).
-"${bazel}" ${TEST_MIGRATION+"--migrate"} --bazelrc=/dev/null test \
-  --incompatible_enable_cc_toolchain_resolution \
-  --symlink_prefix=/ \
-  --color=yes \
-  --show_progress_rate_limit=30 \
-  --keep_going \
-  --test_output=errors \
+test_args=(
+  --incompatible_enable_cc_toolchain_resolution
+  --symlink_prefix=/
+  --color=yes
+  --show_progress_rate_limit=30
+  --keep_going
+  --test_output=errors
+)
+if [[ "${TEST_MIGRATION:-}" ]]; then
+  # We can not use bazelisk to test migration because bazelisk does not allow
+  # us to selectively ignore a migration flag.
+  test_args+=("--all_incompatible_changes")
+  # This flag is not quite ready -- https://github.com/bazelbuild/bazel/issues/7347
+  test_args+=("--incompatible_disallow_struct_provider_syntax=false")
+fi
+"${bazel}" --bazelrc=/dev/null test "${test_args[@]}" \
   @openssl//:libssl \
   $("${bazel}" query 'attr(timeout, short, tests(@com_google_absl//absl/...))') \
   $("${bazel}" query 'tests(@io_bazel_rules_go//tests/core/cgo:all) except @io_bazel_rules_go//tests/core/cgo:cc_libs_test @io_bazel_rules_go//tests/core/cgo:opts_test')
