@@ -75,10 +75,8 @@ def _linux(llvm_version):
         os_name = "unknown-freebsd-%s" % version
     elif distname == "suse":
         os_name = "linux-sles%s" % version
-    elif distname == "ubuntu" and version.startswith("14.04"):
-        os_name = "linux-gnu-ubuntu-14.04"
-    elif (distname == "ubuntu" and version.startswith("20.04")) or (distname == "linuxmint" and version.startswith("20")):
-        if major_llvm_version < 11:
+    elif (distname == "ubuntu" and version.startswith("20")) or ((distname == "linuxmint" or distname == "pop") and version.startswith("20")):
+        if major_llvm_version < 11 or llvm_version == "11.1.0":
             # There is no binary packages specifically for 20.04, but those for 18.04 works on
             # 20.04
             os_name = "linux-gnu-ubuntu-18.04"
@@ -86,10 +84,10 @@ def _linux(llvm_version):
             # release 11.0.0 started providing packaging for ubuntu 20
             os_name = "linux-gnu-ubuntu-20.04"
     elif (distname == "ubuntu" and version.startswith("18.04")) or (distname == "linuxmint" and version.startswith("19")):
-        os_name = "linux-gnu-ubuntu-18.04"
-    elif (distname == "ubuntu" and version.startswith("20")) or (distname == "pop" and version.startswith("20")):
-        # use ubuntu 18.04 clang LLVM release for ubuntu 20.04
-        os_name = "linux-gnu-ubuntu-18.04"
+        if major_llvm_version < 11 or llvm_version == "11.1.0":
+            os_name = "linux-gnu-ubuntu-18.04"
+        else:
+            os_name = "linux-gnu-ubuntu-20.04"
     elif distname in ["ubuntu", "manjaro"] or (distname == "linuxmint" and version.startswith("18")):
         os_name = "linux-gnu-ubuntu-16.04"
     elif distname == "debian":
@@ -98,8 +96,8 @@ def _linux(llvm_version):
             int_version = int(version)
         except ValueError:
             pass
-        if int_version is None or int_version == 10:
-            if major_llvm_version < 11:
+        if int_version is None or int_version >= 10:
+            if major_llvm_version < 11 or llvm_version == "11.1.0":
                 os_name = "linux-gnu-ubuntu-18.04"
             else:
                 os_name = "linux-gnu-ubuntu-20.04"
@@ -113,7 +111,10 @@ def _linux(llvm_version):
     elif distname == "centos" and major_llvm_version >= 7:
         os_name = "linux-sles11.3"
     elif distname == "fedora" and major_llvm_version >= 7:
-        os_name = "linux-gnu-ubuntu-18.04"
+        if major_llvm_version < 11 or llvm_version == "11.1.0":
+            os_name = "linux-gnu-ubuntu-18.04"
+        else:
+            os_name = "linux-gnu-ubuntu-20.04"
     elif distname == "arch" and major_llvm_version >= 11:
         os_name = "linux-gnu-ubuntu-20.04"
     elif distname == "arch" and major_llvm_version >= 10:

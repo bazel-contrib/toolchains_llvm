@@ -16,7 +16,7 @@
 set -euo pipefail
 
 images=(
-"archlinux/base:latest"
+"archlinux:base-devel"
 )
 
 git_root=$(git rev-parse --show-toplevel)
@@ -28,7 +28,7 @@ for image in "${images[@]}"; do
 set -exuo pipefail
 
 # Install dependencies
-pacman -Syu --noconfirm --quiet python gcc tar
+pacman -Syu --noconfirm --quiet python
 
 # Run tests
 cd /src
