@@ -18,9 +18,9 @@ set -euo pipefail
 os="$(uname -s | tr "[:upper:]" "[:lower:]")"
 readonly os
 
-# Use bazelisk for latest bazel version.
-# Value of BAZELISK_GITHUB_TOKEN is set as a secret on Travis.
-readonly url="https://github.com/bazelbuild/bazelisk/releases/download/v1.0/bazelisk-${os}-amd64"
+# Use bazelisk to catch migration problems.
+readonly bazelisk_version="v1.10.1"
+readonly url="https://github.com/bazelbuild/bazelisk/releases/download/${bazelisk_version}/bazelisk-${os}-amd64"
 bazel="${TMPDIR:-/tmp}/bazelisk"
 readonly bazel
 
@@ -29,8 +29,15 @@ chmod a+x "${bazel}"
 
 "${bazel}" version
 
-# We exclude cc_libs_test from rules_go because it assumes that stdlibc++ has
-# been dynamically linked, but we link it statically on linux.
+# Generate some files needed for the tests.
+"${bazel}" fetch @io_bazel_rules_go//tests/core/cgo:all
+"$("${bazel}" info output_base)/external/io_bazel_rules_go/tests/core/cgo/generate_imported_dylib.sh"
+
+# We exclude the following targets:
+# - cc_libs_test from rules_go because it assumes that stdlibc++ has been dynamically linked, but we
+#   link it statically on linux.
+# - opts_test from rules_go because its include path assumes that the main repo is rules_go (see
+#   https://github.com/bazelbuild/rules_go/issues/2955).
 "${bazel}" ${TEST_MIGRATION+"--migrate"} --bazelrc=/dev/null test \
   --incompatible_enable_cc_toolchain_resolution \
   --symlink_prefix=/ \
@@ -40,4 +47,4 @@ chmod a+x "${bazel}"
   --test_output=errors \
   @openssl//:libssl \
   $("${bazel}" query 'attr(timeout, short, tests(@com_google_absl//absl/...))') \
-  $("${bazel}" query 'tests(@io_bazel_rules_go//tests/core/cgo:all) except @io_bazel_rules_go//tests/core/cgo:cc_libs_test')
+  $("${bazel}" query 'tests(@io_bazel_rules_go//tests/core/cgo:all) except @io_bazel_rules_go//tests/core/cgo:cc_libs_test @io_bazel_rules_go//tests/core/cgo:opts_test')

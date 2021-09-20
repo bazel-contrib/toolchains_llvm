@@ -24,9 +24,7 @@ load("@com_grail_bazel_toolchain//toolchain:rules.bzl", "llvm_toolchain")
 
 llvm_toolchain(
     name = "llvm_toolchain",
-    # LLVM 9.0.0 needs /usr/lib/libtinfo.so.5 that is not very straightforward
-    # to set up in all linux distros we test.
-    llvm_version = "8.0.0",
+    llvm_version = "12.0.0",
 )
 
 load("@llvm_toolchain//:toolchains.bzl", "llvm_register_toolchains")
@@ -52,7 +50,7 @@ filegroup(
 
 llvm_toolchain(
     name = "llvm_toolchain_linux_sysroot",
-    llvm_version = "9.0.0",
+    llvm_version = "12.0.0",
     sysroot = {
         "linux": "@org_chromium_sysroot_linux_x64//:sysroot",
     },
@@ -76,9 +74,9 @@ http_archive(
 
 http_archive(
     name = "com_google_absl",
-    sha256 = "0db0d26f43ba6806a8a3338da3e646bb581f0ca5359b3a201d8fb8e4752fd5f8",
-    strip_prefix = "abseil-cpp-20200225.1",
-    urls = ["https://github.com/abseil/abseil-cpp/archive/20200225.1.tar.gz"],
+    sha256 = "59b862f50e710277f8ede96f083a5bb8d7c9595376146838b9580be90374ee1f",
+    strip_prefix = "abseil-cpp-20210324.2",
+    urls = ["https://github.com/abseil/abseil-cpp/archive/20210324.2.tar.gz"],
 )
 
 http_archive(
@@ -93,10 +91,10 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "io_bazel_rules_go",
-    sha256 = "e6a6c016b0663e06fa5fccf1cd8152eab8aa8180c583ec20c872f4f9953a7ac5",
+    sha256 = "8e968b5fcea1d2d64071872b12737bbb5514524ee5f0a4f54f5920266c261acb",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.22.1/rules_go-v0.22.1.tar.gz",
-        "https://github.com/bazelbuild/rules_go/releases/download/v0.22.1/rules_go-v0.22.1.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.28.0/rules_go-v0.28.0.zip",
+        "https://github.com/bazelbuild/rules_go/releases/download/v0.28.0/rules_go-v0.28.0.zip",
     ],
 )
 
@@ -104,4 +102,4 @@ load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_depe
 
 go_rules_dependencies()
 
-go_register_toolchains()
+go_register_toolchains(version = "1.17")
