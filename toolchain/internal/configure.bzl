@@ -23,8 +23,8 @@ load(
 )
 load("@rules_cc//cc:defs.bzl", _cc_toolchain = "cc_toolchain")
 
-def _makevars_ld_flags(rctx):
-    if rctx.os.name == "mac os x":
+def _makevars_ld_flags(rctx, shortos):
+    if shortos == "darwin":
         return ""
 
     # lld, as of LLVM 7, is experimental for Mach-O, so we use it only on linux.
@@ -67,6 +67,7 @@ def llvm_register_toolchains():
         "%{parent_repo_name}": rctx.attr._llvm_release_name.workspace_name,
         "%{repo_name}": rctx.name,
         "%{llvm_version}": rctx.attr.llvm_version,
+        "%{bazel_version}": native.bazel_version,
         "%{toolchain_path_prefix}": toolchain_path_prefix,
         "%{tools_path_prefix}": (repo_path + "/") if rctx.attr.absolute_paths else "",
         "%{debug_toolchain_path_prefix}": relative_path_prefix,
@@ -74,7 +75,7 @@ def llvm_register_toolchains():
         "%{sysroot_prefix}": "%sysroot%" if sysroot_path else "",
         "%{sysroot_label}": "\"%s\"" % str(sysroot) if sysroot else "",
         "%{absolute_paths}": "True" if rctx.attr.absolute_paths else "False",
-        "%{makevars_ld_flags}": _makevars_ld_flags(rctx),
+        "%{makevars_ld_flags}": _makevars_ld_flags(rctx, shortos),
         "%{k8_additional_cxx_builtin_include_directories}": _include_dirs_str(rctx, "k8"),
         "%{aarch64_additional_cxx_builtin_include_directories}": _include_dirs_str(rctx, "aarch64"),
         "%{darwin_additional_cxx_builtin_include_directories}": _include_dirs_str(rctx, "darwin"),
@@ -111,7 +112,7 @@ def llvm_register_toolchains():
     # For GoCompile on macOS; compiler path is set from linker path.
     # It also helps clang driver sometimes for the linker to be colocated with the compiler.
     rctx.symlink("/usr/bin/ld", "bin/ld")
-    if rctx.os.name == "linux":
+    if shortos == "linux":
         rctx.symlink("/usr/bin/ld.gold", "bin/ld.gold")
     else:
         # Add dummy file for non-linux so we don't have to put conditional logic in BUILD.

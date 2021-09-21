@@ -13,9 +13,6 @@
 # limitations under the License.
 
 def _darwin_sdk_path(rctx):
-    if rctx.os.name != "mac os x":
-        return ""
-
     exec_result = rctx.execute(["/usr/bin/xcrun", "--show-sdk-path", "--sdk", "macosx"])
     if exec_result.return_code:
         fail("Failed to detect OSX SDK path: \n%s\n%s" % (exec_result.stdout, exec_result.stderr))
@@ -23,8 +20,8 @@ def _darwin_sdk_path(rctx):
         print(exec_result.stderr)
     return exec_result.stdout.strip()
 
-def _default_sysroot(rctx):
-    if rctx.os.name == "mac os x":
+def _default_sysroot(rctx, shortos):
+    if shortos == "darwin":
         return _darwin_sdk_path(rctx)
     else:
         return ""
@@ -34,7 +31,7 @@ def sysroot_path(rctx, shortos):
     sysroot = rctx.attr.sysroot.get(shortos, default = "")
 
     if not sysroot:
-        return (_default_sysroot(rctx), None)
+        return (_default_sysroot(rctx, shortos), None)
 
     # If the sysroot is an absolute path, use it as-is. Check for things that
     # start with "/" and not "//" to identify absolute paths, but also support
