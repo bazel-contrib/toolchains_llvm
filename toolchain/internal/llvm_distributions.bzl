@@ -219,10 +219,6 @@ def _get_auth(ctx, urls):
 def download_llvm_preconfigured(rctx):
     llvm_version = rctx.attr.llvm_version
 
-    mirror_base = []
-    if rctx.attr.llvm_mirror:
-        mirror_base += [rctx.attr.llvm_mirror]
-
     if rctx.attr.distribution == "auto":
         exec_result = rctx.execute([
             _python(rctx),
@@ -240,14 +236,11 @@ def download_llvm_preconfigured(rctx):
     if basename not in _llvm_distributions:
         fail("Unknown LLVM release: %s\nPlease ensure file name is correct." % basename)
 
+    urls = []
     url_suffix = "{0}/{1}".format(llvm_version, basename).replace("+", "%2B")
-    urls = [
-        "{0}{1}".format(_llvm_distributions_base_url[llvm_version], url_suffix),
-    ]
-    urls += [
-        "{0}/{1}".format(base, url_suffix)
-        for base in mirror_base
-    ]
+    if rctx.attr.llvm_mirror:
+        urls.append("{0}/{1}".format(rctx.attr.llvm_mirror, url_suffix))
+    urls.append("{0}{1}".format(_llvm_distributions_base_url[llvm_version], url_suffix))
 
     rctx.download_and_extract(
         urls,
