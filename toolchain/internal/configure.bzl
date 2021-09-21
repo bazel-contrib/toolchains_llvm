@@ -112,7 +112,7 @@ def llvm_register_toolchains():
     # For GoCompile on macOS; compiler path is set from linker path.
     # It also helps clang driver sometimes for the linker to be colocated with the compiler.
     rctx.symlink("/usr/bin/ld", "bin/ld")
-    if shortos == "linux":
+    if rctx.path("/usr/bin/ld.gold").exists:
         rctx.symlink("/usr/bin/ld.gold", "bin/ld.gold")
     else:
         # Add dummy file for non-linux so we don't have to put conditional logic in BUILD.
