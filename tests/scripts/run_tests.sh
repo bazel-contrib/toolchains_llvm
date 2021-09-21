@@ -61,4 +61,4 @@ if [[ "${TEST_MIGRATION:-}" ]]; then
   # This flag is not quite ready -- https://github.com/bazelbuild/bazel/issues/7347
   test_args+=("--incompatible_disallow_struct_provider_syntax=false")
 fi
-"${bazel}"  --bazelrc=/dev/null test "${test_args[@]}" //...
+"${bazel}"  --bazelrc=/dev/null test "${test_args[@]}" //tests:all

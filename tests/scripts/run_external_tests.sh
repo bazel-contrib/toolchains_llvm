@@ -54,6 +54,7 @@ if [[ "${TEST_MIGRATION:-}" ]]; then
   test_args+=("--incompatible_disallow_struct_provider_syntax=false")
 fi
 "${bazel}" --bazelrc=/dev/null test "${test_args[@]}" \
+  //tests/foreign:pcre \
   @openssl//:libssl \
   $("${bazel}" query 'attr(timeout, short, tests(@com_google_absl//absl/...))') \
-  $("${bazel}" query 'tests(@io_bazel_rules_go//tests/core/cgo:all) except @io_bazel_rules_go//tests/core/cgo:cc_libs_test @io_bazel_rules_go//tests/core/cgo:opts_test')
+  $("${bazel}" query 'tests(@io_bazel_rules_go//tests/core/cgo:all) except set(@io_bazel_rules_go//tests/core/cgo:cc_libs_test @io_bazel_rules_go//tests/core/cgo:opts_test)')
