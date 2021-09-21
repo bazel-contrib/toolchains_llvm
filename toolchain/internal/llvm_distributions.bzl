@@ -13,6 +13,7 @@
 # limitations under the License.
 
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "read_netrc", "use_netrc")
+load("//toolchain/internal:common.bzl", _python = "python")
 
 # If a new LLVM version is missing from this list, please add the shasum here
 # and send a PR on github. To compute the shasum block, you can use the script
@@ -179,21 +180,6 @@ _llvm_distributions_base_url = {
     "12.0.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
 }
 
-def _python(rctx):
-    # Get path of the python interpreter.
-
-    python3 = rctx.which("python3")
-    python = rctx.which("python")
-    python2 = rctx.which("python2")
-    if python3:
-        return python3
-    elif python:
-        return python
-    elif python2:
-        return python2
-    else:
-        fail("python not found")
-
 def _get_auth(ctx, urls):
     """
     Given the list of URLs obtain the correct auth dict.
@@ -249,23 +235,9 @@ def download_llvm_preconfigured(rctx):
         auth = _get_auth(rctx, urls),
     )
 
-def _arch(rctx):
-    exec_result = rctx.execute([
-        _python(rctx),
-        "-c",
-        "import platform; print(platform.machine())",
-    ])
-    if exec_result.return_code:
-        fail("Failed to detect machine architecture: \n%s\n%s" % (exec_result.stdout, exec_result.stderr))
-    return exec_result.stdout.strip()
-
 # Download LLVM from the user-provided URLs and return True. If URLs were not provided, return
 # False.
-def download_llvm(rctx, shortos):
-    if shortos == "linux":
-        key = "linux-{}".format(_arch(rctx))
-    else:
-        key = shortos
+def download_llvm(rctx, key):
     urls = rctx.attr.urls.get(key, default = [])
     sha256 = rctx.attr.sha256.get(key, default = "")
     prefix = rctx.attr.strip_prefix.get(key, default = "")

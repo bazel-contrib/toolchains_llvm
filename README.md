@@ -76,7 +76,8 @@ Notes:
 
 - The LLVM toolchain also provides several tools like `clang-format`. You can
   depend on these tools directly in the bin directory of the toolchain. For
-  example, `@llvm_toolchain//:bin/clang-format` is a valid and visible target.
+  example, `@llvm_toolchain_llvm//:bin/clang-format` is a valid and visible
+  target.
 
 Other examples of toolchain configuration:
 

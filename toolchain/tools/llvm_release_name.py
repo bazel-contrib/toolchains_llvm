@@ -25,14 +25,14 @@ def _major_llvm_version(llvm_version):
 def _minor_llvm_version(llvm_version):
     return int(llvm_version.split(".")[1])
 
-def _darwin(llvm_version):
+def _darwin(llvm_version, arch):
     major_llvm_version = _major_llvm_version(llvm_version)
     suffix = "darwin-apple" if major_llvm_version == 9 else "apple-darwin"
-    return "clang+llvm-{llvm_version}-x86_64-{suffix}.tar.xz".format(
-        llvm_version=llvm_version, suffix=suffix)
+    return "clang+llvm-{llvm_version}-{arch}-{suffix}.tar.xz".format(
+        llvm_version=llvm_version, arch=arch, suffix=suffix)
 
-def _windows(llvm_version):
-    if platform.machine().endswith('64'):
+def _windows(llvm_version, arch):
+    if arch.endswith('64'):
         win_arch = "win64"
     else:
         win_arch = "win32"
@@ -41,9 +41,7 @@ def _windows(llvm_version):
         llvm_version=llvm_version,
         win_arch=win_arch)
 
-def _linux(llvm_version):
-    arch = platform.machine()
-
+def _linux(llvm_version, arch):
     release_file_path = "/etc/os-release"
     with open(release_file_path) as release_file:
         lines = release_file.readlines()
@@ -158,16 +156,18 @@ def main():
     llvm_version = sys.argv[1]
 
     system = platform.system()
+    arch = platform.machine()
+
     if system == "Darwin":
-        print(_darwin(llvm_version))
+        print(_darwin(llvm_version, arch))
         sys.exit()
 
     if system == "Windows":
-        print(_windows(llvm_version))
+        print(_windows(llvm_version, arch))
         sys.exit()
 
     if system == "Linux":
-        print(_linux(llvm_version))
+        print(_linux(llvm_version, arch))
         sys.exit()
 
     sys.exit("Unsupported system: %s" % system)
