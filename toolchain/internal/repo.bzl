@@ -14,25 +14,18 @@
 
 load(
     "//toolchain/internal:common.bzl",
-    _arch = "arch",
-    _check_os_arch_keys = "check_os_arch_keys",
     _os = "os",
-    _os_arch_pair = "os_arch_pair",
 )
 load(
     "//toolchain/internal:llvm_distributions.bzl",
-    _download_llvm = "download_llvm",
     _download_llvm_preconfigured = "download_llvm_preconfigured",
 )
 
 def llvm_repo_impl(rctx):
-    _check_os_arch_keys(rctx.attr.urls)
-
     os = _os(rctx)
     if os == "windows":
         rctx.file("BUILD", executable = False)
         return
-    arch = _arch(rctx)
 
     rctx.file(
         "BUILD.bazel",
@@ -40,6 +33,4 @@ def llvm_repo_impl(rctx):
         executable = False,
     )
 
-    # TODO: Replace download_llvm with standard http_archive rules.
-    if not _download_llvm(rctx, _os_arch_pair(os, arch)):
-        _download_llvm_preconfigured(rctx)
+    _download_llvm_preconfigured(rctx)
