@@ -1,7 +1,5 @@
-LLVM toolchain for Bazel ![Tests](https://github.com/grailbio/bazel-toolchain/workflows/Tests/badge.svg?branch=master) ![Migration](https://github.com/grailbio/bazel-toolchain/workflows/Migration/badge.svg?branch=master)
+LLVM toolchain for Bazel [![Tests](https://github.com/grailbio/bazel-toolchain/actions/workflows/tests.yml/badge.svg)](https://github.com/grailbio/bazel-toolchain/actions/workflows/tests.yml) [![Migration](https://github.com/grailbio/bazel-toolchain/actions/workflows/migration.yml/badge.svg)](https://github.com/grailbio/bazel-toolchain/actions/workflows/migration.yml)
 =================
-
-NOTE: As of 2200d53, this project requires bazel 1.0 or up.
 
 To use this toolchain, include this section in your WORKSPACE:
 ```python
@@ -28,7 +26,7 @@ load("@llvm_toolchain//:toolchains.bzl", "llvm_register_toolchains")
 llvm_register_toolchains()
 ```
 
-The toolchain can automatically detect your OS type, and use the right
+The toolchain can automatically detect your OS and arch type, and use the right
 pre-built binary distribution from llvm.org. The detection is currently
 based on host OS and is not perfect, so some distributions, docker based
 sandboxed builds, and remote execution builds will need toolchains configured
@@ -44,17 +42,20 @@ https://github.com/bazelbuild/bazel/blob/master/site/docs/tutorial/cc-toolchain-
 
 For overriding toolchains on the command line, please use the
 `--extra_toolchains` flag in lieu of the deprecated `--crosstool_top` flag.
-For example, `--extra_toolchains=@llvm_toolchain//:cc-toolchain-linux`.
+For example, `--extra_toolchains=@llvm_toolchain//:cc-toolchain-linux`. You
+may need to also set the `--incompatible_enable_cc_toolchain_resolution` flag.
 
 If you would like to use the older method of selecting toolchains, you can
 continue to do so with `--crosstool_top=@llvm_toolchain//:toolchain`.
 
 Notes:
 
-- The LLVM toolchain archive is downloaded and extracted in the named
-  repository.  People elsewhere have used wrapper scripts to avoid symlinking
-  and get better control of the environment in which the toolchain binaries are
-  run.
+- The LLVM toolchain archive is downloaded and extracted as a separate
+  repository with the suffix `_llvm`. Alternatively, you can also specify your
+  own repositories for each host os-arch pair through the `toolchain_roots`
+  attributes. Each of these repositories is typically configured through
+  `local_repository` or `http_archive` (with `build_file` attribute as
+  `@com_grail_bazel_toolchain//toolchain:BUILD.llvm_repo`).
 
 - A sysroot can be specified through the `sysroot` attribute. This can be either
   a path on the user's system, or a bazel `filegroup` like label. One way to

@@ -44,27 +44,6 @@ _llvm_repo_attrs.update({
     "llvm_mirror": attr.string(
         doc = "Mirror base for LLVM binaries if using the pre-configured URLs.",
     ),
-    "_llvm_release_name": attr.label(
-        default = "//toolchain/tools:llvm_release_name.py",
-        allow_single_file = True,
-        doc = "Python module to output LLVM release name for the current OS.",
-    ),
-    # Following attributes are needed only when using a non-standard URL scheme.
-    # TODO: Use standard http_archive here instead of our custom rule.
-    "urls": attr.string_list_dict(
-        mandatory = False,
-        doc = ("URLs for each host OS and arch pair you want to support " +
-               "({}), ".format(", ".join(_supported_os_arch)) +
-               "if not using the pre-configured URLs."),
-    ),
-    "sha256": attr.string_dict(
-        mandatory = False,
-        doc = "sha256 of the archive for each of the above URLs",
-    ),
-    "strip_prefix": attr.string_dict(
-        mandatory = False,
-        doc = "Path prefix to strip from the extracted files.",
-    ),
     "netrc": attr.string(
         mandatory = False,
         doc = "Path to the netrc file for authenticated LLVM URL downloads.",
@@ -72,6 +51,11 @@ _llvm_repo_attrs.update({
     "auth_patterns": attr.string_dict(
         mandatory = False,
         doc = "An optional dict mapping host names to custom authorization patterns.",
+    ),
+    "_llvm_release_name": attr.label(
+        default = "//toolchain/tools:llvm_release_name.py",
+        allow_single_file = True,
+        doc = "Python module to output LLVM release name for the current OS.",
     ),
 })
 

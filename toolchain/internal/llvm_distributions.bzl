@@ -234,21 +234,3 @@ def download_llvm_preconfigured(rctx):
         stripPrefix = basename[:(len(basename) - len(".tar.xz"))],
         auth = _get_auth(rctx, urls),
     )
-
-# Download LLVM from the user-provided URLs and return True. If URLs were not provided, return
-# False.
-def download_llvm(rctx, key):
-    urls = rctx.attr.urls.get(key, default = [])
-    sha256 = rctx.attr.sha256.get(key, default = "")
-    prefix = rctx.attr.strip_prefix.get(key, default = "")
-
-    if not urls:
-        return False
-
-    rctx.download_and_extract(
-        urls,
-        sha256 = sha256,
-        stripPrefix = prefix,
-        auth = _get_auth(rctx, urls),
-    )
-    return True
