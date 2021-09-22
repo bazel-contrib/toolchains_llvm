@@ -28,21 +28,10 @@ while getopts "t:h" opt; do
   esac
 done
 
-os="$(uname -s | tr "[:upper:]" "[:lower:]")"
-readonly os
-
-# Use bazelisk to catch migration problems.
-readonly bazelisk_version="v1.10.1"
-readonly url="https://github.com/bazelbuild/bazelisk/releases/download/${bazelisk_version}/bazelisk-${os}-amd64"
-bazel="${TMPDIR:-/tmp}/bazelisk"
-readonly bazel
-
-curl -L -sSf -o "${bazel}" "${url}"
-chmod a+x "${bazel}"
-
-set -x
+source "$(dirname "${BASH_SOURCE[0]}")/bazel.sh"
 "${bazel}" version
 
+set -x
 test_args=(
   --extra_toolchains="${toolchain_name}"
   --incompatible_enable_cc_toolchain_resolution
