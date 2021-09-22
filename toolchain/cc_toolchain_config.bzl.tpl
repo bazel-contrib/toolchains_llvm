@@ -70,7 +70,7 @@ def cc_toolchain_config(name, cpu):
         "-D__DATE__=\"redacted\"",
         "-D__TIMESTAMP__=\"redacted\"",
         "-D__TIME__=\"redacted\"",
-        "-fdebug-prefix-map=%{toolchain_path_prefix}=%{debug_toolchain_path_prefix}",
+        "-fdebug-prefix-map=%{toolchain_path_prefix}=__bazel_toolchain_llvm_repo__/",
     ]
 
 
@@ -81,7 +81,7 @@ def cc_toolchain_config(name, cpu):
             "-fuse-ld=lld",
             # The linker has no way of knowing if there are C++ objects; so we
             # always link C++ libraries.
-            "-L%{toolchain_path_prefix}/lib",
+            "-L%{toolchain_path_prefix}lib",
             "-l:libc++.a",
             "-l:libc++abi.a",
             "-l:libunwind.a",
@@ -223,19 +223,19 @@ def cc_toolchain_config(name, cpu):
     tool_paths.update({
         "k8": {
             "ld": "%{tools_path_prefix}bin/ld.lld",
-            "gcc": "%{tools_path_prefix}bin/clang",
+            "gcc": "%{cc_wrapper_prefix}bin/cc_wrapper.sh",
             "ar": "%{tools_path_prefix}bin/llvm-ar",
         },
         "aarch64": {
             "ld": "%{tools_path_prefix}bin/ld.lld",
-            "gcc": "%{tools_path_prefix}bin/clang",
+            "gcc": "%{cc_wrapper_prefix}bin/cc_wrapper.sh",
             "ar": "%{tools_path_prefix}bin/llvm-ar",
         },
         "darwin": {
             # ld.lld Mach-O support is still experimental:
             "ld": "%{tools_path_prefix}bin/ld",
             # See `cc_wrapper.sh.tpl` for details:
-            "gcc": "%{tools_path_prefix}bin/cc_wrapper.sh",
+            "gcc": "%{cc_wrapper_prefix}bin/cc_wrapper.sh",
             # No idea why we use `libtool` instead of `llvm-ar` on macOS:
             "ar": "/usr/bin/libtool",
         },

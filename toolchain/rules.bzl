@@ -13,76 +13,132 @@
 # limitations under the License.
 
 load(
+    "//toolchain/internal:common.bzl",
+    _supported_os_arch = "SUPPORTED_OS_ARCH",
+)
+load(
     "//toolchain/internal:configure.bzl",
-    _conditional_cc_toolchain = "conditional_cc_toolchain",
-    _llvm_toolchain_impl = "llvm_toolchain_impl",
+    _llvm_config_impl = "llvm_config_impl",
+)
+load(
+    "//toolchain/internal:repo.bzl",
+    _llvm_repo_impl = "llvm_repo_impl",
 )
 
-# Symbols exported for public visibility.
-conditional_cc_toolchain = _conditional_cc_toolchain
+_common_attrs = {
+    "llvm_version": attr.string(
+        mandatory = True,
+        doc = "One of the supported versions of LLVM, e.g. 12.0.0",
+    ),
+}
 
-llvm_toolchain = repository_rule(
-    attrs = {
-        "llvm_version": attr.string(
-            default = "6.0.0",
-            doc = "One of the supported versions of LLVM.",
-        ),
-        "distribution": attr.string(
-            default = "auto",
-            doc = ("LLVM pre-built binary distribution filename, must be one " +
-                   "listed on http://releases.llvm.org/download.html for the version " +
-                   "specified in the llvm_version attribute. A special value of " +
-                   "'auto' tries to detect the version based on host OS."),
-        ),
-        "sysroot": attr.string_dict(
-            mandatory = False,
-            doc = ("System path or fileset for each OS type (linux and darwin) used to indicate " +
-                   "the set of files that form the sysroot for the compiler. If the value begins " +
-                   "with exactly one forward slash '/', then the value is assumed to be a system " +
-                   "path. Else, the value will be assumed to be a label containing the files and " +
-                   "the sysroot path will be taken as the path to the package of this label."),
-        ),
-        "cxx_builtin_include_directories": attr.string_list_dict(
-            mandatory = False,
-            doc = ("Additional builtin include directories to be added to the default system " +
-                   "directories, keyed by the CPU type (e.g. k8, aarch64 or darwin). See " +
-                   "documentation for bazel's create_cc_toolchain_config_info."),
-        ),
-        "llvm_mirror": attr.string(
-            doc = "Mirror base for LLVM binaries if using the pre-configured URLs.",
-        ),
-        "absolute_paths": attr.bool(
-            default = False,
-            doc = "Use absolute paths in the toolchain. Avoids sandbox overhead.",
-        ),
-        "_llvm_release_name": attr.label(
-            default = "//toolchain/tools:llvm_release_name.py",
-            allow_single_file = True,
-            doc = "Python module to output LLVM release name for the current OS.",
-        ),
-        # Following attributes are needed only when using a non-standard URL scheme.
-        "urls": attr.string_list_dict(
-            mandatory = False,
-            doc = ("URLs for each OS type and arch pairs (linux-x86_64, linux-aarch64 and darwin) " +
-                   "if not using the pre-configured URLs."),
-        ),
-        "sha256": attr.string_dict(
-            mandatory = False,
-            doc = "sha256 of the archive for each OS type.",
-        ),
-        "strip_prefix": attr.string_dict(
-            mandatory = False,
-            doc = "Path prefix to strip from the extracted files.",
-        ),
-        "netrc": attr.string(
-            mandatory = False,
-            doc = "Path to the netrc file for authenticated LLVM URL downloads.",
-        ),
-        "auth_patterns": attr.string_dict(
-            mandatory = False,
-            doc = "An optional dict mapping host names to custom authorization patterns.",
-        ),
-    },
+_llvm_repo_attrs = dict(_common_attrs)
+_llvm_repo_attrs.update({
+    "distribution": attr.string(
+        default = "auto",
+        doc = ("LLVM pre-built binary distribution filename, must be one " +
+               "listed on http://releases.llvm.org/download.html for the version " +
+               "specified in the llvm_version attribute. A special value of " +
+               "'auto' tries to detect the version based on host OS."),
+    ),
+    "llvm_mirror": attr.string(
+        doc = "Mirror base for LLVM binaries if using the pre-configured URLs.",
+    ),
+    "_llvm_release_name": attr.label(
+        default = "//toolchain/tools:llvm_release_name.py",
+        allow_single_file = True,
+        doc = "Python module to output LLVM release name for the current OS.",
+    ),
+    # Following attributes are needed only when using a non-standard URL scheme.
+    # TODO: Use standard http_archive here instead of our custom rule.
+    "urls": attr.string_list_dict(
+        mandatory = False,
+        doc = ("URLs for each host OS and arch pair you want to support " +
+               "({}), ".format(", ".join(_supported_os_arch)) +
+               "if not using the pre-configured URLs."),
+    ),
+    "sha256": attr.string_dict(
+        mandatory = False,
+        doc = "sha256 of the archive for each of the above URLs",
+    ),
+    "strip_prefix": attr.string_dict(
+        mandatory = False,
+        doc = "Path prefix to strip from the extracted files.",
+    ),
+    "netrc": attr.string(
+        mandatory = False,
+        doc = "Path to the netrc file for authenticated LLVM URL downloads.",
+    ),
+    "auth_patterns": attr.string_dict(
+        mandatory = False,
+        doc = "An optional dict mapping host names to custom authorization patterns.",
+    ),
+})
+
+_llvm_config_attrs = dict(_common_attrs)
+_llvm_config_attrs.update({
+    "toolchain_roots": attr.string_dict(
+        mandatory = True,
+        # TODO: Ideally, we should be taking a filegroup label here instead of a package path, but
+        # we ultimately need to subset the files to be more selective in what we include in the
+        # sandbox for which operations, and it is not straightforward to subset a filegroup.
+        doc = ("System or package path, for each host OS and arch pair you want to support " +
+               "({}), ".format(", ".join(_supported_os_arch)) +
+               "to be used as the LLVM toolchain distributions. An empty key can be used to " +
+               "specify a fallback default for all hosts, e.g. with the llvm_toolchain_repo rule. " +
+               "If the value begins with exactly one forward slash '/', then the value is " +
+               "assumed to be a system path and the toolchain is configured to use absolute " +
+               "paths. Else, the value will be assumed to be a bazel package containing the " +
+               "filegroup targets as in BUILD.llvm_repo."),
+    ),
+    "sysroot": attr.string_dict(
+        mandatory = False,
+        doc = ("System path or fileset, for each target OS and arch pair you want to support " +
+               "({}), ".format(", ".join(_supported_os_arch)) +
+               "used to indicate the set of files that form the sysroot for the compiler. " +
+               "If the value begins with exactly one forward slash '/', then the value is " +
+               "assumed to be a system path. Else, the value will be assumed to be a label " +
+               "containing the files and the sysroot path will be taken as the path to the " +
+               "package of this label."),
+    ),
+    "cxx_builtin_include_directories": attr.string_list_dict(
+        mandatory = False,
+        doc = ("Additional builtin include directories to be added to the default system " +
+               "directories, for each target OS and arch pair you want to support " +
+               "({}); ".format(", ".join(_supported_os_arch)) +
+               "see documentation for bazel's create_cc_toolchain_config_info."),
+    ),
+    "absolute_paths": attr.bool(
+        default = False,
+        doc = "Use absolute paths in the toolchain. Avoids sandbox overhead.",
+    ),
+})
+
+llvm = repository_rule(
+    attrs = _llvm_repo_attrs,
     local = False,
-    implementation = _llvm_toolchain_impl,
+    implementation = _llvm_repo_impl,
 )
+
+toolchain = repository_rule(
+    attrs = _llvm_config_attrs,
+    local = True,
+    implementation = _llvm_config_impl,
+)
+
+def llvm_toolchain(name, **kwargs):
+    if not kwargs.get("toolchain_roots"):
+        llvm_args = {
+            k: v
+            for k, v in kwargs.items()
+            if (k not in _llvm_config_attrs.keys()) or (k in _common_attrs.keys())
+        }
+        llvm(name = name + "_llvm", **llvm_args)
+        kwargs.update(toolchain_roots = {"": "@%s_llvm//" % name})
+
+    toolchain_args = {
+        k: v
+        for k, v in kwargs.items()
+        if (k not in _llvm_repo_attrs.keys()) or (k in _common_attrs.keys())
+    }
+    toolchain(name = name, **toolchain_args)

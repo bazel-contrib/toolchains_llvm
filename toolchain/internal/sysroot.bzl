@@ -12,6 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load(
+    "//toolchain/internal:common.bzl",
+    _os_arch_pair = "os_arch_pair",
+    _pkg_path_from_label = "pkg_path_from_label",
+)
+
 def _darwin_sdk_path(rctx):
     exec_result = rctx.execute(["/usr/bin/xcrun", "--show-sdk-path", "--sdk", "macosx"])
     if exec_result.return_code:
@@ -20,18 +26,18 @@ def _darwin_sdk_path(rctx):
         print(exec_result.stderr)
     return exec_result.stdout.strip()
 
-def _default_sysroot(rctx, shortos):
-    if shortos == "darwin":
+def _default_sysroot(rctx, os):
+    if os == "darwin":
         return _darwin_sdk_path(rctx)
     else:
         return ""
 
 # Return the sysroot path and the label to the files, if sysroot is not a system path.
-def sysroot_path(rctx, shortos):
-    sysroot = rctx.attr.sysroot.get(shortos, default = "")
+def sysroot_path(rctx, os, arch):
+    sysroot = rctx.attr.sysroot.get(_os_arch_pair(os, arch))
 
     if not sysroot:
-        return (_default_sysroot(rctx, shortos), None)
+        return (_default_sysroot(rctx, os), None)
 
     # If the sysroot is an absolute path, use it as-is. Check for things that
     # start with "/" and not "//" to identify absolute paths, but also support
@@ -39,8 +45,5 @@ def sysroot_path(rctx, shortos):
     if sysroot[0] == "/" and (len(sysroot) == 1 or sysroot[1] != "/"):
         return (sysroot, None)
 
-    sysroot = Label(sysroot)
-    if sysroot.workspace_root:
-        return (sysroot.workspace_root + "/" + sysroot.package, sysroot)
-    else:
-        return (sysroot.package, sysroot)
+    sysroot_path = _pkg_path_from_label(Label(sysroot))
+    return (sysroot_path, sysroot)
