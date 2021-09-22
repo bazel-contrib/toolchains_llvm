@@ -212,7 +212,6 @@ filegroup(
 """.format(sysroot_label = sysroot_label, toolchain_root = toolchain_root)
 
 def _cc_toolchain_str(name, toolchain_config, darwin, use_absolute_paths):
-    supports_param_files = 0 if darwin else 1
     extra_files = ", \":llvm\", \":cc_wrapper\""
 
     if use_absolute_paths:
@@ -227,7 +226,6 @@ cc_toolchain(
     linker_files = ":empty",
     objcopy_files = ":empty",
     strip_files = ":empty",
-    supports_param_files = {supports_param_files},
     toolchain_config = "{toolchain_config}",
 )
 """
@@ -251,14 +249,12 @@ cc_toolchain(
     linker_files = "{name}-linker-files",
     objcopy_files = ":objcopy",
     strip_files = ":empty",
-    supports_param_files = {supports_param_files},
     toolchain_config = "{toolchain_config}",
 )
 """
 
     return template.format(
         name = name,
-        supports_param_files = supports_param_files,
         toolchain_config = toolchain_config,
         extra_files = extra_files,
     )
