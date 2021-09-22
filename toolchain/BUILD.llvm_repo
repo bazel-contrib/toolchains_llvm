@@ -35,11 +35,7 @@ filegroup(
     name = "ld",
     srcs = [
         "bin/ld.lld",
-    ] + glob([
-        # Optional symlinks needed to support rules_go and some other applications.
-        "bin/ld",  # -> /usr/bin/ld
-        "bin/ld.gold",  # -> /usr/bin/ld.gold (or empty)
-    ]),
+    ],
 )
 
 filegroup(
@@ -78,10 +74,7 @@ filegroup(
 
 filegroup(
     name = "ar",
-    srcs = ["bin/llvm-ar"] + glob([
-        # Optional symlinks needed to support rules_go and some other applications.
-        "bin/ar",  # -> /usr/bin/ar
-    ]),
+    srcs = ["bin/llvm-ar"],
 )
 
 filegroup(
