@@ -54,6 +54,10 @@ llvm_toolchain(
     sysroot = {
         "linux-x86_64": "@org_chromium_sysroot_linux_x64//:sysroot",
     },
+    # We can share the downloaded LLVM distribution with the first configuration.
+    toolchain_roots = {
+        "": "@llvm_toolchain_llvm//",
+    },
 )
 
 # Well known repos; present here only for testing.
