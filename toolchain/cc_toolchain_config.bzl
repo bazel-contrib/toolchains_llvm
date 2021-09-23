@@ -128,6 +128,7 @@ def cc_toolchain_config(
     ]
 
     # Linker flags:
+    # Keep this logic in sync with _makevars_ld_flags.
     if host_os == "darwin" and not is_xcompile:
         # lld is experimental for Mach-O, so we use the native ld64 linker.
         use_lld = False
@@ -137,7 +138,6 @@ def cc_toolchain_config(
             "dynamic_lookup",
         ])
     else:
-        # We prefer the lld linker.
         # Note that for xcompiling from darwin to linux, the native ld64 is
         # not an option because it is not a cross-linker, so lld is the
         # only option.
