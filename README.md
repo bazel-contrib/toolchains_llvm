@@ -1,6 +1,12 @@
 LLVM toolchain for Bazel [![Tests](https://github.com/grailbio/bazel-toolchain/actions/workflows/tests.yml/badge.svg)](https://github.com/grailbio/bazel-toolchain/actions/workflows/tests.yml) [![Migration](https://github.com/grailbio/bazel-toolchain/actions/workflows/migration.yml/badge.svg)](https://github.com/grailbio/bazel-toolchain/actions/workflows/migration.yml)
 =================
 
+-------
+
+Required minimum bazel version: 4.0.0
+
+-------
+
 To use this toolchain, include this section in your WORKSPACE:
 ```python
 # Change master to the git tag you want.

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-SUPPORTED_OS_ARCH = ["linux-x86_64", "linux-aarch64", "darwin-x86_64"]
+SUPPORTED_TARGETS = [("linux", "x86_64"), ("linux", "aarch64"), ("darwin", "x86_64")]
 
 def python(rctx):
     # Get path of the python interpreter.
@@ -39,6 +39,10 @@ def os(rctx):
         return "windows"
     fail("Unsupported OS: " + name)
 
+def os_bzl(os):
+    # Return the OS string as used in bazel platform constraints.
+    return {"darwin": "osx", "linux": "linux"}[os]
+
 def arch(rctx):
     exec_result = rctx.execute([
         python(rctx),
@@ -49,15 +53,20 @@ def arch(rctx):
         fail("Failed to detect machine architecture: \n%s\n%s" % (exec_result.stdout, exec_result.stderr))
     return exec_result.stdout.strip()
 
-def os_arch_pair(shortos, arch):
-    return "{}-{}".format(shortos, arch)
+def os_arch_pair(os, arch):
+    return "{}-{}".format(os, arch)
+
+_supported_os_arch = [os_arch_pair(os, arch) for (os, arch) in SUPPORTED_TARGETS]
+
+def supported_os_arch_keys():
+    return _supported_os_arch
 
 def check_os_arch_keys(keys):
     for k in keys:
-        if k and k not in SUPPORTED_OS_ARCH:
+        if k and k not in _supported_os_arch:
             fail("Unsupported {{os}}-{{arch}} key: {key}; valid keys are: {keys}".format(
                 key = k,
-                keys = ", ".join(SUPPORTED_OS_ARCH),
+                keys = ", ".join(_supported_os_arch),
             ))
 
 def canonical_dir_path(path):

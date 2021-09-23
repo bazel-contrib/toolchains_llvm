@@ -26,18 +26,20 @@ def _darwin_sdk_path(rctx):
         print(exec_result.stderr)
     return exec_result.stdout.strip()
 
-def _default_sysroot(rctx, os):
+# Default sysroot path can be used when the user has not provided an explicit
+# sysroot for the target, and when host platform is the same as target
+# platform.
+def default_sysroot_path(rctx, os):
     if os == "darwin":
         return _darwin_sdk_path(rctx)
     else:
         return ""
 
 # Return the sysroot path and the label to the files, if sysroot is not a system path.
-def sysroot_path(rctx, os, arch):
-    sysroot = rctx.attr.sysroot.get(_os_arch_pair(os, arch))
-
+def sysroot_path(sysroot_dict, os, arch):
+    sysroot = sysroot_dict.get(_os_arch_pair(os, arch))
     if not sysroot:
-        return (_default_sysroot(rctx, os), None)
+        return (None, None)
 
     # If the sysroot is an absolute path, use it as-is. Check for things that
     # start with "/" and not "//" to identify absolute paths, but also support

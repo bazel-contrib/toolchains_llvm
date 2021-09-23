@@ -15,79 +15,27 @@
 package(default_visibility = ["//visibility:public"])
 
 load("@rules_cc//cc:defs.bzl", "cc_toolchain", "cc_toolchain_suite")
+load("%{cc_toolchain_config_bzl}", "cc_toolchain_config")
 
 exports_files(["Makevars"])
 
+# Needed for old style --cpu and --compiler command line flags when using
+# crosstool_top.
+# TODO: Delete this and rely on toolchain registration mechanism alone.
 cc_toolchain_suite(
     name = "toolchain",
     toolchains = {
-        "k8|clang": ":cc-clang-k8-linux",
+        "k8|clang": ":cc-clang-x86_64-linux",
         "aarch64|clang": ":cc-clang-aarch64-linux",
-        "darwin|clang": ":cc-clang-darwin",
-        "k8": ":cc-clang-k8-linux",
+        "darwin|clang": ":cc-clang-x86_64-darwin",
+        "k8": ":cc-clang-x86_64-linux",
         "aarch64": ":cc-clang-aarch64-linux",
-        "darwin": ":cc-clang-darwin",
+        "darwin": ":cc-clang-x86_64-darwin",
     },
 )
 
-load(":cc_toolchain_config.bzl", "cc_toolchain_config")
-
-cc_toolchain_config(
-    name = "local_linux_k8",
-    cpu = "k8",
-)
-
-cc_toolchain_config(
-    name = "local_linux_aarch64",
-    cpu = "aarch64",
-)
-
-cc_toolchain_config(
-    name = "local_darwin",
-    cpu = "darwin",
-)
-
-toolchain(
-    name = "cc-toolchain-darwin",
-    exec_compatible_with = [
-        "@platforms//cpu:x86_64",
-        "@platforms//os:osx",
-    ],
-    target_compatible_with = [
-        "@platforms//cpu:x86_64",
-        "@platforms//os:osx",
-    ],
-    toolchain = ":cc-clang-darwin",
-    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
-)
-
-toolchain(
-    name = "cc-toolchain-k8-linux",
-    exec_compatible_with = [
-        "@platforms//cpu:x86_64",
-        "@platforms//os:linux",
-    ],
-    target_compatible_with = [
-        "@platforms//cpu:x86_64",
-        "@platforms//os:linux",
-    ],
-    toolchain = ":cc-clang-k8-linux",
-    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
-)
-
-toolchain(
-    name = "cc-toolchain-aarch64-linux",
-    exec_compatible_with = [
-        "@platforms//cpu:aarch64",
-        "@platforms//os:linux",
-    ],
-    target_compatible_with = [
-        "@platforms//cpu:aarch64",
-        "@platforms//os:linux",
-    ],
-    toolchain = ":cc-clang-aarch64-linux",
-    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
-)
+# Following filegroup targets are used when not using absolute paths and shared
+# between different toolchains.
 
 filegroup(
     name = "empty",
@@ -95,7 +43,7 @@ filegroup(
 )
 
 filegroup(
-    name = "cc_wrapper",
+    name = "cc-wrapper",
     srcs = ["bin/cc_wrapper.sh"],
 )
 
