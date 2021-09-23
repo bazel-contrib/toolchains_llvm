@@ -26,8 +26,9 @@ To use this toolchain, include this section in your WORKSPACE:
 ```python
 http_archive(
     name = "com_grail_bazel_toolchain",
-    strip_prefix = "bazel-toolchain-0.6",
-    urls = ["https://github.com/grailbio/bazel-toolchain/archive/0.6.tar.gz"],
+    sha256 = "e332e0f138324fbb01a4ea4fbf8a74481edfa74c80144b572f5caa5b50e56628",
+    strip_prefix = "bazel-toolchain-0.6.1",
+    urls = ["https://github.com/grailbio/bazel-toolchain/archive/0.6.1.tar.gz"],
 )
 
 load("@com_grail_bazel_toolchain//toolchain:deps.bzl", "bazel_toolchain_dependencies")
