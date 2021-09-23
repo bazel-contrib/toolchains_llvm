@@ -14,7 +14,7 @@
 
 load(
     "//toolchain/internal:common.bzl",
-    _supported_os_arch = "SUPPORTED_OS_ARCH",
+    _supported_os_arch_keys = "supported_os_arch_keys",
 )
 load(
     "//toolchain/internal:configure.bzl",
@@ -67,7 +67,7 @@ _llvm_config_attrs.update({
         # we ultimately need to subset the files to be more selective in what we include in the
         # sandbox for which operations, and it is not straightforward to subset a filegroup.
         doc = ("System or package path, for each host OS and arch pair you want to support " +
-               "({}), ".format(", ".join(_supported_os_arch)) +
+               "({}), ".format(", ".join(_supported_os_arch_keys())) +
                "to be used as the LLVM toolchain distributions. An empty key can be used to " +
                "specify a fallback default for all hosts, e.g. with the llvm_toolchain_repo rule. " +
                "If the value begins with exactly one forward slash '/', then the value is " +
@@ -78,7 +78,7 @@ _llvm_config_attrs.update({
     "sysroot": attr.string_dict(
         mandatory = False,
         doc = ("System path or fileset, for each target OS and arch pair you want to support " +
-               "({}), ".format(", ".join(_supported_os_arch)) +
+               "({}), ".format(", ".join(_supported_os_arch_keys())) +
                "used to indicate the set of files that form the sysroot for the compiler. " +
                "If the value begins with exactly one forward slash '/', then the value is " +
                "assumed to be a system path. Else, the value will be assumed to be a label " +
@@ -89,12 +89,15 @@ _llvm_config_attrs.update({
         mandatory = False,
         doc = ("Additional builtin include directories to be added to the default system " +
                "directories, for each target OS and arch pair you want to support " +
-               "({}); ".format(", ".join(_supported_os_arch)) +
+               "({}); ".format(", ".join(_supported_os_arch_keys())) +
                "see documentation for bazel's create_cc_toolchain_config_info."),
     ),
     "absolute_paths": attr.bool(
         default = False,
         doc = "Use absolute paths in the toolchain. Avoids sandbox overhead.",
+    ),
+    "_cc_toolchain_config_bzl": attr.label(
+        default = "//toolchain:cc_toolchain_config.bzl",
     ),
 })
 

@@ -19,19 +19,18 @@ load(
     _check_os_arch_keys = "check_os_arch_keys",
     _os = "os",
     _os_arch_pair = "os_arch_pair",
+    _os_bzl = "os_bzl",
     _pkg_path_from_label = "pkg_path_from_label",
+    _supported_targets = "SUPPORTED_TARGETS",
 )
 load(
     "//toolchain/internal:sysroot.bzl",
+    _default_sysroot_path = "default_sysroot_path",
     _sysroot_path = "sysroot_path",
 )
 load("@rules_cc//cc:defs.bzl", _cc_toolchain = "cc_toolchain")
 
 def _makevars_ld_flags(rctx, os):
-    if os == "darwin":
-        return ""
-
-    # lld, as of LLVM 7, is experimental for Mach-O, so we use it only on linux.
     return "-fuse-ld=lld"
 
 def _include_dirs_str(rctx, key):
@@ -48,10 +47,10 @@ def llvm_config_impl(rctx):
     os = _os(rctx)
     if os == "windows":
         rctx.file("BUILD.bazel")
-        rctx.file("toolchains.bzl", """
+        rctx.file("toolchains.bzl", """\
 def llvm_register_toolchains():
     pass
-        """)
+""")
         return
     arch = _arch(rctx)
 
@@ -96,54 +95,47 @@ def llvm_register_toolchains():
         tools_path_prefix = "llvm/"
         cc_wrapper_prefix = ""
 
-    sysroot_path, sysroot = _sysroot_path(rctx, os, arch)
-    sysroot_label = "\"%s\"" % str(sysroot) if sysroot else ""
+    default_sysroot_path = _default_sysroot_path(rctx, os)
 
-    cc_toolchains_str = (
-        _llvm_filegroups_str(sysroot_label, toolchain_root, use_absolute_paths) +
-        _cc_toolchain_str("cc-clang-k8-linux", "local_linux_k8", False, use_absolute_paths) +
-        _cc_toolchain_str("cc-clang-aarch64-linux", "local_linux_aarch64", False, use_absolute_paths) +
-        _cc_toolchain_str("cc-clang-darwin", "local_darwin", True, use_absolute_paths)
+    workspace_name = rctx.name
+    toolchain_info = struct(
+        os = os,
+        arch = arch,
+        toolchain_root = toolchain_root,
+        toolchain_path_prefix = toolchain_path_prefix,
+        tools_path_prefix = tools_path_prefix,
+        cc_wrapper_prefix = cc_wrapper_prefix,
+        additional_include_dirs_dict = rctx.attr.cxx_builtin_include_directories,
+        sysroot_dict = rctx.attr.sysroot,
+        default_sysroot_path = default_sysroot_path,
+        llvm_version = rctx.attr.llvm_version,
+    )
+    cc_toolchains_str, toolchain_labels_str = _cc_toolchains_str(
+        workspace_name,
+        toolchain_info,
+        use_absolute_paths,
     )
 
-    substitutions = {
-        "%{toolchain_workspace_name}": rctx.name,
-        "%{llvm_version}": rctx.attr.llvm_version,
-        "%{bazel_version}": native.bazel_version,
-        "%{toolchain_root}": toolchain_root,
-        "%{toolchain_path_prefix}": toolchain_path_prefix,
-        "%{tools_path_prefix}": tools_path_prefix,
-        "%{cc_wrapper_prefix}": cc_wrapper_prefix,
-        "%{sysroot_path}": sysroot_path,
-        "%{sysroot_prefix}": "%sysroot%" if sysroot_path else "",
-        "%{makevars_ld_flags}": _makevars_ld_flags(rctx, os),
-        "%{k8_additional_cxx_builtin_include_directories}": _include_dirs_str(rctx, "linux-x86_64"),
-        "%{aarch64_additional_cxx_builtin_include_directories}": _include_dirs_str(rctx, "linux-aarch64"),
-        "%{darwin_additional_cxx_builtin_include_directories}": _include_dirs_str(rctx, "darwin-x86_64"),
-        "%{cc_toolchains}": cc_toolchains_str,
-    }
-
+    # Convenience macro to register all generated toolchains.
     rctx.template(
         "toolchains.bzl",
         Label("//toolchain:toolchains.bzl.tpl"),
-        substitutions,
+        {
+            "%{toolchain_labels}": toolchain_labels_str,
+        },
     )
-    rctx.template(
-        "cc_toolchain_config.bzl",
-        Label("//toolchain:cc_toolchain_config.bzl.tpl"),
-        substitutions,
-    )
-    rctx.template(
-        "Makevars",
-        Label("//toolchain:Makevars.tpl"),
-        substitutions,
-    )
+
+    # BUILD file with all the generated toolchain definitions.
     rctx.template(
         "BUILD.bazel",
         Label("//toolchain:BUILD.toolchain.tpl"),
-        substitutions,
+        {
+            "%{cc_toolchains}": cc_toolchains_str,
+            "%{cc_toolchain_config_bzl}": str(rctx.attr._cc_toolchain_config_bzl),
+        },
     )
 
+    # CC wrapper script; see comments near the definition of cc_wrapper_prefix.
     if os == "darwin":
         cc_wrapper_tpl = "//toolchain:osx_cc_wrapper.sh.tpl"
     else:
@@ -151,110 +143,207 @@ def llvm_register_toolchains():
     rctx.template(
         "bin/cc_wrapper.sh",
         Label(cc_wrapper_tpl),
-        substitutions,
+        {
+            "%{toolchain_path_prefix}": toolchain_path_prefix,
+        },
     )
 
-def _llvm_filegroups_str(sysroot_label, toolchain_root, use_absolute_paths):
+    # Make vars useful for languages that interface with C/C++ and use the 'make' system.
+    rctx.template(
+        "Makevars",
+        Label("//toolchain:Makevars.tpl"),
+        {
+            "%{toolchain_path_prefix}": toolchain_path_prefix,
+            "%{makevars_ld_flags}": _makevars_ld_flags(rctx, os),
+        },
+    )
+
+def _cc_toolchains_str(workspace_name, toolchain_info, use_absolute_paths):
+    # Since all the toolchains rely on downloading the right LLVM toolchain for
+    # the host architecture, we don't need to explicitly specify
+    # `exec_compatible_with` attribute. If the host and execution platform are
+    # not the same, then host auto-detection based LLVM download does not work
+    # and the user has to explicitly specify the distribution of LLVM they
+    # want.
+
+    # Note that for cross-compiling, the toolchain configuration will need
+    # appropriate sysroots. A recommended approach is to configure two
+    # `llvm_toolchain` repos, one without sysroots (for easy single platform
+    # builds) and register this one, and one with sysroots and provide
+    # `--extra_toolchains` flag when cross-compiling.
+
+    cc_toolchains_str = ""
+    toolchain_names = []
+    for (target_os, target_arch) in _supported_targets:
+        suffix = "{}-{}".format(target_arch, target_os)
+        cc_toolchain_str = _cc_toolchain_str(
+            suffix,
+            target_os,
+            target_arch,
+            toolchain_info,
+            use_absolute_paths,
+        )
+        if cc_toolchain_str:
+            cc_toolchains_str = cc_toolchains_str + cc_toolchain_str
+            toolchain_name = "@{}//:cc-toolchain-{}".format(workspace_name, suffix)
+            toolchain_names.append(toolchain_name)
+
+    sep = ",\n" + " " * 8  # 2 tabs with tabstop=4.
+    toolchain_labels_str = sep.join(["\"{}\"".format(d) for d in toolchain_names])
+    return cc_toolchains_str, toolchain_labels_str
+
+def _cc_toolchain_str(
+        suffix,
+        target_os,
+        target_arch,
+        toolchain_info,
+        use_absolute_paths):
+    host_os = toolchain_info.os
+    host_arch = toolchain_info.arch
+
+    host_os_bzl = _os_bzl(host_os)
+    target_os_bzl = _os_bzl(target_os)
+
+    sysroot_path, sysroot = _sysroot_path(
+        toolchain_info.sysroot_dict,
+        target_os,
+        target_arch,
+    )
+    if not sysroot_path:
+        if host_os == target_os and host_arch == target_arch:
+            # For darwin -> darwin, we can use the macOS SDK path.
+            sysroot_path = toolchain_info.default_sysroot_path
+        else:
+            # We are trying to cross-compile without a sysroot, let's bail.
+            # TODO: Are there situations where we can continue?
+            return ""
+
+    extra_files_str = ", \":llvm\", \":cc-wrapper\""
+
+    additional_include_dirs = toolchain_info.additional_include_dirs_dict.get(_os_arch_pair(target_os, target_arch))
+    additional_include_dirs_str = "[]"
+    if additional_include_dirs:
+        additional_include_dirs_str = "[{}]".format(
+            ", ".join(["\"{}\"".format(d) for d in additional_include_dirs]),
+        )
+
+    sysroot_label_str = "\"%s\"" % str(sysroot) if sysroot else ""
+
+    template = """
+# CC toolchain for cc-clang-{suffix}.
+
+cc_toolchain_config(
+    name = "local-{suffix}",
+    host_arch = "{host_arch}",
+    host_os = "{host_os}",
+    target_arch = "{target_arch}",
+    target_os = "{target_os}",
+    toolchain_path_prefix = "{toolchain_path_prefix}",
+    tools_path_prefix = "{tools_path_prefix}",
+    cc_wrapper_prefix = "{cc_wrapper_prefix}",
+    sysroot_path = "{sysroot_path}",
+    additional_include_dirs = {additional_include_dirs_str},
+    llvm_version = "{llvm_version}",
+)
+
+toolchain(
+    name = "cc-toolchain-{suffix}",
+    exec_compatible_with = [
+        "@platforms//cpu:{host_arch}",
+        "@platforms//os:{host_os_bzl}",
+    ],
+    target_compatible_with = [
+        "@platforms//cpu:{target_arch}",
+        "@platforms//os:{target_os_bzl}",
+    ],
+    toolchain = ":cc-clang-{suffix}",
+    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
+)
+"""
+
     if use_absolute_paths:
-        return ""
-
-    return """
-# LLVM distribution filegroup definitions that are used in cc_toolchain targets.
-
-filegroup(
-    name = "ar",
-    srcs = ["{toolchain_root}:ar"],
-)
-
-filegroup(
-    name = "as",
-    srcs = ["{toolchain_root}:as"],
-)
-
-filegroup(
-    name = "sysroot_components",
-    srcs = [{sysroot_label}],
-)
-
-filegroup(
-    name = "binutils_components",
-    srcs = ["{toolchain_root}:bin"],
-)
-
-filegroup(
-    name = "compiler_components",
-    srcs = [
-        "{toolchain_root}:clang",
-        "{toolchain_root}:include",
-        ":sysroot_components",
-    ],
-)
-
-filegroup(
-    name = "linker_components",
-    srcs = [
-        "{toolchain_root}:clang",
-        "{toolchain_root}:ld",
-        "{toolchain_root}:ar",
-        "{toolchain_root}:lib",
-        ":sysroot_components",
-    ],
-)
-
-filegroup(
-    name = "all_components",
-    srcs = [
-        ":binutils_components",
-        ":compiler_components",
-        ":linker_components",
-    ],
-)
-""".format(sysroot_label = sysroot_label, toolchain_root = toolchain_root)
-
-def _cc_toolchain_str(name, toolchain_config, darwin, use_absolute_paths):
-    extra_files = ", \":llvm\", \":cc_wrapper\""
-
-    if use_absolute_paths:
-        template = """
-# CC toolchain for {name} with absolute paths.
-
+        template = template + """
 cc_toolchain(
-    name = "{name}",
+    name = "cc-clang-{suffix}",
     all_files = ":empty",
     compiler_files = ":empty",
     dwp_files = ":empty",
     linker_files = ":empty",
     objcopy_files = ":empty",
     strip_files = ":empty",
-    toolchain_config = "{toolchain_config}",
-)
+    toolchain_config = "local-{suffix}",
 """
     else:
-        template = """
-# CC toolchain for {name}.
+        template = template + """
+filegroup(
+    name = "sysroot-components-{suffix}",
+    srcs = [{sysroot_label_str}],
+)
 
-filegroup(name = "{name}-all-files", srcs = [":all_components"{extra_files}])
-filegroup(name = "{name}-archiver-files", srcs = [":ar"{extra_files}])
-filegroup(name = "{name}-assembler-files", srcs = [":as"{extra_files}])
-filegroup(name = "{name}-compiler-files", srcs = [":compiler_components"{extra_files}])
-filegroup(name = "{name}-linker-files", srcs = [":linker_components"{extra_files}])
+filegroup(
+    name = "compiler-components-{suffix}",
+    srcs = [
+        "{toolchain_root}:clang",
+        "{toolchain_root}:include",
+        ":sysroot-components-{suffix}",
+    ],
+)
+
+filegroup(
+    name = "linker-components-{suffix}",
+    srcs = [
+        "{toolchain_root}:clang",
+        "{toolchain_root}:ld",
+        "{toolchain_root}:ar",
+        "{toolchain_root}:lib",
+        ":sysroot-components-{suffix}",
+    ],
+)
+
+filegroup(
+    name = "all-components-{suffix}",
+    srcs = [
+        "{toolchain_root}:bin",
+        ":compiler-components-{suffix}",
+        ":linker-components-{suffix}",
+    ],
+)
+
+filegroup(name = "all-files-{suffix}", srcs = [":all-components-{suffix}"{extra_files_str}])
+filegroup(name = "archiver-files-{suffix}", srcs = ["{toolchain_root}:ar"{extra_files_str}])
+filegroup(name = "assembler-files-{suffix}", srcs = ["{toolchain_root}:as"{extra_files_str}])
+filegroup(name = "compiler-files-{suffix}", srcs = [":compiler-components-{suffix}"{extra_files_str}])
+filegroup(name = "linker-files-{suffix}", srcs = [":linker-components-{suffix}"{extra_files_str}])
 
 cc_toolchain(
-    name = "{name}",
-    all_files = "{name}-all-files",
-    ar_files = "{name}-archiver-files",
-    as_files = "{name}-assembler-files",
-    compiler_files = "{name}-compiler-files",
-    dwp_files = ":dwp",
-    linker_files = "{name}-linker-files",
-    objcopy_files = ":objcopy",
+    name = "cc-clang-{suffix}",
+    all_files = "all-files-{suffix}",
+    ar_files = "archiver-files-{suffix}",
+    as_files = "assembler-files-{suffix}",
+    compiler_files = "compiler-files-{suffix}",
+    dwp_files = "{toolchain_root}:dwp",
+    linker_files = "linker-files-{suffix}",
+    objcopy_files = "{toolchain_root}:objcopy",
     strip_files = ":empty",
-    toolchain_config = "{toolchain_config}",
+    toolchain_config = "local-{suffix}",
 )
 """
 
     return template.format(
-        name = name,
-        toolchain_config = toolchain_config,
-        extra_files = extra_files,
+        suffix = suffix,
+        target_os = target_os,
+        target_arch = target_arch,
+        host_os = host_os,
+        host_arch = host_arch,
+        target_os_bzl = target_os_bzl,
+        host_os_bzl = host_os_bzl,
+        toolchain_root = toolchain_info.toolchain_root,
+        toolchain_path_prefix = toolchain_info.toolchain_path_prefix,
+        tools_path_prefix = toolchain_info.tools_path_prefix,
+        cc_wrapper_prefix = toolchain_info.cc_wrapper_prefix,
+        additional_include_dirs_str = additional_include_dirs_str,
+        sysroot_label_str = sysroot_label_str,
+        sysroot_path = sysroot_path,
+        llvm_version = toolchain_info.llvm_version,
+        extra_files_str = extra_files_str,
     )

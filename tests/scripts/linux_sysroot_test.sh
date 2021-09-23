@@ -36,6 +36,6 @@ apt-get -qq -y install apt-utils curl pkg-config zip g++ zlib1g-dev unzip python
 
 # Run tests
 cd /src
-tests/scripts/run_tests.sh -t '@llvm_toolchain_linux_sysroot//:cc-toolchain-k8-linux'
+tests/scripts/run_tests.sh -t '@llvm_toolchain_with_sysroot//:cc-toolchain-x86_64-linux'
 """
 done
