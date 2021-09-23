@@ -96,63 +96,9 @@ def cc_toolchain_config(
 
     is_xcompile = not (host_os == target_os and host_arch == target_arch)
 
-    # Linker flags:
-    if host_os == "darwin" and not is_xcompile:
-        # lld is experimental for Mach-O, so we use the native ld64 linker.
-        use_lld = False
-        linker_flags = [
-            "-headerpad_max_install_names",
-            "-undefined",
-            "dynamic_lookup",
-        ]
-    else:
-        # We prefer the lld linker.
-        # Note that for xcompiling from darwin to linux, the native ld64 is
-        # not an option because it is not a cross-linker, so lld is the
-        # only option.
-        use_lld = True
-        linker_flags = [
-            "-fuse-ld=lld",
-            "-Wl,--build-id=md5",
-            "-Wl,--hash-style=gnu",
-            "-Wl,-z,relro,-z,now",
-        ]
-
-    # The linker has no way of knowing if there are C++ objects; so we
-    # always link C++ libraries.
-    if host_os == "linux" and not is_xcompile:
-        # For single-platform linux builds, we can statically link the bundled
-        # libraries.
-        linker_flags.extend([
-            "-L{}lib".format(toolchain_path_prefix),
-            "-l:libc++.a",
-            "-l:libc++abi.a",
-            "-l:libunwind.a",
-            # Compiler runtime features.
-            "-rtlib=compiler-rt",
-            # To support libunwind.
-            "-lpthread",
-            "-ldl",
-        ])
-    else:
-        # For xcompile, we expect to pick up these libraries from the sysroot.
-        # TODO: For single-platform darwin builds, we can statically link the
-        # bundled libraries but I do not know the right flags to make it
-        # happen.
-        linker_flags.extend([
-            "-lc++",
-            "-lc++abi",
-        ])
-
-    link_flags = [
-        "-lm",
-        "-no-canonical-prefixes",
-    ] + linker_flags
-
-    opt_link_flags = ["-Wl,--gc-sections"] if target_os == "linux" else []
-
     # Default compiler flags:
     compile_flags = [
+        "--target=" + target_system_name,
         # Security
         "-U_FORTIFY_SOURCE",  # https://github.com/google/sanitizers/issues/247
         "-fstack-protector",
@@ -175,7 +121,75 @@ def cc_toolchain_config(
         "-fdata-sections",
     ]
 
-    cxx_flags = ["-std=c++17", "-stdlib=libc++"]
+    link_flags = [
+        "--target=" + target_system_name,
+        "-lm",
+        "-no-canonical-prefixes",
+    ]
+
+    # Linker flags:
+    if host_os == "darwin" and not is_xcompile:
+        # lld is experimental for Mach-O, so we use the native ld64 linker.
+        use_lld = False
+        link_flags.extend([
+            "-headerpad_max_install_names",
+            "-undefined",
+            "dynamic_lookup",
+        ])
+    else:
+        # We prefer the lld linker.
+        # Note that for xcompiling from darwin to linux, the native ld64 is
+        # not an option because it is not a cross-linker, so lld is the
+        # only option.
+        use_lld = True
+        link_flags.extend([
+            "-fuse-ld=lld",
+            "-Wl,--build-id=md5",
+            "-Wl,--hash-style=gnu",
+            "-Wl,-z,relro,-z,now",
+        ])
+
+    # Flags related to C++ standard.
+    # The linker has no way of knowing if there are C++ objects; so we
+    # always link C++ libraries.
+    if not is_xcompile:
+        cxx_flags = [
+            "-std=c++17",
+            "-stdlib=libc++",
+        ]
+        if use_lld:
+            # For single-platform builds, we can statically link the bundled
+            # libraries.
+            link_flags.extend([
+                "-L{}lib".format(toolchain_path_prefix),
+                "-l:libc++.a",
+                "-l:libc++abi.a",
+                "-l:libunwind.a",
+                # Compiler runtime features.
+                "-rtlib=compiler-rt",
+                # To support libunwind.
+                "-lpthread",
+                "-ldl",
+            ])
+        else:
+            # TODO: Not sure how to achieve static linking of bundled libraries
+            # with ld64; maybe we don't really need it.
+            link_flags.extend([
+                "-lc++",
+                "-lc++abi",
+            ])
+    else:
+        cxx_flags = [
+            "-std=c++17",
+            "-stdlib=libstdc++",
+        ]
+
+        # For xcompile, we expect to pick up these libraries from the sysroot.
+        link_flags.extend([
+            "-l:libstdc++.a",
+        ])
+
+    opt_link_flags = ["-Wl,--gc-sections"] if target_os == "linux" else []
 
     # Coverage flags:
     coverage_compile_flags = ["-fprofile-instr-generate", "-fcoverage-mapping"]

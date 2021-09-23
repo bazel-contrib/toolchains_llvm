@@ -17,8 +17,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: test
-      env:
-        BAZELISK_GITHUB_TOKEN: ${{ secrets.BAZELISK_GITHUB_TOKEN }}
       run: tests/scripts/${{ matrix.script }}
   container_test:
     runs-on: ubuntu-latest
@@ -32,6 +30,10 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: test
-      env:
-        BAZELISK_GITHUB_TOKEN: ${{ secrets.BAZELISK_GITHUB_TOKEN }}
       run: tests/scripts/${{ matrix.script }}_test.sh
+  xcompile_test:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: test
+      run: tests/scripts/run_xcompile_tests.sh
