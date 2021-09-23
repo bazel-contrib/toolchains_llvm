@@ -19,21 +19,6 @@ load("%{cc_toolchain_config_bzl}", "cc_toolchain_config")
 
 exports_files(["Makevars"])
 
-# Needed for old style --cpu and --compiler command line flags when using
-# crosstool_top.
-# TODO: Delete this and rely on toolchain registration mechanism alone.
-cc_toolchain_suite(
-    name = "toolchain",
-    toolchains = {
-        "k8|clang": ":cc-clang-x86_64-linux",
-        "aarch64|clang": ":cc-clang-aarch64-linux",
-        "darwin|clang": ":cc-clang-x86_64-darwin",
-        "k8": ":cc-clang-x86_64-linux",
-        "aarch64": ":cc-clang-aarch64-linux",
-        "darwin": ":cc-clang-x86_64-darwin",
-    },
-)
-
 # Following filegroup targets are used when not using absolute paths and shared
 # between different toolchains.
 

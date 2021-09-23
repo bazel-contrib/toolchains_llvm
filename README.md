@@ -116,22 +116,19 @@ do anything special for bazel to find the toolchain. You may want to check once
 with the `--toolchain_resolution_debug` flag to see which toolchains were
 selected by bazel for your target platform.
 
-For overriding toolchains on the command line, please use the
+For specifying unregistered toolchains on the command line, please use the
 `--extra_toolchains` flag.  For example,
 `--extra_toolchains=@llvm_toolchain//:cc-toolchain-x86_64-linux`.
 
-If you would like to use the older method of selecting toolchains, you can
-continue to do so with `--crosstool_top=@llvm_toolchain//:toolchain` instead
-of the `--incompatible_enable_cc_toolchain_resolution` flag. Follow
-[bazelbuild/bazel#7260](https://github.com/bazelbuild/bazel/issues/7260) for
-any changes in this behavior.
+We no longer support the `--crosstool_top=@llvm_toolchain//:toolchain` flag,
+and instead rely on the `--incompatible_enable_cc_toolchain_resolution` flag.
 
 #### Bring Your Own LLVM
 
 The LLVM toolchain archive is downloaded and extracted as a separate repository
 with the suffix `_llvm`. Alternatively, you can also specify your own
 repositories for each host os-arch pair through the `toolchain_roots`
-attributes. Each of these repositories is typically configured through
+attribute. Each of these repositories is typically configured through
 `local_repository` or `http_archive` (with `build_file` attribute as
 `@com_grail_bazel_toolchain//toolchain:BUILD.llvm_repo`).
 
