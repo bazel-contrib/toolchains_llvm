@@ -20,9 +20,12 @@ cc_library(
     hdrs = ["stdlib.h"],
 )
 
+# We want to emulate the behavior of cc_binary but be able to run the target as
+# a test, so we use a cc_test target with linkstatic.
 cc_test(
     name = "stdlib_test",
     srcs = ["stdlib_test.cc"],
+    linkstatic = True,
     deps = [":stdlib"],
 )
 
