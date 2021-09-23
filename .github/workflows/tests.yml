@@ -25,7 +25,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        script: [archlinux, debian, fedora, suse_leap, suse_tumbleweed, ubuntu_16_04, ubuntu_20_04, linux_sysroot]
+        # This list is missing suse_tumbleweed because their latest image is
+        # not working, and they don't have versioned images.
+        # TODO: Re-enable suse_tumbleweed when their docker image starts working.
+        script: [archlinux, debian, fedora, suse_leap, ubuntu_16_04, ubuntu_20_04, linux_sysroot]
     steps:
     - uses: actions/checkout@v2
     - name: test
