@@ -41,6 +41,33 @@ def _windows(llvm_version, arch):
         llvm_version=llvm_version,
         win_arch=win_arch)
 
+def _ubuntu_osname(arch, version, major_llvm_version, llvm_version):
+    if arch == "powerpc64le":
+        if major_llvm_version > 11:
+            return "linux-gnu-ubuntu-18.04"
+        else:
+            return "linux-gnu-ubuntu-16.04"
+
+    os_name = "linux-gnu-ubuntu-16.04"
+
+    if version.startswith("20.10") and (llvm_version in ["11.0.1", "11.1.0"]):
+        os_name = "linux-gnu-ubuntu-20.10"
+    elif version.startswith("20"):
+        if major_llvm_version < 11 or llvm_version in ["11.0.1", "11.1.0"]:
+            # There is no binary packages specifically for 20.04, but those for 18.04 works on
+            # 20.04
+            os_name = "linux-gnu-ubuntu-18.04"
+        elif major_llvm_version > 11:
+            # release 11.0.0 started providing packaging for ubuntu 20.04.
+            os_name = "linux-gnu-ubuntu-20.04"
+    elif version.startswith("18"):
+        if llvm_version in ["8.0.0", "9.0.0", "10.0.0"]:
+            os_name = "linux-gnu-ubuntu-18.04"
+        else:
+            os_name = "linux-gnu-ubuntu-16.04"
+
+    return os_name
+
 def _linux(llvm_version, arch):
     release_file_path = "/etc/os-release"
     with open(release_file_path) as release_file:
@@ -76,10 +103,9 @@ def _linux(llvm_version, arch):
         os_name = "unknown-freebsd-%s" % version
     elif distname == "suse":
         os_name = _resolve_version_for_suse(major_llvm_version, _minor_llvm_version(llvm_version))
-    elif (distname == "ubuntu" and version.startswith("20.10")) and (llvm_version in ["11.0.1", "11.1.0"]):
-        os_name = "linux-gnu-ubuntu-20.10"
-    elif ((distname == "ubuntu" and (version.startswith("20.04") or version.startswith("18.04"))) or
-        ((distname in ["linuxmint", "pop"]) and (version.startswith("20") or version.startswith("19")))):
+    elif distname == "ubuntu":
+        os_name = _ubuntu_osname(arch, version, major_llvm_version, llvm_version)
+    elif ((distname in ["linuxmint", "pop"]) and (version.startswith("20") or version.startswith("19"))):
         if major_llvm_version < 11 or llvm_version in ["11.0.1", "11.1.0"]:
             # There is no binary packages specifically for 20.04, but those for 18.04 works on
             # 20.04
@@ -87,7 +113,7 @@ def _linux(llvm_version, arch):
         else:
             # release 11.0.0 started providing packaging for ubuntu 20.04.
             os_name = "linux-gnu-ubuntu-20.04"
-    elif distname in ["ubuntu", "manjaro"] or (distname == "linuxmint" and version.startswith("18")):
+    elif distname in ["manjaro"] or (distname == "linuxmint" and version.startswith("18")):
         os_name = "linux-gnu-ubuntu-16.04"
     elif distname == "debian":
         int_version = None
