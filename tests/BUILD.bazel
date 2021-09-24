@@ -30,10 +30,9 @@ cc_test(
 )
 
 cc_test(
-    name = "stdlib_dyn_test",
-    srcs = ["stdlib_test.cc"],
+    name = "pthread_link_test",
+    srcs = ["pthread_link_test.cc"],
     linkstatic = False,
-    deps = [":stdlib"],
 )
 
 

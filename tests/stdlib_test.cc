@@ -16,5 +16,4 @@
 
 int main() {
     hello();
-    test_pthread_symbols();
 }
