@@ -14,4 +14,7 @@
 
 #include "stdlib.h"
 
-int main() { hello(); }
+int main() {
+    hello();
+    test_pthread_symbols();
+}

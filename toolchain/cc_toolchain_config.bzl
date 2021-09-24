@@ -126,11 +126,7 @@ def cc_toolchain_config(
         "-lm",
         "-no-canonical-prefixes",
     ]
-    link_libs = [
-        # To support libunwind.
-        "-lpthread",
-        "-ldl",
-    ]
+    link_libs = []
 
     # Linker flags:
     # Keep this logic in sync with _makevars_ld_flags.
@@ -172,6 +168,11 @@ def cc_toolchain_config(
                 "-l:libunwind.a",
                 # Compiler runtime features.
                 "-rtlib=compiler-rt",
+            ])
+            link_libs.extend([
+                # To support libunwind.
+                "-lpthread",
+                "-ldl",
             ])
         else:
             # TODO: Not sure how to achieve static linking of bundled libraries

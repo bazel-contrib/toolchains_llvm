@@ -29,6 +29,14 @@ cc_test(
     deps = [":stdlib"],
 )
 
+cc_test(
+    name = "stdlib_dyn_test",
+    srcs = ["stdlib_test.cc"],
+    linkstatic = False,
+    deps = [":stdlib"],
+)
+
+
 sh_test(
     name = "file_dependency_test",
     srcs = ["file_dependency_test.sh"],

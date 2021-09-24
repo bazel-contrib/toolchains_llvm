@@ -13,3 +13,5 @@
 // limitations under the License.
 
 void hello();
+
+void test_pthread_symbols();
