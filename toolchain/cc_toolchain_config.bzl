@@ -126,6 +126,7 @@ def cc_toolchain_config(
         "-lm",
         "-no-canonical-prefixes",
     ]
+    link_libs = []
 
     # Linker flags:
     # Keep this logic in sync with _makevars_ld_flags.
@@ -167,6 +168,8 @@ def cc_toolchain_config(
                 "-l:libunwind.a",
                 # Compiler runtime features.
                 "-rtlib=compiler-rt",
+            ])
+            link_libs.extend([
                 # To support libunwind.
                 "-lpthread",
                 "-ldl",
@@ -274,7 +277,7 @@ def cc_toolchain_config(
         opt_compile_flags = opt_compile_flags,
         cxx_flags = cxx_flags,
         link_flags = link_flags,
-        # link_libs = _,
+        link_libs = link_libs,
         opt_link_flags = opt_link_flags,
         unfiltered_compile_flags = unfiltered_compile_flags,
         coverage_compile_flags = coverage_compile_flags,

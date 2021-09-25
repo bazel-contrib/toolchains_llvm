@@ -29,6 +29,13 @@ cc_test(
     deps = [":stdlib"],
 )
 
+cc_test(
+    name = "pthread_link_test",
+    srcs = ["pthread_link_test.cc"],
+    linkstatic = False,
+)
+
+
 sh_test(
     name = "file_dependency_test",
     srcs = ["file_dependency_test.sh"],
