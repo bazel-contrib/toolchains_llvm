@@ -278,6 +278,7 @@ cc_toolchain(
     objcopy_files = ":empty",
     strip_files = ":empty",
     toolchain_config = "local-{suffix}",
+)
 """
     else:
         template = template + """
