@@ -15,26 +15,3 @@
 #include <iostream>
 
 void hello() { std::cout << "Hello World!" << std::endl; }
-
-#if defined(__linux__) && defined(_GNU_SOURCE)
-#include <dlfcn.h>
-#include <assert.h>
-
-// Checks that pthread symbols are loadable.
-//
-// This test verifies that dynamically linked libraries which
-// rely on pthread symbols can still access them.
-// Incorrect order of linking dependencies may remove unused
-// symbols and break shared libraries that are linked later.
-void test_pthread_symbols() {
-   // Find symbol
-   void* symbol = dlsym(RTLD_NEXT, "pthread_getspecific");
-   // Check that there is no error
-   assert(dlerror() == nullptr && symbol != nullptr);
-}
-
-#else//defined(__linux__) && defined(_GNU_SOURCE)
-
-void test_pthread_symbols() { }
-
-#endif//defined(__linux__) && defined(_GNU_SOURCE)
