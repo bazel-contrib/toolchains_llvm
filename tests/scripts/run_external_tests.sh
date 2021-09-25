@@ -45,6 +45,7 @@ fi
 #   https://github.com/bazelbuild/rules_go/issues/2955).
 "${bazel}" --bazelrc=/dev/null test "${test_args[@]}" \
   //tests/foreign:pcre \
+  @git2//:all \
   @openssl//:libssl \
   $("${bazel}" query 'attr(timeout, short, tests(@com_google_absl//absl/...))') \
   $("${bazel}" query 'tests(@io_bazel_rules_go//tests/core/cgo:all) except set(@io_bazel_rules_go//tests/core/cgo:cc_libs_test @io_bazel_rules_go//tests/core/cgo:opts_test)')

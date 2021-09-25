@@ -1,0 +1,15 @@
+diff --git a/Cargo.toml b/Cargo.toml
+index 5837a47..d6ba77f 100644
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -60,10 +60,3 @@ unstable = []
+ vendored-libgit2 = ["libgit2-sys/vendored"]
+ vendored-openssl = ["openssl-sys/vendored", "libgit2-sys/vendored-openssl"]
+ zlib-ng-compat = ["libgit2-sys/zlib-ng-compat"]
+-[target."cfg(all(unix, not(target_os = \"macos\")))".dependencies.openssl-probe]
+-version = "0.1"
+-optional = true
+-
+-[target."cfg(all(unix, not(target_os = \"macos\")))".dependencies.openssl-sys]
+-version = "0.9.0"
+-optional = true

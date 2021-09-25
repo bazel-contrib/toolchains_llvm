@@ -138,3 +138,97 @@ http_archive(
         "https://ftp.pcre.org/pub/pcre/pcre-8.43.tar.gz",
     ],
 )
+
+http_archive(
+    name = "rules_rust",
+    sha256 = "531bdd470728b61ce41cf7604dc4f9a115983e455d46ac1d0c1632f613ab9fc3",
+    strip_prefix = "rules_rust-d8238877c0e552639d3e057aadd6bfcf37592408",
+    urls = [
+        # `main` branch as of 2021-08-23
+        "https://github.com/bazelbuild/rules_rust/archive/d8238877c0e552639d3e057aadd6bfcf37592408.tar.gz",
+    ],
+)
+
+load("@rules_rust//rust:repositories.bzl", "rust_repositories")
+
+rust_repositories(
+    version = "1.55.0",
+    edition = "2018",
+)
+
+# We're using `git2` as our Rust test because it links against C code
+# (`libgit2-sys`), has tests, and is non-trivial but not _massive_.
+GIT2_RS_VER = "0.13.22"
+GIT2_RS_SHA = "9c1cbbfc9a1996c6af82c2b4caf828d2c653af4fcdbb0e5674cc966eee5a4197"
+
+http_archive(
+    name = "git2",
+    sha256 = GIT2_RS_SHA,
+    canonical_id = GIT2_RS_VER,
+    url = "https://crates.io/api/v1/crates/git2/{ver}/download".format(ver = GIT2_RS_VER),
+    type = "tar.gz",
+    strip_prefix = "git2-{ver}".format(ver = GIT2_RS_VER),
+    build_file_content = """
+package(default_visibility = ["//visibility:public"])
+
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
+load("@crates//:defs.bzl", "crates_from", "dev_crates_from", "crate")
+
+DEV_CRATES = dev_crates_from("@git2//:Cargo.toml")
+DEV_CRATES.remove(crate("paste")) # This is a proc_macro crate!
+
+rust_library(
+    name = "git2",
+    srcs = glob(["src/**/*.rs"]),
+    deps = crates_from("@git2//:Cargo.toml"),
+)
+
+rust_test(
+    name = "git2-tests",
+    crate = ":git2",
+    deps = DEV_CRATES,
+    proc_macro_deps = [crate("paste")],
+)
+
+[
+    rust_test(
+        name = t[len("tests/"):][:-len(".rs")],
+        srcs = [t],
+        deps = [":git2"] + DEV_CRATES,
+        proc_macro_deps = [crate("paste")],
+    )
+    for t in glob(["tests/*.rs"])
+]
+""",
+    # We need to remove some `[target]` entries in `git2`'s `Cargo.toml` to
+    # make `crate-universe` happy.
+    #
+    # See: https://github.com/bazelbuild/rules_rust/issues/783
+    patches = ["//tests/foreign:git2-rs-cargo-toml.patch"],
+    patch_args = ["-p1"]
+)
+
+# Snippets for `crate_universe`:
+RULES_RUST_CRATE_UNIVERSE_URL_TEMPLATE = "https://github.com/bazelbuild/rules_rust/releases/download/crate_universe-13/crate_universe_resolver-{host_triple}{extension}"
+RULES_RUST_CRATE_UNIVERSE_SHA256_CHECKSUMS = {
+    "aarch64-apple-darwin": "c6017cd8a4fee0f1796a8db184e9d64445dd340b7f48a65130d7ee61b97051b4",
+    "aarch64-unknown-linux-gnu": "d0a310b03b8147e234e44f6a93e8478c260a7c330e5b35515336e7dd67150f35",
+    "x86_64-apple-darwin": "762f1c77b3cf1de8e84d7471442af1314157efd90720c7e1f2fff68556830ee2",
+    "x86_64-pc-windows-gnu": "c44bd97373d690587e74448b13267077d133f04e89bedfc9d521ae8ba55dddb9",
+    "x86_64-unknown-linux-gnu": "aebf51af6a3dd33fdac463b35b0c3f4c47ab93e052099199673289e2025e5824",
+}
+
+load("@rules_rust//crate_universe:defs.bzl", "crate_universe")
+
+crate_universe(
+    name = "crates",
+    cargo_toml_files = [
+        "@git2//:Cargo.toml",
+    ],
+    resolver_download_url_template = RULES_RUST_CRATE_UNIVERSE_URL_TEMPLATE,
+    resolver_sha256s = RULES_RUST_CRATE_UNIVERSE_SHA256_CHECKSUMS,
+)
+
+load("@crates//:defs.bzl", "pinned_rust_install")
+
+pinned_rust_install()
