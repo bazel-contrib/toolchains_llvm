@@ -14,6 +14,4 @@
 
 #include "stdlib.h"
 
-int main() {
-    hello();
-}
+int main() { hello(); }
