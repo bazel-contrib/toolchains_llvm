@@ -34,14 +34,8 @@ source "$(dirname "${BASH_SOURCE[0]}")/bazel.sh"
 set -x
 test_args=(
   --extra_toolchains="${toolchain_name}"
-  --incompatible_enable_cc_toolchain_resolution
   --copt=-v
   --linkopt=-Wl,-t
-  --symlink_prefix=/
-  --color=yes
-  --show_progress_rate_limit=30
-  --keep_going
-  --test_output=errors
 )
 if [[ "${TEST_MIGRATION:-}" ]]; then
   # We can not use bazelisk to test migration because bazelisk does not allow
@@ -49,8 +43,8 @@ if [[ "${TEST_MIGRATION:-}" ]]; then
   test_args+=("--all_incompatible_changes")
   # This flag is not quite ready -- https://github.com/bazelbuild/bazel/issues/7347
   test_args+=("--incompatible_disallow_struct_provider_syntax=false")
-  # the rules_rust repo included in the WORKSPACE is currently incompatible with 
+  # the rules_rust repo included in the WORKSPACE is currently incompatible with
   # '--incompatible_no_rule_outputs_param=true', setting this to false for now.
   test_args+=("--incompatible_no_rule_outputs_param=false")
 fi
-"${bazel}"  --bazelrc=/dev/null test "${test_args[@]}" //tests:all
+"${bazel}"  --bazelrc=/dev/null test "${common_test_args[@]}" "${test_args[@]}" //tests:all

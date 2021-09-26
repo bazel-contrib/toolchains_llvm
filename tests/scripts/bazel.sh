@@ -17,5 +17,14 @@ readonly url="https://github.com/bazelbuild/bazelisk/releases/download/${bazelis
 bazel="${TMPDIR:-/tmp}/bazelisk"
 readonly bazel
 
+readonly common_test_args=(
+  --incompatible_enable_cc_toolchain_resolution
+  --symlink_prefix=/
+  --color=yes
+  --show_progress_rate_limit=30
+  --keep_going
+  --test_output=errors
+)
+
 curl -L -sSf -o "${bazel}" "${url}"
 chmod a+x "${bazel}"

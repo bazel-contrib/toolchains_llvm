@@ -22,31 +22,12 @@ source "$(dirname "${BASH_SOURCE[0]}")/bazel.sh"
 "${bazel}" fetch @io_bazel_rules_go//tests/core/cgo:all
 "$("${bazel}" info output_base)/external/io_bazel_rules_go/tests/core/cgo/generate_imported_dylib.sh"
 
-test_args=(
-  --incompatible_enable_cc_toolchain_resolution
-  --symlink_prefix=/
-  --color=yes
-  --show_progress_rate_limit=30
-  --keep_going
-  --test_output=errors
-)
-if [[ "${TEST_MIGRATION:-}" ]]; then
-  # We can not use bazelisk to test migration because bazelisk does not allow
-  # us to selectively ignore a migration flag.
-  test_args+=("--all_incompatible_changes")
-  # This flag is not quite ready -- https://github.com/bazelbuild/bazel/issues/7347
-  test_args+=("--incompatible_disallow_struct_provider_syntax=false")
-  # the rules_rust repo included in the WORKSPACE is currently incompatible with 
-  # '--incompatible_no_rule_outputs_param=true', setting this to false for now.
-  test_args+=("--incompatible_no_rule_outputs_param=false")
-fi
-
 # We exclude the following targets:
 # - cc_libs_test from rules_go because it assumes that stdlibc++ has been dynamically linked, but we
 #   link it statically on linux.
 # - opts_test from rules_go because its include path assumes that the main repo is rules_go (see
 #   https://github.com/bazelbuild/rules_go/issues/2955).
-"${bazel}" --bazelrc=/dev/null test "${test_args[@]}" \
+"${bazel}" --bazelrc=/dev/null test "${common_test_args[@]}" \
   //tests/foreign:pcre \
   @git2//:all \
   @openssl//:libssl \
