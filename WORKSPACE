@@ -204,7 +204,7 @@ rust_test(
     # make `crate-universe` happy.
     #
     # See: https://github.com/bazelbuild/rules_rust/issues/783
-    patches = ["//tests/foreign:git2-rs-cargo-toml.patch"],
+    patches = ["//tests/rust:git2-rs-cargo-toml.patch"],
     patch_args = ["-p1"]
 )
 
