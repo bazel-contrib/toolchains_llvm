@@ -34,3 +34,8 @@ def llvm_repo_impl(rctx):
     )
 
     _download_llvm_preconfigured(rctx)
+
+    # darwin may use local 'ld' so symlink it to bin directory to help
+    # other programs locate it when called directly (e.g. rustc)
+    if os == "darwin":
+        rctx.symlink("/usr/bin/ld", "bin/ld")
