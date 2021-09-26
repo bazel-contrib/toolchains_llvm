@@ -157,7 +157,14 @@ rust_repositories(
 )
 
 # We're using `git2` as our Rust test because it links against C code
-# (`libgit2-sys`), has tests, and is non-trivial but not _massive_.
+# (`libgit2-sys`) using `cc`, has tests, and is non-trivial but not _massive_.
+#
+# Ordinarily we'd just run the `rules_rust` tests but those break when run
+# from another workspace (some of the skylib unittests expect paths within the
+# main workspace and fail when paths like `external/rules_rust/...` are
+# produced) and we want to test usage of the cc_toolchain via the `cc` crate
+# anyways (as of this writing nothing in `@rules_rust//tests` seems to test
+# this).
 GIT2_RS_VER = "0.13.22"
 GIT2_RS_SHA = "9c1cbbfc9a1996c6af82c2b4caf828d2c653af4fcdbb0e5674cc966eee5a4197"
 
