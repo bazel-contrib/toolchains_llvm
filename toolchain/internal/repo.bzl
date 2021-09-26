@@ -35,7 +35,7 @@ def llvm_repo_impl(rctx):
 
     _download_llvm_preconfigured(rctx)
 
-    # darwin may use local 'ld' so symlink it to bin directory to help
-    # other programs locate it when called directly (e.g. rustc)
-    if os == "darwin":
-        rctx.symlink("/usr/bin/ld", "bin/ld")
+    # We try to avoid patches to the downloaded repo so that it is easier for
+    # users to bring their own LLVM distribution through `http_archive`. If we
+    # do want to make changes, then we should do it through a patch file, and
+    # document it for users of toolchain_roots attribute.
