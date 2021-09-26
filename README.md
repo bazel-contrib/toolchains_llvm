@@ -178,7 +178,8 @@ the / read-only mount. Note that this will make your builds non-hermetic.
 
 #### Compatibility
 
-The toolchain is tested to work with `rules_go` and `rules_foreign_cc`.
+The toolchain is tested to work with `rules_go`, `rules_rust`, and
+`rules_foreign_cc`.
 
 #### Accessing tools
 
