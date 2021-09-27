@@ -323,6 +323,7 @@ filegroup(name = "compiler-files-{suffix}", srcs = [":compiler-components-{suffi
 filegroup(name = "dwp-files-{suffix}", srcs = ["{toolchain_root}:dwp"{extra_files_str}])
 filegroup(name = "linker-files-{suffix}", srcs = [":linker-components-{suffix}"{extra_files_str}])
 filegroup(name = "objcopy-files-{suffix}", srcs = ["{toolchain_root}:objcopy"{extra_files_str}])
+filegroup(name = "strip-files-{suffix}", srcs = ["{toolchain_root}:strip"{extra_files_str}])
 
 cc_toolchain(
     name = "cc-clang-{suffix}",
@@ -333,7 +334,7 @@ cc_toolchain(
     dwp_files = "dwp-files-{suffix}",
     linker_files = "linker-files-{suffix}",
     objcopy_files = "objcopy-files-{suffix}",
-    strip_files = ":empty",
+    strip_files = "strip-files-{suffix}",
     toolchain_config = "local-{suffix}",
 )
 """
