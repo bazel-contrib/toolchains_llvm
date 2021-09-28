@@ -54,13 +54,34 @@ build_test(
 # enable the `per_object_debug_info` feature manually because
 # `unix_cc_toolchain_config.bzl`'s` `cc_toolchain_config` does not (see #109).
 #
-# This is what `dwp_file` does using a transition.
+# Additionally, newer versions of clang (12+) require a non-zero `-g` setting to
+# actually produce the `.dwo` files in addition to the `-gsplit-dwarf` flag. The
+# feature in `unix_cc_toolchain_config.bzl` should be updated to reflect this
+# and pass in an appropriate `-g` flag.
 #
-# Unfortunately `per_object_debug_info` breaks on macOS which is why this
-# target is marked as only being compatible with Linux (see #109).
+# bazelbuild/rules_cc#115 is a patch that does this
+# (https://github.com/bazelbuild/rules_cc/pull/115).
+#
+# bazelbuild/bazel#14028 tracks this
+# (https://github.com/bazelbuild/bazel/issues/14038).
+#
+# #109 in this repo and this comment
+# (https://github.com/grailbio/bazel-toolchain/pull/108#issuecomment-928839768)
+# have some additional details.
+#
+# For now, we'll specify `-c dbg` when building `.dwo` and `.dwp` files.
+#
+# This (setting the fission flag, enabling the `per_object_debug_info` feature,
+# and setting the compilation mode to `dbg`) is what `dwp_file` does using a
+# transition.
+#
+# Unfortunately `per_object_debug_info` breaks on macOS which is why this target
+# is marked as only being compatible with Linux (see #109).
 dwp_file(
     name = "stdlib.dwp",
     src = ":stdlib_bin",
+    # NOTE: we should eventually we able to drop this; see #109.
+    override_compilation_mode = "dbg",
     target_compatible_with = [
         "@platforms//os:linux",
     ],
