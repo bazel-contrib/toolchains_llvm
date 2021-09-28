@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 cc_library(
@@ -29,12 +30,27 @@ cc_test(
     deps = [":stdlib"],
 )
 
+# We want to test a `.stripped` target to make sure `llvm-strip` can be called.
+#
+# For this we need `cc_binary`; `cc_test` does not create `.stripped` targets.
+cc_binary(
+    name = "stdlib_bin",
+    srcs = ["stdlib_test.cc"],
+    deps = [":stdlib"],
+)
+
+build_test(
+    name = "stripped_binary_test",
+    targets = [
+        ":stdlib_bin.stripped",
+    ]
+)
+
 cc_test(
     name = "pthread_link_test",
     srcs = ["pthread_link_test.cc"],
     linkstatic = False,
 )
-
 
 sh_test(
     name = "file_dependency_test",
