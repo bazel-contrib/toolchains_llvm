@@ -320,7 +320,10 @@ filegroup(name = "all-files-{suffix}", srcs = [":all-components-{suffix}"{extra_
 filegroup(name = "archiver-files-{suffix}", srcs = ["{toolchain_root}:ar"{extra_files_str}])
 filegroup(name = "assembler-files-{suffix}", srcs = ["{toolchain_root}:as"{extra_files_str}])
 filegroup(name = "compiler-files-{suffix}", srcs = [":compiler-components-{suffix}"{extra_files_str}])
+filegroup(name = "dwp-files-{suffix}", srcs = ["{toolchain_root}:dwp"{extra_files_str}])
 filegroup(name = "linker-files-{suffix}", srcs = [":linker-components-{suffix}"{extra_files_str}])
+filegroup(name = "objcopy-files-{suffix}", srcs = ["{toolchain_root}:objcopy"{extra_files_str}])
+filegroup(name = "strip-files-{suffix}", srcs = ["{toolchain_root}:strip"{extra_files_str}])
 
 cc_toolchain(
     name = "cc-clang-{suffix}",
@@ -328,10 +331,10 @@ cc_toolchain(
     ar_files = "archiver-files-{suffix}",
     as_files = "assembler-files-{suffix}",
     compiler_files = "compiler-files-{suffix}",
-    dwp_files = "{toolchain_root}:dwp",
+    dwp_files = "dwp-files-{suffix}",
     linker_files = "linker-files-{suffix}",
-    objcopy_files = "{toolchain_root}:objcopy",
-    strip_files = ":empty",
+    objcopy_files = "objcopy-files-{suffix}",
+    strip_files = "strip-files-{suffix}",
     toolchain_config = "local-{suffix}",
 )
 """

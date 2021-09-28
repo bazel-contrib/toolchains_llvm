@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test", "cc_binary")
+load(":transitions.bzl", "dwp_file")
 
 cc_library(
     name = "stdlib",
@@ -29,12 +31,74 @@ cc_test(
     deps = [":stdlib"],
 )
 
+# We want to test a `.stripped` target to make sure `llvm-strip` can be called.
+#
+# For this we need `cc_binary`; `cc_test` does not create `.stripped` targets.
+cc_binary(
+    name = "stdlib_bin",
+    srcs = ["stdlib_test.cc"],
+    deps = [":stdlib"],
+)
+
+build_test(
+    name = "stripped_binary_test",
+    targets = [
+        ":stdlib_bin.stripped",
+    ]
+)
+
+# We want to test that `llvm-dwp` (used when assembling a `.dwp` file from
+# `.dwo` files) can be called.
+#
+# `--fission=yes` enables this for all compilation modes but we also need to
+# enable the `per_object_debug_info` feature manually because
+# `unix_cc_toolchain_config.bzl`'s` `cc_toolchain_config` does not (see #109).
+#
+# Additionally, newer versions of clang (12+) require a non-zero `-g` setting to
+# actually produce the `.dwo` files in addition to the `-gsplit-dwarf` flag. The
+# feature in `unix_cc_toolchain_config.bzl` should be updated to reflect this
+# and pass in an appropriate `-g` flag.
+#
+# bazelbuild/rules_cc#115 is a patch that does this
+# (https://github.com/bazelbuild/rules_cc/pull/115).
+#
+# bazelbuild/bazel#14028 tracks this
+# (https://github.com/bazelbuild/bazel/issues/14038).
+#
+# #109 in this repo and this comment
+# (https://github.com/grailbio/bazel-toolchain/pull/108#issuecomment-928839768)
+# have some additional details.
+#
+# For now, we'll specify `-c dbg` when building `.dwo` and `.dwp` files.
+#
+# This (setting the fission flag, enabling the `per_object_debug_info` feature,
+# and setting the compilation mode to `dbg`) is what `dwp_file` does using a
+# transition.
+#
+# Unfortunately `per_object_debug_info` breaks on macOS which is why this target
+# is marked as only being compatible with Linux (see #109).
+dwp_file(
+    name = "stdlib.dwp",
+    src = ":stdlib_bin",
+    # NOTE: we should eventually we able to drop this; see #109.
+    override_compilation_mode = "dbg",
+    target_compatible_with = [
+        "@platforms//os:linux",
+    ],
+)
+
+build_test(
+    name = "dwp_test",
+    targets = [
+        ":stdlib.dwp",
+    ],
+)
+
 cc_test(
     name = "pthread_link_test",
     srcs = ["pthread_link_test.cc"],
     linkstatic = False,
 )
-
 
 sh_test(
     name = "file_dependency_test",

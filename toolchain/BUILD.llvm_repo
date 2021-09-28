@@ -119,3 +119,8 @@ filegroup(
     name = "readelf",
     srcs = ["bin/llvm-readelf"],
 )
+
+filegroup(
+    name = "strip",
+    srcs = ["bin/llvm-strip"],
+)
