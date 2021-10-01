@@ -129,7 +129,6 @@ def cc_toolchain_config(
     link_libs = []
 
     # Linker flags:
-    # Keep this logic in sync with _makevars_ld_flags.
     if host_os == "darwin" and not is_xcompile:
         # lld is experimental for Mach-O, so we use the native ld64 linker.
         use_lld = False

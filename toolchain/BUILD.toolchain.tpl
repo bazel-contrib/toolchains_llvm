@@ -17,8 +17,6 @@ package(default_visibility = ["//visibility:public"])
 load("@rules_cc//cc:defs.bzl", "cc_toolchain", "cc_toolchain_suite")
 load("%{cc_toolchain_config_bzl}", "cc_toolchain_config")
 
-exports_files(["Makevars"])
-
 # Following filegroup targets are used when not using absolute paths and shared
 # between different toolchains.
 

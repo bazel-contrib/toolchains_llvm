@@ -30,15 +30,6 @@ load(
 )
 load("@rules_cc//cc:defs.bzl", _cc_toolchain = "cc_toolchain")
 
-def _makevars_ld_flags(rctx, os):
-    # Keep this logic in sync with cc_toolchain_config.
-
-    if os == "darwin":
-        return ""
-
-    # lld, as of LLVM 7, is experimental for Mach-O, so we use it only on linux.
-    return "-fuse-ld=lld"
-
 def _include_dirs_str(rctx, key):
     dirs = rctx.attr.cxx_builtin_include_directories.get(key)
     if not dirs:
@@ -151,16 +142,6 @@ def llvm_register_toolchains():
         Label(cc_wrapper_tpl),
         {
             "%{toolchain_path_prefix}": toolchain_path_prefix,
-        },
-    )
-
-    # Make vars useful for languages that interface with C/C++ and use the 'make' system.
-    rctx.template(
-        "Makevars",
-        Label("//toolchain:Makevars.tpl"),
-        {
-            "%{toolchain_path_prefix}": toolchain_path_prefix,
-            "%{makevars_ld_flags}": _makevars_ld_flags(rctx, os),
         },
     )
 
