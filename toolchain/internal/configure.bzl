@@ -99,6 +99,7 @@ def llvm_register_toolchains():
     toolchain_info = struct(
         os = os,
         arch = arch,
+        stdlib = rctx.attr.stdlib,
         toolchain_root = toolchain_root,
         toolchain_path_prefix = toolchain_path_prefix,
         tools_path_prefix = tools_path_prefix,
@@ -142,8 +143,8 @@ def llvm_register_toolchains():
         "BUILD.bazel",
         Label("//toolchain:BUILD.toolchain.tpl"),
         {
-            "%{cc_toolchains}": cc_toolchains_str,
             "%{cc_toolchain_config_bzl}": str(rctx.attr._cc_toolchain_config_bzl),
+            "%{cc_toolchains}": cc_toolchains_str,
         },
     )
 
@@ -217,6 +218,7 @@ def _cc_toolchain_str(
         host_tools_info):
     host_os = toolchain_info.os
     host_arch = toolchain_info.arch
+    stdlib = toolchain_info.stdlib
 
     host_os_bzl = _os_bzl(host_os)
     target_os_bzl = _os_bzl(target_os)
@@ -263,6 +265,7 @@ cc_toolchain_config(
     tools_path_prefix = "{tools_path_prefix}",
     wrapper_bin_prefix = "{wrapper_bin_prefix}",
     sysroot_path = "{sysroot_path}",
+    stdlib = "{stdlib}",
     additional_include_dirs = {additional_include_dirs_str},
     llvm_version = "{llvm_version}",
     host_tools_info = {host_tools_info},
@@ -361,6 +364,7 @@ cc_toolchain(
         target_arch = target_arch,
         host_os = host_os,
         host_arch = host_arch,
+        stdlib = stdlib,
         target_os_bzl = target_os_bzl,
         host_os_bzl = host_os_bzl,
         toolchain_root = toolchain_info.toolchain_root,

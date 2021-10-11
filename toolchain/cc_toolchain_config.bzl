@@ -32,6 +32,7 @@ def cc_toolchain_config(
         host_os,
         target_arch,
         target_os,
+        stdlib,
         toolchain_path_prefix,
         tools_path_prefix,
         wrapper_bin_prefix,
@@ -65,19 +66,19 @@ def cc_toolchain_config(
             "darwin_x86_64",
             "darwin_x86_64",
         ),
-        "linux-x86_64": (
-            "clang-x86_64-linux",
-            "x86_64-unknown-linux-gnu",
-            "k8",
+        "linux-aarch64": (
+            "clang-aarch64-linux",
+            "aarch64-unknown-linux-gnu",
+            "aarch64",
             "glibc_unknown",
             "clang",
             "clang",
             "glibc_unknown",
         ),
-        "linux-aarch64": (
-            "clang-aarch64-linux",
-            "aarch64-unknown-linux-gnu",
-            "aarch64",
+        "linux-x86_64": (
+            "clang-x86_64-linux",
+            "x86_64-unknown-linux-gnu",
+            "k8",
             "glibc_unknown",
             "clang",
             "clang",
@@ -155,7 +156,7 @@ def cc_toolchain_config(
     # Flags related to C++ standard.
     # The linker has no way of knowing if there are C++ objects; so we
     # always link C++ libraries.
-    if not is_xcompile:
+    if stdlib == "builtin-libc++":
         cxx_flags = [
             "-std=c++17",
             "-stdlib=libc++",
@@ -183,7 +184,7 @@ def cc_toolchain_config(
                 "-lc++",
                 "-lc++abi",
             ])
-    else:
+    elif stdlib == "stdc++":
         cxx_flags = [
             "-std=c++17",
             "-stdlib=libstdc++",
@@ -193,6 +194,16 @@ def cc_toolchain_config(
         link_flags.extend([
             "-l:libstdc++.a",
         ])
+    elif stdlib == "none":
+        cxx_flags = [
+            "-nostdlib",
+        ]
+
+        link_flags.extend([
+            "-nostdlib",
+        ])
+    else:
+        fail("Unknown value passed for stdlib: {stdlib}")
 
     opt_link_flags = ["-Wl,--gc-sections"] if target_os == "linux" else []
 
@@ -255,16 +266,16 @@ def cc_toolchain_config(
     tool_paths = {
         "ar": ar_binary,
         "cpp": tools_path_prefix + "bin/clang-cpp",
+        "dwp": tools_path_prefix + "bin/llvm-dwp",
         "gcc": wrapper_bin_prefix + "bin/cc_wrapper.sh",
         "gcov": tools_path_prefix + "bin/llvm-profdata",
         "ld": tools_path_prefix + "bin/ld.lld" if use_lld else _host_tools.get_and_assert(host_tools_info, "ld"),
         "llvm-cov": tools_path_prefix + "bin/llvm-cov",
+        "llvm-profdata": tools_path_prefix + "bin/llvm-profdata",
         "nm": tools_path_prefix + "bin/llvm-nm",
         "objcopy": tools_path_prefix + "bin/llvm-objcopy",
         "objdump": tools_path_prefix + "bin/llvm-objdump",
         "strip": strip_binary,
-        "dwp": tools_path_prefix + "bin/llvm-dwp",
-        "llvm-profdata": tools_path_prefix + "bin/llvm-profdata",
     }
 
     # Start-end group linker support:
