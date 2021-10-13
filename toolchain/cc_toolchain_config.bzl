@@ -235,11 +235,11 @@ def cc_toolchain_config(
     llvm_major_ver = int(llvm_version[0]) if len(llvm_version) else 0
     strip_binary = (tools_path_prefix + "bin/llvm-strip") if llvm_major_ver >= 7 else "/usr/bin/strip"
 
+    # The tool names come from [here](https://github.com/bazelbuild/bazel/blob/c7e58e6ce0a78fdaff2d716b4864a5ace8917626/src/main/java/com/google/devtools/build/lib/rules/cpp/CppConfiguration.java#L76-L90):
     tool_paths = {
         # TODO: The command line formed on darwin does not work with llvm-ar.
         "ar": tools_path_prefix + "bin/llvm-ar" if host_os != "darwin" else "/usr/bin/libtool",
         "cpp": tools_path_prefix + "bin/clang-cpp",
-        "dwp": tools_path_prefix + "bin/llvm-dwp",
         "gcc": cc_wrapper_prefix + "bin/cc_wrapper.sh",
         "gcov": tools_path_prefix + "bin/llvm-profdata",
         "ld": tools_path_prefix + "bin/ld.lld" if use_lld else "/usr/bin/ld",
@@ -248,6 +248,8 @@ def cc_toolchain_config(
         "objcopy": tools_path_prefix + "bin/llvm-objcopy",
         "objdump": tools_path_prefix + "bin/llvm-objdump",
         "strip": strip_binary,
+        "dwp": tools_path_prefix + "bin/llvm-dwp",
+        "llvm-profdata": tools_path_prefix + "bin/llvm-profdata",
     }
 
     # Start-end group linker support:
