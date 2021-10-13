@@ -70,10 +70,10 @@ def _tool_supports_arg_file(rctx, tool_path):
     #
     # We just try all the options we know of until one works and if none work
     # we return "None" indicating an indeterminate result.
-    opts = [
-        "-v", "--version", "-version", "-V",
-        "-h", "--help", "-help", "-H",
-    ]
+    opts = (
+        ["-v", "--version", "-version", "-V"] +
+        ["-h", "--help", "-help", "-H"]
+    )
 
     no_op_opt = None
     for opt in opts:
@@ -96,7 +96,8 @@ def _tool_supports_arg_file(rctx, tool_path):
     return res
 
 def _get_host_tool_info(rctx, tool_path, features_to_test = [], tool_key = None):
-    if tool_key == None: tool_key = tool_path
+    if tool_key == None:
+        tool_key = tool_path
 
     if tool_path == None or not rctx.path(tool_path).exists:
         return {}
@@ -112,7 +113,7 @@ def _get_host_tool_info(rctx, tool_path, features_to_test = [], tool_key = None)
         tool_key: struct(
             path = tool_path,
             features = features,
-        )
+        ),
     }
 
 def _extract_tool_path_and_features(tool_info):
@@ -127,7 +128,8 @@ def _check_host_tool_supports(host_tool_info, tool_key, features = []):
         _, tool_features = _extract_tool_path_and_features(host_tool_info[tool_key])
 
         for f in features:
-            if not f in tool_features or not tool_features[f]: return False
+            if not f in tool_features or not tool_features[f]:
+                return False
 
         return True
     else:

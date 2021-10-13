@@ -152,8 +152,8 @@ http_archive(
 load("@rules_rust//rust:repositories.bzl", "rust_repositories")
 
 rust_repositories(
-    version = "1.55.0",
     edition = "2018",
+    version = "1.55.0",
 )
 
 # We're using `git2` as our Rust test because it links against C code
@@ -166,15 +166,11 @@ rust_repositories(
 # anyways (as of this writing nothing in `@rules_rust//tests` seems to test
 # this).
 GIT2_RS_VER = "0.13.22"
+
 GIT2_RS_SHA = "9c1cbbfc9a1996c6af82c2b4caf828d2c653af4fcdbb0e5674cc966eee5a4197"
 
 http_archive(
     name = "git2",
-    sha256 = GIT2_RS_SHA,
-    canonical_id = GIT2_RS_VER,
-    url = "https://crates.io/api/v1/crates/git2/{ver}/download".format(ver = GIT2_RS_VER),
-    type = "tar.gz",
-    strip_prefix = "git2-{ver}".format(ver = GIT2_RS_VER),
     build_file_content = """
 package(default_visibility = ["//visibility:public"])
 
@@ -207,16 +203,22 @@ rust_test(
     for t in glob(["tests/*.rs"])
 ]
 """,
+    canonical_id = GIT2_RS_VER,
+    patch_args = ["-p1"],
     # We need to remove some `[target]` entries in `git2`'s `Cargo.toml` to
     # make `crate-universe` happy.
     #
     # See: https://github.com/bazelbuild/rules_rust/issues/783
     patches = ["//tests/rust:git2-rs-cargo-toml.patch"],
-    patch_args = ["-p1"]
+    sha256 = GIT2_RS_SHA,
+    strip_prefix = "git2-{ver}".format(ver = GIT2_RS_VER),
+    type = "tar.gz",
+    url = "https://crates.io/api/v1/crates/git2/{ver}/download".format(ver = GIT2_RS_VER),
 )
 
 # Snippets for `crate_universe`:
 RULES_RUST_CRATE_UNIVERSE_URL_TEMPLATE = "https://github.com/bazelbuild/rules_rust/releases/download/crate_universe-13/crate_universe_resolver-{host_triple}{extension}"
+
 RULES_RUST_CRATE_UNIVERSE_SHA256_CHECKSUMS = {
     "aarch64-apple-darwin": "c6017cd8a4fee0f1796a8db184e9d64445dd340b7f48a65130d7ee61b97051b4",
     "aarch64-unknown-linux-gnu": "d0a310b03b8147e234e44f6a93e8478c260a7c330e5b35515336e7dd67150f35",

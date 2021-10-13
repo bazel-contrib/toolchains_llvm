@@ -17,8 +17,8 @@ load(
     _arch = "arch",
     _canonical_dir_path = "canonical_dir_path",
     _check_os_arch_keys = "check_os_arch_keys",
-    _host_tools = "host_tools",
     _host_tool_features = "host_tool_features",
+    _host_tools = "host_tools",
     _os = "os",
     _os_arch_pair = "os_arch_pair",
     _os_bzl = "os_bzl",
@@ -166,7 +166,7 @@ def llvm_register_toolchains():
         Label("//toolchain:host_libtool_wrapper.sh.tpl"),
         {
             "%{libtool_path}": "/usr/bin/libtool",
-        }
+        },
     )
 
 def _cc_toolchains_str(
