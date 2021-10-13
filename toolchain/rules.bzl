@@ -110,6 +110,7 @@ llvm = repository_rule(
 toolchain = repository_rule(
     attrs = _llvm_config_attrs,
     local = True,
+    configure = True,
     implementation = _llvm_config_impl,
 )
 
