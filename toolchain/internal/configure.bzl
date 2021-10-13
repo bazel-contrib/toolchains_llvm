@@ -17,6 +17,7 @@ load(
     _arch = "arch",
     _canonical_dir_path = "canonical_dir_path",
     _check_os_arch_keys = "check_os_arch_keys",
+    _get_host_tool_info = "get_host_tool_info",
     _os = "os",
     _os_arch_pair = "os_arch_pair",
     _os_bzl = "os_bzl",
@@ -28,7 +29,6 @@ load(
     _default_sysroot_path = "default_sysroot_path",
     _sysroot_path = "sysroot_path",
 )
-load("@rules_cc//cc:defs.bzl", _cc_toolchain = "cc_toolchain")
 
 def _include_dirs_str(rctx, key):
     dirs = rctx.attr.cxx_builtin_include_directories.get(key)
@@ -107,10 +107,17 @@ def llvm_register_toolchains():
         default_sysroot_path = default_sysroot_path,
         llvm_version = rctx.attr.llvm_version,
     )
+    host_tools_info = dict([
+        pair
+        for (tool, features) in [
+        ]
+        for pair in _get_host_tool_info(rctx, tool, features).items()
+    ])
     cc_toolchains_str, toolchain_labels_str = _cc_toolchains_str(
         workspace_name,
         toolchain_info,
         use_absolute_paths,
+        host_tools_info,
     )
 
     # Convenience macro to register all generated toolchains.
@@ -145,7 +152,11 @@ def llvm_register_toolchains():
         },
     )
 
-def _cc_toolchains_str(workspace_name, toolchain_info, use_absolute_paths):
+def _cc_toolchains_str(
+        workspace_name,
+        toolchain_info,
+        use_absolute_paths,
+        host_tools_info):
     # Since all the toolchains rely on downloading the right LLVM toolchain for
     # the host architecture, we don't need to explicitly specify
     # `exec_compatible_with` attribute. If the host and execution platform are
@@ -169,6 +180,7 @@ def _cc_toolchains_str(workspace_name, toolchain_info, use_absolute_paths):
             target_arch,
             toolchain_info,
             use_absolute_paths,
+            host_tools_info,
         )
         if cc_toolchain_str:
             cc_toolchains_str = cc_toolchains_str + cc_toolchain_str
@@ -184,7 +196,8 @@ def _cc_toolchain_str(
         target_os,
         target_arch,
         toolchain_info,
-        use_absolute_paths):
+        use_absolute_paths,
+        host_tools_info):
     host_os = toolchain_info.os
     host_arch = toolchain_info.arch
 
@@ -216,6 +229,10 @@ def _cc_toolchain_str(
 
     sysroot_label_str = "\"%s\"" % str(sysroot) if sysroot else ""
 
+    # `struct` isn't allowed in `BUILD` files so we JSON encode + decode to turn
+    # them into `dict`s.
+    host_tools_info = json.decode(json.encode(host_tools_info))
+
     template = """
 # CC toolchain for cc-clang-{suffix}.
 
@@ -231,6 +248,7 @@ cc_toolchain_config(
     sysroot_path = "{sysroot_path}",
     additional_include_dirs = {additional_include_dirs_str},
     llvm_version = "{llvm_version}",
+    host_tools_info = {host_tools_info},
 )
 
 toolchain(
@@ -337,4 +355,5 @@ cc_toolchain(
         sysroot_path = sysroot_path,
         llvm_version = toolchain_info.llvm_version,
         extra_files_str = extra_files_str,
+        host_tools_info = host_tools_info,
     )

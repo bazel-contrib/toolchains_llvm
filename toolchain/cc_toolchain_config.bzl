@@ -35,7 +35,8 @@ def cc_toolchain_config(
         cc_wrapper_prefix,
         sysroot_path,
         additional_include_dirs,
-        llvm_version):
+        llvm_version,
+        host_tools_info = {}):
     host_os_arch_key = _os_arch_pair(host_os, host_arch)
     target_os_arch_key = _os_arch_pair(target_os, target_arch)
     _check_os_arch_keys([host_os_arch_key, target_os_arch_key])

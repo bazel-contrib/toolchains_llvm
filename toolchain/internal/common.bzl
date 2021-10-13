@@ -53,6 +53,39 @@ def arch(rctx):
         fail("Failed to detect machine architecture: \n%s\n%s" % (exec_result.stdout, exec_result.stderr))
     return exec_result.stdout.strip()
 
+def get_host_tool_info(rctx, tool_path, features_to_test = [], tool_key = None):
+    if tool_key == None: tool_key = tool_path
+
+    if tool_path == None or not rctx.path(tool_path).exists:
+        return {}
+
+    f = host_tool_features
+    features = {}
+    for feature in features_to_test:
+        features[feature] = {
+        }[feature](rctx, tool_path)
+
+    return {
+        tool_key: struct(
+            path = tool_path,
+            features = features,
+        )
+    }
+
+def check_host_tool_supports(host_tool_info, tool_key, features = []):
+    if tool_key in host_tool_info:
+        tool = host_tool_info[tool_key]
+
+        for f in features:
+            if not f in tool:
+                return False
+            if not tool[f]:
+                return False
+
+        return True
+    else:
+        return False
+
 def os_arch_pair(os, arch):
     return "{}-{}".format(os, arch)
 
