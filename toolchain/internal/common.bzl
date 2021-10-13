@@ -14,6 +14,10 @@
 
 SUPPORTED_TARGETS = [("linux", "x86_64"), ("linux", "aarch64"), ("darwin", "x86_64")]
 
+host_tool_features = struct(
+    SUPPORTS_ARG_FILE = "supports_arg_file",
+)
+
 def python(rctx):
     # Get path of the python interpreter.
 
@@ -53,6 +57,44 @@ def arch(rctx):
         fail("Failed to detect machine architecture: \n%s\n%s" % (exec_result.stdout, exec_result.stderr))
     return exec_result.stdout.strip()
 
+# Tries to figure out if a tool supports newline separated arg files (i.e.
+# `@file`).
+def _tool_supports_arg_file(rctx, tool_path):
+    # We assume nothing other than that `tool_path` is an executable.
+    #
+    # First we have to find out what command line flag gets the tool to just
+    # print out some text and exit successfully.
+    #
+    # Most tools support `-v` or `--version` or (for `libtool`) `-V` but some
+    # tools don't have such an option (BSD `ranlib` and `ar`, for example).
+    #
+    # We just try all the options we know of until one works and if none work
+    # we return "None" indicating an indeterminate result.
+    opts = [
+        "-v", "--version", "-version", "-V",
+        "-h", "--help", "-help", "-H",
+    ]
+
+    no_op_opt = None
+    for opt in opts:
+        if rctx.execute([tool_path, opt], timeout = 2).return_code == 0:
+            no_op_opt = opt
+            break
+
+    if no_op_opt == None:
+        return None
+
+    # Okay! Once we have an opt that we *know* does nothing but make the
+    # executable exit successfully, we'll stick that opt in a file and try
+    # again:
+    tmp_file = "tmp-arg-file"
+    rctx.file(tmp_file, content = "{}\n".format(no_op_opt), executable = False)
+
+    res = rctx.execute([tool_path, "@{}".format(tmp_file)]).return_code == 0
+    rctx.delete(tmp_file)
+
+    return res
+
 def get_host_tool_info(rctx, tool_path, features_to_test = [], tool_key = None):
     if tool_key == None: tool_key = tool_path
 
@@ -63,6 +105,7 @@ def get_host_tool_info(rctx, tool_path, features_to_test = [], tool_key = None):
     features = {}
     for feature in features_to_test:
         features[feature] = {
+            f.SUPPORTS_ARG_FILE: _tool_supports_arg_file,
         }[feature](rctx, tool_path)
 
     return {
