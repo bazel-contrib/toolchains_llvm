@@ -153,6 +153,15 @@ def llvm_register_toolchains():
         },
     )
 
+    # libtool wrapper; used if the host libtool doesn't support arg files:
+    rctx.template(
+        "bin/host_libtool_wrapper.sh",
+        Label("//toolchain:host_libtool_wrapper.sh.tpl"),
+        {
+            "%{libtool_path}": "/usr/bin/libtool",
+        }
+    )
+
 def _cc_toolchains_str(
         workspace_name,
         toolchain_info,

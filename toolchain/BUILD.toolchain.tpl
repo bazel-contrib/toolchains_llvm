@@ -29,6 +29,7 @@ filegroup(
     name = "wrapper-files",
     srcs = [
         "bin/cc_wrapper.sh",
+        "bin/host_libtool_wrapper.sh",
     ],
 )
 
