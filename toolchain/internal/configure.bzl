@@ -69,7 +69,7 @@ def llvm_register_toolchains():
         config_repo_path = _canonical_dir_path(str(rctx.path("")))
         toolchain_path_prefix = llvm_repo_path
         tools_path_prefix = llvm_repo_path
-        cc_wrapper_prefix = config_repo_path
+        wrapper_bin_prefix = config_repo_path
     else:
         llvm_repo_path = _pkg_path_from_label(Label(toolchain_root + ":BUILD.bazel"))
         config_repo_path = "external/%s/" % rctx.name
@@ -90,7 +90,7 @@ def llvm_register_toolchains():
         rctx.symlink("../../" + llvm_repo_path, "llvm")
         toolchain_path_prefix = llvm_repo_path
         tools_path_prefix = "llvm/"
-        cc_wrapper_prefix = ""
+        wrapper_bin_prefix = ""
 
     default_sysroot_path = _default_sysroot_path(rctx, os)
 
@@ -101,7 +101,7 @@ def llvm_register_toolchains():
         toolchain_root = toolchain_root,
         toolchain_path_prefix = toolchain_path_prefix,
         tools_path_prefix = tools_path_prefix,
-        cc_wrapper_prefix = cc_wrapper_prefix,
+        wrapper_bin_prefix = wrapper_bin_prefix,
         additional_include_dirs_dict = rctx.attr.cxx_builtin_include_directories,
         sysroot_dict = rctx.attr.sysroot,
         default_sysroot_path = default_sysroot_path,
@@ -139,7 +139,7 @@ def llvm_register_toolchains():
         },
     )
 
-    # CC wrapper script; see comments near the definition of cc_wrapper_prefix.
+    # CC wrapper script; see comments near the definition of `wrapper_bin_prefix`.
     if os == "darwin":
         cc_wrapper_tpl = "//toolchain:osx_cc_wrapper.sh.tpl"
     else:
@@ -218,7 +218,7 @@ def _cc_toolchain_str(
             # TODO: Are there situations where we can continue?
             return ""
 
-    extra_files_str = ", \":llvm\", \":cc-wrapper\""
+    extra_files_str = ", \":llvm\", \":wrapper-files\""
 
     additional_include_dirs = toolchain_info.additional_include_dirs_dict.get(_os_arch_pair(target_os, target_arch))
     additional_include_dirs_str = "[]"
@@ -244,7 +244,7 @@ cc_toolchain_config(
     target_os = "{target_os}",
     toolchain_path_prefix = "{toolchain_path_prefix}",
     tools_path_prefix = "{tools_path_prefix}",
-    cc_wrapper_prefix = "{cc_wrapper_prefix}",
+    wrapper_bin_prefix = "{wrapper_bin_prefix}",
     sysroot_path = "{sysroot_path}",
     additional_include_dirs = {additional_include_dirs_str},
     llvm_version = "{llvm_version}",
@@ -349,7 +349,7 @@ cc_toolchain(
         toolchain_root = toolchain_info.toolchain_root,
         toolchain_path_prefix = toolchain_info.toolchain_path_prefix,
         tools_path_prefix = toolchain_info.tools_path_prefix,
-        cc_wrapper_prefix = toolchain_info.cc_wrapper_prefix,
+        wrapper_bin_prefix = toolchain_info.wrapper_bin_prefix,
         additional_include_dirs_str = additional_include_dirs_str,
         sysroot_label_str = sysroot_label_str,
         sysroot_path = sysroot_path,

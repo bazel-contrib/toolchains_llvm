@@ -32,7 +32,7 @@ def cc_toolchain_config(
         target_os,
         toolchain_path_prefix,
         tools_path_prefix,
-        cc_wrapper_prefix,
+        wrapper_bin_prefix,
         sysroot_path,
         additional_include_dirs,
         llvm_version,
@@ -241,7 +241,7 @@ def cc_toolchain_config(
         # TODO: The command line formed on darwin does not work with llvm-ar.
         "ar": tools_path_prefix + "bin/llvm-ar" if host_os != "darwin" else "/usr/bin/libtool",
         "cpp": tools_path_prefix + "bin/clang-cpp",
-        "gcc": cc_wrapper_prefix + "bin/cc_wrapper.sh",
+        "gcc": wrapper_bin_prefix + "bin/cc_wrapper.sh",
         "gcov": tools_path_prefix + "bin/llvm-profdata",
         "ld": tools_path_prefix + "bin/ld.lld" if use_lld else "/usr/bin/ld",
         "llvm-cov": tools_path_prefix + "bin/llvm-cov",
