@@ -95,7 +95,7 @@ def _tool_supports_arg_file(rctx, tool_path):
 
     return res
 
-def get_host_tool_info(rctx, tool_path, features_to_test = [], tool_key = None):
+def _get_host_tool_info(rctx, tool_path, features_to_test = [], tool_key = None):
     if tool_key == None: tool_key = tool_path
 
     if tool_path == None or not rctx.path(tool_path).exists:
@@ -115,19 +115,46 @@ def get_host_tool_info(rctx, tool_path, features_to_test = [], tool_key = None):
         )
     }
 
-def check_host_tool_supports(host_tool_info, tool_key, features = []):
+def _extract_tool_path_and_features(tool_info):
+    # Have to support structs or dicts:
+    tool_path = tool_info.path if type(tool_info) == "struct" else tool_info["path"]
+    tool_features = tool_info.features if type(tool_info) == "struct" else tool_info["features"]
+
+    return (tool_path, tool_features)
+
+def _check_host_tool_supports(host_tool_info, tool_key, features = []):
     if tool_key in host_tool_info:
-        tool = host_tool_info[tool_key]
+        _, tool_features = _extract_tool_path_and_features(host_tool_info[tool_key])
 
         for f in features:
-            if not f in tool:
-                return False
-            if not tool[f]:
-                return False
+            if not f in tool_features or not tool_features[f]: return False
 
         return True
     else:
         return False
+
+def _get_host_tool_and_assert_supports(host_tool_info, tool_key, features = []):
+    if tool_key in host_tool_info:
+        tool_path, tool_features = _extract_tool_path_and_features(host_tool_info[tool_key])
+
+        missing = [f for f in features if not f in tool_features or not tool_features[f]]
+
+        if missing:
+            fail("Host tool `{key}` (`{path}`) is missing these features: `{missing}`.".format(
+                key = tool_key,
+                path = tool_path,
+                missing = missing,
+            ))
+
+        return tool_path
+    else:
+        return False
+
+host_tools = struct(
+    get_tool_info = _get_host_tool_info,
+    tool_supports = _check_host_tool_supports,
+    get_and_assert = _get_host_tool_and_assert_supports,
+)
 
 def os_arch_pair(os, arch):
     return "{}-{}".format(os, arch)

@@ -17,7 +17,8 @@ load(
     _arch = "arch",
     _canonical_dir_path = "canonical_dir_path",
     _check_os_arch_keys = "check_os_arch_keys",
-    _get_host_tool_info = "get_host_tool_info",
+    _host_tools = "host_tools",
+    _host_tool_features = "host_tool_features",
     _os = "os",
     _os_arch_pair = "os_arch_pair",
     _os_bzl = "os_bzl",
@@ -109,9 +110,9 @@ def llvm_register_toolchains():
     )
     host_tools_info = dict([
         pair
-        for (tool, features) in [
+        for (key, tool_path, features) in [
         ]
-        for pair in _get_host_tool_info(rctx, tool, features).items()
+        for pair in _host_tools.get_tool_info(rctx, tool_path, features, key).items()
     ])
     cc_toolchains_str, toolchain_labels_str = _cc_toolchains_str(
         workspace_name,
