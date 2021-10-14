@@ -78,7 +78,7 @@ dwp_file = rule(
             values = ["dbg", "fastbuild", "opt"],
         ),
         "_allowlist_function_transition": attr.label(
-            default = "@bazel_tools//tools/allowlists/function_transition_allowlist"
+            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
         ),
     },
     incompatible_use_toolchain_transition = True,

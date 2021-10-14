@@ -13,7 +13,7 @@
 # limitations under the License.
 
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test", "cc_binary")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 load(":transitions.bzl", "dwp_file")
 
 cc_library(
@@ -44,7 +44,7 @@ build_test(
     name = "stripped_binary_test",
     targets = [
         ":stdlib_bin.stripped",
-    ]
+    ],
 )
 
 # We want to test that `llvm-dwp` (used when assembling a `.dwp` file from

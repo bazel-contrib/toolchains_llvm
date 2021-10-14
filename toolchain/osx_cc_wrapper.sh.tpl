@@ -90,7 +90,7 @@ elif [[ "${BASH_SOURCE[0]}" == "/"* ]]; then
   # change CWD and call $CC (this script) with its absolute path.
   # the execroot (i.e. `cmake` from `rules_foreign_cc`) and call CC . For cases like this,
   # we'll try to find `clang` relative to this script.
-  # This script is at _execroot_/external/_repo_name_/bin/cc-wrapper.sh
+  # This script is at _execroot_/external/_repo_name_/bin/cc_wrapper.sh
   execroot_path="${BASH_SOURCE[0]%/*/*/*/*}"
   clang="${execroot_path}/%{toolchain_path_prefix}bin/clang"
   "${clang}" "${@}"

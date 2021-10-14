@@ -26,8 +26,11 @@ filegroup(
 )
 
 filegroup(
-    name = "cc-wrapper",
-    srcs = ["bin/cc_wrapper.sh"],
+    name = "wrapper-files",
+    srcs = [
+        "bin/cc_wrapper.sh",
+        "bin/host_libtool_wrapper.sh",
+    ],
 )
 
 %{cc_toolchains}

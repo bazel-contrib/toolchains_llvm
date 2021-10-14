@@ -17,6 +17,8 @@ load(
     _arch = "arch",
     _canonical_dir_path = "canonical_dir_path",
     _check_os_arch_keys = "check_os_arch_keys",
+    _host_tool_features = "host_tool_features",
+    _host_tools = "host_tools",
     _os = "os",
     _os_arch_pair = "os_arch_pair",
     _os_bzl = "os_bzl",
@@ -28,7 +30,6 @@ load(
     _default_sysroot_path = "default_sysroot_path",
     _sysroot_path = "sysroot_path",
 )
-load("@rules_cc//cc:defs.bzl", _cc_toolchain = "cc_toolchain")
 
 def _include_dirs_str(rctx, key):
     dirs = rctx.attr.cxx_builtin_include_directories.get(key)
@@ -69,7 +70,7 @@ def llvm_register_toolchains():
         config_repo_path = _canonical_dir_path(str(rctx.path("")))
         toolchain_path_prefix = llvm_repo_path
         tools_path_prefix = llvm_repo_path
-        cc_wrapper_prefix = config_repo_path
+        wrapper_bin_prefix = config_repo_path
     else:
         llvm_repo_path = _pkg_path_from_label(Label(toolchain_root + ":BUILD.bazel"))
         config_repo_path = "external/%s/" % rctx.name
@@ -90,7 +91,7 @@ def llvm_register_toolchains():
         rctx.symlink("../../" + llvm_repo_path, "llvm")
         toolchain_path_prefix = llvm_repo_path
         tools_path_prefix = "llvm/"
-        cc_wrapper_prefix = ""
+        wrapper_bin_prefix = ""
 
     default_sysroot_path = _default_sysroot_path(rctx, os)
 
@@ -101,16 +102,30 @@ def llvm_register_toolchains():
         toolchain_root = toolchain_root,
         toolchain_path_prefix = toolchain_path_prefix,
         tools_path_prefix = tools_path_prefix,
-        cc_wrapper_prefix = cc_wrapper_prefix,
+        wrapper_bin_prefix = wrapper_bin_prefix,
         additional_include_dirs_dict = rctx.attr.cxx_builtin_include_directories,
         sysroot_dict = rctx.attr.sysroot,
         default_sysroot_path = default_sysroot_path,
         llvm_version = rctx.attr.llvm_version,
     )
+    host_tools_info = dict([
+        pair
+        for (key, tool_path, features) in [
+            # This is used for macOS hosts:
+            ("libtool", "/usr/bin/libtool", [_host_tool_features.SUPPORTS_ARG_FILE]),
+            # This is used with old (pre 7) LLVM versions:
+            ("strip", "/usr/bin/strip", []),
+            # This is used when lld doesn't support the target platform (i.e.
+            # Mach-O for macOS):
+            ("ld", "/usr/bin/ld", []),
+        ]
+        for pair in _host_tools.get_tool_info(rctx, tool_path, features, key).items()
+    ])
     cc_toolchains_str, toolchain_labels_str = _cc_toolchains_str(
         workspace_name,
         toolchain_info,
         use_absolute_paths,
+        host_tools_info,
     )
 
     # Convenience macro to register all generated toolchains.
@@ -132,7 +147,7 @@ def llvm_register_toolchains():
         },
     )
 
-    # CC wrapper script; see comments near the definition of cc_wrapper_prefix.
+    # CC wrapper script; see comments near the definition of `wrapper_bin_prefix`.
     if os == "darwin":
         cc_wrapper_tpl = "//toolchain:osx_cc_wrapper.sh.tpl"
     else:
@@ -145,7 +160,20 @@ def llvm_register_toolchains():
         },
     )
 
-def _cc_toolchains_str(workspace_name, toolchain_info, use_absolute_paths):
+    # libtool wrapper; used if the host libtool doesn't support arg files:
+    rctx.template(
+        "bin/host_libtool_wrapper.sh",
+        Label("//toolchain:host_libtool_wrapper.sh.tpl"),
+        {
+            "%{libtool_path}": "/usr/bin/libtool",
+        },
+    )
+
+def _cc_toolchains_str(
+        workspace_name,
+        toolchain_info,
+        use_absolute_paths,
+        host_tools_info):
     # Since all the toolchains rely on downloading the right LLVM toolchain for
     # the host architecture, we don't need to explicitly specify
     # `exec_compatible_with` attribute. If the host and execution platform are
@@ -169,6 +197,7 @@ def _cc_toolchains_str(workspace_name, toolchain_info, use_absolute_paths):
             target_arch,
             toolchain_info,
             use_absolute_paths,
+            host_tools_info,
         )
         if cc_toolchain_str:
             cc_toolchains_str = cc_toolchains_str + cc_toolchain_str
@@ -184,7 +213,8 @@ def _cc_toolchain_str(
         target_os,
         target_arch,
         toolchain_info,
-        use_absolute_paths):
+        use_absolute_paths,
+        host_tools_info):
     host_os = toolchain_info.os
     host_arch = toolchain_info.arch
 
@@ -205,7 +235,7 @@ def _cc_toolchain_str(
             # TODO: Are there situations where we can continue?
             return ""
 
-    extra_files_str = ", \":llvm\", \":cc-wrapper\""
+    extra_files_str = ", \":llvm\", \":wrapper-files\""
 
     additional_include_dirs = toolchain_info.additional_include_dirs_dict.get(_os_arch_pair(target_os, target_arch))
     additional_include_dirs_str = "[]"
@@ -215,6 +245,10 @@ def _cc_toolchain_str(
         )
 
     sysroot_label_str = "\"%s\"" % str(sysroot) if sysroot else ""
+
+    # `struct` isn't allowed in `BUILD` files so we JSON encode + decode to turn
+    # them into `dict`s.
+    host_tools_info = json.decode(json.encode(host_tools_info))
 
     template = """
 # CC toolchain for cc-clang-{suffix}.
@@ -227,10 +261,11 @@ cc_toolchain_config(
     target_os = "{target_os}",
     toolchain_path_prefix = "{toolchain_path_prefix}",
     tools_path_prefix = "{tools_path_prefix}",
-    cc_wrapper_prefix = "{cc_wrapper_prefix}",
+    wrapper_bin_prefix = "{wrapper_bin_prefix}",
     sysroot_path = "{sysroot_path}",
     additional_include_dirs = {additional_include_dirs_str},
     llvm_version = "{llvm_version}",
+    host_tools_info = {host_tools_info},
 )
 
 toolchain(
@@ -331,10 +366,11 @@ cc_toolchain(
         toolchain_root = toolchain_info.toolchain_root,
         toolchain_path_prefix = toolchain_info.toolchain_path_prefix,
         tools_path_prefix = toolchain_info.tools_path_prefix,
-        cc_wrapper_prefix = toolchain_info.cc_wrapper_prefix,
+        wrapper_bin_prefix = toolchain_info.wrapper_bin_prefix,
         additional_include_dirs_str = additional_include_dirs_str,
         sysroot_label_str = sysroot_label_str,
         sysroot_path = sysroot_path,
         llvm_version = toolchain_info.llvm_version,
         extra_files_str = extra_files_str,
+        host_tools_info = host_tools_info,
     )

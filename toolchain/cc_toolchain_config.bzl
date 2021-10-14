@@ -19,6 +19,8 @@ load(
 load(
     "//toolchain/internal:common.bzl",
     _check_os_arch_keys = "check_os_arch_keys",
+    _host_tool_features = "host_tool_features",
+    _host_tools = "host_tools",
     _os_arch_pair = "os_arch_pair",
 )
 
@@ -32,10 +34,11 @@ def cc_toolchain_config(
         target_os,
         toolchain_path_prefix,
         tools_path_prefix,
-        cc_wrapper_prefix,
+        wrapper_bin_prefix,
         sysroot_path,
         additional_include_dirs,
-        llvm_version):
+        llvm_version,
+        host_tools_info = {}):
     host_os_arch_key = _os_arch_pair(host_os, host_arch)
     target_os_arch_key = _os_arch_pair(target_os, target_arch)
     _check_os_arch_keys([host_os_arch_key, target_os_arch_key])
@@ -233,21 +236,35 @@ def cc_toolchain_config(
     # `llvm-strip` was introduced in V7 (https://reviews.llvm.org/D46407):
     llvm_version = llvm_version.split(".")
     llvm_major_ver = int(llvm_version[0]) if len(llvm_version) else 0
-    strip_binary = (tools_path_prefix + "bin/llvm-strip") if llvm_major_ver >= 7 else "/usr/bin/strip"
+    strip_binary = (tools_path_prefix + "bin/llvm-strip") if llvm_major_ver >= 7 else _host_tools.get_and_assert(host_tools_info, "strip")
 
+    # TODO: The command line formed on darwin does not work with llvm-ar.
+    ar_binary = tools_path_prefix + "bin/llvm-ar"
+    if host_os == "darwin":
+        # Bazel uses arg files for longer commands; some old macOS `libtool`
+        # versions do not support this.
+        #
+        # In these cases we want to use `libtool_wrapper.sh` which translates
+        # the arg file back into command line arguments.
+        if not _host_tools.tool_supports(host_tools_info, "libtool", features = [_host_tool_features.SUPPORTS_ARG_FILE]):
+            ar_binary = wrapper_bin_prefix + "bin/host_libtool_wrapper.sh"
+        else:
+            ar_binary = host_tools_info["libtool"]["path"]
+
+    # The tool names come from [here](https://github.com/bazelbuild/bazel/blob/c7e58e6ce0a78fdaff2d716b4864a5ace8917626/src/main/java/com/google/devtools/build/lib/rules/cpp/CppConfiguration.java#L76-L90):
     tool_paths = {
-        # TODO: The command line formed on darwin does not work with llvm-ar.
-        "ar": tools_path_prefix + "bin/llvm-ar" if host_os != "darwin" else "/usr/bin/libtool",
+        "ar": ar_binary,
         "cpp": tools_path_prefix + "bin/clang-cpp",
-        "dwp": tools_path_prefix + "bin/llvm-dwp",
-        "gcc": cc_wrapper_prefix + "bin/cc_wrapper.sh",
+        "gcc": wrapper_bin_prefix + "bin/cc_wrapper.sh",
         "gcov": tools_path_prefix + "bin/llvm-profdata",
-        "ld": tools_path_prefix + "bin/ld.lld" if use_lld else "/usr/bin/ld",
+        "ld": tools_path_prefix + "bin/ld.lld" if use_lld else _host_tools.get_and_assert(host_tools_info, "ld"),
         "llvm-cov": tools_path_prefix + "bin/llvm-cov",
         "nm": tools_path_prefix + "bin/llvm-nm",
         "objcopy": tools_path_prefix + "bin/llvm-objcopy",
         "objdump": tools_path_prefix + "bin/llvm-objdump",
         "strip": strip_binary,
+        "dwp": tools_path_prefix + "bin/llvm-dwp",
+        "llvm-profdata": tools_path_prefix + "bin/llvm-profdata",
     }
 
     # Start-end group linker support:

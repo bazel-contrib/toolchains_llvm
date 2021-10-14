@@ -28,7 +28,7 @@
 set -eu
 
 # See note in toolchain/internal/configure.bzl where we define
-# `cc_wrapper_prefix` for why this wrapper is needed.
+# `wrapper_bin_prefix` for why this wrapper is needed.
 
 # Call the C++ compiler.
 if [[ -f %{toolchain_path_prefix}bin/clang ]]; then
