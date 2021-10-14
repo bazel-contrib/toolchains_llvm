@@ -161,6 +161,17 @@ _llvm_distributions = {
     "clang+llvm-12.0.0-i386-unknown-freebsd12.tar.xz": "1e61921735fd11754df193826306f0352c99ca6013e22f40a7fc77f0b20162be",
     "clang+llvm-12.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz": "a9ff205eb0b73ca7c86afc6432eed1c2d49133bd0d49e47b15be59bbf0dd292e",
 
+    # 12.0.1
+    "clang+llvm-12.0.1-amd64-unknown-freebsd11.tar.xz": "94dfe48d9e483283edbee968056d487a850b30de25258fa48f049cca3ede5db4",
+    "clang+llvm-12.0.1-amd64-unknown-freebsd12.tar.xz": "38857da36489880b0504ae7142b74abe41cf18711a6bb25ca96792d8190e8b0e",
+    "clang+llvm-12.0.1-i386-unknown-freebsd11.tar.xz": "346e14e5a9189838704f096e65579c8e1915f95dcc291aa7f20626ccf9767e04",
+    "clang+llvm-12.0.1-i386-unknown-freebsd12.tar.xz": "1f3b5e99e82165bf3442120ee3cb2c95ca96129cf45c85a52ec8973f8904529d",
+    "clang+llvm-12.0.1-armv7a-linux-gnueabihf.tar.xz": "1ec685b5026f9cc5e7316a5ff2dffd8ff54ad9941e642df19062cc1359842c86",
+    "clang+llvm-12.0.1-aarch64-linux-gnu.tar.xz": "3d4ad804b7c85007686548cbc917ab067bf17eaedeab43d9eb83d3a683d8e9d4",
+    "clang+llvm-12.0.1-powerpc64le-linux-rhel-7.9.tar.xz": "9849fa17fb7eb666744f1e2ce8dcb5d28753c4c482cc6f5e3d2b5ad2108dc2de",
+    "clang+llvm-12.0.1-powerpc64le-linux-ubuntu-18.04.tar.xz": "271b9605b74d904d3cc05dd6a61e927fd5a46d5f6b7541cdc67186eb02b22e4c",
+    "clang+llvm-12.0.1-x86_64-linux-gnu-ubuntu-16.04.tar.xz": "6b3cc55d3ef413be79785c4dc02828ab3bd6b887872b143e3091692fc6acefe7",
+
     # 13.0.0
     "clang+llvm-13.0.0-amd64-unknown-freebsd12.tar.xz": "e579747a36ff78aa0a5533fe43bc1ed1f8ed449c9bfec43c358d953ffbbdcf76",
     "clang+llvm-13.0.0-amd64-unknown-freebsd13.tar.xz": "c4f15e156afaa530eb47ba13c46800275102af535ed48e395aed4c1decc1eaa1",
@@ -189,6 +200,7 @@ _llvm_distributions_base_url = {
     "11.0.1": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
     "11.1.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
     "12.0.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
+    "12.0.1": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
     "13.0.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
 }
 
