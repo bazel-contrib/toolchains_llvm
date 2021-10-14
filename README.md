@@ -23,12 +23,18 @@ implementation, please let me know and I can redirect people there.
 Minimum bazel version: **4.0.0**
 
 To use this toolchain, include this section in your WORKSPACE:
-```python
+```starlark
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+BAZEL_TOOLCHAIN_TAG = "0.6.3"
+BAZEL_TOOLCHAIN_SHA = "da607faed78c4cb5a5637ef74a36fdd2286f85ca5192222c4664efec2d529bb8"
+
 http_archive(
     name = "com_grail_bazel_toolchain",
-    sha256 = "4dd40bfc94817d8e84e8c9104cb3850a357c94147d26b47e0f6a5a30f8bb6590",
-    strip_prefix = "bazel-toolchain-0.6.2",
-    urls = ["https://github.com/grailbio/bazel-toolchain/archive/0.6.2.tar.gz"],
+    sha256 = BAZEL_TOOLCHAIN_SHA,
+    strip_prefix = "bazel-toolchain-{tag}".format(tag = BAZEL_TOOLCHAIN_TAG),
+    canonical_id = BAZEL_TOOLCHAIN_TAG,
+    url = "https://github.com/grailbio/bazel-toolchain/archive/{tag}.tar.gz".format(tag = BAZEL_TOOLCHAIN_TAG),
 )
 
 load("@com_grail_bazel_toolchain//toolchain:deps.bzl", "bazel_toolchain_dependencies")
