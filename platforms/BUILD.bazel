@@ -25,7 +25,7 @@ platform(
 platform(
     name = "linux-aarch64",
     constraint_values = [
-        "@platforms//os:osx",
+        "@platforms//os:linux",
         "@platforms//cpu:aarch64",
     ],
 )
