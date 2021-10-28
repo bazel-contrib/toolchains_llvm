@@ -52,6 +52,18 @@ _llvm_repo_attrs.update({
               "sources (see: " +
               "https://github.com/grailbio/bazel-toolchain/toolchain/internal/llvm_distributions.bzl).",
     ),
+    "alternative_llvm_sources": attr.string_list(
+        doc = "Patterns for alternative LLVM release sources. Unlike URLs specified for `llvm_mirror` " +
+              "these do not have to follow the same structure as the official LLVM release sources." +
+              "\n\n" +
+              "Patterns may include `{llvm_version}` (which will be substituted for the full LLVM " +
+              "version, i.e. 13.0.0) and `{basename}` (which will be replaced with the filename " +
+              "used by the official LLVM release sources for a particular distribution; i.e. " +
+              "`llvm-13.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz`)." +
+              "\n\n" +
+              "As with `llvm_mirror`, these sources will take precedence over the official LLVM " +
+              "release sources.",
+    ),
     "netrc": attr.string(
         mandatory = False,
         doc = "Path to the netrc file for authenticated LLVM URL downloads.",
