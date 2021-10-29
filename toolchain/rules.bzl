@@ -42,7 +42,15 @@ _llvm_repo_attrs.update({
                "'auto' tries to detect the version based on host OS."),
     ),
     "llvm_mirror": attr.string(
-        doc = "Mirror base for LLVM binaries if using the pre-configured URLs.",
+        doc = "Base URL for an LLVM release mirror." +
+              "\n\n" +
+              "This mirror must follow the same structure as the official LLVM release " +
+              "sources (`releases.llvm.org` for versions <= 9, `llvm/llvm-project` GitHub " +
+              "releases for newer versions)." +
+              "\n\n" +
+              "If provided, this mirror will be given precedence over the official LLVM release " +
+              "sources (see: " +
+              "https://github.com/grailbio/bazel-toolchain/toolchain/internal/llvm_distributions.bzl).",
     ),
     "netrc": attr.string(
         mandatory = False,
