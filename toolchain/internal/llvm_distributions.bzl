@@ -247,6 +247,9 @@ def download_llvm_preconfigured(rctx):
     url_suffix = "{0}/{1}".format(llvm_version, basename).replace("+", "%2B")
     if rctx.attr.llvm_mirror:
         urls.append("{0}/{1}".format(rctx.attr.llvm_mirror, url_suffix))
+    if rctx.attr.alternative_llvm_sources:
+        for pattern in rctx.attr.alternative_llvm_sources:
+            urls.append(pattern.format(llvm_version = llvm_version, basename = basename))
     urls.append("{0}{1}".format(_llvm_distributions_base_url[llvm_version], url_suffix))
 
     rctx.download_and_extract(
