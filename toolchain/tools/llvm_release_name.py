@@ -140,11 +140,7 @@ def _linux(llvm_version, arch):
             os_name = "linux-gnu-ubuntu-18.04"
         else:
             os_name = "linux-gnu-ubuntu-20.04"
-    elif distname == "arch" and major_llvm_version >= 11:
-        os_name = "linux-gnu-ubuntu-20.04"
-    elif distname == "arch" and major_llvm_version >= 10:
-        os_name = "linux-gnu-ubuntu-18.04"
-    elif distname == "arch" and major_llvm_version >= 7:
+    elif distname == "arch":
         os_name = "linux-gnu-ubuntu-16.04"
     elif distname == "amzn":
         # Based on the ID_LIKE field, sles seems like the closest available
