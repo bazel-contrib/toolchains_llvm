@@ -27,8 +27,14 @@ for image in "${images[@]}"; do
   docker run --rm --entrypoint=/bin/bash --volume="${git_root}:/src:ro" "${image}" -c """
 set -exuo pipefail
 
+# add archlinuxcn repo for ncurses5-compat-libs (can be installed from AUR, but this is easier & faster)
+cat >> /etc/pacman.conf <<'EOF'
+[archlinuxcn]
+Server = https://repo.archlinuxcn.org/$arch
+EOF
+
 # Install dependencies
-pacman -Syu --noconfirm --quiet python
+pacman -Syu --noconfirm --quiet python ncurses5-compat-libs
 
 # Run tests
 cd /src
