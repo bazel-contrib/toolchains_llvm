@@ -34,7 +34,8 @@ Server = https://repo.archlinuxcn.org/\$arch
 EOF
 
 # Install dependencies
-pacman -Syu --noconfirm --quiet archlinuxcn-keyring python ncurses5-compat-libs
+pacman -Syu --noconfirm --quiet archlinuxcn-keyring
+pacman -S --noconfirm --quiet python ncurses5-compat-libs
 
 # Run tests
 cd /src
