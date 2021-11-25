@@ -25,6 +25,9 @@ def _major_llvm_version(llvm_version):
 def _minor_llvm_version(llvm_version):
     return int(llvm_version.split(".")[1])
 
+def _patch_llvm_version(llvm_version):
+    return int(llvm_version.split(".")[2])
+
 def _darwin(llvm_version, arch):
     major_llvm_version = _major_llvm_version(llvm_version)
     suffix = "darwin-apple" if major_llvm_version == 9 else "apple-darwin"
@@ -50,20 +53,29 @@ def _ubuntu_osname(arch, version, major_llvm_version, llvm_version):
 
     os_name = "linux-gnu-ubuntu-16.04"
 
-    if version.startswith("20.10") and (llvm_version in ["11.0.1", "11.1.0"]):
-        os_name = "linux-gnu-ubuntu-20.10"
-    elif version.startswith("20"):
-        if major_llvm_version < 11 or llvm_version in ["11.0.1", "11.1.0"]:
-            # There is no binary packages specifically for 20.04, but those for 18.04 works on
-            # 20.04
-            os_name = "linux-gnu-ubuntu-18.04"
-        elif major_llvm_version > 11:
-            # release 11.0.0 started providing packaging for ubuntu 20.04.
+    is_llvm_major_release = (_minor_llvm_version(llvm_version) == 0) and (_patch_llvm_version(llvm_version) == 0)
+    major_ubuntu_version = int(version.split(".")[0])
+    if major_ubuntu_version >= 20:
+        if version.startswith("20.10") and (llvm_version in ["11.0.1", "11.1.0"]):
+            os_name = "linux-gnu-ubuntu-20.10"
+        elif is_llvm_major_release and (major_llvm_version >= 11):
             os_name = "linux-gnu-ubuntu-20.04"
-    elif version.startswith("18"):
-        if llvm_version in ["8.0.0", "9.0.0", "10.0.0"]:
+        elif is_llvm_major_release and (major_llvm_version >= 8):
             os_name = "linux-gnu-ubuntu-18.04"
         else:
+            # There is no binary packages specifically for 20.04, but those for 16.04 works on
+            # 20.04
+            os_name = "linux-gnu-ubuntu-16.04"
+    elif major_ubuntu_version >= 18:
+        if is_llvm_major_release and (major_llvm_version >= 11):
+            # There is no binary packages specifically for 18.04, but those for 16.04 works on
+            # 18.04
+            os_name = "linux-gnu-ubuntu-16.04"
+        elif is_llvm_major_release and (major_llvm_version >= 8):
+            os_name = "linux-gnu-ubuntu-18.04"
+        else:
+            # There is no binary packages specifically for 18.04, but those for 16.04 works on
+            # 18.04
             os_name = "linux-gnu-ubuntu-16.04"
 
     return os_name
