@@ -56,7 +56,7 @@ def _ubuntu_osname(arch, version, major_llvm_version, llvm_version):
     is_llvm_major_release = (_minor_llvm_version(llvm_version) == 0) and (_patch_llvm_version(llvm_version) == 0)
     major_ubuntu_version = int(version.split(".")[0])
     if major_ubuntu_version >= 20:
-        if version.startswith("20.10") and (llvm_version in ["11.0.1", "11.1.0"]):
+        if (not version.startswith("20.04")) and (llvm_version in ["11.0.1", "11.1.0"]):
             os_name = "linux-gnu-ubuntu-20.10"
         elif is_llvm_major_release and (major_llvm_version >= 11):
             os_name = "linux-gnu-ubuntu-20.04"
