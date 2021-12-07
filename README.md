@@ -146,7 +146,7 @@ a path on the user's system, or a bazel `filegroup` like label. One way to
 create a sysroot is to use `docker export` to get a single archive of the
 entire filesystem for the image you want. Another way is to use the build
 scripts provided by the [Chromium
-project](https://chromium.googlesource.com/chromium/src/+/HEAD/docs/linux_sysroot.md).
+project](https://chromium.googlesource.com/chromium/src/+/HEAD/docs/linux/sysroot.md).
 
 #### Cross-compilation
 
