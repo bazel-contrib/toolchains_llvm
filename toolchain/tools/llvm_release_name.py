@@ -17,7 +17,7 @@
 import platform
 import sys
 
-_known_distros = ["freebsd", "suse", "ubuntu", "arch", "manjaro", "debian", "fedora", "centos", "amzn", "raspbian"]
+_known_distros = ["freebsd", "suse", "ubuntu", "arch", "manjaro", "debian", "fedora", "centos", "amzn", "raspbian", "pop"]
 
 def _major_llvm_version(llvm_version):
     return int(llvm_version.split(".")[0])
@@ -105,7 +105,7 @@ def _linux(llvm_version, arch):
         os_name = _resolve_version_for_suse(major_llvm_version, _minor_llvm_version(llvm_version))
     elif distname == "ubuntu":
         os_name = _ubuntu_osname(arch, version, major_llvm_version, llvm_version)
-    elif ((distname in ["linuxmint", "pop"]) and (version.startswith("20") or version.startswith("19"))):
+    elif ((distname in ["linuxmint", "pop"]) and (version.startswith("21") or version.startswith("20") or version.startswith("19"))):
         if major_llvm_version < 11 or llvm_version in ["11.0.1", "11.1.0"]:
             # There is no binary packages specifically for 20.04, but those for 18.04 works on
             # 20.04
