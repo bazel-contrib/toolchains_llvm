@@ -107,6 +107,7 @@ def llvm_register_toolchains():
         sysroot_dict = rctx.attr.sysroot,
         default_sysroot_path = default_sysroot_path,
         llvm_version = rctx.attr.llvm_version,
+        cxx_standard = rctx.attr.cxx_standard,
     )
     host_tools_info = dict([
         pair
@@ -265,6 +266,7 @@ cc_toolchain_config(
     sysroot_path = "{sysroot_path}",
     additional_include_dirs = {additional_include_dirs_str},
     llvm_version = "{llvm_version}",
+    cxx_standard = "{cxx_standard}",
     host_tools_info = {host_tools_info},
 )
 
@@ -373,4 +375,5 @@ cc_toolchain(
         llvm_version = toolchain_info.llvm_version,
         extra_files_str = extra_files_str,
         host_tools_info = host_tools_info,
+        cxx_standard = toolchain_info.cxx_standard,
     )

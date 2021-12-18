@@ -38,6 +38,7 @@ def cc_toolchain_config(
         sysroot_path,
         additional_include_dirs,
         llvm_version,
+        cxx_standard,
         host_tools_info = {}):
     host_os_arch_key = _os_arch_pair(host_os, host_arch)
     target_os_arch_key = _os_arch_pair(target_os, target_arch)
@@ -157,7 +158,7 @@ def cc_toolchain_config(
     # always link C++ libraries.
     if not is_xcompile:
         cxx_flags = [
-            "-std=c++17",
+            "-std=" + cxx_standard,
             "-stdlib=libc++",
         ]
         if use_lld:
@@ -185,7 +186,7 @@ def cc_toolchain_config(
             ])
     else:
         cxx_flags = [
-            "-std=c++17",
+            "-std=" + cxx_standard,
             "-stdlib=libstdc++",
         ]
 
