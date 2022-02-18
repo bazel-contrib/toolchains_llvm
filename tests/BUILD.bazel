@@ -31,6 +31,13 @@ cc_test(
     deps = [":stdlib"],
 )
 
+cc_test(
+    name = "omp_test",
+    srcs = ["omp_test.c"],
+    copts = ["-fopenmp"],
+    linkopts = ["-fopenmp"],
+)
+
 # We want to test a `.stripped` target to make sure `llvm-strip` can be called.
 #
 # For this we need `cc_binary`; `cc_test` does not create `.stripped` targets.
