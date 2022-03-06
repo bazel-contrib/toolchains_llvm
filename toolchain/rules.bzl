@@ -105,6 +105,20 @@ _llvm_config_attrs.update({
                "containing the files and the sysroot path will be taken as the path to the " +
                "package of this label."),
     ),
+    "cxx_standard": attr.string(
+        mandatory = False,
+        doc = "C++ standard, passed as `-std` flag to compiler.",
+        default = "c++17",
+    ),
+    "stdlib": attr.string_dict(
+        mandatory = False,
+        doc = "stdlib implementation, for each target OS and arch pair you want to support " +
+              "({}), ".format(", ".join(_supported_os_arch_keys())) +
+              "linked to the compiled binaries. Possible values are `builtin-libc++` (default) " +
+              "which uses the libc++ shipped with clang, `libc++` which uses libc++ available on " +
+              "the host or sysroot, `libstdc++` which uses libstdc++ available on the host or " +
+              "sysroot, and `none` which uses `-nostdlib` with the compiler.",
+    ),
     "cxx_builtin_include_directories": attr.string_list_dict(
         mandatory = False,
         doc = ("Additional builtin include directories to be added to the default system " +

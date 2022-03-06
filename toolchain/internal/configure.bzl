@@ -103,10 +103,12 @@ def llvm_register_toolchains():
         toolchain_path_prefix = toolchain_path_prefix,
         tools_path_prefix = tools_path_prefix,
         wrapper_bin_prefix = wrapper_bin_prefix,
+        stdlib_dict = rctx.attr.stdlib,
         additional_include_dirs_dict = rctx.attr.cxx_builtin_include_directories,
         sysroot_dict = rctx.attr.sysroot,
         default_sysroot_path = default_sysroot_path,
         llvm_version = rctx.attr.llvm_version,
+        cxx_standard = rctx.attr.cxx_standard,
     )
     host_tools_info = dict([
         pair
@@ -142,8 +144,8 @@ def llvm_register_toolchains():
         "BUILD.bazel",
         Label("//toolchain:BUILD.toolchain.tpl"),
         {
-            "%{cc_toolchains}": cc_toolchains_str,
             "%{cc_toolchain_config_bzl}": str(rctx.attr._cc_toolchain_config_bzl),
+            "%{cc_toolchains}": cc_toolchains_str,
         },
     )
 
@@ -237,6 +239,8 @@ def _cc_toolchain_str(
 
     extra_files_str = ", \":llvm\", \":wrapper-files\""
 
+    stdlib = toolchain_info.stdlib_dict.get(_os_arch_pair(target_os, target_arch), "builtin-libc++")
+
     additional_include_dirs = toolchain_info.additional_include_dirs_dict.get(_os_arch_pair(target_os, target_arch))
     additional_include_dirs_str = "[]"
     if additional_include_dirs:
@@ -263,8 +267,10 @@ cc_toolchain_config(
     tools_path_prefix = "{tools_path_prefix}",
     wrapper_bin_prefix = "{wrapper_bin_prefix}",
     sysroot_path = "{sysroot_path}",
+    stdlib = "{stdlib}",
     additional_include_dirs = {additional_include_dirs_str},
     llvm_version = "{llvm_version}",
+    cxx_standard = "{cxx_standard}",
     host_tools_info = {host_tools_info},
 )
 
@@ -361,6 +367,7 @@ cc_toolchain(
         target_arch = target_arch,
         host_os = host_os,
         host_arch = host_arch,
+        stdlib = stdlib,
         target_os_bzl = target_os_bzl,
         host_os_bzl = host_os_bzl,
         toolchain_root = toolchain_info.toolchain_root,
@@ -373,4 +380,5 @@ cc_toolchain(
         llvm_version = toolchain_info.llvm_version,
         extra_files_str = extra_files_str,
         host_tools_info = host_tools_info,
+        cxx_standard = toolchain_info.cxx_standard,
     )
