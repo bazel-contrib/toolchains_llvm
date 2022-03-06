@@ -130,7 +130,19 @@ def cc_toolchain_config(
         "-lm",
         "-no-canonical-prefixes",
     ]
-    link_libs = []
+
+    link_libs = [
+        # Historically, libpthread and libdl have been linked to support
+        # libunwind, when using builtin-libc++, but to temporarily keep
+        # parity with other stdlib implementations, let's include them
+        # for everything.
+        # TODO: Revert https://github.com/grailbio/bazel-toolchain/pull/103
+        # and document that people using libpthread should link it explicitly.
+        # The default bazel local toolchain on linux also does not include
+        # libpthread.
+        "-lpthread",
+        "-ldl",
+    ]
 
     # Linker flags:
     if host_os == "darwin" and not is_xcompile:
@@ -172,11 +184,6 @@ def cc_toolchain_config(
                 # Compiler runtime features.
                 "-rtlib=compiler-rt",
             ])
-            link_libs.extend([
-                # To support libunwind.
-                "-lpthread",
-                "-ldl",
-            ])
         else:
             # TODO: Not sure how to achieve static linking of bundled libraries
             # with ld64; maybe we don't really need it.
@@ -184,13 +191,22 @@ def cc_toolchain_config(
                 "-lc++",
                 "-lc++abi",
             ])
+    elif stdlib == "libc++":
+        cxx_flags = [
+            "-std=c++17",
+            "-stdlib=libc++",
+        ]
+
+        link_flags.extend([
+            "-l:c++.a",
+            "-l:c++abi.a",
+        ])
     elif stdlib == "stdc++":
         cxx_flags = [
             "-std=c++17",
             "-stdlib=libstdc++",
         ]
 
-        # For xcompile, we expect to pick up these libraries from the sysroot.
         link_flags.extend([
             "-l:libstdc++.a",
         ])
@@ -203,7 +219,7 @@ def cc_toolchain_config(
             "-nostdlib",
         ])
     else:
-        fail("Unknown value passed for stdlib: {stdlib}")
+        fail("Unknown value passed for stdlib: {stdlib}".format(stdlib = stdlib))
 
     opt_link_flags = ["-Wl,--gc-sections"] if target_os == "linux" else []
 

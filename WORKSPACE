@@ -51,7 +51,9 @@ filegroup(
 llvm_toolchain(
     name = "llvm_toolchain_with_sysroot",
     llvm_version = "12.0.0",
-    stdlib = "stdc++",
+    stdlib = {
+        "linux-x86_64": "stdc++",
+    },
     sysroot = {
         "linux-x86_64": "@org_chromium_sysroot_linux_x64//:sysroot",
     },

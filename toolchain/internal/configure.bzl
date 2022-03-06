@@ -99,11 +99,11 @@ def llvm_register_toolchains():
     toolchain_info = struct(
         os = os,
         arch = arch,
-        stdlib = rctx.attr.stdlib,
         toolchain_root = toolchain_root,
         toolchain_path_prefix = toolchain_path_prefix,
         tools_path_prefix = tools_path_prefix,
         wrapper_bin_prefix = wrapper_bin_prefix,
+        stdlib_dict = rctx.attr.stdlib,
         additional_include_dirs_dict = rctx.attr.cxx_builtin_include_directories,
         sysroot_dict = rctx.attr.sysroot,
         default_sysroot_path = default_sysroot_path,
@@ -218,7 +218,6 @@ def _cc_toolchain_str(
         host_tools_info):
     host_os = toolchain_info.os
     host_arch = toolchain_info.arch
-    stdlib = toolchain_info.stdlib
 
     host_os_bzl = _os_bzl(host_os)
     target_os_bzl = _os_bzl(target_os)
@@ -238,6 +237,8 @@ def _cc_toolchain_str(
             return ""
 
     extra_files_str = ", \":llvm\", \":wrapper-files\""
+
+    stdlib = toolchain_info.stdlib_dict.get(_os_arch_pair(target_os, target_arch), "builtin-libc++")
 
     additional_include_dirs = toolchain_info.additional_include_dirs_dict.get(_os_arch_pair(target_os, target_arch))
     additional_include_dirs_str = "[]"
