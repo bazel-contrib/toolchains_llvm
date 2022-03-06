@@ -105,6 +105,11 @@ _llvm_config_attrs.update({
                "containing the files and the sysroot path will be taken as the path to the " +
                "package of this label."),
     ),
+    "cxx_standard": attr.string(
+        mandatory = False,
+        doc = "C++ standard, passed as `-std` flag to compiler.",
+        default = "c++17",
+    ),
     "stdlib": attr.string_dict(
         mandatory = False,
         doc = "stdlib implementation, for each target OS and arch pair you want to support " +
