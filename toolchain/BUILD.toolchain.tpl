@@ -33,4 +33,9 @@ filegroup(
     ],
 )
 
+cc_import(
+    name = "omp",
+    shared_library = "%{llvm_repo_label_prefix}lib/libomp.%{host_dl_ext}",
+)
+
 %{cc_toolchains}

@@ -68,11 +68,13 @@ def llvm_register_toolchains():
         llvm_repo_label = Label(toolchain_root + ":BUILD.bazel")  # Exact target does not matter.
         llvm_repo_path = _canonical_dir_path(str(rctx.path(llvm_repo_label).dirname))
         config_repo_path = _canonical_dir_path(str(rctx.path("")))
+        llvm_repo_label_prefix = llvm_repo_path
         toolchain_path_prefix = llvm_repo_path
         tools_path_prefix = llvm_repo_path
         wrapper_bin_prefix = config_repo_path
     else:
-        llvm_repo_path = _pkg_path_from_label(Label(toolchain_root + ":BUILD.bazel"))
+        llvm_repo_label = Label(toolchain_root + ":BUILD.bazel")  # Exact target does not matter.
+        llvm_repo_path = _pkg_path_from_label(llvm_repo_label)
         config_repo_path = "external/%s/" % rctx.name
 
         # tools can only be defined in a subdirectory of config_repo_path,
@@ -89,6 +91,7 @@ def llvm_register_toolchains():
         # through a normalized relative path), and then call clang with the not
         # symlinked path from the wrapper.
         rctx.symlink("../../" + llvm_repo_path, "llvm")
+        llvm_repo_label_prefix = toolchain_root + ":"
         toolchain_path_prefix = llvm_repo_path
         tools_path_prefix = "llvm/"
         wrapper_bin_prefix = ""
@@ -99,7 +102,7 @@ def llvm_register_toolchains():
     toolchain_info = struct(
         os = os,
         arch = arch,
-        toolchain_root = toolchain_root,
+        llvm_repo_label_prefix = llvm_repo_label_prefix,
         toolchain_path_prefix = toolchain_path_prefix,
         tools_path_prefix = tools_path_prefix,
         wrapper_bin_prefix = wrapper_bin_prefix,
@@ -110,6 +113,7 @@ def llvm_register_toolchains():
         llvm_version = rctx.attr.llvm_version,
         cxx_standard = rctx.attr.cxx_standard,
     )
+    host_dl_ext = "dylib" if os == "darwin" else "so"
     host_tools_info = dict([
         pair
         for (key, tool_path, features) in [
@@ -146,6 +150,8 @@ def llvm_register_toolchains():
         {
             "%{cc_toolchain_config_bzl}": str(rctx.attr._cc_toolchain_config_bzl),
             "%{cc_toolchains}": cc_toolchains_str,
+            "%{llvm_repo_label_prefix}": llvm_repo_label_prefix,
+            "%{host_dl_ext}": host_dl_ext,
         },
     )
 
@@ -312,8 +318,8 @@ filegroup(
 filegroup(
     name = "compiler-components-{suffix}",
     srcs = [
-        "{toolchain_root}:clang",
-        "{toolchain_root}:include",
+        "{llvm_repo_label_prefix}clang",
+        "{llvm_repo_label_prefix}include",
         ":sysroot-components-{suffix}",
     ],
 )
@@ -321,10 +327,10 @@ filegroup(
 filegroup(
     name = "linker-components-{suffix}",
     srcs = [
-        "{toolchain_root}:clang",
-        "{toolchain_root}:ld",
-        "{toolchain_root}:ar",
-        "{toolchain_root}:lib",
+        "{llvm_repo_label_prefix}clang",
+        "{llvm_repo_label_prefix}ld",
+        "{llvm_repo_label_prefix}ar",
+        "{llvm_repo_label_prefix}lib",
         ":sysroot-components-{suffix}",
     ],
 )
@@ -332,20 +338,20 @@ filegroup(
 filegroup(
     name = "all-components-{suffix}",
     srcs = [
-        "{toolchain_root}:bin",
+        "{llvm_repo_label_prefix}bin",
         ":compiler-components-{suffix}",
         ":linker-components-{suffix}",
     ],
 )
 
 filegroup(name = "all-files-{suffix}", srcs = [":all-components-{suffix}"{extra_files_str}])
-filegroup(name = "archiver-files-{suffix}", srcs = ["{toolchain_root}:ar"{extra_files_str}])
-filegroup(name = "assembler-files-{suffix}", srcs = ["{toolchain_root}:as"{extra_files_str}])
+filegroup(name = "archiver-files-{suffix}", srcs = ["{llvm_repo_label_prefix}ar"{extra_files_str}])
+filegroup(name = "assembler-files-{suffix}", srcs = ["{llvm_repo_label_prefix}as"{extra_files_str}])
 filegroup(name = "compiler-files-{suffix}", srcs = [":compiler-components-{suffix}"{extra_files_str}])
-filegroup(name = "dwp-files-{suffix}", srcs = ["{toolchain_root}:dwp"{extra_files_str}])
+filegroup(name = "dwp-files-{suffix}", srcs = ["{llvm_repo_label_prefix}dwp"{extra_files_str}])
 filegroup(name = "linker-files-{suffix}", srcs = [":linker-components-{suffix}"{extra_files_str}])
-filegroup(name = "objcopy-files-{suffix}", srcs = ["{toolchain_root}:objcopy"{extra_files_str}])
-filegroup(name = "strip-files-{suffix}", srcs = ["{toolchain_root}:strip"{extra_files_str}])
+filegroup(name = "objcopy-files-{suffix}", srcs = ["{llvm_repo_label_prefix}objcopy"{extra_files_str}])
+filegroup(name = "strip-files-{suffix}", srcs = ["{llvm_repo_label_prefix}strip"{extra_files_str}])
 
 cc_toolchain(
     name = "cc-clang-{suffix}",
@@ -370,7 +376,7 @@ cc_toolchain(
         stdlib = stdlib,
         target_os_bzl = target_os_bzl,
         host_os_bzl = host_os_bzl,
-        toolchain_root = toolchain_info.toolchain_root,
+        llvm_repo_label_prefix = toolchain_info.llvm_repo_label_prefix,
         toolchain_path_prefix = toolchain_info.toolchain_path_prefix,
         tools_path_prefix = toolchain_info.tools_path_prefix,
         wrapper_bin_prefix = toolchain_info.wrapper_bin_prefix,
