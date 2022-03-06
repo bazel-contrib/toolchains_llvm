@@ -194,7 +194,7 @@ def cc_toolchain_config(
             ])
     elif stdlib == "libc++":
         cxx_flags = [
-            "-std=c++17",
+            "-std=" + cxx_standard,
             "-stdlib=libc++",
         ]
 
