@@ -32,6 +32,7 @@ def cc_toolchain_config(
         host_os,
         target_arch,
         target_os,
+        stdlib,
         toolchain_path_prefix,
         tools_path_prefix,
         wrapper_bin_prefix,
@@ -65,19 +66,19 @@ def cc_toolchain_config(
             "darwin_x86_64",
             "darwin_x86_64",
         ),
-        "linux-x86_64": (
-            "clang-x86_64-linux",
-            "x86_64-unknown-linux-gnu",
-            "k8",
+        "linux-aarch64": (
+            "clang-aarch64-linux",
+            "aarch64-unknown-linux-gnu",
+            "aarch64",
             "glibc_unknown",
             "clang",
             "clang",
             "glibc_unknown",
         ),
-        "linux-aarch64": (
-            "clang-aarch64-linux",
-            "aarch64-unknown-linux-gnu",
-            "aarch64",
+        "linux-x86_64": (
+            "clang-x86_64-linux",
+            "x86_64-unknown-linux-gnu",
+            "k8",
             "glibc_unknown",
             "clang",
             "clang",
@@ -129,7 +130,19 @@ def cc_toolchain_config(
         "-lm",
         "-no-canonical-prefixes",
     ]
-    link_libs = []
+
+    link_libs = [
+        # Historically, libpthread and libdl have been linked to support
+        # libunwind, when using builtin-libc++, but to temporarily keep
+        # parity with other stdlib implementations, let's include them
+        # for everything.
+        # TODO: Revert https://github.com/grailbio/bazel-toolchain/pull/103
+        # and document that people using libpthread should link it explicitly.
+        # The default bazel local toolchain on linux also does not include
+        # libpthread.
+        "-lpthread",
+        "-ldl",
+    ]
 
     # Linker flags:
     if host_os == "darwin" and not is_xcompile:
@@ -155,7 +168,7 @@ def cc_toolchain_config(
     # Flags related to C++ standard.
     # The linker has no way of knowing if there are C++ objects; so we
     # always link C++ libraries.
-    if not is_xcompile:
+    if stdlib == "builtin-libc++":
         cxx_flags = [
             "-std=c++17",
             "-stdlib=libc++",
@@ -171,11 +184,6 @@ def cc_toolchain_config(
                 # Compiler runtime features.
                 "-rtlib=compiler-rt",
             ])
-            link_libs.extend([
-                # To support libunwind.
-                "-lpthread",
-                "-ldl",
-            ])
         else:
             # TODO: Not sure how to achieve static linking of bundled libraries
             # with ld64; maybe we don't really need it.
@@ -183,16 +191,35 @@ def cc_toolchain_config(
                 "-lc++",
                 "-lc++abi",
             ])
-    else:
+    elif stdlib == "libc++":
+        cxx_flags = [
+            "-std=c++17",
+            "-stdlib=libc++",
+        ]
+
+        link_flags.extend([
+            "-l:c++.a",
+            "-l:c++abi.a",
+        ])
+    elif stdlib == "stdc++":
         cxx_flags = [
             "-std=c++17",
             "-stdlib=libstdc++",
         ]
 
-        # For xcompile, we expect to pick up these libraries from the sysroot.
         link_flags.extend([
             "-l:libstdc++.a",
         ])
+    elif stdlib == "none":
+        cxx_flags = [
+            "-nostdlib",
+        ]
+
+        link_flags.extend([
+            "-nostdlib",
+        ])
+    else:
+        fail("Unknown value passed for stdlib: {stdlib}".format(stdlib = stdlib))
 
     opt_link_flags = ["-Wl,--gc-sections"] if target_os == "linux" else []
 
@@ -255,16 +282,16 @@ def cc_toolchain_config(
     tool_paths = {
         "ar": ar_binary,
         "cpp": tools_path_prefix + "bin/clang-cpp",
+        "dwp": tools_path_prefix + "bin/llvm-dwp",
         "gcc": wrapper_bin_prefix + "bin/cc_wrapper.sh",
         "gcov": tools_path_prefix + "bin/llvm-profdata",
         "ld": tools_path_prefix + "bin/ld.lld" if use_lld else _host_tools.get_and_assert(host_tools_info, "ld"),
         "llvm-cov": tools_path_prefix + "bin/llvm-cov",
+        "llvm-profdata": tools_path_prefix + "bin/llvm-profdata",
         "nm": tools_path_prefix + "bin/llvm-nm",
         "objcopy": tools_path_prefix + "bin/llvm-objcopy",
         "objdump": tools_path_prefix + "bin/llvm-objdump",
         "strip": strip_binary,
-        "dwp": tools_path_prefix + "bin/llvm-dwp",
-        "llvm-profdata": tools_path_prefix + "bin/llvm-profdata",
     }
 
     # Start-end group linker support:
