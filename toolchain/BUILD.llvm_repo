@@ -56,7 +56,6 @@ filegroup(
     srcs = glob(
         [
             "lib/lib*.a",
-            "lib/lib*.so",
             "lib/clang/*/lib/**/*.a",
         ],
         exclude = [

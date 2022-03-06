@@ -36,6 +36,7 @@ cc_test(
     srcs = ["omp_test.c"],
     copts = ["-fopenmp"],
     linkopts = ["-fopenmp"],
+    deps = ["@llvm_toolchain//:omp"],
 )
 
 # We want to test a `.stripped` target to make sure `llvm-strip` can be called.
