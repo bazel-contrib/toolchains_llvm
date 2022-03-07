@@ -62,11 +62,8 @@ build --incompatible_enable_cc_toolchain_resolution
 ## Basic Usage
 
 The toolchain can automatically detect your OS and arch type, and use the right
-pre-built binary distribution from llvm.org. The detection is currently
-based on host OS and is not perfect, so some distributions, docker based
-sandboxed builds, and remote execution builds will need toolchains configured
-manually through the `distribution` attribute. We expect the detection logic to
-grow through community contributions. We welcome PRs! :smile:
+pre-built binary LLVM distribution. See the section on "Bring Your Own LLVM"
+below for more options.
 
 See in-code documentation in [rules.bzl](toolchain/rules.bzl) for available
 attributes to `llvm_toolchain`.
@@ -132,12 +129,34 @@ and instead rely on the `--incompatible_enable_cc_toolchain_resolution` flag.
 
 #### Bring Your Own LLVM
 
-The LLVM toolchain archive is downloaded and extracted as a separate repository
-with the suffix `_llvm`. Alternatively, you can also specify your own
-repositories for each host os-arch pair through the `toolchain_roots`
-attribute. Each of these repositories is typically configured through
-`local_repository` or `http_archive` (with `build_file` attribute as
-`@com_grail_bazel_toolchain//toolchain:BUILD.llvm_repo`).
+The following mechanisms are available for using an LLVM toolchain:
+
+1. Host OS information is used to find the right pre-built binary distribution
+   from llvm.org, given the `llvm_version` attribute. The LLVM toolchain
+   archive is downloaded and extracted as a separate repository with the suffix
+   `_llvm`. The detection is not perfect, so you may have to use other options
+   for some host OS type and versions. We expect the detection logic to grow
+through community contributions. We welcome PRs.
+2. You can use the `urls` attribute to specify your own URLs for each OS type,
+   version and architecture. For example, you can specify a different URL for
+   Arch Linux and a different one for Ubuntu. Just as with the option above,
+   the archive is downloaded and extracted as a separate repository with the
+   suffix `_llvm`.
+3. You can also specify your own bazel package paths or local absolute paths
+   for each host os-arch pair through the `toolchain_roots` attribute. Note
+   that the keys here are different and less granular than the keys in the `urls`
+   attribute. When using a bazel package path, each of the values is typically
+   a package in the user's workspace or configured through `local_repository` or
+   `http_archive`; the BUILD file of the package should be similar to
+   `@com_grail_bazel_toolchain//toolchain:BUILD.llvm_repo`. If using only
+   `http_archive`, maybe consider using the `urls` attribute instead to get more
+   flexibility if you need.
+4. All the above options rely on host OS information, and are not suited for
+   docker based sandboxed builds or remote execution builds. Such builds will
+   need a single distribution version specified through the `distribution`
+   attribute, or URLs specified through the `urls` attribute with an empty key, or
+   a toolchain root specified through the `toolchain_roots` attribute with an
+   empty key.
 
 #### Sysroots
 
@@ -191,12 +210,23 @@ The toolchain is tested to work with `rules_go`, `rules_rust`, and
 
 The LLVM distribution also provides several tools like `clang-format`. You can
 depend on these tools directly in the bin directory of the distribution. When
-using the auto-configured download (not using `toolchain_roots`), the
-distribution is available in the repo with the suffix `_llvm` appended to the
-name you used for the `llvm_toolchain` rule. For example,
-`@llvm_toolchain_llvm//:bin/clang-format` is a valid and visible target in the
-quickstart example above.
+not using the `toolchain_roots` attribute, the distribution is available in the
+repo with the suffix `_llvm` appended to the name you used for the
+`llvm_toolchain` rule. For example, `@llvm_toolchain_llvm//:bin/clang-format`
+is a valid and visible target in the quickstart example above.
 
+When using the `toolchain_roots` attribute, there is currently no single target
+that you can reference, and you may have to alias the tools you want with a
+`select` clause in your workspace.
+
+As a convenience, some targets are aliased appropriately in the configuration
+repo (as opposed to the LLVM distribution repo) for you to use and will work
+even when using `toolchain_roots`. If your repo is named `llvm_toolchain`, then
+they can be referenced as:
+
+- `@llvm_toolchain//:omp`
+- `@llvm_toolchain//:clang-format`
+- `@llvm_toolchain//:llvm-cov`
 
 ## Prior Art
 

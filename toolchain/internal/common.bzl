@@ -57,6 +57,59 @@ def arch(rctx):
         fail("Failed to detect machine architecture: \n%s\n%s" % (exec_result.stdout, exec_result.stderr))
     return exec_result.stdout.strip()
 
+def os_arch_pair(os, arch):
+    return "{}-{}".format(os, arch)
+
+_supported_os_arch = [os_arch_pair(os, arch) for (os, arch) in SUPPORTED_TARGETS]
+
+def supported_os_arch_keys():
+    return _supported_os_arch
+
+def check_os_arch_keys(keys):
+    for k in keys:
+        if k and k not in _supported_os_arch:
+            fail("Unsupported {{os}}-{{arch}} key: {key}; valid keys are: {keys}".format(
+                key = k,
+                keys = ", ".join(_supported_os_arch),
+            ))
+
+def canonical_dir_path(path):
+    if not path.endswith("/"):
+        return path + "/"
+    return path
+
+def pkg_path_from_label(label):
+    if label.workspace_root:
+        return label.workspace_root + "/" + label.package
+    else:
+        return label.package
+
+def attr_dict(attr):
+    # Returns a mutable dict of attr values from the struct. This is useful to
+    # return updated attribute values as return values of repository_rule
+    # implementations.
+
+    tuples = []
+    types = []
+    for key in dir(attr):
+        if not hasattr(attr, key):
+            fail("key %s not found in attributes" % key)
+        val = getattr(attr, key)
+
+        # Make mutable copies of frozen types.
+        typ = type(val)
+        if typ == "dict":
+            val = dict(val)
+        elif typ == "list":
+            val = list(val)
+        elif typ == "builtin_function_or_method":
+            # Functions can not be compared.
+            continue
+
+        tuples.append((key, val))
+
+    return dict(tuples)
+
 # Tries to figure out if a tool supports newline separated arg files (i.e.
 # `@file`).
 def _tool_supports_arg_file(rctx, tool_path):
@@ -157,30 +210,3 @@ host_tools = struct(
     tool_supports = _check_host_tool_supports,
     get_and_assert = _get_host_tool_and_assert_supports,
 )
-
-def os_arch_pair(os, arch):
-    return "{}-{}".format(os, arch)
-
-_supported_os_arch = [os_arch_pair(os, arch) for (os, arch) in SUPPORTED_TARGETS]
-
-def supported_os_arch_keys():
-    return _supported_os_arch
-
-def check_os_arch_keys(keys):
-    for k in keys:
-        if k and k not in _supported_os_arch:
-            fail("Unsupported {{os}}-{{arch}} key: {key}; valid keys are: {keys}".format(
-                key = k,
-                keys = ", ".join(_supported_os_arch),
-            ))
-
-def canonical_dir_path(path):
-    if not path.endswith("/"):
-        return path + "/"
-    return path
-
-def pkg_path_from_label(label):
-    if label.workspace_root:
-        return label.workspace_root + "/" + label.package
-    else:
-        return label.package

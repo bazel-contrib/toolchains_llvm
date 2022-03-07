@@ -17,7 +17,7 @@
 import platform
 import sys
 
-_known_distros = ["freebsd", "suse", "ubuntu", "arch", "manjaro", "debian", "fedora", "centos", "amzn", "raspbian", "pop"]
+import host_os_key
 
 def _major_llvm_version(llvm_version):
     return int(llvm_version.split(".")[0])
@@ -80,31 +80,7 @@ def _ubuntu_osname(arch, version, major_llvm_version, llvm_version):
 
     return os_name
 
-def _linux(llvm_version, arch):
-    release_file_path = "/etc/os-release"
-    with open(release_file_path) as release_file:
-        lines = release_file.readlines()
-        info = dict()
-        for line in lines:
-            line = line.strip()
-            if not line:
-                continue
-            [key, val] = line.split('=', 1)
-            info[key] = val
-    if "ID" not in info:
-        sys.exit("Could not find ID in /etc/os-release.")
-    distname = info["ID"].strip('\"')
-
-    if distname not in _known_distros:
-        for distro in info["ID_LIKE"].strip('\"').split(' '):
-            if distro in _known_distros:
-                distname = distro
-                break
-
-    version = None
-    if "VERSION_ID" in info:
-        version = info["VERSION_ID"].strip('"')
-
+def _linux(llvm_version, distname, version, arch):
     major_llvm_version = _major_llvm_version(llvm_version)
 
     # NOTE: Many of these systems are untested because I do not have access to them.
@@ -193,22 +169,14 @@ def main():
 
     llvm_version = sys.argv[1]
 
-    system = platform.system()
-    arch = platform.machine()
+    os, version, arch = host_os_key.os_version_arch()
 
-    if system == "Darwin":
+    if os == "darwin":
         print(_darwin(llvm_version, arch))
-        sys.exit()
-
-    if system == "Windows":
+    elif os == "windows":
         print(_windows(llvm_version, arch))
-        sys.exit()
-
-    if system == "Linux":
-        print(_linux(llvm_version, arch))
-        sys.exit()
-
-    sys.exit("Unsupported system: %s" % system)
+    else:
+        print(_linux(llvm_version, os, version, arch))
 
 if __name__ == '__main__':
     main()

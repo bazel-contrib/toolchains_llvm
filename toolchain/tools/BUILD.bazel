@@ -12,4 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-exports_files(["llvm_release_name.py"])
+exports_files([
+    "llvm_release_name.py",
+    "host_os_key.py",
+])

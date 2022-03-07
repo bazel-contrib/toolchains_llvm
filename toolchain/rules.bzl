@@ -34,6 +34,24 @@ _common_attrs = {
 
 _llvm_repo_attrs = dict(_common_attrs)
 _llvm_repo_attrs.update({
+    "urls": attr.string_list_dict(
+        mandatory = False,
+        doc = ("URLs to LLVM pre-built binary distribution archives, keyed by host OS " +
+               "release name and architecture, e.g. darwin-x86_64, darwin-aarch64, " +
+               "ubuntu-20.04-x86_64, etc. May also need the `strip_prefix` attribute. " +
+               "Consider also setting the `sha256` attribute. An empty key is " +
+               "used to specify a fallback default for all hosts. This attribute " +
+               "overrides `distribution`, `llvm_version`, `llvm_mirror` and " +
+               "`alternative_llvm_sources` attributes if the host OS key is present."),
+    ),
+    "sha256": attr.string_dict(
+        mandatory = False,
+        doc = "The expected SHA-256 of the file downloaded as per the `urls` attribute.",
+    ),
+    "strip_prefix": attr.string_dict(
+        mandatory = False,
+        doc = "The prefix to strip from the extracted file from the `urls` attribute.",
+    ),
     "distribution": attr.string(
         default = "auto",
         doc = ("LLVM pre-built binary distribution filename, must be one " +
@@ -76,6 +94,11 @@ _llvm_repo_attrs.update({
         default = "//toolchain/tools:llvm_release_name.py",
         allow_single_file = True,
         doc = "Python module to output LLVM release name for the current OS.",
+    ),
+    "_os_version_arch": attr.label(
+        default = "//toolchain/tools:host_os_key.py",
+        allow_single_file = True,
+        doc = "Python module to output OS name and ",
     ),
 })
 

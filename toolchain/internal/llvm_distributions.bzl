@@ -13,7 +13,7 @@
 # limitations under the License.
 
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "read_netrc", "use_netrc")
-load("//toolchain/internal:common.bzl", _python = "python")
+load("//toolchain/internal:common.bzl", _attr_dict = "attr_dict", _python = "python")
 
 # If a new LLVM version is missing from this list, please add the shasum here
 # and send a PR on github. To compute the shasum block, you can use the script
@@ -223,20 +223,44 @@ def _get_auth(ctx, urls):
 
     return {}
 
-def download_llvm_preconfigured(rctx):
+def download_llvm(rctx):
+    urls = []
+    if rctx.attr.urls:
+        urls, sha256, strip_prefix, key = _urls(rctx)
+    if not urls:
+        urls, sha256, strip_prefix = _distribution_urls(rctx)
+
+    res = rctx.download_and_extract(
+        urls,
+        sha256 = sha256,
+        stripPrefix = strip_prefix,
+        auth = _get_auth(rctx, urls),
+    )
+
+    updated_attrs = _attr_dict(rctx.attr)
+    if not sha256 and key:
+        # Only using the urls attribute can result in no sha256.
+        # Report back the sha256 if the URL came from a non-empty key.
+        updated_attrs["sha256"].update([(key, res.sha256)])
+
+    return updated_attrs
+
+def _urls(rctx):
+    key = _host_os_key(rctx)
+
+    urls = rctx.attr.urls.get(key, default = rctx.attr.urls.get("", default = []))
+    if not urls:
+        print("llvm archive urls missing for host OS key '%s' and no default provided; will try 'distribution' attribute" % (key))
+    sha256 = rctx.attr.sha256.get(key, "")
+    strip_prefix = rctx.attr.strip_prefix.get(key, "")
+
+    return urls, sha256, strip_prefix, key
+
+def _distribution_urls(rctx):
     llvm_version = rctx.attr.llvm_version
 
     if rctx.attr.distribution == "auto":
-        exec_result = rctx.execute([
-            _python(rctx),
-            rctx.path(rctx.attr._llvm_release_name),
-            llvm_version,
-        ])
-        if exec_result.return_code:
-            fail("Failed to detect host OS version: \n%s\n%s" % (exec_result.stdout, exec_result.stderr))
-        if exec_result.stderr:
-            print(exec_result.stderr)
-        basename = exec_result.stdout.strip()
+        basename = _llvm_release_name(rctx, llvm_version)
     else:
         basename = rctx.attr.distribution
 
@@ -252,9 +276,31 @@ def download_llvm_preconfigured(rctx):
             urls.append(pattern.format(llvm_version = llvm_version, basename = basename))
     urls.append("{0}{1}".format(_llvm_distributions_base_url[llvm_version], url_suffix))
 
-    rctx.download_and_extract(
-        urls,
-        sha256 = _llvm_distributions[basename],
-        stripPrefix = basename[:(len(basename) - len(".tar.xz"))],
-        auth = _get_auth(rctx, urls),
-    )
+    sha256 = _llvm_distributions[basename]
+
+    strip_prefix = basename[:(len(basename) - len(".tar.xz"))]
+
+    return urls, sha256, strip_prefix
+
+def _host_os_key(rctx):
+    exec_result = rctx.execute([
+        _python(rctx),
+        rctx.path(rctx.attr._os_version_arch),
+    ])
+    if exec_result.return_code:
+        fail("Failed to detect host OS name and version: \n%s\n%s" % (exec_result.stdout, exec_result.stderr))
+    if exec_result.stderr:
+        print(exec_result.stderr)
+    return exec_result.stdout.strip()
+
+def _llvm_release_name(rctx, llvm_version):
+    exec_result = rctx.execute([
+        _python(rctx),
+        rctx.path(rctx.attr._llvm_release_name),
+        llvm_version,
+    ])
+    if exec_result.return_code:
+        fail("Failed to detect host OS LLVM archive: \n%s\n%s" % (exec_result.stdout, exec_result.stderr))
+    if exec_result.stderr:
+        print(exec_result.stderr)
+    return exec_result.stdout.strip()

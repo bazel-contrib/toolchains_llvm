@@ -18,7 +18,7 @@ load(
 )
 load(
     "//toolchain/internal:llvm_distributions.bzl",
-    _download_llvm_preconfigured = "download_llvm_preconfigured",
+    _download_llvm = "download_llvm",
 )
 
 def llvm_repo_impl(rctx):
@@ -33,9 +33,11 @@ def llvm_repo_impl(rctx):
         executable = False,
     )
 
-    _download_llvm_preconfigured(rctx)
+    updated_attrs = _download_llvm(rctx)
 
     # We try to avoid patches to the downloaded repo so that it is easier for
     # users to bring their own LLVM distribution through `http_archive`. If we
     # do want to make changes, then we should do it through a patch file, and
     # document it for users of toolchain_roots attribute.
+
+    return updated_attrs
