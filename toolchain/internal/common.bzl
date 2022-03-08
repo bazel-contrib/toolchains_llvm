@@ -84,6 +84,11 @@ def pkg_path_from_label(label):
     else:
         return label.package
 
+def list_to_string(l):
+    if l == None:
+        return "None"
+    return "[{}]".format(", ".join(["\"{}\"".format(d) for d in l]))
+
 def attr_dict(attr):
     # Returns a mutable dict of attr values from the struct. This is useful to
     # return updated attribute values as return values of repository_rule

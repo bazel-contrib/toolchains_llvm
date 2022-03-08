@@ -32,14 +32,11 @@ def cc_toolchain_config(
         host_os,
         target_arch,
         target_os,
-        stdlib,
         toolchain_path_prefix,
         tools_path_prefix,
         wrapper_bin_prefix,
-        sysroot_path,
-        additional_include_dirs,
+        compiler_configuration,
         llvm_version,
-        cxx_standard,
         host_tools_info = {}):
     host_os_arch_key = _os_arch_pair(host_os, host_arch)
     target_os_arch_key = _os_arch_pair(target_os, target_arch)
@@ -87,7 +84,9 @@ def cc_toolchain_config(
         ),
     }[target_os_arch_key]
 
-    # Unfiltered compiler flags:
+    # Unfiltered compiler flags; these are placed at the end of the command
+    # line, so take precendence over any user supplied flags through --copts or
+    # such.
     unfiltered_compile_flags = [
         # Do not resolve our symlinked resource prefixes to real paths.
         "-no-canonical-prefixes",
@@ -132,6 +131,8 @@ def cc_toolchain_config(
         "-no-canonical-prefixes",
     ]
 
+    # Similar to link_flags, but placed later in the command line such that
+    # unused symbols are not stripped.
     link_libs = [
         # Historically, libpthread and libdl have been linked to support
         # libunwind, when using builtin-libc++, but to temporarily keep
@@ -148,6 +149,7 @@ def cc_toolchain_config(
     # Linker flags:
     if host_os == "darwin" and not is_xcompile:
         # lld is experimental for Mach-O, so we use the native ld64 linker.
+        # TODO: How do we cross-compile from Linux to Darwin?
         use_lld = False
         link_flags.extend([
             "-headerpad_max_install_names",
@@ -169,6 +171,8 @@ def cc_toolchain_config(
     # Flags related to C++ standard.
     # The linker has no way of knowing if there are C++ objects; so we
     # always link C++ libraries.
+    stdlib = compiler_configuration["stdlib"]
+    cxx_standard = compiler_configuration["cxx_standard"]
     if stdlib == "builtin-libc++":
         cxx_flags = [
             "-std=" + cxx_standard,
@@ -238,6 +242,7 @@ def cc_toolchain_config(
         toolchain_path_prefix + "lib64/clang/{}/include".format(llvm_version),
     ]
 
+    sysroot_path = compiler_configuration["sysroot_path"]
     sysroot_prefix = ""
     if sysroot_path:
         sysroot_prefix = "%sysroot%"
@@ -255,7 +260,7 @@ def cc_toolchain_config(
     else:
         fail("Unreachable")
 
-    cxx_builtin_include_directories.extend(additional_include_dirs)
+    cxx_builtin_include_directories.extend(compiler_configuration["additional_include_dirs"])
 
     ## NOTE: make variables are missing here; unix_cc_toolchain_config doesn't
     ## pass these to `create_cc_toolchain_config_info`.
@@ -302,6 +307,31 @@ def cc_toolchain_config(
     # after the above patch was merged, so we just set this to `True` when
     # `lld` is being used as the linker.
     supports_start_end_lib = use_lld
+
+    def fmt_flags(flags):
+        return [f.format(toolchain_path_prefix = toolchain_path_prefix) for f in flags]
+
+    # Replace flags with any user-provided overrides.
+    if compiler_configuration["compile_flags"] != None:
+        compile_flags = fmt_flags(compiler_configuration["compile_flags"])
+    if compiler_configuration["cxx_flags"] != None:
+        cxx_flags = fmt_flags(compiler_configuration["cxx_flags"])
+    if compiler_configuration["link_flags"] != None:
+        link_flags = fmt_flags(compiler_configuration["link_flags"])
+    if compiler_configuration["link_libs"] != None:
+        link_libs = fmt_flags(compiler_configuration["link_libs"])
+    if compiler_configuration["opt_compile_flags"] != None:
+        opt_compile_flags = fmt_flags(compiler_configuration["opt_compile_flags"])
+    if compiler_configuration["opt_link_flags"] != None:
+        opt_link_flags = fmt_flags(compiler_configuration["opt_link_flags"])
+    if compiler_configuration["dbg_compile_flags"] != None:
+        dbg_compile_flags = fmt_flags(compiler_configuration["dbg_compile_flags"])
+    if compiler_configuration["coverage_compile_flags"] != None:
+        coverage_compile_flags = fmt_flags(compiler_configuration["coverage_compile_flags"])
+    if compiler_configuration["coverage_link_flags"] != None:
+        coverage_link_flags = fmt_flags(compiler_configuration["coverage_link_flags"])
+    if compiler_configuration["unfiltered_compile_flags"] != None:
+        unfiltered_compile_flags = fmt_flags(compiler_configuration["unfiltered_compile_flags"])
 
     # Source: https://cs.opensource.google/bazel/bazel/+/master:tools/cpp/unix_cc_toolchain_config.bzl
     unix_cc_toolchain_config(
