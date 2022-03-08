@@ -133,18 +133,7 @@ def cc_toolchain_config(
 
     # Similar to link_flags, but placed later in the command line such that
     # unused symbols are not stripped.
-    link_libs = [
-        # Historically, libpthread and libdl have been linked to support
-        # libunwind, when using builtin-libc++, but to temporarily keep
-        # parity with other stdlib implementations, let's include them
-        # for everything.
-        # TODO: Revert https://github.com/grailbio/bazel-toolchain/pull/103
-        # and document that people using libpthread should link it explicitly.
-        # The default bazel local toolchain on linux also does not include
-        # libpthread.
-        "-lpthread",
-        "-ldl",
-    ]
+    link_libs = []
 
     # Linker flags:
     if host_os == "darwin" and not is_xcompile:
@@ -188,6 +177,9 @@ def cc_toolchain_config(
                 "-l:libunwind.a",
                 # Compiler runtime features.
                 "-rtlib=compiler-rt",
+                # To support libunwind.
+                "-lpthread",
+                "-ldl",
             ])
         else:
             # TODO: Not sure how to achieve static linking of bundled libraries

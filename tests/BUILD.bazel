@@ -31,14 +31,6 @@ cc_test(
     deps = [":stdlib"],
 )
 
-cc_test(
-    name = "omp_test",
-    srcs = ["omp_test.c"],
-    copts = ["-fopenmp"],
-    linkopts = ["-fopenmp"],
-    deps = ["@llvm_toolchain//:omp"],
-)
-
 # We want to test a `.stripped` target to make sure `llvm-strip` can be called.
 #
 # For this we need `cc_binary`; `cc_test` does not create `.stripped` targets.
@@ -103,9 +95,11 @@ build_test(
 )
 
 cc_test(
-    name = "pthread_link_test",
-    srcs = ["pthread_link_test.cc"],
-    linkstatic = False,
+    name = "omp_test",
+    srcs = ["omp_test.c"],
+    copts = ["-fopenmp"],
+    linkopts = ["-fopenmp"],
+    deps = ["@llvm_toolchain//:omp"],
 )
 
 sh_test(
