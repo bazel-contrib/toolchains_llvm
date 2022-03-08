@@ -190,6 +190,24 @@ bazel build \
   //...
 ```
 
+#### Supporting New Target Platforms
+
+The following is a rough (untested) list of steps:
+
+1. To help us detect if you are cross-compiling or not, note the arch string as
+   given by `python3 -c 'import platform; print(platform.machine())`.
+2. Edit `SUPPORTED_TARGETS` in
+   [toolchain/internal/common.bzl](toolchain/internal/common.bzl) with the os
+   and the arch string from above.
+3. Add `target_system_name`, etc. in
+   [toolchain/cc_toolchain_config.bzl](toolchain/cc_toolchain_config.bzl).
+4. For cross-compiling, add a `platform` bazel type for your target platform in
+   [platforms/BUILD.bazel](platforms/BUILD.bazel), and add an appropriate
+   sysroot entry to your `llvm_toolchain` repository definition.
+5. If not cross-compiling, bring your own LLVM (see section above) through the
+   `toolchain_roots` or `urls` attribute.
+6. Test your build.
+
 #### Sandbox
 
 Sandboxing the toolchain introduces a significant overhead (100ms per action,
