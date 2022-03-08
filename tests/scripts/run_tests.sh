@@ -37,14 +37,9 @@ test_args=(
   --copt=-v
   --linkopt=-Wl,-t
 )
-if [[ "${TEST_MIGRATION:-}" ]]; then
-  # We can not use bazelisk to test migration because bazelisk does not allow
-  # us to selectively ignore a migration flag.
-  test_args+=("--all_incompatible_changes")
-  # This flag is not quite ready -- https://github.com/bazelbuild/bazel/issues/7347
-  test_args+=("--incompatible_disallow_struct_provider_syntax=false")
-  # the rules_rust repo included in the WORKSPACE is currently incompatible with
-  # '--incompatible_no_rule_outputs_param=true', setting this to false for now.
-  test_args+=("--incompatible_no_rule_outputs_param=false")
-fi
-"${bazel}"  --bazelrc=/dev/null test "${common_test_args[@]}" "${test_args[@]}" //tests:all
+"${bazel}" ${TEST_MIGRATION:+"--strict"} --bazelrc=/dev/null test \
+  "${common_test_args[@]}" "${test_args[@]}" //tests:all
+
+# Note that the following flags are currently known to cause issues in migration tests:
+# --incompatible_disallow_struct_provider_syntax # https://github.com/bazelbuild/bazel/issues/7347
+# --incompatible_no_rule_outputs_param # from rules_rust
