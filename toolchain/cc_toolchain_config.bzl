@@ -160,8 +160,10 @@ def cc_toolchain_config(
     # Flags related to C++ standard.
     # The linker has no way of knowing if there are C++ objects; so we
     # always link C++ libraries.
-    stdlib = compiler_configuration["stdlib"]
     cxx_standard = compiler_configuration["cxx_standard"]
+    stdlib = compiler_configuration["stdlib"]
+    if stdlib == "builtin-libc++" and is_xcompile:
+        stdlib = "stdc++"
     if stdlib == "builtin-libc++":
         cxx_flags = [
             "-std=" + cxx_standard,
