@@ -19,6 +19,7 @@ load(
     _check_os_arch_keys = "check_os_arch_keys",
     _host_tool_features = "host_tool_features",
     _host_tools = "host_tools",
+    _list_to_string = "list_to_string",
     _os = "os",
     _os_arch_pair = "os_arch_pair",
     _os_bzl = "os_bzl",
@@ -106,12 +107,22 @@ def llvm_register_toolchains():
         toolchain_path_prefix = toolchain_path_prefix,
         tools_path_prefix = tools_path_prefix,
         wrapper_bin_prefix = wrapper_bin_prefix,
-        stdlib_dict = rctx.attr.stdlib,
-        additional_include_dirs_dict = rctx.attr.cxx_builtin_include_directories,
         sysroot_dict = rctx.attr.sysroot,
         default_sysroot_path = default_sysroot_path,
+        additional_include_dirs_dict = rctx.attr.cxx_builtin_include_directories,
+        stdlib_dict = rctx.attr.stdlib,
+        cxx_standard_dict = rctx.attr.cxx_standard,
+        compile_flags_dict = rctx.attr.compile_flags,
+        cxx_flags_dict = rctx.attr.cxx_flags,
+        link_flags_dict = rctx.attr.link_flags,
+        link_libs_dict = rctx.attr.link_libs,
+        opt_compile_flags_dict = rctx.attr.opt_compile_flags,
+        opt_link_flags_dict = rctx.attr.opt_link_flags,
+        dbg_compile_flags_dict = rctx.attr.dbg_compile_flags,
+        coverage_compile_flags_dict = rctx.attr.coverage_compile_flags,
+        coverage_link_flags_dict = rctx.attr.coverage_link_flags,
+        unfiltered_compile_flags_dict = rctx.attr.unfiltered_compile_flags,
         llvm_version = rctx.attr.llvm_version,
-        cxx_standard = rctx.attr.cxx_standard,
     )
     host_dl_ext = "dylib" if os == "darwin" else "so"
     host_tools_info = dict([
@@ -242,19 +253,11 @@ def _cc_toolchain_str(
             # We are trying to cross-compile without a sysroot, let's bail.
             # TODO: Are there situations where we can continue?
             return ""
+    sysroot_label_str = "\"%s\"" % str(sysroot) if sysroot else ""
 
     extra_files_str = ", \":llvm\", \":wrapper-files\""
 
-    stdlib = toolchain_info.stdlib_dict.get(_os_arch_pair(target_os, target_arch), "builtin-libc++")
-
-    additional_include_dirs = toolchain_info.additional_include_dirs_dict.get(_os_arch_pair(target_os, target_arch))
-    additional_include_dirs_str = "[]"
-    if additional_include_dirs:
-        additional_include_dirs_str = "[{}]".format(
-            ", ".join(["\"{}\"".format(d) for d in additional_include_dirs]),
-        )
-
-    sysroot_label_str = "\"%s\"" % str(sysroot) if sysroot else ""
+    target_pair = _os_arch_pair(target_os, target_arch)
 
     # `struct` isn't allowed in `BUILD` files so we JSON encode + decode to turn
     # them into `dict`s.
@@ -272,11 +275,23 @@ cc_toolchain_config(
     toolchain_path_prefix = "{toolchain_path_prefix}",
     tools_path_prefix = "{tools_path_prefix}",
     wrapper_bin_prefix = "{wrapper_bin_prefix}",
-    sysroot_path = "{sysroot_path}",
-    stdlib = "{stdlib}",
-    additional_include_dirs = {additional_include_dirs_str},
+    compiler_configuration = {{
+      "additional_include_dirs": {additional_include_dirs},
+      "sysroot_path": "{sysroot_path}",
+      "stdlib": "{stdlib}",
+      "cxx_standard": "{cxx_standard}",
+      "compile_flags": {compile_flags},
+      "cxx_flags": {cxx_flags},
+      "link_flags": {link_flags},
+      "link_libs": {link_libs},
+      "opt_compile_flags": {opt_compile_flags},
+      "opt_link_flags": {opt_link_flags},
+      "dbg_compile_flags": {dbg_compile_flags},
+      "coverage_compile_flags": {coverage_compile_flags},
+      "coverage_link_flags": {coverage_link_flags},
+      "unfiltered_compile_flags": {unfiltered_compile_flags},
+    }},
     llvm_version = "{llvm_version}",
-    cxx_standard = "{cxx_standard}",
     host_tools_info = {host_tools_info},
 )
 
@@ -367,24 +382,38 @@ cc_toolchain(
 )
 """
 
+    def dict_value(d, default = None):
+        # Get a value from the dict for the target pair, falling back to an empty key, if present.
+        return d.get(target_pair, d.get("", default))
+
     return template.format(
         suffix = suffix,
         target_os = target_os,
         target_arch = target_arch,
         host_os = host_os,
         host_arch = host_arch,
-        stdlib = stdlib,
         target_os_bzl = target_os_bzl,
         host_os_bzl = host_os_bzl,
         llvm_repo_label_prefix = toolchain_info.llvm_repo_label_prefix,
         toolchain_path_prefix = toolchain_info.toolchain_path_prefix,
         tools_path_prefix = toolchain_info.tools_path_prefix,
         wrapper_bin_prefix = toolchain_info.wrapper_bin_prefix,
-        additional_include_dirs_str = additional_include_dirs_str,
         sysroot_label_str = sysroot_label_str,
         sysroot_path = sysroot_path,
+        additional_include_dirs = _list_to_string(toolchain_info.additional_include_dirs_dict.get(target_pair, [])),
+        stdlib = dict_value(toolchain_info.stdlib_dict, "builtin-libc++"),
+        cxx_standard = dict_value(toolchain_info.cxx_standard_dict, "c++17"),
+        compile_flags = _list_to_string(dict_value(toolchain_info.compile_flags_dict)),
+        cxx_flags = _list_to_string(dict_value(toolchain_info.cxx_flags_dict)),
+        link_flags = _list_to_string(dict_value(toolchain_info.link_flags_dict)),
+        link_libs = _list_to_string(dict_value(toolchain_info.link_libs_dict)),
+        opt_compile_flags = _list_to_string(dict_value(toolchain_info.opt_compile_flags_dict)),
+        opt_link_flags = _list_to_string(dict_value(toolchain_info.opt_link_flags_dict)),
+        dbg_compile_flags = _list_to_string(dict_value(toolchain_info.dbg_compile_flags_dict)),
+        coverage_compile_flags = _list_to_string(dict_value(toolchain_info.coverage_compile_flags_dict)),
+        coverage_link_flags = _list_to_string(dict_value(toolchain_info.coverage_link_flags_dict)),
+        unfiltered_compile_flags = _list_to_string(dict_value(toolchain_info.unfiltered_compile_flags_dict)),
         llvm_version = toolchain_info.llvm_version,
         extra_files_str = extra_files_str,
         host_tools_info = host_tools_info,
-        cxx_standard = toolchain_info.cxx_standard,
     )
