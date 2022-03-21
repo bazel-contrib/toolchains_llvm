@@ -157,8 +157,10 @@ def _resolve_version_for_suse(major_llvm_version, minor_llvm_version):
             os_name = "linux-sles11.3"
         elif major_llvm_version == 10 and minor_llvm_version == 0:
             os_name = "linux-sles11.3"
-        else:
+        elif major_llvm_version < 13:
             os_name = "linux-sles12.4"
+        else:
+            os_name = "linux-gnu-ubuntu-20.04"
         return os_name
 
 def main():
