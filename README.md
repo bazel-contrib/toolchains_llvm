@@ -20,7 +20,7 @@ implementation, please let me know and I can redirect people there.
 
 ## Quickstart
 
-Minimum bazel version: **4.0.0**
+Minimum Bazel version: **4.0.0**
 
 To use this toolchain, include this section in your WORKSPACE:
 ```starlark
@@ -88,7 +88,7 @@ bazel query --output=build @llvm_toolchain//:all | grep -v -e '^#' -e '^  genera
 
 Besides defining your toolchain in your package BUILD file, and until this
 [issue](https://github.com/bazelbuild/bazel/issues/7746) is resolved, you would
-also need a way for bazel to access the tools in LLVM distribution as relative
+also need a way for Bazel to access the tools in LLVM distribution as relative
 paths from your package without using `..` up-references. For this, you can
 create a symlink that uses up-references to point to the LLVM distribution
 directory, and also create a wrapper script for clang such that the actual
@@ -109,16 +109,16 @@ cp "$(bazel info output_base)/external/llvm_toolchain/bin/cc_wrapper.sh" bin/cc_
 vim bin/cc_wrapper.sh # Review to ensure relative paths, etc. are good.
 ```
 
-See [bazel
+See [Bazel
 tutorial](https://docs.bazel.build/versions/main/tutorial/cc-toolchain-config.html)
 for how CC toolchains work in general.
 
 #### Selecting Toolchains
 
 If toolchains are registered (see Quickstart section above), you do not need to
-do anything special for bazel to find the toolchain. You may want to check once
+do anything special for Bazel to find the toolchain. You may want to check once
 with the `--toolchain_resolution_debug` flag to see which toolchains were
-selected by bazel for your target platform.
+selected by Bazel for your target platform.
 
 For specifying unregistered toolchains on the command line, please use the
 `--extra_toolchains` flag.  For example,
@@ -142,10 +142,10 @@ through community contributions. We welcome PRs.
    Arch Linux and a different one for Ubuntu. Just as with the option above,
    the archive is downloaded and extracted as a separate repository with the
    suffix `_llvm`.
-3. You can also specify your own bazel package paths or local absolute paths
+3. You can also specify your own Bazel package paths or local absolute paths
    for each host os-arch pair through the `toolchain_roots` attribute. Note
    that the keys here are different and less granular than the keys in the `urls`
-   attribute. When using a bazel package path, each of the values is typically
+   attribute. When using a Bazel package path, each of the values is typically
    a package in the user's workspace or configured through `local_repository` or
    `http_archive`; the BUILD file of the package should be similar to
    `@com_grail_bazel_toolchain//toolchain:BUILD.llvm_repo`. If using only
@@ -161,7 +161,7 @@ through community contributions. We welcome PRs.
 #### Sysroots
 
 A sysroot can be specified through the `sysroot` attribute. This can be either
-a path on the user's system, or a bazel `filegroup` like label. One way to
+a path on the user's system, or a Bazel `filegroup` like label. One way to
 create a sysroot is to use `docker export` to get a single archive of the
 entire filesystem for the image you want. Another way is to use the build
 scripts provided by the [Chromium
@@ -201,7 +201,7 @@ The following is a rough (untested) list of steps:
    and the arch string from above.
 3. Add `target_system_name`, etc. in
    [toolchain/cc_toolchain_config.bzl](toolchain/cc_toolchain_config.bzl).
-4. For cross-compiling, add a `platform` bazel type for your target platform in
+4. For cross-compiling, add a `platform` Bazel type for your target platform in
    [platforms/BUILD.bazel](platforms/BUILD.bazel), and add an appropriate
    sysroot entry to your `llvm_toolchain` repository definition.
 5. If not cross-compiling, bring your own LLVM (see section above) through the
@@ -216,7 +216,7 @@ as of mid 2018). To overcome this, one can use
 have enough shared memory available to load all the files in memory. If this is
 a concern, you may set the attribute for using absolute paths, which will
 substitute templated paths to the toolchain as absolute paths. When running
-bazel actions, these paths will be available from inside the sandbox as part of
+Bazel actions, these paths will be available from inside the sandbox as part of
 the / read-only mount. Note that this will make your builds non-hermetic.
 
 #### Compatibility
