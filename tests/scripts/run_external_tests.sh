@@ -28,12 +28,10 @@ cd "${scripts_dir}"
 # We exclude the following targets:
 # - cc_libs_test from rules_go because it assumes that stdlibc++ has been dynamically linked, but we
 #   link it statically on linux.
-"${bazel}" --bazelrc=/dev/null test "${common_test_args[@]}" \
+"${bazel}" --bazelrc=/dev/null test "${common_test_args[@]}" -- \
   //foreign:pcre \
   @openssl//:libssl \
+  @rules_rust//test/unit/{native_deps,linkstamps,interleaved_cc_info}:all \
+  @io_bazel_rules_go//tests/core/cgo:all -@io_bazel_rules_go//tests/core/cgo:cc_libs_test \
   $("${bazel}" query 'attr(timeout, short, tests(@com_google_absl//absl/...))') \
-  $("${bazel}" query 'tests(@io_bazel_rules_go//tests/core/cgo:all) except set(@io_bazel_rules_go//tests/core/cgo:cc_libs_test)') \
-  $("${bazel}" query 'tests(@rules_rust//test/unit/native_deps:all)') \
-  $("${bazel}" query 'tests(@rules_rust//test/unit/linkstamps:all)') \
-  $("${bazel}" query 'tests(@rules_rust//test/unit/interleaved_cc_info:all)') \
-  
+

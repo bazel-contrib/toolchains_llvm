@@ -1,3 +1,11 @@
+diff --git a/test/unit/linkstamps/linkstamps_test.bzl b/test/unit/linkstamps/linkstamps_test.bzl
+index d7423f3..47120c1 100644
+--- a/test/unit/linkstamps/linkstamps_test.bzl
++++ b/test/unit/linkstamps/linkstamps_test.bzl
+@@ -23 +23,2 @@ def _supports_linkstamps_test(ctx):
+-    expected_linkstamp_path = tut_out.dirname + "/_objs/" + tut_out.basename + "/test/unit/linkstamps/linkstamp.o"
++    workspace_prefix = "" if ctx.workspace_name == "rules_rust" else "/external/rules_rust"
++    expected_linkstamp_path = tut_out.dirname + "/_objs/" + tut_out.basename + workspace_prefix + "/test/unit/linkstamps/linkstamp.o"
 diff --git a/test/unit/native_deps/native_deps_test.bzl b/test/unit/native_deps/native_deps_test.bzl
 index 5a91881..6665489 100644
 --- a/test/unit/native_deps/native_deps_test.bzl
