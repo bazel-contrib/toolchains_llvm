@@ -111,13 +111,13 @@ go_rules_dependencies()
 go_register_toolchains(version = "1.17")
 
 # For testing rules_foreign_cc.
-# See https://bazelbuild.github.io/rules_foreign_cc/0.6.0/cmake.html
+# See https://bazelbuild.github.io/rules_foreign_cc/0.7.1/cmake.html
 
 http_archive(
     name = "rules_foreign_cc",
-    sha256 = "69023642d5781c68911beda769f91fcbc8ca48711db935a75da7f6536b65047f",
-    strip_prefix = "rules_foreign_cc-0.6.0",
-    url = "https://github.com/bazelbuild/rules_foreign_cc/archive/0.6.0.tar.gz",
+    sha256 = "bcd0c5f46a49b85b384906daae41d277b3dc0ff27c7c752cc51e43048a58ec83",
+    strip_prefix = "rules_foreign_cc-0.7.1",
+    url = "https://github.com/bazelbuild/rules_foreign_cc/archive/0.7.1.tar.gz",
 )
 
 load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
