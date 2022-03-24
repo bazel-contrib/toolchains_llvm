@@ -75,9 +75,9 @@ http_archive(
 
 http_archive(
     name = "com_github_google_benchmark",
-    sha256 = "3c6a165b6ecc948967a1ead710d4a181d7b0fbcaa183ef7ea84604994966221a",
-    strip_prefix = "benchmark-1.5.0",
-    urls = ["https://github.com/google/benchmark/archive/v1.5.0.tar.gz"],
+    sha256 = "6132883bc8c9b0df5375b16ab520fac1a85dc9e4cf5be59480448ece74b278d4",
+    strip_prefix = "benchmark-1.6.1",
+    urls = ["https://github.com/google/benchmark/archive/v1.6.1.tar.gz"],
 )
 
 http_archive(
