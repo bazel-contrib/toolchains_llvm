@@ -28,8 +28,11 @@ while getopts "t:h" opt; do
   esac
 done
 
-source "$(dirname "${BASH_SOURCE[0]}")/bazel.sh"
+scripts_dir="$(dirname "${BASH_SOURCE[0]}")"
+source "${scripts_dir}/bazel.sh"
 "${bazel}" version
+
+cd "${scripts_dir}"
 
 set -x
 test_args=(
@@ -38,7 +41,7 @@ test_args=(
   --linkopt=-Wl,-t
 )
 "${bazel}" ${TEST_MIGRATION:+"--strict"} --bazelrc=/dev/null test \
-  "${common_test_args[@]}" "${test_args[@]}" //tests:all
+  "${common_test_args[@]}" "${test_args[@]}" //:all
 
 # Note that the following flags are currently known to cause issues in migration tests:
 # --incompatible_disallow_struct_provider_syntax # https://github.com/bazelbuild/bazel/issues/7347
