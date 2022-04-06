@@ -41,7 +41,7 @@ filegroup(
 filegroup(
     name = "include",
     srcs = glob([
-        "include/c++/**",
+        "include/**/c++/**",
         "lib/clang/*/include/**",
     ]),
 )
@@ -55,7 +55,7 @@ filegroup(
     name = "lib",
     srcs = glob(
         [
-            "lib/lib*.a",
+            "lib/**/lib*.a",
             "lib/clang/*/lib/**/*.a",
         ],
         exclude = [
