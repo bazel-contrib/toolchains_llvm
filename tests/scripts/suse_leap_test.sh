@@ -31,7 +31,7 @@ set -exuo pipefail
 
 # Common setup
 zypper -n update
-zypper -n install curl python tar gzip gcc libncurses5 binutils-gold
+zypper -n install curl python tar gzip gcc libc++1 libncurses5 binutils-gold
 
 # Run tests
 cd /src

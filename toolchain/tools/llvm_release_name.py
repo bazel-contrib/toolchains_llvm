@@ -94,17 +94,11 @@ def _linux(llvm_version, distname, version, arch):
     elif distname == "freebsd":
         os_name = "unknown-freebsd-%s" % version
     elif distname == "suse":
-        os_name = _resolve_version_for_suse(major_llvm_version, _minor_llvm_version(llvm_version))
+        os_name = _resolve_version_for_suse(major_llvm_version, llvm_version)
     elif distname == "ubuntu":
         os_name = _ubuntu_osname(arch, version, major_llvm_version, llvm_version)
     elif ((distname in ["linuxmint", "pop"]) and (version.startswith("21") or version.startswith("20") or version.startswith("19"))):
-        if major_llvm_version < 11 or llvm_version in ["11.0.1", "11.1.0"]:
-            # There is no binary packages specifically for 20.04, but those for 18.04 works on
-            # 20.04
-            os_name = "linux-gnu-ubuntu-18.04"
-        else:
-            # release 11.0.0 started providing packaging for ubuntu 20.04.
-            os_name = "linux-gnu-ubuntu-20.04"
+        os_name = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version)
     elif distname in ["manjaro"] or (distname == "linuxmint" and version.startswith("18")):
         os_name = "linux-gnu-ubuntu-16.04"
     elif distname == "debian":
@@ -113,38 +107,23 @@ def _linux(llvm_version, distname, version, arch):
             int_version = int(version)
         except ValueError:
             pass
-        if int_version is None or int_version >= 10:
-            if major_llvm_version < 11 or llvm_version in ["11.0.1", "11.1.0"]:
-                os_name = "linux-gnu-ubuntu-18.04"
-            else:
-                os_name = "linux-gnu-ubuntu-20.04"
-        elif int_version == 9 and major_llvm_version >= 7:
-            os_name = "linux-gnu-ubuntu-16.04"
+        if int_version is None or int_version >= 9:
+            os_name = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version)
         elif int_version == 8 and major_llvm_version < 7:
             os_name = "linux-gnu-debian8"
     elif ((distname == "fedora" and int(version) >= 27) or
           (distname == "centos" and int(version) >= 7)) and major_llvm_version < 7:
         os_name = "linux-gnu-Fedora27"
     elif distname == "centos" and major_llvm_version >= 7:
-        os_name = "linux-sles11.3"
+        os_name = _resolve_version_for_suse(major_llvm_version, llvm_version)
     elif distname == "fedora" and major_llvm_version >= 7:
-        if major_llvm_version < 11 or llvm_version in ["11.0.1", "11.1.0"]:
-            os_name = "linux-gnu-ubuntu-18.04"
-        else:
-            os_name = "linux-gnu-ubuntu-20.04"
-    elif distname == "arch" and major_llvm_version >= 11:
-        os_name = "linux-gnu-ubuntu-20.04"
-    elif distname == "arch" and major_llvm_version >= 10:
-        os_name = "linux-gnu-ubuntu-18.04"
-    elif distname == "arch" and major_llvm_version >= 7:
-        os_name = "linux-gnu-ubuntu-16.04"
+        os_name = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version)
+    elif distname == "arch":
+        os_name = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version)
     elif distname == "amzn":
         # Based on the ID_LIKE field, sles seems like the closest available
         # distro for which LLVM releases are widely available.
-        if major_llvm_version >= 11:
-            os_name = "linux-sles12.4"
-        else:
-            os_name = "linux-sles11.3"
+        os_name = _resolve_version_for_suse(major_llvm_version, llvm_version)
     elif distname == "raspbian":
         arch = "armv7a"
         os_name = "linux-gnueabihf"
@@ -156,16 +135,17 @@ def _linux(llvm_version, distname, version, arch):
         arch=arch,
         os_name=os_name)
 
-def _resolve_version_for_suse(major_llvm_version, minor_llvm_version):
-        if major_llvm_version < 10:
-            os_name = "linux-sles11.3"
-        elif major_llvm_version == 10 and minor_llvm_version == 0:
-            os_name = "linux-sles11.3"
-        elif major_llvm_version < 13:
-            os_name = "linux-sles12.4"
-        else:
-            os_name = "linux-gnu-ubuntu-20.04"
-        return os_name
+def _resolve_version_for_suse(major_llvm_version, llvm_version):
+    minor_llvm_version = _minor_llvm_version(llvm_version)
+    if major_llvm_version < 10:
+        os_name = "linux-sles11.3"
+    elif major_llvm_version == 10 and minor_llvm_version == 0:
+        os_name = "linux-sles11.3"
+    elif major_llvm_version < 13 or (major_llvm_version == 14 and minor_llvm_version == 0):
+        os_name = "linux-sles12.4"
+    else:
+        os_name = _ubuntu_osname("x86_64", "20.04", major_llvm_version, llvm_version)
+    return os_name
 
 def main():
     """Prints the pre-built distribution file name."""
