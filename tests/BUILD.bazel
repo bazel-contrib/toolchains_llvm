@@ -107,6 +107,6 @@ sh_test(
     srcs = ["file_dependency_test.sh"],
     data = [
         "@llvm_toolchain_llvm//:bin/clang-format",
-        "@llvm_toolchain_llvm//:lib/libc++.a",
+        "@llvm_toolchain_llvm//:lib",
     ],
 )
