@@ -173,8 +173,6 @@ def cc_toolchain_config(
             # For single-platform builds, we can statically link the bundled
             # libraries.
             link_flags.extend([
-                "-L{}lib".format(toolchain_path_prefix),
-                "-L{}lib/{}".format(toolchain_path_prefix, target_system_name),
                 "-l:libc++.a",
                 "-l:libc++abi.a",
                 "-l:libunwind.a",
@@ -231,12 +229,7 @@ def cc_toolchain_config(
     ## doesn't seem to have a feature for this.
 
     # C++ built-in include directories:
-    cxx_builtin_include_directories = [
-        toolchain_path_prefix + "include/c++/v1",
-        toolchain_path_prefix + "include/{}/c++/v1".format(target_system_name),
-        toolchain_path_prefix + "lib/clang/{}/include".format(llvm_version),
-        toolchain_path_prefix + "lib64/clang/{}/include".format(llvm_version),
-    ]
+    cxx_builtin_include_directories = []
 
     sysroot_path = compiler_configuration["sysroot_path"]
     sysroot_prefix = ""
