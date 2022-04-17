@@ -23,7 +23,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        script: [archlinux, debian, fedora, suse_leap, suse_tumbleweed, ubuntu_18_04, ubuntu_20_04, linux_sysroot]
+        # TODO: Re-enable suse_leap, suse_tumbleweed; see https://github.com/grailbio/bazel-toolchain/issues/143.
+        script: [archlinux, debian, fedora, ubuntu_18_04, ubuntu_20_04, linux_sysroot]
     steps:
     - uses: actions/checkout@v2
     - name: test
