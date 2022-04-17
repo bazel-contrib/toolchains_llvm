@@ -230,6 +230,13 @@ def cc_toolchain_config(
 
     # C++ built-in include directories:
     cxx_builtin_include_directories = []
+    if toolchain_path_prefix.startswith("/"):
+        cxx_builtin_include_directories.extend([
+            toolchain_path_prefix + "include/c++/v1",
+            toolchain_path_prefix + "include/{}/c++/v1".format(target_system_name),
+            toolchain_path_prefix + "lib/clang/{}/include".format(llvm_version),
+            toolchain_path_prefix + "lib64/clang/{}/include".format(llvm_version),
+        ])
 
     sysroot_path = compiler_configuration["sysroot_path"]
     sysroot_prefix = ""

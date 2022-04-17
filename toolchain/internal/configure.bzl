@@ -23,6 +23,7 @@ load(
     _os = "os",
     _os_arch_pair = "os_arch_pair",
     _os_bzl = "os_bzl",
+    _pkg_name_from_label = "pkg_name_from_label",
     _pkg_path_from_label = "pkg_path_from_label",
     _supported_targets = "SUPPORTED_TARGETS",
     _toolchain_tools = "toolchain_tools",
@@ -72,7 +73,7 @@ def llvm_register_toolchains():
         config_repo_path = _canonical_dir_path(str(rctx.path("")))
         llvm_repo_label_prefix = llvm_repo_path
         toolchain_path_prefix = llvm_repo_path
-        tools_path_prefix = llvm_repo_path
+        tools_path_prefix = llvm_repo_path + "bin/"
         symlinked_tools_str = ""
         wrapper_bin_prefix = config_repo_path
     else:
@@ -166,7 +167,7 @@ def llvm_register_toolchains():
             "%{cc_toolchain_config_bzl}": str(rctx.attr._cc_toolchain_config_bzl),
             "%{cc_toolchains}": cc_toolchains_str,
             "%{symlinked_tools}": symlinked_tools_str,
-            "%{llvm_repo_label_prefix}": llvm_repo_label_prefix,
+            "%{llvm_repo_package}": _pkg_name_from_label(llvm_repo_label),
             "%{host_dl_ext}": host_dl_ext,
         },
     )

@@ -91,6 +91,12 @@ def canonical_dir_path(path):
         return path + "/"
     return path
 
+def pkg_name_from_label(label):
+    if label.workspace_name:
+        return "@" + label.workspace_name + "//" + label.package
+    else:
+        return label.package
+
 def pkg_path_from_label(label):
     if label.workspace_root:
         return label.workspace_root + "/" + label.package

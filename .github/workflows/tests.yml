@@ -34,3 +34,9 @@ jobs:
     - uses: actions/checkout@v2
     - name: test
       run: tests/scripts/run_xcompile_tests.sh
+  abs_paths_test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: test
+      run: tests/scripts/run_tests.sh -t @llvm_toolchain_with_absolute_paths//:cc-toolchain-x86_64-linux
