@@ -25,6 +25,7 @@ filegroup(
     srcs = [],
 )
 
+# Tools symlinked through this repo. This target is for internal use in the toolchain only.
 filegroup(
     name = "internal-use-symlinked-tools",
     srcs = [
@@ -32,8 +33,9 @@ filegroup(
     ],
 )
 
+# Tools wrapped through this repo. This target is for internal use in the toolchain only.
 filegroup(
-    name = "wrapper-files",
+    name = "internal-use-wrapped-tools",
     srcs = [
         "bin/cc_wrapper.sh",
         "bin/host_libtool_wrapper.sh",

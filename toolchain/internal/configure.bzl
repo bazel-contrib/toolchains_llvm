@@ -93,7 +93,7 @@ def llvm_register_toolchains():
         # validation check. So we always use a cc_wrapper (which is called
         # through a normalized relative path), and then call clang with the not
         # symlinked path from the wrapper.
-        tools_path_prefix = "internal_use_symlinked_tools/"
+        tools_path_prefix = "bin/"
         for tool_name in _toolchain_tools:
             rctx.symlink("../../" + llvm_repo_path + "/bin/" + tool_name, tools_path_prefix + tool_name)
         symlinked_tools_str = "\n".join([" " * 8 + "\"" + tools_path_prefix + name + "\"," for name in _toolchain_tools])
@@ -260,7 +260,7 @@ def _cc_toolchain_str(
             return ""
     sysroot_label_str = "\"%s\"" % str(sysroot) if sysroot else ""
 
-    extra_files_str = ", \":internal-use-symlinked-tools\", \":wrapper-files\""
+    extra_files_str = ", \":internal-use-symlinked-tools\", \":internal-use-wrapped-tools\""
 
     target_pair = _os_arch_pair(target_os, target_arch)
 
