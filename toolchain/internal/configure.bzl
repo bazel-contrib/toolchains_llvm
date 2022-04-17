@@ -25,6 +25,7 @@ load(
     _os_bzl = "os_bzl",
     _pkg_path_from_label = "pkg_path_from_label",
     _supported_targets = "SUPPORTED_TARGETS",
+    _toolchain_tools = "toolchain_tools",
 )
 load(
     "//toolchain/internal:sysroot.bzl",
@@ -72,6 +73,7 @@ def llvm_register_toolchains():
         llvm_repo_label_prefix = llvm_repo_path
         toolchain_path_prefix = llvm_repo_path
         tools_path_prefix = llvm_repo_path
+        symlinked_tools_str = ""
         wrapper_bin_prefix = config_repo_path
     else:
         llvm_repo_label = Label(toolchain_root + ":BUILD.bazel")  # Exact target does not matter.
@@ -82,7 +84,7 @@ def llvm_register_toolchains():
         # because their paths are relative to the package defining
         # cc_toolchain, and cannot contain '..'.
         # https://github.com/bazelbuild/bazel/issues/7746.  To work around
-        # this, we symlink the llvm repo under the package so all tools (except
+        # this, we symlink the needed tools under the package so that they (except
         # clang) can be called with normalized relative paths. For clang
         # however, using a path with symlinks interferes with the header file
         # inclusion validation checks, because clang frontend will infer the
@@ -91,10 +93,12 @@ def llvm_register_toolchains():
         # validation check. So we always use a cc_wrapper (which is called
         # through a normalized relative path), and then call clang with the not
         # symlinked path from the wrapper.
-        rctx.symlink("../../" + llvm_repo_path, "llvm")
+        tools_path_prefix = "internal_use_symlinked_tools/"
+        for tool_name in _toolchain_tools:
+            rctx.symlink("../../" + llvm_repo_path + "/bin/" + tool_name, tools_path_prefix + tool_name)
+        symlinked_tools_str = "\n".join([" " * 8 + "\"" + tools_path_prefix + name + "\"," for name in _toolchain_tools])
         llvm_repo_label_prefix = toolchain_root + ":"
         toolchain_path_prefix = llvm_repo_path
-        tools_path_prefix = "llvm/"
         wrapper_bin_prefix = ""
 
     default_sysroot_path = _default_sysroot_path(rctx, os)
@@ -161,6 +165,7 @@ def llvm_register_toolchains():
         {
             "%{cc_toolchain_config_bzl}": str(rctx.attr._cc_toolchain_config_bzl),
             "%{cc_toolchains}": cc_toolchains_str,
+            "%{symlinked_tools}": symlinked_tools_str,
             "%{llvm_repo_label_prefix}": llvm_repo_label_prefix,
             "%{host_dl_ext}": host_dl_ext,
         },
@@ -255,7 +260,7 @@ def _cc_toolchain_str(
             return ""
     sysroot_label_str = "\"%s\"" % str(sysroot) if sysroot else ""
 
-    extra_files_str = ", \":llvm\", \":wrapper-files\""
+    extra_files_str = ", \":internal-use-symlinked-tools\", \":wrapper-files\""
 
     target_pair = _os_arch_pair(target_os, target_arch)
 

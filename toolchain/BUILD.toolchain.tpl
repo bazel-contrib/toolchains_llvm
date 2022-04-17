@@ -26,6 +26,13 @@ filegroup(
 )
 
 filegroup(
+    name = "internal-use-symlinked-tools",
+    srcs = [
+%{symlinked_tools}
+    ],
+)
+
+filegroup(
     name = "wrapper-files",
     srcs = [
         "bin/cc_wrapper.sh",

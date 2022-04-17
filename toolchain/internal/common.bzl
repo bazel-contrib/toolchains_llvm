@@ -18,6 +18,19 @@ host_tool_features = struct(
     SUPPORTS_ARG_FILE = "supports_arg_file",
 )
 
+toolchain_tools = [
+    "clang-cpp",
+    "ld.lld",
+    "llvm-ar",
+    "llvm-dwp",
+    "llvm-profdata",
+    "llvm-cov",
+    "llvm-nm",
+    "llvm-objcopy",
+    "llvm-objdump",
+    "llvm-strip",
+]
+
 def python(rctx):
     # Get path of the python interpreter.
 
