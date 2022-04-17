@@ -136,7 +136,7 @@ The following mechanisms are available for using an LLVM toolchain:
    archive is downloaded and extracted as a separate repository with the suffix
    `_llvm`. The detection is not perfect, so you may have to use other options
    for some host OS type and versions. We expect the detection logic to grow
-through community contributions. We welcome PRs.
+   through community contributions. We welcome PRs.
 2. You can use the `urls` attribute to specify your own URLs for each OS type,
    version and architecture. For example, you can specify a different URL for
    Arch Linux and a different one for Ubuntu. Just as with the option above,
