@@ -99,7 +99,7 @@ def _linux(llvm_version, distname, version, arch):
         os_name = _ubuntu_osname(arch, version, major_llvm_version, llvm_version)
     elif ((distname in ["linuxmint", "pop"]) and (version.startswith("21") or version.startswith("20") or version.startswith("19"))):
         os_name = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version)
-    elif distname in ["manjaro"] or (distname == "linuxmint" and version.startswith("18")):
+    elif distname == "linuxmint" and version.startswith("18"):
         os_name = "linux-gnu-ubuntu-16.04"
     elif distname == "debian":
         int_version = None
@@ -118,7 +118,7 @@ def _linux(llvm_version, distname, version, arch):
         os_name = _resolve_version_for_suse(major_llvm_version, llvm_version)
     elif distname == "fedora" and major_llvm_version >= 7:
         os_name = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version)
-    elif distname == "arch":
+    elif distname in ["arch", "manjaro"]:
         os_name = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version)
     elif distname == "amzn":
         # Based on the ID_LIKE field, sles seems like the closest available
