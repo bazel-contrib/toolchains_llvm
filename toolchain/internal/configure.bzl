@@ -233,6 +233,12 @@ def _cc_toolchains_str(
     toolchain_labels_str = sep.join(["\"{}\"".format(d) for d in toolchain_names])
     return cc_toolchains_str, toolchain_labels_str
 
+# Gets a value from the dict for the target pair, falling back to an empty
+# key, if present.  Bazel 4.* doesn't support nested skylark functions, so
+# we cannot simplify _dict_value() by defining it as a nested function.
+def _dict_value(d, target_pair, default = None):
+    return d.get(target_pair, d.get("", default))
+
 def _cc_toolchain_str(
         suffix,
         target_os,
@@ -388,10 +394,6 @@ cc_toolchain(
 )
 """
 
-    def dict_value(d, default = None):
-        # Get a value from the dict for the target pair, falling back to an empty key, if present.
-        return d.get(target_pair, d.get("", default))
-
     return template.format(
         suffix = suffix,
         target_os = target_os,
@@ -407,18 +409,18 @@ cc_toolchain(
         sysroot_label_str = sysroot_label_str,
         sysroot_path = sysroot_path,
         additional_include_dirs = _list_to_string(toolchain_info.additional_include_dirs_dict.get(target_pair, [])),
-        stdlib = dict_value(toolchain_info.stdlib_dict, "builtin-libc++"),
-        cxx_standard = dict_value(toolchain_info.cxx_standard_dict, "c++17"),
-        compile_flags = _list_to_string(dict_value(toolchain_info.compile_flags_dict)),
-        cxx_flags = _list_to_string(dict_value(toolchain_info.cxx_flags_dict)),
-        link_flags = _list_to_string(dict_value(toolchain_info.link_flags_dict)),
-        link_libs = _list_to_string(dict_value(toolchain_info.link_libs_dict)),
-        opt_compile_flags = _list_to_string(dict_value(toolchain_info.opt_compile_flags_dict)),
-        opt_link_flags = _list_to_string(dict_value(toolchain_info.opt_link_flags_dict)),
-        dbg_compile_flags = _list_to_string(dict_value(toolchain_info.dbg_compile_flags_dict)),
-        coverage_compile_flags = _list_to_string(dict_value(toolchain_info.coverage_compile_flags_dict)),
-        coverage_link_flags = _list_to_string(dict_value(toolchain_info.coverage_link_flags_dict)),
-        unfiltered_compile_flags = _list_to_string(dict_value(toolchain_info.unfiltered_compile_flags_dict)),
+        stdlib = _dict_value(toolchain_info.stdlib_dict, target_pair, "builtin-libc++"),
+        cxx_standard = _dict_value(toolchain_info.cxx_standard_dict, target_pair, "c++17"),
+        compile_flags = _list_to_string(_dict_value(toolchain_info.compile_flags_dict, target_pair)),
+        cxx_flags = _list_to_string(_dict_value(toolchain_info.cxx_flags_dict, target_pair)),
+        link_flags = _list_to_string(_dict_value(toolchain_info.link_flags_dict, target_pair)),
+        link_libs = _list_to_string(_dict_value(toolchain_info.link_libs_dict, target_pair)),
+        opt_compile_flags = _list_to_string(_dict_value(toolchain_info.opt_compile_flags_dict, target_pair)),
+        opt_link_flags = _list_to_string(_dict_value(toolchain_info.opt_link_flags_dict, target_pair)),
+        dbg_compile_flags = _list_to_string(_dict_value(toolchain_info.dbg_compile_flags_dict, target_pair)),
+        coverage_compile_flags = _list_to_string(_dict_value(toolchain_info.coverage_compile_flags_dict, target_pair)),
+        coverage_link_flags = _list_to_string(_dict_value(toolchain_info.coverage_link_flags_dict, target_pair)),
+        unfiltered_compile_flags = _list_to_string(_dict_value(toolchain_info.unfiltered_compile_flags_dict, target_pair)),
         llvm_version = toolchain_info.llvm_version,
         extra_files_str = extra_files_str,
         host_tools_info = host_tools_info,

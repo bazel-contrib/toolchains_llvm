@@ -24,6 +24,11 @@ load(
     _os_arch_pair = "os_arch_pair",
 )
 
+# Bazel 4.* doesn't support nested skylark functions, so we cannot simplify
+# _fmt_flags() by defining it as a nested function.
+def _fmt_flags(flags, toolchain_path_prefix):
+    return [f.format(toolchain_path_prefix = toolchain_path_prefix) for f in flags]
+
 # Macro for calling cc_toolchain_config from @bazel_tools with setting the
 # right paths and flags for the tools.
 def cc_toolchain_config(
@@ -305,30 +310,27 @@ def cc_toolchain_config(
     # `lld` is being used as the linker.
     supports_start_end_lib = use_lld
 
-    def fmt_flags(flags):
-        return [f.format(toolchain_path_prefix = toolchain_path_prefix) for f in flags]
-
     # Replace flags with any user-provided overrides.
     if compiler_configuration["compile_flags"] != None:
-        compile_flags = fmt_flags(compiler_configuration["compile_flags"])
+        compile_flags = _fmt_flags(compiler_configuration["compile_flags"], toolchain_path_prefix)
     if compiler_configuration["cxx_flags"] != None:
-        cxx_flags = fmt_flags(compiler_configuration["cxx_flags"])
+        cxx_flags = _fmt_flags(compiler_configuration["cxx_flags"], toolchain_path_prefix)
     if compiler_configuration["link_flags"] != None:
-        link_flags = fmt_flags(compiler_configuration["link_flags"])
+        link_flags = _fmt_flags(compiler_configuration["link_flags"], toolchain_path_prefix)
     if compiler_configuration["link_libs"] != None:
-        link_libs = fmt_flags(compiler_configuration["link_libs"])
+        link_libs = _fmt_flags(compiler_configuration["link_libs"], toolchain_path_prefix)
     if compiler_configuration["opt_compile_flags"] != None:
-        opt_compile_flags = fmt_flags(compiler_configuration["opt_compile_flags"])
+        opt_compile_flags = _fmt_flags(compiler_configuration["opt_compile_flags"], toolchain_path_prefix)
     if compiler_configuration["opt_link_flags"] != None:
-        opt_link_flags = fmt_flags(compiler_configuration["opt_link_flags"])
+        opt_link_flags = _fmt_flags(compiler_configuration["opt_link_flags"], toolchain_path_prefix)
     if compiler_configuration["dbg_compile_flags"] != None:
-        dbg_compile_flags = fmt_flags(compiler_configuration["dbg_compile_flags"])
+        dbg_compile_flags = _fmt_flags(compiler_configuration["dbg_compile_flags"], toolchain_path_prefix)
     if compiler_configuration["coverage_compile_flags"] != None:
-        coverage_compile_flags = fmt_flags(compiler_configuration["coverage_compile_flags"])
+        coverage_compile_flags = _fmt_flags(compiler_configuration["coverage_compile_flags"], toolchain_path_prefix)
     if compiler_configuration["coverage_link_flags"] != None:
-        coverage_link_flags = fmt_flags(compiler_configuration["coverage_link_flags"])
+        coverage_link_flags = _fmt_flags(compiler_configuration["coverage_link_flags"], toolchain_path_prefix)
     if compiler_configuration["unfiltered_compile_flags"] != None:
-        unfiltered_compile_flags = fmt_flags(compiler_configuration["unfiltered_compile_flags"])
+        unfiltered_compile_flags = _fmt_flags(compiler_configuration["unfiltered_compile_flags"], toolchain_path_prefix)
 
     # Source: https://cs.opensource.google/bazel/bazel/+/master:tools/cpp/unix_cc_toolchain_config.bzl
     unix_cc_toolchain_config(
