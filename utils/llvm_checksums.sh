@@ -18,7 +18,7 @@ while getopts "v:gh" opt; do
 done
 
 if ! [[ "${llvm_version:-}" ]]; then
-  echo "Usage: ${BASH_SOURCE[0]} -v llvm_version"
+  echo "Usage: ${BASH_SOURCE[0]} [-g] -v llvm_version"
   exit 1
 fi
 
@@ -62,4 +62,6 @@ echo "===="
 echo "Checksums for clang+llvm distributions are:"
 find "${output_dir}" -type f -name '*.xz' -exec shasum -a 256 {} \; | \
   sed -e "s@${output_dir}/@@" | \
-  awk '{ printf "\"%s\": \"%s\",\n", $2, $1 }'
+  awk '{ printf "\"%s\": \"%s\",\n", $2, $1 }' | \
+  sed -e 's/%2[Bb]/+/' | \
+  sort
