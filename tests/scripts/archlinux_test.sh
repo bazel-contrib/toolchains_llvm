@@ -19,6 +19,9 @@ images=(
 "archlinux:base-devel"
 )
 
+# See note next to the definition of this toolchain in the WORKSPACE file.
+toolchain="@llvm_toolchain_13_0_0//:cc-toolchain-x86_64-linux"
+
 git_root=$(git rev-parse --show-toplevel)
 readonly git_root
 
@@ -32,6 +35,6 @@ pacman -Syu --noconfirm --quiet python
 
 # Run tests
 cd /src
-tests/scripts/run_tests.sh
+tests/scripts/run_tests.sh -t ${toolchain}
 """
 done

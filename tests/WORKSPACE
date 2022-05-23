@@ -36,6 +36,15 @@ llvm_toolchain(
     #urls = {"ubuntu-20.04-x86_64": ["https://github.com/llvm/llvm-project/releases/download/llvmorg-14.0.0/clang+llvm-14.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz"]},
 )
 
+# This is the last known LLVM version with zlib support in ld.lld. Without zlib
+# support, if the installed gcc toolchain has compressed sections in its object
+# files, then ld.lld won't be able to process them. Example is archlinux docker
+# image base-devel as of the time of this writing (23 May 2022).
+llvm_toolchain(
+    name = "llvm_toolchain_13_0_0",
+    llvm_version = "13.0.0",
+)
+
 load("@llvm_toolchain//:toolchains.bzl", "llvm_register_toolchains")
 
 llvm_register_toolchains()
