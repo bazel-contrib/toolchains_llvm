@@ -14,9 +14,15 @@ jobs:
       matrix:
         os: [macos-latest, ubuntu-latest]
         script: [run_tests.sh, run_external_tests.sh]
+        bazel_version: [latest, 4.2.1]
+        exclude:
+          - script: run_external_tests.sh
+            bazel_version: 4.2.1
     steps:
     - uses: actions/checkout@v2
     - name: test
+      env:
+        USE_BAZEL_VERSION: ${{ matrix.bazel_version }}
       run: tests/scripts/${{ matrix.script }}
   container_test:
     runs-on: ubuntu-latest
