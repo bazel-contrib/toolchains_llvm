@@ -90,9 +90,9 @@ def _linux(llvm_version, distname, version, arch):
         os_name = "unknown-freebsd-%s" % version
     elif distname == "suse":
         os_name = _resolve_version_for_suse(major_llvm_version, llvm_version)
-    elif distname == "ubuntu" or distname == "pop":
+    elif distname in ["ubuntu", "pop"]:
         os_name = _ubuntu_osname(arch, version, major_llvm_version, llvm_version)
-    elif ((distname in ["linuxmint", "pop"]) and (version.startswith("21") or version.startswith("20") or version.startswith("19"))):
+    elif ((distname in ["linuxmint"]) and (version.startswith("21") or version.startswith("20") or version.startswith("19"))):
         os_name = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version)
     elif distname in ["manjaro"] or (distname == "linuxmint" and version.startswith("18")):
         os_name = "linux-gnu-ubuntu-16.04"
