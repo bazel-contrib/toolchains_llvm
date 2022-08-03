@@ -123,3 +123,8 @@ filegroup(
     name = "strip",
     srcs = ["bin/llvm-strip"],
 )
+
+filegroup(
+    name = "symbolizer",
+    srcs = ["bin/llvm-symbolizer"],
+)
