@@ -181,7 +181,7 @@ The following pairs have been tested to work for some hello-world binaries:
 A recommended approach would be to define two toolchains, one without sysroot
 for single-platform builds, and one with sysroot for cross-compilation builds.
 Then, when cross-compiling, explicitly specify the toolchain with the sysroot
-and the target platform. For example, see the [WORKSPACE](WORKSPACE) file and
+and the target platform. For example, see the [WORKSPACE](tests/WORKSPACE) file and
 the [test script](tests/scripts/run_xcompile_tests.sh) for cross-compilation.
 ```
 bazel build \
