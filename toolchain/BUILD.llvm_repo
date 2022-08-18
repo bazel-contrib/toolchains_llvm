@@ -128,3 +128,8 @@ filegroup(
     name = "symbolizer",
     srcs = ["bin/llvm-symbolizer"],
 )
+
+filegroup(
+    name = "clang-tidy",
+    srcs = ["bin/clang-tidy"],
+)
