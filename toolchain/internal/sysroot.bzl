@@ -30,6 +30,7 @@ def _darwin_sdk_path(rctx):
 # sysroot for the target, and when host platform is the same as target
 # platform.
 def default_sysroot_path(rctx, os):
+    # TODO: Add windows
     if os == "darwin":
         return _darwin_sdk_path(rctx)
     else:

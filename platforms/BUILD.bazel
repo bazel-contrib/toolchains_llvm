@@ -37,3 +37,11 @@ platform(
         "@platforms//cpu:x86_64",
     ],
 )
+
+platform(
+    name = "windows-x86_64",
+    constraint_values = [
+        "@platforms//os:windows",
+        "@platforms//cpu:x86_64",
+    ],
+)

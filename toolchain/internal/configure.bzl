@@ -67,6 +67,8 @@ def llvm_register_toolchains():
     if toolchain_root[0] == "/" and (len(toolchain_root) == 1 or toolchain_root[1] != "/"):
         use_absolute_paths = True
 
+    raw_llvm_repo_path = ""
+
     if use_absolute_paths:
         llvm_repo_label = Label(toolchain_root + ":BUILD.bazel")  # Exact target does not matter.
         llvm_repo_path = _canonical_dir_path(str(rctx.path(llvm_repo_label).dirname))
@@ -79,6 +81,7 @@ def llvm_register_toolchains():
     else:
         llvm_repo_label = Label(toolchain_root + ":BUILD.bazel")  # Exact target does not matter.
         llvm_repo_path = _pkg_path_from_label(llvm_repo_label)
+        raw_llvm_repo_path = _canonical_dir_path(str(rctx.path(llvm_repo_label).dirname))
         config_repo_path = "external/%s/" % rctx.name
 
         # tools can only be defined in a subdirectory of config_repo_path,
@@ -97,6 +100,7 @@ def llvm_register_toolchains():
         tools_path_prefix = "bin/"
         for tool_name in _toolchain_tools:
             rctx.symlink("../../" + llvm_repo_path + "/bin/" + tool_name, tools_path_prefix + tool_name)
+
         symlinked_tools_str = "\n".join([" " * 8 + "\"" + tools_path_prefix + name + "\"," for name in _toolchain_tools])
         llvm_repo_label_prefix = toolchain_root + ":"
         toolchain_path_prefix = llvm_repo_path
@@ -128,6 +132,7 @@ def llvm_register_toolchains():
         coverage_link_flags_dict = rctx.attr.coverage_link_flags,
         unfiltered_compile_flags_dict = rctx.attr.unfiltered_compile_flags,
         llvm_version = rctx.attr.llvm_version,
+        raw_llvm_repo_path = raw_llvm_repo_path,
     )
     host_dl_ext = "dylib" if os == "darwin" else "so"
     host_tools_info = dict([
@@ -257,6 +262,7 @@ def _cc_toolchain_str(
         target_os,
         target_arch,
     )
+
     if not sysroot_path:
         if host_os == target_os and host_arch == target_arch:
             # For darwin -> darwin, we can use the macOS SDK path.
@@ -265,6 +271,7 @@ def _cc_toolchain_str(
             # We are trying to cross-compile without a sysroot, let's bail.
             # TODO: Are there situations where we can continue?
             return ""
+
     sysroot_label_str = "\"%s\"" % str(sysroot) if sysroot else ""
 
     extra_files_str = ", \":internal-use-symlinked-tools\", \":internal-use-wrapped-tools\""
@@ -302,6 +309,7 @@ cc_toolchain_config(
       "coverage_compile_flags": {coverage_compile_flags},
       "coverage_link_flags": {coverage_link_flags},
       "unfiltered_compile_flags": {unfiltered_compile_flags},
+      "raw_llvm_repo_path": "{raw_llvm_repo_path}",
     }},
     llvm_version = "{llvm_version}",
     host_tools_info = {host_tools_info},
@@ -321,6 +329,8 @@ toolchain(
     toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
 )
 """
+
+    # TODO: Should this look at windows and not require lld-link / clang-cl for all platforms?
 
     if use_absolute_paths:
         template = template + """
@@ -346,6 +356,8 @@ filegroup(
     name = "compiler-components-{suffix}",
     srcs = [
         "{llvm_repo_label_prefix}clang",
+        "{llvm_repo_label_prefix}clang-cl",
+        "{llvm_repo_label_prefix}llvm-lib",
         "{llvm_repo_label_prefix}include",
         ":sysroot-components-{suffix}",
     ],
@@ -356,6 +368,8 @@ filegroup(
     srcs = [
         "{llvm_repo_label_prefix}clang",
         "{llvm_repo_label_prefix}ld",
+        "{llvm_repo_label_prefix}lld-link",
+        "{llvm_repo_label_prefix}llvm-lib",
         "{llvm_repo_label_prefix}ar",
         "{llvm_repo_label_prefix}lib",
         ":sysroot-components-{suffix}",
@@ -403,6 +417,7 @@ cc_toolchain(
         target_os_bzl = target_os_bzl,
         host_os_bzl = host_os_bzl,
         llvm_repo_label_prefix = toolchain_info.llvm_repo_label_prefix,
+        raw_llvm_repo_path = toolchain_info.raw_llvm_repo_path,
         toolchain_path_prefix = toolchain_info.toolchain_path_prefix,
         tools_path_prefix = toolchain_info.tools_path_prefix,
         wrapper_bin_prefix = toolchain_info.wrapper_bin_prefix,

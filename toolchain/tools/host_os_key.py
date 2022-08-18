@@ -19,7 +19,8 @@ import platform
 import sys
 
 
-_known_distros = ["freebsd", "suse", "ubuntu", "arch", "manjaro", "debian", "fedora", "centos", "amzn", "raspbian", "pop"]
+_known_distros = ["freebsd", "suse", "ubuntu", "arch", "manjaro", "debian",
+    "fedora", "centos", "amzn", "raspbian", "pop", "nixos"]
 
 
 def _linux_dist():

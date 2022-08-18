@@ -32,10 +32,38 @@ filegroup(
 )
 
 filegroup(
+    name = "clang-cl",
+    srcs = [
+        "bin/clang-cl",
+    ],
+)
+
+filegroup(
+    name = "llvm-ml",
+    srcs = [
+        "bin/llvm-ml",
+    ],
+)
+
+filegroup(
     name = "ld",
     srcs = [
         "bin/ld.lld",
     ],
+)
+
+filegroup(
+    name = "lld-link",
+    srcs = [
+        "bin/lld-link",
+    ],
+)
+
+filegroup(
+    name = "llvm-lib",
+    srcs = [
+        "bin/llvm-lib",
+    ]
 )
 
 filegroup(

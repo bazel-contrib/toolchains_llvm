@@ -122,6 +122,9 @@ def _linux(llvm_version, distname, version, arch):
     elif distname == "raspbian":
         arch = "armv7a"
         os_name = "linux-gnueabihf"
+    elif distname == "nixos":
+        # This is a lie that works with nix-ld
+        os_name = "linux-gnu-ubuntu-18.04"
     else:
         sys.exit("Unsupported linux distribution and version: %s, %s" % (distname, version))
 

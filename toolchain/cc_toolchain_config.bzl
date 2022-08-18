@@ -17,6 +17,10 @@ load(
     unix_cc_toolchain_config = "cc_toolchain_config",
 )
 load(
+    "@bazel_tools//tools/cpp:windows_cc_toolchain_config.bzl",
+    windows_cc_toolchain_config = "cc_toolchain_config",
+)
+load(
     "//toolchain/internal:common.bzl",
     _check_os_arch_keys = "check_os_arch_keys",
     _host_tool_features = "host_tool_features",
@@ -43,6 +47,14 @@ def cc_toolchain_config(
         compiler_configuration,
         llvm_version,
         host_tools_info = {}):
+
+    # Windows even if cross compiling is different to the point of just using a
+    # different configuration step
+    if target_os == "windows":
+        return windows_cc_toolchain(name, host_arch, host_os, target_arch, target_os,
+                                    toolchain_path_prefix, tools_path_prefix, wrapper_bin_prefix,
+                                    compiler_configuration, llvm_version, host_tools_info = {})
+
     host_os_arch_key = _os_arch_pair(host_os, host_arch)
     target_os_arch_key = _os_arch_pair(target_os, target_arch)
     _check_os_arch_keys([host_os_arch_key, target_os_arch_key])
@@ -169,6 +181,7 @@ def cc_toolchain_config(
     stdlib = compiler_configuration["stdlib"]
     if stdlib == "builtin-libc++" and is_xcompile:
         stdlib = "stdc++"
+
     if stdlib == "builtin-libc++":
         cxx_flags = [
             "-std=" + cxx_standard,
@@ -245,8 +258,10 @@ def cc_toolchain_config(
 
     sysroot_path = compiler_configuration["sysroot_path"]
     sysroot_prefix = ""
+
     if sysroot_path:
         sysroot_prefix = "%sysroot%"
+
     if target_os == "linux":
         cxx_builtin_include_directories.extend([
             sysroot_prefix + "/include",
@@ -285,8 +300,6 @@ def cc_toolchain_config(
         else:
             ar_binary = host_tools_info["libtool"]["path"]
 
-    # The tool names come from [here](https://github.com/bazelbuild/bazel/blob/c7e58e6ce0a78fdaff2d716b4864a5ace8917626/src/main/java/com/google/devtools/build/lib/rules/cpp/CppConfiguration.java#L76-L90):
-    # NOTE: Ensure these are listed in toolchain_tools in toolchain/internal/common.bzl.
     tool_paths = {
         "ar": ar_binary,
         "cpp": tools_path_prefix + "clang-cpp",
@@ -357,4 +370,132 @@ def cc_toolchain_config(
         coverage_link_flags = coverage_link_flags,
         supports_start_end_lib = supports_start_end_lib,
         builtin_sysroot = sysroot_path,
+    )
+
+def windows_cc_toolchain(
+        name,
+        host_arch,
+        host_os,
+        target_arch,
+        target_os,
+        toolchain_path_prefix,
+        tools_path_prefix,
+        wrapper_bin_prefix,
+        compiler_configuration,
+        llvm_version,
+        host_tools_info = {}):
+
+    sysroot_path = compiler_configuration["sysroot_path"]
+
+    # For the bring your own sysroot crowd, we assume xwin
+    # These are the defaults ...
+    msvc_env_tmp = "msvc_not_found"
+    msvc_env_path = "msvc_not_found"
+    msvc_env_include = "msvc_not_found"
+    msvc_env_lib = "msvc_not_found"
+    msvc_cl_path = tools_path_prefix + "clang-cl"
+    msvc_ml_path = tools_path_prefix + "clang-cl" # llvm-ml"
+    msvc_link_path = tools_path_prefix + "lld-link"
+    msvc_lib_path = tools_path_prefix + "llvm-lib"
+
+    cxx_builtin_include_directories = []
+
+    raw_llvm_repo_path = compiler_configuration['raw_llvm_repo_path']
+    if raw_llvm_repo_path:
+        cxx_builtin_include_directories.extend([
+            raw_llvm_repo_path + "include/c++/v1",
+            raw_llvm_repo_path + "include/windows/c++/v1",
+            raw_llvm_repo_path + "lib/clang/{}/include".format(llvm_version),
+            raw_llvm_repo_path + "lib64/clang/{}/include".format(llvm_version),
+        ])
+
+    if host_os == "windows":
+        script_lang = ".bat"
+        # TODO: Make work on windows ;)
+        # sysroot = figure_out_sysroot_vs_msvc_install()
+        fail("Not currently working on windows")
+    else:
+        script_lang = ".sh"
+        if not sysroot_path:
+            fail("In cross compilation of windows artifacts an MSVCRT sysroot needs to be prepared")
+
+        includes = [
+            sysroot_path + "/crt/include",
+            sysroot_path + "/sdk/include/ucrt",
+            sysroot_path + "/sdk/include/um",
+            sysroot_path + "/sdk/include/shared",
+        ]
+
+        lib_paths = [
+            # TODO: Arch should be inferred
+            sysroot_path + "/crt/lib/x86_64",
+            sysroot_path + "/sdk/lib/um/x86_64",
+            sysroot_path + "/sdk/lib/ucrt/x86_64",
+            # TODO: How to get this in a sysroot
+            sysroot_path + "/clang-rt-14.0.0",
+        ]
+
+        # HACK we combine paths with `;` which is not a unix idiom, since windows_cc_toolchain_config
+        # HACK breaks this apart with split :/
+        msvc_env_include = ';'.join(includes)
+        cxx_builtin_include_directories.extend(includes)
+
+        msvc_env_lib = ';'.join(lib_paths)
+        #msvc_link_path = ';'.join(lib_paths)
+
+    # These are the defaults, how to configure?
+    archiver_flags = []
+    default_link_flags = []
+
+    tool_paths = {
+        "ar": tools_path_prefix + "clang-cl",
+        "ml": tools_path_prefix + "clang-cl", # llvm-ml",
+        "cpp": tools_path_prefix + "clang-cl",
+        "gcc": tools_path_prefix + "clang-cl",
+        "ld": tools_path_prefix + "lld-link",
+        "gcov": wrapper_bin_prefix + "msvc_nop" + script_lang,
+        "nm": wrapper_bin_prefix + "msvc_nop" + script_lang,
+        "objcopy": wrapper_bin_prefix + "msvc_nop" + script_lang,
+        "objdump": wrapper_bin_prefix + "msvc_nop" + script_lang,
+        "strip": wrapper_bin_prefix + "msvc_nop" + script_lang,
+    }
+
+    tool_bin_path = "not_found"
+
+    cxx_builtin_include_directories.extend(compiler_configuration["additional_include_dirs"])
+
+    dbg_mode_debug_flag = "/DEBUG"
+    fastbuild_mode_debug_flag = "/DEBUG"
+
+    windows_cc_toolchain_config(
+        name = name,
+        cpu = "x64_windows",
+        # The compiler is hardcoded, we only support clang (suprise!) and its
+        # required to satisify https://cs.opensource.google/bazel/bazel/+/master:tools/cpp/windows_cc_toolchain_config.bzl;l=82
+        compiler = "clang-cl",
+        # TODO: To support Arm or x86_32 this needs to be configured
+        toolchain_identifier = "clang_cl_x64",
+        host_system_name = "linux",
+        target_system_name = "windows",
+        # TODO: On windows this should probably figure out where the VC install is
+        # This toolchain only supports MSCRT as the ABI, I would suggest zig-cc-bazel for GNU ABI
+        # These values are related to the provided sysroot
+        target_libc = "msvcrt",
+        abi_version = "local",
+        abi_libc_version = "local",
+        cxx_builtin_include_directories = cxx_builtin_include_directories,
+        tool_paths = tool_paths,
+        archiver_flags = ["/MACHINE:X64"],
+        default_link_flags = ["/MACHINE:X64", "/DEFAULTLIB:clang_rt.builtins-x86_64.lib"],
+        msvc_env_tmp = msvc_env_tmp,
+        msvc_env_path = msvc_env_path,
+        msvc_env_include = msvc_env_include,
+        msvc_env_lib = msvc_env_lib,
+        msvc_cl_path = msvc_cl_path,
+        msvc_ml_path = msvc_ml_path,
+        msvc_link_path = msvc_link_path,
+        msvc_lib_path = msvc_lib_path,
+        dbg_mode_debug_flag = dbg_mode_debug_flag,
+        fastbuild_mode_debug_flag = fastbuild_mode_debug_flag,
+        tool_bin_path = tool_bin_path,
     )
