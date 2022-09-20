@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-SUPPORTED_TARGETS = [("linux", "x86_64"), ("linux", "aarch64"), ("darwin", "x86_64")]
+SUPPORTED_TARGETS = [("linux", "x86_64"), ("linux", "aarch64"), ("darwin", "x86_64"), ("darwin", "aarch64")]
 
 host_tool_features = struct(
     SUPPORTS_ARG_FILE = "supports_arg_file",
@@ -68,7 +68,10 @@ def arch(rctx):
     ])
     if exec_result.return_code:
         fail("Failed to detect machine architecture: \n%s\n%s" % (exec_result.stdout, exec_result.stderr))
-    return exec_result.stdout.strip()
+    arch = exec_result.stdout.strip()
+    if arch == "arm64":
+        return "aarch64"
+    return arch
 
 def os_arch_pair(os, arch):
     return "{}-{}".format(os, arch)
