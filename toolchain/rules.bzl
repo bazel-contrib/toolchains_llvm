@@ -226,6 +226,10 @@ _compiler_configuration_attrs = {
 _llvm_config_attrs = dict(_common_attrs)
 _llvm_config_attrs.update(_compiler_configuration_attrs)
 _llvm_config_attrs.update({
+    "target_settings": attr.string_list_dict(
+        mandatory = False,
+        doc = ("Override the toolchain's `target_settings` attribute."),
+    ),
     "toolchain_roots": attr.string_dict(
         mandatory = True,
         # TODO: Ideally, we should be taking a filegroup label here instead of a package path, but

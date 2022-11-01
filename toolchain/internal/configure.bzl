@@ -114,6 +114,7 @@ def llvm_register_toolchains():
         wrapper_bin_prefix = wrapper_bin_prefix,
         sysroot_dict = rctx.attr.sysroot,
         default_sysroot_path = default_sysroot_path,
+        target_settings_dict = rctx.attr.target_settings,
         additional_include_dirs_dict = rctx.attr.cxx_builtin_include_directories,
         stdlib_dict = rctx.attr.stdlib,
         cxx_standard_dict = rctx.attr.cxx_standard,
@@ -317,6 +318,7 @@ toolchain(
         "@platforms//cpu:{target_arch}",
         "@platforms//os:{target_os_bzl}",
     ],
+    target_settings = {target_settings},
     toolchain = ":cc-clang-{suffix}",
     toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
 )
@@ -400,6 +402,7 @@ cc_toolchain(
         target_arch = target_arch,
         host_os = host_os,
         host_arch = host_arch,
+        target_settings = _list_to_string(_dict_value(toolchain_info.target_settings_dict, target_pair)),
         target_os_bzl = target_os_bzl,
         host_os_bzl = host_os_bzl,
         llvm_repo_label_prefix = toolchain_info.llvm_repo_label_prefix,
