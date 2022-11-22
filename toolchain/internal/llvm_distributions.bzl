@@ -225,6 +225,12 @@ _llvm_distributions = {
     "clang+llvm-15.0.0-sparcv9-sun-solaris2.11.tar.xz": "4354854976355ca6f4ac90231a97121844c4fc9f998c9850527390120c62f01f",
     "clang+llvm-15.0.0-x86_64-apple-darwin.tar.xz": "8fb11e6ada98b901398b2e7b0378a3a59e88c88c754e95d8f6b54613254d7d65",
 
+    # 15.0.2
+    "clang+llvm-15.0.2-aarch64-linux-gnu.tar.xz": "3d0c2b28b0c06ebb9e0ce75e337680403771b28a4b8f065ce608cf2386f97a73",
+    "clang+llvm-15.0.2-arm64-apple-darwin21.0.tar.xz": "8c33f807bca56568b7060d0474daf63c8c10ec521d8188ac76362354d313ec58",
+    "clang+llvm-15.0.2-x86_64-apple-darwin.tar.xz": "a37ec6204f555605fa11e9c0e139a251402590ead6e227fc72da193e03883882",
+    "clang+llvm-15.0.2-x86_64-unknown-linux-gnu-rhel86.tar.xz": "f48f479e91ee7297ed8306c9d4495015691237cd91cc5330d3e1ee057b0548bd",
+
     # 15.0.6
     "clang+llvm-15.0.6-aarch64-linux-gnu.tar.xz": "8ca4d68cf103da8331ca3f35fe23d940c1b78fb7f0d4763c1c059e352f5d1bec",
     "clang+llvm-15.0.6-arm64-apple-darwin21.0.tar.xz": "32bc7b8eee3d98f72dd4e5651e6da990274ee2d28c5c19a7d8237eb817ce8d91",
@@ -303,6 +309,7 @@ _llvm_distributions_base_url = {
     "13.0.1": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
     "14.0.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
     "15.0.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
+    "15.0.2": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
     "15.0.6": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
     "15.0.7": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
     "16.0.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
@@ -402,5 +409,7 @@ def _distribution_urls(rctx):
     sha256 = _llvm_distributions[basename]
 
     strip_prefix = basename[:(len(basename) - len(".tar.xz"))]
+
+    strip_prefix = strip_prefix.rstrip("-rhel86")
 
     return urls, sha256, strip_prefix
