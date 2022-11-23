@@ -239,8 +239,9 @@ that you can reference, and you may have to alias the tools you want with a
 
 As a convenience, some targets are aliased appropriately in the configuration
 repo (as opposed to the LLVM distribution repo) for you to use and will work
-even when using `toolchain_roots`. If your repo is named `llvm_toolchain`, then
-they can be referenced as:
+even when using `toolchain_roots`. The complete list is in the file
+[aliases.bzl](toolchain/aliases.bzl). If your repo is named `llvm_toolchain`,
+then they can be referenced as:
 
 - `@llvm_toolchain//:omp`
 - `@llvm_toolchain//:clang-format`

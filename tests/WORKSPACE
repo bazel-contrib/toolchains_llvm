@@ -49,11 +49,24 @@ load("@llvm_toolchain//:toolchains.bzl", "llvm_register_toolchains")
 
 llvm_register_toolchains()
 
-## Toolchain example with absolute paths.
+## Toolchain example with absolute paths; tested in GitHub CI.
 llvm_toolchain(
     name = "llvm_toolchain_with_absolute_paths",
     absolute_paths = True,
     llvm_version = LLVM_VERSION,
+    # We can share the downloaded LLVM distribution with the first configuration.
+    toolchain_roots = {
+        "": "@llvm_toolchain_llvm//",
+    },
+)
+
+## Toolchain example with system LLVM; tested in GitHub CI.
+llvm_toolchain(
+    name = "llvm_toolchain_with_system_llvm",
+    llvm_version = LLVM_VERSION,
+    # For this toolchain to work, the LLVM distribution archive would need to be unpacked here.
+    # A path in /tmp to be part of system tmp cleanup schedule.
+    toolchain_roots = {"": "/tmp/llvm-14"},
 )
 
 ## Toolchain example with a sysroot.

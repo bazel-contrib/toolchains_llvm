@@ -33,6 +33,11 @@ load(
     _default_sysroot_path = "default_sysroot_path",
     _sysroot_path = "sysroot_path",
 )
+load(
+    "//toolchain:aliases.bzl",
+    _aliased_libs = "aliased_libs",
+    _aliased_tools = "aliased_tools",
+)
 
 def _include_dirs_str(rctx, key):
     dirs = rctx.attr.cxx_builtin_include_directories.get(key)
@@ -62,28 +67,33 @@ def llvm_register_toolchains():
     if not toolchain_root:
         fail("LLVM toolchain root missing for ({}, {})", os, arch)
 
-    # Check if the toolchain root is an absolute path.
+    config_repo_path = "external/%s/" % rctx.name
+
     use_absolute_paths = rctx.attr.absolute_paths
+
+    # Check if the toolchain root is a system path.
+    system_llvm = False
     if toolchain_root[0] == "/" and (len(toolchain_root) == 1 or toolchain_root[1] != "/"):
         use_absolute_paths = True
+        system_llvm = True
 
-    if use_absolute_paths:
-        llvm_repo_label = Label(toolchain_root + ":BUILD.bazel")  # Exact target does not matter.
-        llvm_repo_path = _canonical_dir_path(str(rctx.path(llvm_repo_label).dirname))
-        config_repo_path = _canonical_dir_path(str(rctx.path("")))
-        llvm_repo_label_prefix = llvm_repo_path
-        toolchain_path_prefix = llvm_repo_path
-        tools_path_prefix = llvm_repo_path + "bin/"
-        symlinked_tools_str = ""
-        wrapper_bin_prefix = config_repo_path
+    # Paths for LLVM distribution:
+    if system_llvm:
+        llvm_dist_path_prefix = _canonical_dir_path(toolchain_root)
     else:
-        llvm_repo_label = Label(toolchain_root + ":BUILD.bazel")  # Exact target does not matter.
-        llvm_repo_path = _pkg_path_from_label(llvm_repo_label)
-        config_repo_path = "external/%s/" % rctx.name
+        llvm_dist_label = Label(toolchain_root + ":BUILD.bazel")  # Exact target does not matter.
+        if use_absolute_paths:
+            llvm_dist_path_prefix = _canonical_dir_path(str(rctx.path(llvm_dist_label).dirname))
+        else:
+            llvm_dist_path_prefix = _pkg_path_from_label(llvm_dist_label)
 
-        # tools can only be defined in a subdirectory of config_repo_path,
-        # because their paths are relative to the package defining
-        # cc_toolchain, and cannot contain '..'.
+    if not use_absolute_paths:
+        llvm_dist_rel_path = _canonical_dir_path("../../" + llvm_dist_path_prefix)
+        llvm_dist_label_prefix = toolchain_root + ":"
+
+        # tools can only be defined as absolute paths or in a subdirectory of
+        # config_repo_path, because their paths are relative to the package
+        # defining cc_toolchain, and cannot contain '..'.
         # https://github.com/bazelbuild/bazel/issues/7746.  To work around
         # this, we symlink the needed tools under the package so that they (except
         # clang) can be called with normalized relative paths. For clang
@@ -94,13 +104,23 @@ def llvm_register_toolchains():
         # validation check. So we always use a cc_wrapper (which is called
         # through a normalized relative path), and then call clang with the not
         # symlinked path from the wrapper.
+        wrapper_bin_prefix = "bin/"
         tools_path_prefix = "bin/"
         for tool_name in _toolchain_tools:
-            rctx.symlink("../../" + llvm_repo_path + "/bin/" + tool_name, tools_path_prefix + tool_name)
-        symlinked_tools_str = "\n".join([" " * 8 + "\"" + tools_path_prefix + name + "\"," for name in _toolchain_tools])
-        llvm_repo_label_prefix = toolchain_root + ":"
-        toolchain_path_prefix = llvm_repo_path
-        wrapper_bin_prefix = ""
+            rctx.symlink(llvm_dist_rel_path + "bin/" + tool_name, tools_path_prefix + tool_name)
+        symlinked_tools_str = "".join([
+            "\n" + (" " * 8) + "\"" + tools_path_prefix + name + "\","
+            for name in _toolchain_tools
+        ])
+    else:
+        llvm_dist_rel_path = llvm_dist_path_prefix
+        llvm_dist_label_prefix = llvm_dist_path_prefix
+
+        # Path to individual tool binaries.
+        # No symlinking necessary when using absolute paths.
+        wrapper_bin_prefix = "bin/"
+        tools_path_prefix = llvm_dist_path_prefix + "bin/"
+        symlinked_tools_str = ""
 
     default_sysroot_path = _default_sysroot_path(rctx, os)
 
@@ -108,8 +128,8 @@ def llvm_register_toolchains():
     toolchain_info = struct(
         os = os,
         arch = arch,
-        llvm_repo_label_prefix = llvm_repo_label_prefix,
-        toolchain_path_prefix = toolchain_path_prefix,
+        llvm_dist_label_prefix = llvm_dist_label_prefix,
+        llvm_dist_path_prefix = llvm_dist_path_prefix,
         tools_path_prefix = tools_path_prefix,
         wrapper_bin_prefix = wrapper_bin_prefix,
         sysroot_dict = rctx.attr.sysroot,
@@ -151,6 +171,14 @@ def llvm_register_toolchains():
         host_tools_info,
     )
 
+    convenience_targets_str = _convenience_targets_str(
+        rctx,
+        use_absolute_paths,
+        llvm_dist_rel_path,
+        llvm_dist_label_prefix,
+        host_dl_ext,
+    )
+
     # Convenience macro to register all generated toolchains.
     rctx.template(
         "toolchains.bzl",
@@ -168,8 +196,8 @@ def llvm_register_toolchains():
             "%{cc_toolchain_config_bzl}": str(rctx.attr._cc_toolchain_config_bzl),
             "%{cc_toolchains}": cc_toolchains_str,
             "%{symlinked_tools}": symlinked_tools_str,
-            "%{llvm_repo_package}": _pkg_name_from_label(llvm_repo_label),
-            "%{host_dl_ext}": host_dl_ext,
+            "%{wrapper_bin_prefix}": wrapper_bin_prefix,
+            "%{convenience_targets}": convenience_targets_str,
         },
     )
 
@@ -182,7 +210,7 @@ def llvm_register_toolchains():
         "bin/cc_wrapper.sh",
         Label(cc_wrapper_tpl),
         {
-            "%{toolchain_path_prefix}": toolchain_path_prefix,
+            "%{toolchain_path_prefix}": llvm_dist_path_prefix,
         },
     )
 
@@ -268,7 +296,7 @@ def _cc_toolchain_str(
             return ""
     sysroot_label_str = "\"%s\"" % str(sysroot) if sysroot else ""
 
-    extra_files_str = ", \":internal-use-symlinked-tools\", \":internal-use-wrapped-tools\""
+    extra_files_str = ", \":internal-use-files\""
 
     target_pair = _os_arch_pair(target_os, target_arch)
 
@@ -285,7 +313,7 @@ cc_toolchain_config(
     host_os = "{host_os}",
     target_arch = "{target_arch}",
     target_os = "{target_os}",
-    toolchain_path_prefix = "{toolchain_path_prefix}",
+    toolchain_path_prefix = "{llvm_dist_path_prefix}",
     tools_path_prefix = "{tools_path_prefix}",
     wrapper_bin_prefix = "{wrapper_bin_prefix}",
     compiler_configuration = {{
@@ -328,12 +356,12 @@ toolchain(
         template = template + """
 cc_toolchain(
     name = "cc-clang-{suffix}",
-    all_files = ":empty",
-    compiler_files = ":empty",
-    dwp_files = ":empty",
-    linker_files = ":empty",
-    objcopy_files = ":empty",
-    strip_files = ":empty",
+    all_files = ":internal-use-files",
+    compiler_files = ":internal-use-files",
+    dwp_files = ":internal-use-files",
+    linker_files = ":internal-use-files",
+    objcopy_files = ":internal-use-files",
+    strip_files = ":internal-use-files",
     toolchain_config = "local-{suffix}",
 )
 """
@@ -347,8 +375,8 @@ filegroup(
 filegroup(
     name = "compiler-components-{suffix}",
     srcs = [
-        "{llvm_repo_label_prefix}clang",
-        "{llvm_repo_label_prefix}include",
+        "{llvm_dist_label_prefix}clang",
+        "{llvm_dist_label_prefix}include",
         ":sysroot-components-{suffix}",
     ],
 )
@@ -356,10 +384,10 @@ filegroup(
 filegroup(
     name = "linker-components-{suffix}",
     srcs = [
-        "{llvm_repo_label_prefix}clang",
-        "{llvm_repo_label_prefix}ld",
-        "{llvm_repo_label_prefix}ar",
-        "{llvm_repo_label_prefix}lib",
+        "{llvm_dist_label_prefix}clang",
+        "{llvm_dist_label_prefix}ld",
+        "{llvm_dist_label_prefix}ar",
+        "{llvm_dist_label_prefix}lib",
         ":sysroot-components-{suffix}",
     ],
 )
@@ -367,20 +395,20 @@ filegroup(
 filegroup(
     name = "all-components-{suffix}",
     srcs = [
-        "{llvm_repo_label_prefix}bin",
+        "{llvm_dist_label_prefix}bin",
         ":compiler-components-{suffix}",
         ":linker-components-{suffix}",
     ],
 )
 
 filegroup(name = "all-files-{suffix}", srcs = [":all-components-{suffix}"{extra_files_str}])
-filegroup(name = "archiver-files-{suffix}", srcs = ["{llvm_repo_label_prefix}ar"{extra_files_str}])
-filegroup(name = "assembler-files-{suffix}", srcs = ["{llvm_repo_label_prefix}as"{extra_files_str}])
+filegroup(name = "archiver-files-{suffix}", srcs = ["{llvm_dist_label_prefix}ar"{extra_files_str}])
+filegroup(name = "assembler-files-{suffix}", srcs = ["{llvm_dist_label_prefix}as"{extra_files_str}])
 filegroup(name = "compiler-files-{suffix}", srcs = [":compiler-components-{suffix}"{extra_files_str}])
-filegroup(name = "dwp-files-{suffix}", srcs = ["{llvm_repo_label_prefix}dwp"{extra_files_str}])
+filegroup(name = "dwp-files-{suffix}", srcs = ["{llvm_dist_label_prefix}dwp"{extra_files_str}])
 filegroup(name = "linker-files-{suffix}", srcs = [":linker-components-{suffix}"{extra_files_str}])
-filegroup(name = "objcopy-files-{suffix}", srcs = ["{llvm_repo_label_prefix}objcopy"{extra_files_str}])
-filegroup(name = "strip-files-{suffix}", srcs = ["{llvm_repo_label_prefix}strip"{extra_files_str}])
+filegroup(name = "objcopy-files-{suffix}", srcs = ["{llvm_dist_label_prefix}objcopy"{extra_files_str}])
+filegroup(name = "strip-files-{suffix}", srcs = ["{llvm_dist_label_prefix}strip"{extra_files_str}])
 
 cc_toolchain(
     name = "cc-clang-{suffix}",
@@ -405,8 +433,8 @@ cc_toolchain(
         target_settings = _list_to_string(_dict_value(toolchain_info.target_settings_dict, target_pair)),
         target_os_bzl = target_os_bzl,
         host_os_bzl = host_os_bzl,
-        llvm_repo_label_prefix = toolchain_info.llvm_repo_label_prefix,
-        toolchain_path_prefix = toolchain_info.toolchain_path_prefix,
+        llvm_dist_label_prefix = toolchain_info.llvm_dist_label_prefix,
+        llvm_dist_path_prefix = toolchain_info.llvm_dist_path_prefix,
         tools_path_prefix = toolchain_info.tools_path_prefix,
         wrapper_bin_prefix = toolchain_info.wrapper_bin_prefix,
         sysroot_label_str = sysroot_label_str,
@@ -427,4 +455,41 @@ cc_toolchain(
         llvm_version = toolchain_info.llvm_version,
         extra_files_str = extra_files_str,
         host_tools_info = host_tools_info,
+    )
+
+def _convenience_targets_str(rctx, use_absolute_paths, llvm_dist_rel_path, llvm_dist_label_prefix, host_dl_ext):
+    if use_absolute_paths:
+        llvm_dist_label_prefix = ":"
+        filenames = []
+        for libname in _aliased_libs:
+            filename = "lib/{}.{}".format(libname, host_dl_ext)
+            filenames.append(filename)
+        for toolname in _aliased_tools:
+            filename = "bin/{}".format(toolname)
+            filenames.append(filename)
+
+        for filename in filenames:
+            rctx.symlink(llvm_dist_rel_path + filename, filename)
+
+    lib_target_strs = []
+    for name in _aliased_libs:
+        template = """
+cc_import(
+    name = "{name}",
+    shared_library = "{{llvm_dist_label_prefix}}lib/lib{name}.{{host_dl_ext}}",
+)""".format(name = name)
+        lib_target_strs.append(template)
+
+    tool_target_strs = []
+    for name in _aliased_tools:
+        template = """
+alias(
+    name = "{name}",
+    actual = "{{llvm_dist_label_prefix}}bin/{name}",
+)""".format(name = name)
+        tool_target_strs.append(template)
+
+    return "\n".join(lib_target_strs + tool_target_strs).format(
+        llvm_dist_label_prefix = llvm_dist_label_prefix,
+        host_dl_ext = host_dl_ext,
     )

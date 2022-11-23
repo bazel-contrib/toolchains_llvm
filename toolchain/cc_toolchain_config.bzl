@@ -281,7 +281,7 @@ def cc_toolchain_config(
         # In these cases we want to use `libtool_wrapper.sh` which translates
         # the arg file back into command line arguments.
         if not _host_tools.tool_supports(host_tools_info, "libtool", features = [_host_tool_features.SUPPORTS_ARG_FILE]):
-            ar_binary = wrapper_bin_prefix + "bin/host_libtool_wrapper.sh"
+            ar_binary = wrapper_bin_prefix + "host_libtool_wrapper.sh"
         else:
             ar_binary = host_tools_info["libtool"]["path"]
 
@@ -291,7 +291,7 @@ def cc_toolchain_config(
         "ar": ar_binary,
         "cpp": tools_path_prefix + "clang-cpp",
         "dwp": tools_path_prefix + "llvm-dwp",
-        "gcc": wrapper_bin_prefix + "bin/cc_wrapper.sh",
+        "gcc": wrapper_bin_prefix + "cc_wrapper.sh",
         "gcov": tools_path_prefix + "llvm-profdata",
         "ld": tools_path_prefix + "ld.lld" if use_lld else _host_tools.get_and_assert(host_tools_info, "ld"),
         "llvm-cov": tools_path_prefix + "llvm-cov",
