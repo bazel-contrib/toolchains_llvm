@@ -29,7 +29,7 @@ set -exuo pipefail
 
 # Install dependencies
 dnf install -qy dnf-plugins-core
-dnf install -qy python gcc ncurses-compat-libs
+dnf install -qy python gcc
 
 # Run tests
 cd /src
