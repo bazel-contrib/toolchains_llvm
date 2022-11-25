@@ -57,6 +57,7 @@ filegroup(
         [
             "lib/**/lib*.a",
             "lib/clang/*/lib/**/*.a",
+            "lib/clang/*/lib/**/*.o",
         ],
         exclude = [
             "lib/libLLVM*.a",
