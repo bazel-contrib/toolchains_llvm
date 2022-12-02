@@ -24,12 +24,11 @@ readonly git_root
 
 for image in "${images[@]}"; do
   docker pull "${image}"
-  docker run --rm --entrypoint=/bin/bash --volume="${git_root}:/src:ro" "${image}" -c """
+  docker run --rm --entrypoint=/bin/bash --volume="${git_root}:/src:ro,z" "${image}" -c """
 set -exuo pipefail
 
 # Install dependencies
-dnf install -qy dnf-plugins-core
-dnf install -qy python gcc
+dnf install -qy libxcrypt-compat glibc-headers
 
 # Run tests
 cd /src

@@ -39,6 +39,7 @@ test_args=(
   --extra_toolchains="${toolchain_name}"
   --copt=-v
   --linkopt=-Wl,-t
+  --crosstool_top=//:fake_crosstool_top
 )
 "${bazel}" ${TEST_MIGRATION:+"--strict"} --bazelrc=/dev/null test \
   "${common_test_args[@]}" "${test_args[@]}" //:all
