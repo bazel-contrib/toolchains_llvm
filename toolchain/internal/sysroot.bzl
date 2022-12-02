@@ -14,8 +14,11 @@
 
 load(
     "//toolchain/internal:common.bzl",
+    _canonical_dir_path = "canonical_dir_path",
     _os_arch_pair = "os_arch_pair",
+    _pkg_name_from_label = "pkg_name_from_label",
     _pkg_path_from_label = "pkg_path_from_label",
+    _supported_targets = "SUPPORTED_TARGETS",
 )
 
 def _darwin_sdk_path(rctx):
@@ -36,7 +39,7 @@ def default_sysroot_path(rctx, os):
         return ""
 
 # Return the sysroot path and the label to the files, if sysroot is not a system path.
-def sysroot_path(sysroot_dict, os, arch):
+def _sysroot_path(sysroot_dict, os, arch):
     sysroot = sysroot_dict.get(_os_arch_pair(os, arch))
     if not sysroot:
         return (None, None)
@@ -47,5 +50,33 @@ def sysroot_path(sysroot_dict, os, arch):
     if sysroot[0] == "/" and (len(sysroot) == 1 or sysroot[1] != "/"):
         return (sysroot, None)
 
-    sysroot_path = _pkg_path_from_label(Label(sysroot))
-    return (sysroot_path, sysroot)
+    label = Label(sysroot)
+    sysroot_path = _pkg_path_from_label(label)
+    return (sysroot_path, label)
+
+# Return dictionaries for paths (relative or absolute) and labels if the
+# sysroot needs to be included in the build sandbox.
+def sysroot_paths_dict(rctx, sysroot_dict, use_absolute_paths):
+    paths_dict = dict()
+    labels_dict = dict()
+    for (target_os, target_arch) in _supported_targets:
+        path, label = _sysroot_path(
+            sysroot_dict,
+            target_os,
+            target_arch,
+        )
+        if not path:
+            continue
+
+        if label and use_absolute_paths:
+            # Get a label for a regular file in the sysroot package.
+            # Exact target does not matter.
+            label = Label(_pkg_name_from_label(label) + ":BUILD.bazel")
+            path = _canonical_dir_path(str(rctx.path(label).dirname))
+            label = None
+
+        target_pair = _os_arch_pair(target_os, target_arch)
+        paths_dict[target_pair] = path
+        labels_dict[target_pair] = label
+
+    return paths_dict, labels_dict
