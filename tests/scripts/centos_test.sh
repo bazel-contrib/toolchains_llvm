@@ -30,8 +30,8 @@ for image in "${images[@]}"; do
   docker run --rm --entrypoint=/bin/bash --volume="${git_root}:/src:ro" "${image}" -c """
 set -exuo pipefail
 
-# Install dependencies
-yum install -y -q gcc
+# Need system glibc and headers.
+yum install -y -q glibc-headers
 
 # Run tests
 cd /src

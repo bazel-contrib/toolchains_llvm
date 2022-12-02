@@ -30,7 +30,7 @@ set -exuo pipefail
 # Common setup
 export DEBIAN_FRONTEND=noninteractive
 apt-get -qq update
-apt-get -qq -y install apt-utils curl pkg-config zip g++ zlib1g-dev unzip python gnupg2 libtinfo5 >/dev/null
+apt-get -qq -y install apt-utils curl pkg-config zip zlib1g-dev unzip python gnupg2 libtinfo5 >/dev/null
 # The above command gives some verbose output that can not be silenced easily.
 # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=288778
 

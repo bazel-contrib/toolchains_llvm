@@ -40,5 +40,8 @@ readonly common_test_args=(
   --test_output=errors
 )
 
+# Do not run autoconf to configure local CC toolchains.
+export BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
+
 curl -L -sSf -o "${bazel}" "${url}"
 chmod a+x "${bazel}"

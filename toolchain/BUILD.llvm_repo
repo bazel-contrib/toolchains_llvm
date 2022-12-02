@@ -57,6 +57,8 @@ filegroup(
         [
             "lib/**/lib*.a",
             "lib/clang/*/lib/**/*.a",
+            # clang_rt.*.o supply crtbegin and crtend sections.
+            "lib/**/clang_rt.*.o",
         ],
         exclude = [
             "lib/libLLVM*.a",
