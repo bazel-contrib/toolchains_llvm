@@ -251,6 +251,6 @@ then they can be referenced as:
 
 Other examples of toolchain configuration:
 
-https://github.com/bazelbuild/bazel/wiki/Building-with-a-custom-toolchain
+https://bazel.build/tutorials/ccp-toolchain-config
 
 https://github.com/vsco/bazel-toolchains
