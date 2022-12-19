@@ -31,9 +31,9 @@ llvm_toolchain(
     name = "llvm_toolchain",
     llvm_version = LLVM_VERSION,
     # To test (manually) if the URLs feature works to fetch an archive.
-    #sha256 = {"ubuntu-20.04-x86_64": "a9ff205eb0b73ca7c86afc6432eed1c2d49133bd0d49e47b15be59bbf0dd292e"},
-    #strip_prefix = {"ubuntu-20.04-x86_64": "clang+llvm-14.0.0-x86_64-linux-gnu-ubuntu-20.04"},
-    #urls = {"ubuntu-20.04-x86_64": ["https://github.com/llvm/llvm-project/releases/download/llvmorg-14.0.0/clang+llvm-14.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz"]},
+    #sha256 = {"": "61582215dafafb7b576ea30cc136be92c877ba1f1c31ddbbd372d6d65622fef5"},
+    #strip_prefix = {"": "clang+llvm-14.0.0-x86_64-linux-gnu-ubuntu-18.04"},
+    #urls = {"": ["https://github.com/llvm/llvm-project/releases/download/llvmorg-14.0.0/clang+llvm-14.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz"]},
 )
 
 # This is the last known LLVM version with zlib support in ld.lld. Without zlib

@@ -255,8 +255,11 @@ def _get_auth(ctx, urls):
 
 def download_llvm(rctx):
     urls = []
+    update_sha256 = False
     if rctx.attr.urls:
         urls, sha256, strip_prefix, key = _urls(rctx)
+        if not sha256:
+            update_sha256 = True
     if not urls:
         urls, sha256, strip_prefix = _distribution_urls(rctx)
 
@@ -268,21 +271,24 @@ def download_llvm(rctx):
     )
 
     updated_attrs = _attr_dict(rctx.attr)
-    if not sha256 and key:
-        # Only using the urls attribute can result in no sha256.
-        # Report back the sha256 if the URL came from a non-empty key.
+    if update_sha256:
         updated_attrs["sha256"].update([(key, res.sha256)])
-
     return updated_attrs
 
 def _urls(rctx):
     key = _host_os_key(rctx)
 
-    urls = rctx.attr.urls.get(key, default = rctx.attr.urls.get("", default = []))
+    key_orig = key
+    if key not in rctx.attr.urls:
+        print("LLVM archive URLs missing for host OS key '%s'; checking fallback with key ''" % (key))
+        key = ""
+
+    urls = rctx.attr.urls.get(key, default = [])
     if not urls:
-        print("llvm archive urls missing for host OS key '%s' and no default provided; will try 'distribution' attribute" % (key))
-    sha256 = rctx.attr.sha256.get(key, "")
-    strip_prefix = rctx.attr.strip_prefix.get(key, "")
+        print("LLVM archive URLs missing for host OS key '%s' and no default fallback provided; will try 'distribution' attribute" % (key_orig))
+
+    sha256 = rctx.attr.sha256.get(key, default = "")
+    strip_prefix = rctx.attr.strip_prefix.get(key, default = "")
 
     return urls, sha256, strip_prefix, key
 
