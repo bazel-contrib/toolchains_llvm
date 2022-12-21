@@ -20,6 +20,8 @@ aliased_libs = [
 ]
 
 aliased_tools = [
+    "clang-apply-replacements",
     "clang-format",
+    "clang-tidy",
     "llvm-cov",
 ]

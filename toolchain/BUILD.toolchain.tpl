@@ -14,6 +14,7 @@
 
 package(default_visibility = ["//visibility:public"])
 
+load("@bazel_skylib//rules:native_binary.bzl", "native_binary")
 load("@rules_cc//cc:defs.bzl", "cc_toolchain", "cc_toolchain_suite")
 load("%{cc_toolchain_config_bzl}", "cc_toolchain_config")
 
