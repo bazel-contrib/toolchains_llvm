@@ -70,6 +70,7 @@ filegroup(
             "lib/lib*.dylib",
             "lib/clang/*/lib/**/*.dylib",
         ],
+        allow_empty = True
     ),
 )
 
