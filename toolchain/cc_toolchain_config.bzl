@@ -13,7 +13,7 @@
 # limitations under the License.
 
 load(
-    "@bazel_tools//tools/cpp:unix_cc_toolchain_config.bzl",
+    "//toolchain:unix_cc_toolchain_config.bzl",
     unix_cc_toolchain_config = "cc_toolchain_config",
 )
 load(
