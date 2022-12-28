@@ -1,0 +1,64 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
+
+cc_binary(
+    name = "asan_example",
+    srcs = ["asan_example.cpp"],
+    features = ["asan"],
+)
+
+cc_binary(
+    name = "tsan_example",
+    srcs = ["tsan_example.cpp"],
+    features = ["tsan"],
+)
+
+cc_binary(
+    name = "ubsan_example",
+    srcs = ["ubsan_example.cpp"],
+    features = ["ubsan"],
+)
+
+sh_test(
+    name = "asan_test",
+    srcs = ["sanitizer_test.sh"],
+    args = [
+        "'ERROR: AddressSanitizer: stack-use-after-scope'",
+    ],
+    data = [
+        ":asan_example",
+    ],
+    env = {
+        "BINARY": "$(rootpath :asan_example)",
+    },
+)
+
+sh_test(
+    name = "tsan_test",
+    srcs = ["sanitizer_test.sh"],
+    args = [
+        "'WARNING: ThreadSanitizer: data race (pid=.*)'",
+        "'Write of size .* at .* by thread T.*:'",
+        "'Previous write of size .* at .* by thread T.*:'",
+    ],
+    data = [
+        ":tsan_example",
+    ],
+    env = {
+        "BINARY": "$(rootpath :tsan_example)",
+    },
+)
+
+sh_test(
+    name = "ubsan_test",
+    srcs = ["sanitizer_test.sh"],
+    args = [
+        "'sanitizers/ubsan_example.cpp:3:11: runtime error: division by zero'",
+        "'SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior sanitizers/ubsan_example.cpp:3:11 in'",
+    ],
+    data = [
+        ":ubsan_example",
+    ],
+    env = {
+        "BINARY": "$(rootpath :ubsan_example)",
+    },
+)
