@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 # Copyright 2022 The Bazel Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,20 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Some older `libtool` versions (~macOS 10.12) don't support arg files.
-#
-# This script flattens arg files into regular command line arguments.
+# Files that will be made available as convenience targets under the bazel
+# toolchain repository.
 
-args=()
-for a in "${@}"; do
-  if [[ ${a} =~ @.* ]]; then
-    IFS=$'\n' read -d '' -r -a args_in_file < "${a:1}"
-    for arg in "${args_in_file[@]}"; do
-        args+=("${arg}")
-    done
-  else
-    args+=("${a}")
-  fi
-done
+aliased_libs = [
+    "omp",
+]
 
-exec "%{libtool_path}" "${args[@]}"
+aliased_tools = [
+    "clang-format",
+    "llvm-cov",
+]

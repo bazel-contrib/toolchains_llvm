@@ -57,6 +57,8 @@ filegroup(
         [
             "lib/**/lib*.a",
             "lib/clang/*/lib/**/*.a",
+            # clang_rt.*.o supply crtbegin and crtend sections.
+            "lib/**/clang_rt.*.o",
         ],
         exclude = [
             "lib/libLLVM*.a",
@@ -68,6 +70,7 @@ filegroup(
             "lib/lib*.dylib",
             "lib/clang/*/lib/**/*.dylib",
         ],
+        allow_empty = True
     ),
 )
 
@@ -122,4 +125,14 @@ filegroup(
 filegroup(
     name = "strip",
     srcs = ["bin/llvm-strip"],
+)
+
+filegroup(
+    name = "symbolizer",
+    srcs = ["bin/llvm-symbolizer"],
+)
+
+filegroup(
+    name = "clang-tidy",
+    srcs = ["bin/clang-tidy"],
 )

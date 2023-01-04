@@ -51,36 +51,31 @@ def _ubuntu_osname(arch, version, major_llvm_version, llvm_version):
         else:
             return "linux-gnu-ubuntu-16.04"
 
-    os_name = "linux-gnu-ubuntu-16.04"
-
     is_llvm_major_release = (_minor_llvm_version(llvm_version) == 0) and (_patch_llvm_version(llvm_version) == 0)
     major_ubuntu_version = int(version.split(".")[0])
-    if major_ubuntu_version >= 20:
-        if (not version.startswith("20.04")) and (llvm_version in ["11.0.1", "11.1.0"]):
-            os_name = "linux-gnu-ubuntu-20.10"
-        elif is_llvm_major_release and (major_llvm_version >= 14):
+    if (major_ubuntu_version >= 20 and (not version.startswith("20.04"))
+            and (llvm_version in ["11.0.1", "11.1.0"])):
+        os_name = "linux-gnu-ubuntu-20.10"
+    elif is_llvm_major_release:
+        if major_llvm_version >= 14:
             os_name = "linux-gnu-ubuntu-18.04"
-        elif is_llvm_major_release and (major_llvm_version >= 11):
-            os_name = "linux-gnu-ubuntu-20.04"
-        elif is_llvm_major_release and (major_llvm_version >= 8):
-            os_name = "linux-gnu-ubuntu-18.04"
-        else:
-            # There is no binary packages specifically for 20.04, but those for 16.04 works on
-            # 20.04
-            os_name = "linux-gnu-ubuntu-16.04"
-    elif major_ubuntu_version >= 18:
-        if is_llvm_major_release and (major_llvm_version >= 14):
-            os_name = "linux-gnu-ubuntu-18.04"
-        elif is_llvm_major_release and (major_llvm_version >= 11):
-            # There is no binary packages specifically for 18.04, but those for 16.04 works on
-            # 18.04
-            os_name = "linux-gnu-ubuntu-16.04"
-        elif is_llvm_major_release and (major_llvm_version >= 8):
+        elif major_llvm_version >= 11:
+            os_name = "linux-gnu-ubuntu-" + ("20.04" if major_ubuntu_version >= 20 else "16.04")
+        elif major_llvm_version >= 8:
             os_name = "linux-gnu-ubuntu-18.04"
         else:
-            # There is no binary packages specifically for 18.04, but those for 16.04 works on
-            # 18.04
+            # Let's default to 16.04 for LLVM releases before LLVM 8.
             os_name = "linux-gnu-ubuntu-16.04"
+    else:
+        # Availability may be sparse for patch releases.
+        if llvm_version in ["13.0.1"]:
+            os_name = "linux-gnu-ubuntu-18.04"
+        elif llvm_version in ["12.0.1", "11.1.0", "11.0.1", "10.0.1", "9.0.1", "8.0.1"]:
+            os_name = "linux-gnu-ubuntu-16.04"
+        elif llvm_version in ["7.1.0"]:
+            os_name = "linux-gnu-ubuntu-14.04"
+        else:
+            sys.exit("LLVM patch release %s not available for Ubuntu %s" % (llvm_version, version))
 
     return os_name
 
@@ -95,9 +90,9 @@ def _linux(llvm_version, distname, version, arch):
         os_name = "unknown-freebsd-%s" % version
     elif distname == "suse":
         os_name = _resolve_version_for_suse(major_llvm_version, llvm_version)
-    elif distname == "ubuntu":
+    elif distname in ["ubuntu", "pop"]:
         os_name = _ubuntu_osname(arch, version, major_llvm_version, llvm_version)
-    elif ((distname in ["linuxmint", "pop"]) and (version.startswith("21") or version.startswith("20") or version.startswith("19"))):
+    elif ((distname in ["linuxmint"]) and (version.startswith("21") or version.startswith("20") or version.startswith("19"))):
         os_name = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version)
     elif distname == "linuxmint" and version.startswith("18"):
         os_name = "linux-gnu-ubuntu-16.04"
@@ -127,6 +122,11 @@ def _linux(llvm_version, distname, version, arch):
     elif distname == "raspbian":
         arch = "armv7a"
         os_name = "linux-gnueabihf"
+    elif distname == "rhel":
+        if 8 <= float(version) < 9:
+            os_name = _ubuntu_osname(arch, "18.04", major_llvm_version, llvm_version)
+        elif float(version) >= 9:
+            os_name = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version)
     else:
         sys.exit("Unsupported linux distribution and version: %s, %s" % (distname, version))
 

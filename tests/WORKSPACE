@@ -31,20 +31,42 @@ llvm_toolchain(
     name = "llvm_toolchain",
     llvm_version = LLVM_VERSION,
     # To test (manually) if the URLs feature works to fetch an archive.
-    #sha256 = {"ubuntu-20.04-x86_64": "a9ff205eb0b73ca7c86afc6432eed1c2d49133bd0d49e47b15be59bbf0dd292e"},
-    #strip_prefix = {"ubuntu-20.04-x86_64": "clang+llvm-14.0.0-x86_64-linux-gnu-ubuntu-20.04"},
-    #urls = {"ubuntu-20.04-x86_64": ["https://github.com/llvm/llvm-project/releases/download/llvmorg-14.0.0/clang+llvm-14.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz"]},
+    #sha256 = {"": "61582215dafafb7b576ea30cc136be92c877ba1f1c31ddbbd372d6d65622fef5"},
+    #strip_prefix = {"": "clang+llvm-14.0.0-x86_64-linux-gnu-ubuntu-18.04"},
+    #urls = {"": ["https://github.com/llvm/llvm-project/releases/download/llvmorg-14.0.0/clang+llvm-14.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz"]},
+)
+
+# This is the last known LLVM version with zlib support in ld.lld. Without zlib
+# support, if the installed gcc toolchain has compressed sections in its object
+# files, then ld.lld won't be able to process them. Example is archlinux docker
+# image base-devel as of the time of this writing (23 May 2022).
+llvm_toolchain(
+    name = "llvm_toolchain_13_0_0",
+    llvm_version = "13.0.0",
 )
 
 load("@llvm_toolchain//:toolchains.bzl", "llvm_register_toolchains")
 
 llvm_register_toolchains()
 
-## Toolchain example with absolute paths.
+## Toolchain example with absolute paths; tested in GitHub CI.
 llvm_toolchain(
     name = "llvm_toolchain_with_absolute_paths",
     absolute_paths = True,
     llvm_version = LLVM_VERSION,
+    # We can share the downloaded LLVM distribution with the first configuration.
+    toolchain_roots = {
+        "": "@llvm_toolchain_llvm//",
+    },
+)
+
+## Toolchain example with system LLVM; tested in GitHub CI.
+llvm_toolchain(
+    name = "llvm_toolchain_with_system_llvm",
+    llvm_version = LLVM_VERSION,
+    # For this toolchain to work, the LLVM distribution archive would need to be unpacked here.
+    # A path in /tmp to be part of system tmp cleanup schedule.
+    toolchain_roots = {"": "/tmp/llvm-14"},
 )
 
 ## Toolchain example with a sysroot.

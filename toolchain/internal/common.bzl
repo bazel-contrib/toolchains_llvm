@@ -114,7 +114,6 @@ def attr_dict(attr):
     # implementations.
 
     tuples = []
-    types = []
     for key in dir(attr):
         if not hasattr(attr, key):
             fail("key %s not found in attributes" % key)

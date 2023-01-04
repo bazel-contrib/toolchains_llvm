@@ -27,9 +27,8 @@ for image in "${images[@]}"; do
   docker run --rm --entrypoint=/bin/bash --volume="${git_root}:/src:ro" "${image}" -c """
 set -exuo pipefail
 
-# Install dependencies
-dnf install -qy dnf-plugins-core
-dnf install -qy python gcc ncurses-compat-libs
+# Need system glibc headers (e.g. features.h).
+dnf install -qy glibc-headers
 
 # Run tests
 cd /src

@@ -129,7 +129,7 @@ _compiler_configuration_attrs = {
                "linked to the compiled binaries. An empty key can be used to specify a " +
                "value for all target pairs. Possible values are `builtin-libc++` (default) " +
                "which uses the libc++ shipped with clang, `libc++` which uses libc++ available on " +
-               "the host or sysroot, `libstdc++` which uses libstdc++ available on the host or " +
+               "the host or sysroot, `stdc++` which uses libstdc++ available on the host or " +
                "sysroot, and `none` which uses `-nostdlib` with the compiler."),
     ),
     "cxx_standard": attr.string_dict(
@@ -226,6 +226,10 @@ _compiler_configuration_attrs = {
 _llvm_config_attrs = dict(_common_attrs)
 _llvm_config_attrs.update(_compiler_configuration_attrs)
 _llvm_config_attrs.update({
+    "target_settings": attr.string_list_dict(
+        mandatory = False,
+        doc = ("Override the toolchain's `target_settings` attribute."),
+    ),
     "toolchain_roots": attr.string_dict(
         mandatory = True,
         # TODO: Ideally, we should be taking a filegroup label here instead of a package path, but
