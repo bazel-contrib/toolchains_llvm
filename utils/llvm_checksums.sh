@@ -47,7 +47,10 @@ trap 'cleanup' INT HUP QUIT TERM EXIT
 llvm_host() {
   local url_base="releases.llvm.org/${llvm_version}"
   output_dir="${tmp_dir}/${url_base}"
-  wget --compression gzip --recursive --level 1 --directory-prefix="${tmp_dir}" \
+  # See https://unix.stackexchange.com/questions/464372/how-could-compression-be-missing-from-my-wget
+  # - we don't use the --compression flag as it's not support on some versions
+  # of Debian and Ubuntu.
+  wget --recursive --level 1 --directory-prefix="${tmp_dir}" \
     --accept-regex "clang%2bllvm.*tar.xz$" "http://${url_base}/"
 }
 
