@@ -19,6 +19,8 @@ local_repository(
     path = "..",
 )
 
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
 load("@com_grail_bazel_toolchain//toolchain:deps.bzl", "bazel_toolchain_dependencies")
 
 bazel_toolchain_dependencies()
@@ -70,7 +72,6 @@ llvm_toolchain(
 )
 
 ## Toolchain example with a sysroot.
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 # This sysroot is used by github.com/vsco/bazel-toolchains.
 http_archive(
@@ -97,6 +98,19 @@ llvm_toolchain(
         "": "@llvm_toolchain_llvm//",
     },
 )
+
+http_archive(
+    name = "bazel_skylib",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.3.0/bazel-skylib-1.3.0.tar.gz",
+        "https://github.com/bazelbuild/bazel-skylib/releases/download/1.3.0/bazel-skylib-1.3.0.tar.gz",
+    ],
+    sha256 = "74d544d96f4a5bb630d465ca8bbcfe231e3594e5aae57e1edbf17a6eb3ca2506",
+)
+
+load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
+
+bazel_skylib_workspace()
 
 # Well known repos; present here only for testing.
 
@@ -131,14 +145,12 @@ http_archive(
 
 # For testing rules_go.
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-
 http_archive(
     name = "io_bazel_rules_go",
-    sha256 = "f2dcd210c7095febe54b804bb1cd3a58fe8435a909db2ec04e31542631cf715c",
+    sha256 = "56d8c5a5c91e1af73eca71a6fab2ced959b67c86d12ba37feedb0a2dfea441a6",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.31.0/rules_go-v0.31.0.zip",
-        "https://github.com/bazelbuild/rules_go/releases/download/v0.31.0/rules_go-v0.31.0.zip",
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.37.0/rules_go-v0.37.0.zip",
+        "https://github.com/bazelbuild/rules_go/releases/download/v0.37.0/rules_go-v0.37.0.zip",
     ],
 )
 
@@ -146,37 +158,21 @@ load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_depe
 
 go_rules_dependencies()
 
-go_register_toolchains(version = "1.18")
+go_register_toolchains(version = "1.19.3")
 
 # For testing rules_rust.
 
 http_archive(
     name = "rules_rust",
-    patch_args = ["-p1"],
-    # Patch is for https://github.com/bazelbuild/rules_rust/pull/1226.
-    patches = ["@com_grail_bazel_toolchain_tests//rust:rules_rust.patch"],
-    sha256 = "30c1b40d77a262e3f7dba6e4267fe4695b5eb1e68debc6aa06c3e09d429ae19a",
-    strip_prefix = "rules_rust-0.1.0",
-    urls = [
-        # Released bundles don't have the tests directory in them, so always
-        # use one of the tagged archives instead of a release.
-        "https://github.com/bazelbuild/rules_rust/archive/refs/tags/0.1.0.tar.gz",
-    ],
+    sha256 = "29ea0f1d0cad8fc90400479dee0a8b69204b7e6927081b5a27d6da872114a160",
+    urls = ["https://github.com/bazelbuild/rules_rust/releases/download/0.16.0/rules_rust-v0.16.0.tar.gz"],
 )
 
 load("@rules_rust//rust:repositories.bzl", "rules_rust_dependencies", "rust_register_toolchains")
 
 rules_rust_dependencies()
 
-rust_register_toolchains(include_rustc_srcs = True)
-
-load("@rules_rust//crate_universe:crates.bzl", "crate_deps_repository")
-
-crate_deps_repository(bootstrap = True)
-
-load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
-
-bazel_skylib_workspace()
+rust_register_toolchains()
 
 # For testing rules_foreign_cc.
 # See https://bazelbuild.github.io/rules_foreign_cc/0.6.0/cmake.html
