@@ -1,4 +1,4 @@
-LLVM toolchain for Bazel [![Tests](https://github.com/grailbio/bazel-toolchain/actions/workflows/tests.yml/badge.svg)](https://github.com/grailbio/bazel-toolchain/actions/workflows/tests.yml) [![Migration](https://github.com/grailbio/bazel-toolchain/actions/workflows/migration.yml/badge.svg)](https://github.com/grailbio/bazel-toolchain/actions/workflows/migration.yml)
+LLVM toolchain for Bazel [![Tests](https://github.com/grailbio/bazel-toolchain/actions/workflows/tests.yml/badge.svg)](https://github.com/grailbio/bazel-toolchain/actions/workflows/tests.yml)
 =================
 
 -------
