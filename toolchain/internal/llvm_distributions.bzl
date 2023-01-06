@@ -20,7 +20,8 @@ load("//toolchain/internal:common.bzl", _attr_dict = "attr_dict", _python = "pyt
 #   utils/llvm_checksums.sh -g -v 15.0.6
 #
 # To find all available release versions, search for "tag_name" in
-# https://api.github.com/repos/llvm/llvm-project/releases
+# https://api.github.com/repos/llvm/llvm-project/releases, or run (for example):
+#   curl -s https://api.github.com/repos/llvm/llvm-project/releases | jq '.[].tag_name'
 _llvm_distributions = {
     # 6.0.0
     "clang+llvm-6.0.0-aarch64-linux-gnu.tar.xz": "69382758842f29e1f84a41208ae2fd0fae05b5eb7f5531cdab97f29dda3c2334",
