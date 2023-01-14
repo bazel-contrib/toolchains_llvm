@@ -37,3 +37,11 @@ platform(
         "@platforms//cpu:x86_64",
     ],
 )
+
+platform(
+    name = "darwin-aarch64",
+    constraint_values = [
+        "@platforms//os:osx",
+        "@platforms//cpu:aarch64",
+    ],
+)

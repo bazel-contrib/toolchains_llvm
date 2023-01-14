@@ -28,9 +28,17 @@ def _minor_llvm_version(llvm_version):
 def _patch_llvm_version(llvm_version):
     return int(llvm_version.split(".")[2])
 
+def _darwin_apple_suffix(major_llvm_version, arch):
+    if major_llvm_version == 9:
+        "darwin-apple"
+    elif arch == "arm64":
+        return "apple-darwin21.0"
+    else:
+        return "apple-darwin"
+
 def _darwin(llvm_version, arch):
     major_llvm_version = _major_llvm_version(llvm_version)
-    suffix = "darwin-apple" if major_llvm_version == 9 else "apple-darwin"
+    suffix = _darwin_apple_suffix(major_llvm_version, arch)
     return "clang+llvm-{llvm_version}-{arch}-{suffix}.tar.xz".format(
         llvm_version=llvm_version, arch=arch, suffix=suffix)
 
