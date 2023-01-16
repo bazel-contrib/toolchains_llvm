@@ -23,3 +23,16 @@ def bazel_toolchain_dependencies():
             strip_prefix = "rules_cc-726dd8157557f1456b3656e26ab21a1646653405",
             urls = ["https://github.com/bazelbuild/rules_cc/archive/726dd8157557f1456b3656e26ab21a1646653405.tar.gz"],
         )
+
+    # Load bazel_skylib if the user has not defined them.
+    if not native.existing_rule("bazel_skylib"):
+        http_archive(
+            name = "bazel_skylib",
+            urls = [
+                "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.3.0/bazel-skylib-1.3.0.tar.gz",
+                "https://github.com/bazelbuild/bazel-skylib/releases/download/1.3.0/bazel-skylib-1.3.0.tar.gz",
+            ],
+            sha256 = "74d544d96f4a5bb630d465ca8bbcfe231e3594e5aae57e1edbf17a6eb3ca2506",
+        )
+
+        # Skip bazel_skylib_workspace because we are not using lib/unittest.bzl
