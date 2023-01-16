@@ -14,10 +14,10 @@ jobs:
       matrix:
         os: [macos-latest, ubuntu-latest]
         script: [run_tests.sh, run_external_tests.sh]
-        bazel_version: [latest, 4.2.1]
+        bazel_version: [latest, 5.1.0]
         exclude:
           - script: run_external_tests.sh
-            bazel_version: 4.2.1
+            bazel_version: 5.1.0
     steps:
     - uses: actions/checkout@v2
     - name: test
