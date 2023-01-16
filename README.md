@@ -26,8 +26,8 @@ To use this toolchain, include this section in your WORKSPACE:
 ```starlark
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-BAZEL_TOOLCHAIN_TAG = "0.8"
-BAZEL_TOOLCHAIN_SHA = "d3d218287e76c0ad28bc579db711d1fa019fb0463634dfd944a1c2679ef9565b"
+BAZEL_TOOLCHAIN_TAG = "0.8.1"
+BAZEL_TOOLCHAIN_SHA = "751bbe30bcaa462aef792b18bbd16c401af42fc937c42ad0ae463f099dc04ea2"
 
 http_archive(
     name = "com_grail_bazel_toolchain",
