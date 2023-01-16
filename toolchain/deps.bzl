@@ -35,5 +35,4 @@ def bazel_toolchain_dependencies():
             sha256 = "74d544d96f4a5bb630d465ca8bbcfe231e3594e5aae57e1edbf17a6eb3ca2506",
         )
 
-        # we aren't using lib/unittest.bzl so we can skip
-        # bazel_skylib_workspace
+        # Skip bazel_skylib_workspace because we are not using lib/unittest.bzl
