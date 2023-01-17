@@ -20,26 +20,46 @@ local_repository(
 )
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-
 load("@com_grail_bazel_toolchain//toolchain:deps.bzl", "bazel_toolchain_dependencies")
 
 bazel_toolchain_dependencies()
 
 load("@com_grail_bazel_toolchain//toolchain:rules.bzl", "llvm_toolchain")
 
-# Latest LLVM version is 15.0.6 as of this writing but OS support is rather
-# sparse for all our container tests and some cgo tests crash with LLVM 15.
-# TODO: Consider keeping the container tests to be on 14.0.0 when not supported
-# by 15.0.6.
-LLVM_VERSION = "14.0.0"
+# When updating this version, also update the versions associated with
+# llvm_toolchain below, sys_paths_test in the worflows file, and xcompile_test
+# through the `llvm_toolchain_with_sysroot` toolchain.
+LLVM_VERSION = "15.0.6"
 
 llvm_toolchain(
     name = "llvm_toolchain",
-    llvm_version = LLVM_VERSION,
-    # To test (manually) if the URLs feature works to fetch an archive.
-    #sha256 = {"": "61582215dafafb7b576ea30cc136be92c877ba1f1c31ddbbd372d6d65622fef5"},
-    #strip_prefix = {"": "clang+llvm-14.0.0-x86_64-linux-gnu-ubuntu-18.04"},
-    #urls = {"": ["https://github.com/llvm/llvm-project/releases/download/llvmorg-14.0.0/clang+llvm-14.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz"]},
+    llvm_versions = {
+        "": "15.0.6",
+        "darwin-aarch64": "15.0.7",
+        "darwin-x86_64": "15.0.7",
+    },
+    sha256 = {
+        "": "38bc7f5563642e73e69ac5626724e206d6d539fbef653541b34cae0ba9c3f036",
+        "darwin-aarch64": "867c6afd41158c132ef05a8f1ddaecf476a26b91c85def8e124414f9a9ba188d",
+        "darwin-x86_64": "d16b6d536364c5bec6583d12dd7e6cf841b9f508c4430d9ee886726bd9983f1c",
+    },
+    strip_prefix = {
+        "": "clang+llvm-15.0.6-x86_64-linux-gnu-ubuntu-18.04",
+        "darwin-aarch64": "clang+llvm-15.0.7-arm64-apple-darwin22.0",
+        "darwin-x86_64": "clang+llvm-15.0.7-x86_64-apple-darwin21.0",
+    },
+    urls = {
+        "": ["https://github.com/llvm/llvm-project/releases/download/llvmorg-15.0.6/clang+llvm-15.0.6-x86_64-linux-gnu-ubuntu-18.04.tar.xz"],
+        "darwin-aarch64": ["https://github.com/llvm/llvm-project/releases/download/llvmorg-15.0.7/clang+llvm-15.0.7-arm64-apple-darwin22.0.tar.xz"],
+        "darwin-x86_64": ["https://github.com/llvm/llvm-project/releases/download/llvmorg-15.0.7/clang+llvm-15.0.7-x86_64-apple-darwin21.0.tar.xz"],
+    },
+)
+
+# This is the latest version of LLVM that seems to work with rules_go; later
+# versions cause the tests to crash.
+llvm_toolchain(
+    name = "llvm_toolchain_14_0_0",
+    llvm_version = "14.0.0",
 )
 
 # This is the last known LLVM version with zlib support in ld.lld. Without zlib
@@ -72,7 +92,7 @@ llvm_toolchain(
     llvm_version = LLVM_VERSION,
     # For this toolchain to work, the LLVM distribution archive would need to be unpacked here.
     # A path in /tmp to be part of system tmp cleanup schedule.
-    toolchain_roots = {"": "/tmp/llvm-14"},
+    toolchain_roots = {"": "/tmp/llvm-15"},
 )
 
 ## Toolchain example with a sysroot.
@@ -93,7 +113,11 @@ filegroup(
 
 llvm_toolchain(
     name = "llvm_toolchain_with_sysroot",
-    llvm_version = LLVM_VERSION,
+    llvm_versions = {
+        "": "15.0.6",
+        "darwin-x86_64": "15.0.7",
+        "darwin-aarch64": "15.0.7",
+    },
     sysroot = {
         "linux-x86_64": "@org_chromium_sysroot_linux_x64//:sysroot",
     },
@@ -105,11 +129,11 @@ llvm_toolchain(
 
 http_archive(
     name = "bazel_skylib",
+    sha256 = "74d544d96f4a5bb630d465ca8bbcfe231e3594e5aae57e1edbf17a6eb3ca2506",
     urls = [
         "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.3.0/bazel-skylib-1.3.0.tar.gz",
         "https://github.com/bazelbuild/bazel-skylib/releases/download/1.3.0/bazel-skylib-1.3.0.tar.gz",
     ],
-    sha256 = "74d544d96f4a5bb630d465ca8bbcfe231e3594e5aae57e1edbf17a6eb3ca2506",
 )
 
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
