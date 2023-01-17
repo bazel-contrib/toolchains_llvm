@@ -13,7 +13,7 @@
 # limitations under the License.
 
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "read_netrc", "use_netrc")
-load("//toolchain/internal:common.bzl", _attr_dict = "attr_dict", _python = "python")
+load("//toolchain/internal:common.bzl", _arch = "arch", _attr_dict = "attr_dict", _os = "os", _os_arch_pair = "os_arch_pair", _python = "python")
 
 # If a new LLVM version is missing from this list, please add the shasums here
 # and send a PR on github. To compute the shasum block, you can run (for example):
@@ -232,6 +232,12 @@ _llvm_distributions = {
     "clang+llvm-15.0.6-powerpc64le-linux-rhel-8.4.tar.xz": "c26e5563e6ff46a03bc45fe27547c69283b64cba2359ccd3a42f735c995c0511",
     "clang+llvm-15.0.6-powerpc64le-linux-ubuntu-18.04.tar.xz": "7fc9f07ff0fcf191df93fe4adc1da555e43f62fe1d3ddafb15c943f72b1bda17",
     "clang+llvm-15.0.6-x86_64-linux-gnu-ubuntu-18.04.tar.xz": "38bc7f5563642e73e69ac5626724e206d6d539fbef653541b34cae0ba9c3f036",
+
+    # 15.0.7
+    "clang+llvm-15.0.7-arm64-apple-darwin22.0.tar.xz": "867c6afd41158c132ef05a8f1ddaecf476a26b91c85def8e124414f9a9ba188d",
+    "clang+llvm-15.0.7-powerpc64le-linux-rhel-8.4.tar.xz": "2163cc934437146dc30810a21a46327ba3983f123c3bea19be316a64135b6414",
+    "clang+llvm-15.0.7-powerpc64le-linux-ubuntu-18.04.tar.xz": "19a16d768e15966923b0cbf8fc7dc148c89e316857acd89ad3aff72dcfcd61f4",
+    "clang+llvm-15.0.7-x86_64-apple-darwin21.0.tar.xz": "d16b6d536364c5bec6583d12dd7e6cf841b9f508c4430d9ee886726bd9983f1c",
 }
 
 # Note: Unlike the user-specified llvm_mirror attribute, the URL prefixes in
@@ -303,7 +309,7 @@ def download_llvm(rctx):
     return updated_attrs
 
 def _urls(rctx):
-    key = _host_os_key(rctx)
+    key = _os_arch_pair(_os(rctx), _arch(rctx))
 
     key_orig = key
     if key not in rctx.attr.urls:
@@ -344,17 +350,6 @@ def _distribution_urls(rctx):
     strip_prefix = basename[:(len(basename) - len(".tar.xz"))]
 
     return urls, sha256, strip_prefix
-
-def _host_os_key(rctx):
-    exec_result = rctx.execute([
-        _python(rctx),
-        rctx.path(rctx.attr._os_version_arch),
-    ])
-    if exec_result.return_code:
-        fail("Failed to detect host OS name and version: \n%s\n%s" % (exec_result.stdout, exec_result.stderr))
-    if exec_result.stderr:
-        print(exec_result.stderr)
-    return exec_result.stdout.strip()
 
 def _llvm_release_name(rctx, llvm_version):
     exec_result = rctx.execute([

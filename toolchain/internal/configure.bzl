@@ -47,6 +47,7 @@ def _include_dirs_str(rctx, key):
 
 def llvm_config_impl(rctx):
     _check_os_arch_keys(rctx.attr.toolchain_roots)
+    _check_os_arch_keys(rctx.attr.llvm_versions)
     _check_os_arch_keys(rctx.attr.sysroot)
     _check_os_arch_keys(rctx.attr.cxx_builtin_include_directories)
 
@@ -66,6 +67,11 @@ def llvm_register_toolchains():
         toolchain_root = rctx.attr.toolchain_roots.get("")
     if not toolchain_root:
         fail("LLVM toolchain root missing for ({}, {})", os, arch)
+    llvm_version = rctx.attr.llvm_versions.get(key)
+    if not llvm_version:
+        llvm_version = rctx.attr.llvm_versions.get("")
+    if not llvm_version:
+        fail("LLVM version string missing for ({}, {})", os, arch)
 
     config_repo_path = "external/%s/" % rctx.name
 
@@ -155,7 +161,7 @@ def llvm_register_toolchains():
         coverage_compile_flags_dict = rctx.attr.coverage_compile_flags,
         coverage_link_flags_dict = rctx.attr.coverage_link_flags,
         unfiltered_compile_flags_dict = rctx.attr.unfiltered_compile_flags,
-        llvm_version = rctx.attr.llvm_version,
+        llvm_version = llvm_version,
     )
     host_dl_ext = "dylib" if os == "darwin" else "so"
     host_tools_info = dict([

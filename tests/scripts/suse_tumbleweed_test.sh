@@ -19,6 +19,9 @@ images=(
 "opensuse/tumbleweed:latest"
 )
 
+# See note next to the definition of this toolchain in the WORKSPACE file.
+toolchain="@llvm_toolchain_13_0_0//:cc-toolchain-x86_64-linux"
+
 git_root=$(git rev-parse --show-toplevel)
 readonly git_root
 
@@ -35,6 +38,6 @@ zypper -n install pkgconf-pkg-config curl python tar gzip findutils gcc libc++1 
 
 # Run tests
 cd /src
-tests/scripts/run_tests.sh
+tests/scripts/run_tests.sh -t ${toolchain}
 """
 done

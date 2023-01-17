@@ -25,15 +25,14 @@ load(
     _llvm_repo_impl = "llvm_repo_impl",
 )
 
-_common_attrs = {
-    "llvm_version": attr.string(
-        mandatory = True,
-        doc = "One of the supported versions of LLVM, e.g. 12.0.0",
-    ),
-}
+_common_attrs = {}
+
 
 _llvm_repo_attrs = dict(_common_attrs)
 _llvm_repo_attrs.update({
+    "llvm_version": attr.string(
+        doc = "One of the supported versions of LLVM, e.g. 12.0.0",
+    ),
     "urls": attr.string_list_dict(
         mandatory = False,
         doc = ("URLs to LLVM pre-built binary distribution archives, keyed by host OS " +
@@ -56,7 +55,7 @@ _llvm_repo_attrs.update({
         default = "auto",
         doc = ("LLVM pre-built binary distribution filename, must be one " +
                "listed on http://releases.llvm.org/download.html for the version " +
-               "specified in the llvm_version attribute. A special value of " +
+               "specified in the `llvm_version` attribute. A special value of " +
                "'auto' tries to detect the version based on host OS."),
     ),
     "llvm_mirror": attr.string(
@@ -221,15 +220,15 @@ _compiler_configuration_attrs = {
                "target OS and arch pair you want to override " +
                "({}); empty key overrides all.".format(_target_pairs)),
     ),
+    "target_settings": attr.string_list_dict(
+        mandatory = False,
+        doc = ("Override the toolchain's `target_settings` attribute."),
+    ),
 }
 
 _llvm_config_attrs = dict(_common_attrs)
 _llvm_config_attrs.update(_compiler_configuration_attrs)
 _llvm_config_attrs.update({
-    "target_settings": attr.string_list_dict(
-        mandatory = False,
-        doc = ("Override the toolchain's `target_settings` attribute."),
-    ),
     "toolchain_roots": attr.string_dict(
         mandatory = True,
         # TODO: Ideally, we should be taking a filegroup label here instead of a package path, but
@@ -243,6 +242,11 @@ _llvm_config_attrs.update({
                "assumed to be a system path and the toolchain is configured to use absolute " +
                "paths. Else, the value will be assumed to be a bazel package containing the " +
                "filegroup targets as in BUILD.llvm_repo."),
+    ),
+    "llvm_versions": attr.string_dict(
+        mandatory = True,
+        doc = ("LLVM version strings for each entry in the `toolchain_roots` attribute; " +
+               "if unset, a default value is set from the `llvm_version` attribute.")
     ),
     "absolute_paths": attr.bool(
         default = False,
@@ -267,6 +271,9 @@ toolchain = repository_rule(
 )
 
 def llvm_toolchain(name, **kwargs):
+    if kwargs.get("llvm_version") == kwargs.get("llvm_versions"):
+        fail("Exactly one of llvm_version or llvm_versions must be set")
+
     if not kwargs.get("toolchain_roots"):
         llvm_args = {
             k: v
@@ -275,6 +282,9 @@ def llvm_toolchain(name, **kwargs):
         }
         llvm(name = name + "_llvm", **llvm_args)
         kwargs.update(toolchain_roots = {"": "@%s_llvm//" % name})
+
+    if not kwargs.get("llvm_versions"):
+        kwargs.update(llvm_versions = {"": kwargs.get("llvm_version")})
 
     toolchain_args = {
         k: v
