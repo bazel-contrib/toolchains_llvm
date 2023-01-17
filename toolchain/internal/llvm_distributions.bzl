@@ -13,7 +13,7 @@
 # limitations under the License.
 
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "read_netrc", "use_netrc")
-load("//toolchain/internal:common.bzl", _arch = "arch", _attr_dict = "attr_dict", _os = "os", _os_arch_pair = "os_arch_pair", _python = "python")
+load("//toolchain/internal:common.bzl", _arch = "arch", _attr_dict = "attr_dict", _host_os_arch_dict_value = "host_os_arch_dict_value", _python = "python")
 
 # If a new LLVM version is missing from this list, please add the shasums here
 # and send a PR on github. To compute the shasum block, you can run (for example):
@@ -309,16 +309,9 @@ def download_llvm(rctx):
     return updated_attrs
 
 def _urls(rctx):
-    key = _os_arch_pair(_os(rctx), _arch(rctx))
-
-    key_orig = key
-    if key not in rctx.attr.urls:
-        print("LLVM archive URLs missing for host OS key '%s'; checking fallback with key ''" % (key))
-        key = ""
-
-    urls = rctx.attr.urls.get(key, default = [])
+    (key, urls) = _host_os_arch_dict_value(rctx, "urls", debug = True)
     if not urls:
-        print("LLVM archive URLs missing for host OS key '%s' and no default fallback provided; will try 'distribution' attribute" % (key_orig))
+        print("LLVM archive URLs missing and no default fallback provided; will try 'distribution' attribute")
 
     sha256 = rctx.attr.sha256.get(key, default = "")
     strip_prefix = rctx.attr.strip_prefix.get(key, default = "")

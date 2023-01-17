@@ -17,6 +17,7 @@ load(
     _arch = "arch",
     _canonical_dir_path = "canonical_dir_path",
     _check_os_arch_keys = "check_os_arch_keys",
+    _host_os_arch_dict_value = "host_os_arch_dict_value",
     _host_tool_features = "host_tool_features",
     _host_tools = "host_tools",
     _list_to_string = "list_to_string",
@@ -46,8 +47,6 @@ def _include_dirs_str(rctx, key):
     return ("\n" + 12 * " ").join(["\"%s\"," % d for d in dirs])
 
 def llvm_config_impl(rctx):
-    _check_os_arch_keys(rctx.attr.toolchain_roots)
-    _check_os_arch_keys(rctx.attr.llvm_versions)
     _check_os_arch_keys(rctx.attr.sysroot)
     _check_os_arch_keys(rctx.attr.cxx_builtin_include_directories)
 
@@ -61,15 +60,10 @@ def llvm_register_toolchains():
         return
     arch = _arch(rctx)
 
-    key = _os_arch_pair(os, arch)
-    toolchain_root = rctx.attr.toolchain_roots.get(key)
-    if not toolchain_root:
-        toolchain_root = rctx.attr.toolchain_roots.get("")
+    (key, toolchain_root) = _host_os_arch_dict_value(rctx, "toolchain_roots")
     if not toolchain_root:
         fail("LLVM toolchain root missing for ({}, {})", os, arch)
-    llvm_version = rctx.attr.llvm_versions.get(key)
-    if not llvm_version:
-        llvm_version = rctx.attr.llvm_versions.get("")
+    (key, llvm_version) = _host_os_arch_dict_value(rctx, "llvm_versions")
     if not llvm_version:
         fail("LLVM version string missing for ({}, {})", os, arch)
 
