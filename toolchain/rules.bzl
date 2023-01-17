@@ -25,19 +25,31 @@ load(
     _llvm_repo_impl = "llvm_repo_impl",
 )
 
-_common_attrs = {}
+_target_pairs = ", ".join(_supported_os_arch_keys())
 
+# Atributes common to both `llvm` and `toolchain` repository rules.
+_common_attrs = {
+    "_os_version_arch": attr.label(
+        default = "//toolchain/tools:host_os_key.py",
+        allow_single_file = True,
+        doc = "Python module to output OS name and ",
+    ),
+}
 
 _llvm_repo_attrs = dict(_common_attrs)
 _llvm_repo_attrs.update({
     "llvm_version": attr.string(
-        doc = "One of the supported versions of LLVM, e.g. 12.0.0",
+        doc = ("One of the supported versions of LLVM, e.g. 12.0.0; used with the " +
+               "`auto` value for the `distribution` attribute, and as a default value " +
+               "for the `llvm_versions` attribute."),
     ),
     "urls": attr.string_list_dict(
         mandatory = False,
         doc = ("URLs to LLVM pre-built binary distribution archives, keyed by host OS " +
                "release name and architecture, e.g. darwin-x86_64, darwin-aarch64, " +
-               "ubuntu-20.04-x86_64, etc. May also need the `strip_prefix` attribute. " +
+               "ubuntu-20.04-x86_64, etc, or a less specific OS and arch pair " +
+               "({}). ".format(_target_pairs) +
+               "May also need the `strip_prefix` attribute. " +
                "Consider also setting the `sha256` attribute. An empty key is " +
                "used to specify a fallback default for all hosts. This attribute " +
                "overrides `distribution`, `llvm_version`, `llvm_mirror` and " +
@@ -94,14 +106,7 @@ _llvm_repo_attrs.update({
         allow_single_file = True,
         doc = "Python module to output LLVM release name for the current OS.",
     ),
-    "_os_version_arch": attr.label(
-        default = "//toolchain/tools:host_os_key.py",
-        allow_single_file = True,
-        doc = "Python module to output OS name and ",
-    ),
 })
-
-_target_pairs = ", ".join(_supported_os_arch_keys())
 
 _compiler_configuration_attrs = {
     "sysroot": attr.string_dict(
@@ -234,8 +239,9 @@ _llvm_config_attrs.update({
         # TODO: Ideally, we should be taking a filegroup label here instead of a package path, but
         # we ultimately need to subset the files to be more selective in what we include in the
         # sandbox for which operations, and it is not straightforward to subset a filegroup.
-        doc = ("System or package path, for each host OS and arch pair you want to support " +
-               "({}), ".format(_target_pairs) + "to be used as the LLVM toolchain " +
+        doc = ("System or package path, keyed by host OS release name and architecture, e.g. " +
+               "darwin-x86_64, darwin-aarch64, ubuntu-20.04-x86_64, etc., or a less specific " +
+               "OS and arch pair ({}), to be used as the LLVM toolchain ".format(_target_pairs) +
                "distributions. An empty key can be used to specify a fallback default for " +
                "all hosts, e.g. with the llvm_toolchain_repo rule. " +
                "If the value begins with exactly one forward slash '/', then the value is " +
@@ -246,7 +252,7 @@ _llvm_config_attrs.update({
     "llvm_versions": attr.string_dict(
         mandatory = True,
         doc = ("LLVM version strings for each entry in the `toolchain_roots` attribute; " +
-               "if unset, a default value is set from the `llvm_version` attribute.")
+               "if unset, a default value is set from the `llvm_version` attribute."),
     ),
     "absolute_paths": attr.bool(
         default = False,

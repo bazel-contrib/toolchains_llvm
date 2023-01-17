@@ -47,6 +47,8 @@ def python(rctx):
         fail("python not found")
 
 def os(rctx):
+    # Less granular host OS name, e.g. linux.
+
     name = rctx.os.name
     if name == "linux":
         return "linux"
@@ -88,6 +90,40 @@ def check_os_arch_keys(keys):
                 key = k,
                 keys = ", ".join(_supported_os_arch),
             ))
+
+def host_os_arch_dict_value(rctx, attr_name, debug = False):
+    # Gets a value from a dictionary keyed by host OS and arch.
+    # Checks for the more specific key, then the less specific,
+    # and finally the empty key as fallback.
+    # Returns a tuple of the matching key and value.
+
+    d = getattr(rctx.attr, attr_name)
+    key1 = _host_os_key(rctx)
+    if key1 in d:
+        return (key1, d.get(key1))
+
+    key2 = os_arch_pair(os(rctx), arch(rctx))
+    if debug:
+        print("`%s` attribute missing for key '%s' in repository '%s'; checking with key '%s'" % (attr_name, key1, rctx.name, key2))
+    if key2 in d:
+        return (key2, d.get(key2))
+
+    if debug:
+        print("`%s` attribute missing for key '%s' in repository '%s'; checking with key ''" % (attr_name, key2, rctx.name))
+    return ("", d.get(""))  # Fallback to empty key.
+
+def _host_os_key(rctx):
+    # More granular host OS release and key, e.g. ubuntu-20.04-x86_64.
+
+    exec_result = rctx.execute([
+        python(rctx),
+        rctx.path(rctx.attr._os_version_arch),
+    ])
+    if exec_result.return_code:
+        fail("Failed to detect host OS name and version: \n%s\n%s" % (exec_result.stdout, exec_result.stderr))
+    if exec_result.stderr:
+        print(exec_result.stderr)
+    return exec_result.stdout.strip()
 
 def canonical_dir_path(path):
     if not path.endswith("/"):
