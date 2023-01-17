@@ -66,13 +66,10 @@ filegroup(
             "lib/libclang*.a",
             "lib/liblld*.a",
         ],
-    ) + glob(
-        [
-            "lib/lib*.dylib",
-            "lib/clang/*/lib/**/*.dylib",
-        ],
-        allow_empty = True,
     ),
+    # Do not include the .dylib files in the linker sandbox because they will
+    # not be available at runtime. Any library linked from the toolchain should
+    # be linked statically.
 )
 
 filegroup(

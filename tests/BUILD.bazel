@@ -94,16 +94,26 @@ build_test(
     ],
 )
 
+# Simple test in C that depends on libomp.
 cc_test(
     name = "omp_test",
     srcs = ["omp_test.c"],
     copts = ["-fopenmp"],
     linkopts = ["-fopenmp"],
     deps = ["@llvm_toolchain//:omp"],
-    # On macOS, LLVM 15 tries to dynamically link libc++abi from the distribution.
-    target_compatible_with = [
-        "@platforms//os:linux",
-    ],
+)
+
+# C++ variant of omp_test; needed to check that including the llvm toolchain
+# lib directory in the library search path (for including libomp.dylib) does
+# not pick up unintentional static libraries in a way that breaks the binary.
+# See note in cc_toolchain_config.bzl where we include -lc++ and -lc++abi for
+# macOS.
+cc_test(
+    name = "omp_test_cc",
+    srcs = ["omp_test.cc"],
+    copts = ["-fopenmp"],
+    linkopts = ["-fopenmp"],
+    deps = ["@llvm_toolchain//:omp"],
 )
 
 sh_test(
