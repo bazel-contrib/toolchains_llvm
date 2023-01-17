@@ -27,6 +27,10 @@ bazel_toolchain_dependencies()
 
 load("@com_grail_bazel_toolchain//toolchain:rules.bzl", "llvm_toolchain")
 
+# Latest LLVM version is 15.0.6 as of this writing but OS support is rather
+# sparse for all our container tests and some cgo tests crash with LLVM 15.
+# TODO: Consider keeping the container tests to be on 14.0.0 when not supported
+# by 15.0.6.
 LLVM_VERSION = "14.0.0"
 
 llvm_toolchain(

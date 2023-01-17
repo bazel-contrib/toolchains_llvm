@@ -156,6 +156,9 @@ def cc_toolchain_config(
         use_lld = False
         link_flags.extend([
             "-headerpad_max_install_names",
+            # This will issue a warning on macOS ventura; see:
+            #  https://github.com/python/cpython/issues/97524
+            #  https://developer.apple.com/forums/thread/719961
             "-undefined",
             "dynamic_lookup",
         ])

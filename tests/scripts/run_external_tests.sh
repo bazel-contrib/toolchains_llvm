@@ -25,10 +25,16 @@ cd "${scripts_dir}"
 "${bazel}" fetch @io_bazel_rules_go//tests/core/cgo:all
 "$("${bazel}" info output_base)/external/io_bazel_rules_go/tests/core/cgo/generate_imported_dylib.sh"
 
+test_args=(
+  "${common_test_args[@]}"
+  # Options needed for LLVM 15 when we switch to using it for these tests
+  #"--copt=-Wno-deprecated-builtins" # https://github.com/abseil/abseil-cpp/issues/1201
+)
+
 # We exclude the following targets:
 # - cc_libs_test from rules_go because it assumes that stdlibc++ has been dynamically linked, but we
 #   link it statically on linux.
-"${bazel}" --bazelrc=/dev/null test "${common_test_args[@]}" -- \
+"${bazel}" --bazelrc=/dev/null test "${test_args[@]}" -- \
   //foreign:pcre \
   @openssl//:libssl \
   @rules_rust//test/unit/{native_deps,linkstamps,interleaved_cc_info}:all \

@@ -42,6 +42,8 @@ function parse_option() {
         LIBS="${BASH_REMATCH[1]} $LIBS"
     elif [[ "$opt" =~ ^-L(.*)$ ]]; then
         LIB_DIRS="${BASH_REMATCH[1]} $LIB_DIRS"
+    elif [[ "$opt" =~ ^\@loader_path/(.*)$ ]]; then
+        RPATHS="${BASH_REMATCH[1]} ${RPATHS}"
     elif [[ "$opt" =~ ^-Wl,-rpath,\@loader_path/(.*)$ ]]; then
         RPATHS="${BASH_REMATCH[1]} ${RPATHS}"
     elif [[ "$opt" = "-o" ]]; then

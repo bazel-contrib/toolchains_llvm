@@ -172,6 +172,7 @@ genrule(
         "perl $(location crypto/x86_64cpuid.pl) $$FLAVOR $(location crypto/x86_64cpuid.s)",
         "perl $(location engines/asm/e_padlock-x86_64.pl) $$FLAVOR $(location engines/e_padlock-x86_64.s)",
     ]),
+    target_compatible_with = ["@platforms//cpu:x86_64"],
 )
 
 cc_library(
