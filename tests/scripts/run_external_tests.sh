@@ -37,10 +37,14 @@ test_args=(
 # We exclude the following targets:
 # - cc_libs_test from rules_go because it assumes that stdlibc++ has been dynamically linked, but we
 #   link it statically on linux.
+# - external_includes_test from rules_go because it is a nested bazel test and so takes a long time
+#   to run, and it is not particularly useful to us.
 "${bazel}" --bazelrc=/dev/null test "${test_args[@]}" -- \
   //foreign:pcre \
   @openssl//:libssl \
   @rules_rust//test/unit/{native_deps,linkstamps,interleaved_cc_info}:all \
-  @io_bazel_rules_go//tests/core/cgo:all -@io_bazel_rules_go//tests/core/cgo:cc_libs_test \
+  @io_bazel_rules_go//tests/core/cgo:all \
+  -@io_bazel_rules_go//tests/core/cgo:cc_libs_test \
+  -@io_bazel_rules_go//tests/core/cgo:external_includes_test \
   $("${bazel}" query 'attr(timeout, short, tests(@com_google_absl//absl/...))') \
 
