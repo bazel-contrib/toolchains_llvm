@@ -29,11 +29,6 @@ _target_pairs = ", ".join(_supported_os_arch_keys())
 
 # Atributes common to both `llvm` and `toolchain` repository rules.
 _common_attrs = {
-    "_os_version_arch": attr.label(
-        default = "//toolchain/tools:host_os_key.py",
-        allow_single_file = True,
-        doc = "Python module to output OS name and ",
-    ),
 }
 
 _llvm_repo_attrs = dict(_common_attrs)
@@ -100,11 +95,6 @@ _llvm_repo_attrs.update({
     "auth_patterns": attr.string_dict(
         mandatory = False,
         doc = "An optional dict mapping host names to custom authorization patterns.",
-    ),
-    "_llvm_release_name": attr.label(
-        default = "//toolchain/tools:llvm_release_name.py",
-        allow_single_file = True,
-        doc = "Python module to output LLVM release name for the current OS.",
     ),
 })
 
