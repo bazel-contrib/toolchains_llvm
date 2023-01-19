@@ -13,7 +13,8 @@
 # limitations under the License.
 
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "read_netrc", "use_netrc")
-load("//toolchain/internal:common.bzl", _arch = "arch", _attr_dict = "attr_dict", _host_os_arch_dict_value = "host_os_arch_dict_value", _python = "python")
+load("//toolchain/internal:common.bzl", _arch = "arch", _attr_dict = "attr_dict", _host_os_arch_dict_value = "host_os_arch_dict_value")
+load("//toolchain/internal:release_name.bzl", _llvm_release_name = "llvm_release_name")
 
 # If a new LLVM version is missing from this list, please add the shasums here
 # and send a PR on github. To compute the shasum block, you can run (for example):
@@ -343,15 +344,3 @@ def _distribution_urls(rctx):
     strip_prefix = basename[:(len(basename) - len(".tar.xz"))]
 
     return urls, sha256, strip_prefix
-
-def _llvm_release_name(rctx, llvm_version):
-    exec_result = rctx.execute([
-        _python(rctx),
-        rctx.path(rctx.attr._llvm_release_name),
-        llvm_version,
-    ])
-    if exec_result.return_code:
-        fail("Failed to detect host OS LLVM archive: \n%s\n%s" % (exec_result.stdout, exec_result.stderr))
-    if exec_result.stderr:
-        print(exec_result.stderr)
-    return exec_result.stdout.strip()

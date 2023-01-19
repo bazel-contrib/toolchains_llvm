@@ -1,23 +1,7 @@
-#!/usr/bin/env python3
-# Copyright 2018 The Bazel Authors.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-"""LLVM pre-built distribution file names."""
-
-import platform
-import sys
-
-import host_os_key
+load(
+    "//toolchain/internal:common.bzl",
+    _os_version_arch = "os_version_arch",
+)
 
 def _major_llvm_version(llvm_version):
     return int(llvm_version.split(".")[0])
@@ -47,17 +31,21 @@ def _darwin_apple_suffix(llvm_version, arch):
 def _darwin(llvm_version, arch):
     suffix = _darwin_apple_suffix(llvm_version, arch)
     return "clang+llvm-{llvm_version}-{arch}-{suffix}.tar.xz".format(
-        llvm_version=llvm_version, arch=arch, suffix=suffix)
+        llvm_version = llvm_version,
+        arch = arch,
+        suffix = suffix,
+    )
 
 def _windows(llvm_version, arch):
-    if arch.endswith('64'):
+    if arch.endswith("64"):
         win_arch = "win64"
     else:
         win_arch = "win32"
 
     return "LLVM-{llvm_version}-{win_arch}.exe".format(
-        llvm_version=llvm_version,
-        win_arch=win_arch)
+        llvm_version = llvm_version,
+        win_arch = win_arch,
+    )
 
 def _ubuntu_osname(arch, version, major_llvm_version, llvm_version):
     if arch == "powerpc64le":
@@ -68,8 +56,8 @@ def _ubuntu_osname(arch, version, major_llvm_version, llvm_version):
 
     is_llvm_major_release = (_minor_llvm_version(llvm_version) == 0) and (_patch_llvm_version(llvm_version) == 0)
     major_ubuntu_version = int(version.split(".")[0])
-    if (major_ubuntu_version >= 20 and (not version.startswith("20.04"))
-            and (llvm_version in ["11.0.1", "11.1.0"])):
+    if (major_ubuntu_version >= 20 and (not version.startswith("20.04")) and
+        (llvm_version in ["11.0.1", "11.1.0"])):
         os_name = "linux-gnu-ubuntu-20.10"
     elif is_llvm_major_release:
         if major_llvm_version >= 14:
@@ -90,7 +78,7 @@ def _ubuntu_osname(arch, version, major_llvm_version, llvm_version):
         elif llvm_version in ["7.1.0"]:
             os_name = "linux-gnu-ubuntu-14.04"
         else:
-            sys.exit("LLVM patch release %s not available for Ubuntu %s" % (llvm_version, version))
+            fail("LLVM patch release %s not available for Ubuntu %s" % (llvm_version, version))
 
     return os_name
 
@@ -112,12 +100,9 @@ def _linux(llvm_version, distname, version, arch):
     elif distname == "linuxmint" and version.startswith("18"):
         os_name = "linux-gnu-ubuntu-16.04"
     elif distname == "debian":
-        int_version = None
-        try:
-            int_version = int(version)
-        except ValueError:
-            pass
-        if int_version is None or int_version >= 9:
+        int_version = 0
+        int_version = int(version)
+        if int_version == 0 or int_version >= 9:
             os_name = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version)
         elif int_version == 8 and major_llvm_version < 7:
             os_name = "linux-gnu-debian8"
@@ -138,17 +123,18 @@ def _linux(llvm_version, distname, version, arch):
         arch = "armv7a"
         os_name = "linux-gnueabihf"
     elif distname == "rhel":
-        if 8 <= float(version) < 9:
+        if 8 <= float(version) and float(version) < 9:
             os_name = _ubuntu_osname(arch, "18.04", major_llvm_version, llvm_version)
         elif float(version) >= 9:
             os_name = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version)
     else:
-        sys.exit("Unsupported linux distribution and version: %s, %s" % (distname, version))
+        fail("Unsupported linux distribution and version: %s, %s" % (distname, version))
 
     return "clang+llvm-{llvm_version}-{arch}-{os_name}.tar.xz".format(
-        llvm_version=llvm_version,
-        arch=arch,
-        os_name=os_name)
+        llvm_version = llvm_version,
+        arch = arch,
+        os_name = os_name,
+    )
 
 def _resolve_version_for_suse(major_llvm_version, llvm_version):
     minor_llvm_version = _minor_llvm_version(llvm_version)
@@ -162,22 +148,11 @@ def _resolve_version_for_suse(major_llvm_version, llvm_version):
         os_name = _ubuntu_osname("x86_64", "20.04", major_llvm_version, llvm_version)
     return os_name
 
-def main():
-    """Prints the pre-built distribution file name."""
-
-    if len(sys.argv) != 2:
-        sys.exit("Usage: %s llvm_version" % sys.argv[0])
-
-    llvm_version = sys.argv[1]
-
-    os, version, arch = host_os_key.os_version_arch()
-
+def llvm_release_name(rctx, llvm_version):
+    (os, version, arch) = _os_version_arch(rctx)
     if os == "darwin":
-        print(_darwin(llvm_version, arch))
+        return _darwin(llvm_version, arch)
     elif os == "windows":
-        print(_windows(llvm_version, arch))
+        return _windows(llvm_version, arch)
     else:
-        print(_linux(llvm_version, os, version, arch))
-
-if __name__ == '__main__':
-    main()
+        return _linux(llvm_version, os, version, arch)

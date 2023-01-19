@@ -31,20 +31,47 @@ toolchain_tools = [
     "llvm-strip",
 ]
 
-def python(rctx):
-    # Get path of the python interpreter.
-
-    python3 = rctx.which("python3")
-    python = rctx.which("python")
-    python2 = rctx.which("python2")
-    if python3:
-        return python3
-    elif python:
-        return python
-    elif python2:
-        return python2
+def host_os_key(rctx):
+    (os, version, arch) = os_version_arch(rctx)
+    if version == "":
+        return "%s-%s" % (os, arch)
     else:
-        fail("python not found")
+        return "%s-%s-%s" % (os, version, arch)
+
+_known_distros = ["freebsd", "suse", "ubuntu", "arch", "manjaro", "debian", "fedora", "centos", "amzn", "raspbian", "pop", "rhel"]
+
+def _linux_dist(rctx):
+    res = rctx.execute(["cat", "/etc/os-release"])
+    if res.return_code:
+        fail("Failed to detect machine architecture: \n%s\n%s" % (res.stdout, res.stderr))
+    info = {}
+    for l in res.stdout.splitlines():
+        parts = l.split("=", 1)
+        info[parts[0]] = parts[1]
+
+    distname = info["ID"].strip('\"')
+
+    if distname not in _known_distros:
+        for distro in info["ID_LIKE"].strip('\"').split(" "):
+            if distro in _known_distros:
+                distname = distro
+                break
+
+    version = ""
+    if "VERSION_ID" in info:
+        version = info["VERSION_ID"].strip('"')
+
+    return distname, version
+
+def os_version_arch(rctx):
+    _os = os(rctx)
+    _arch = arch(rctx)
+
+    if _os == "linux":
+        (distname, version) = _linux_dist(rctx)
+        return distname, version, _arch
+
+    return _os, "", _arch
 
 def os(rctx):
     # Less granular host OS name, e.g. linux.
@@ -63,16 +90,11 @@ def os_bzl(os):
     return {"darwin": "osx", "linux": "linux"}[os]
 
 def arch(rctx):
-    exec_result = rctx.execute([
-        python(rctx),
-        "-c",
-        "import platform; print(platform.machine())",
-    ])
-    if exec_result.return_code:
-        fail("Failed to detect machine architecture: \n%s\n%s" % (exec_result.stdout, exec_result.stderr))
-    arch = exec_result.stdout.strip()
+    arch = rctx.os.arch
     if arch == "arm64":
         return "aarch64"
+    if arch == "amd64":
+        return "x86_64"
     return arch
 
 def os_arch_pair(os, arch):
@@ -98,7 +120,7 @@ def host_os_arch_dict_value(rctx, attr_name, debug = False):
     # Returns a tuple of the matching key and value.
 
     d = getattr(rctx.attr, attr_name)
-    key1 = _host_os_key(rctx)
+    key1 = host_os_key(rctx)
     if key1 in d:
         return (key1, d.get(key1))
 
@@ -111,19 +133,6 @@ def host_os_arch_dict_value(rctx, attr_name, debug = False):
     if debug:
         print("`%s` attribute missing for key '%s' in repository '%s'; checking with key ''" % (attr_name, key2, rctx.name))
     return ("", d.get(""))  # Fallback to empty key.
-
-def _host_os_key(rctx):
-    # More granular host OS release and key, e.g. ubuntu-20.04-x86_64.
-
-    exec_result = rctx.execute([
-        python(rctx),
-        rctx.path(rctx.attr._os_version_arch),
-    ])
-    if exec_result.return_code:
-        fail("Failed to detect host OS name and version: \n%s\n%s" % (exec_result.stdout, exec_result.stderr))
-    if exec_result.stderr:
-        print(exec_result.stderr)
-    return exec_result.stdout.strip()
 
 def canonical_dir_path(path):
     if not path.endswith("/"):
