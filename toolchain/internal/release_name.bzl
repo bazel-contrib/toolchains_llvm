@@ -113,7 +113,7 @@ def _linux(llvm_version, distname, version, arch):
         os_name = _resolve_version_for_suse(major_llvm_version, llvm_version)
     elif distname == "fedora" and major_llvm_version >= 7:
         os_name = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version)
-    elif distname in ["arch", "manjaro"]:
+    elif distname in ["arch", "manjaro", "nixos"]:
         os_name = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version)
     elif distname == "amzn":
         # Based on the ID_LIKE field, sles seems like the closest available
