@@ -29,6 +29,8 @@ def _darwin_apple_suffix(llvm_version, arch):
         return "apple-darwin"
 
 def _darwin(llvm_version, arch):
+    if arch == "aarch64":
+        arch = "arm64"
     suffix = _darwin_apple_suffix(llvm_version, arch)
     return "clang+llvm-{llvm_version}-{arch}-{suffix}.tar.xz".format(
         llvm_version = llvm_version,
