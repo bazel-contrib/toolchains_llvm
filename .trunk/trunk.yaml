@@ -22,4 +22,6 @@ runtimes:
     - node@18.12.1
 actions:
   enabled:
+    - trunk-fmt-pre-commit
     - trunk-check-pre-push
+    - git-blame-ignore-revs
