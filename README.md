@@ -1,7 +1,6 @@
-LLVM toolchain for Bazel [![Tests](https://github.com/grailbio/bazel-toolchain/actions/workflows/tests.yml/badge.svg)](https://github.com/grailbio/bazel-toolchain/actions/workflows/tests.yml)
-=================
+# LLVM toolchain for Bazel [![Tests](https://github.com/grailbio/bazel-toolchain/actions/workflows/tests.yml/badge.svg)](https://github.com/grailbio/bazel-toolchain/actions/workflows/tests.yml)
 
--------
+---
 
 The project is in a relatively stable state and in use for all code development
 at GRAIL and other organizations. Having said that, I am unable to give time to
@@ -16,13 +15,14 @@ implementation, please let me know and I can redirect people there.
 
 – @siddharthab
 
--------
+---
 
 ## Quickstart
 
 Minimum bazel version: **4.2.1**
 
 To use this toolchain, include this section in your WORKSPACE:
+
 ```starlark
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
@@ -55,6 +55,7 @@ llvm_register_toolchains()
 
 And add the following section to your .bazelrc file (not needed after
 this [issue](https://github.com/bazelbuild/bazel/issues/7260) is closed):
+
 ```
 build --incompatible_enable_cc_toolchain_resolution
 ```
@@ -73,7 +74,7 @@ attributes to `llvm_toolchain`.
 #### Customizations
 
 We currently offer limited customizability through attributes of the
-[llvm_toolchain_\* rules](toolchain/rules.bzl). You can send us a PR to add
+[llvm*toolchain*\* rules](toolchain/rules.bzl). You can send us a PR to add
 more configuration attributes.
 
 A majority of the complexity of this project is to make it generic for multiple
@@ -121,7 +122,7 @@ with the `--toolchain_resolution_debug` flag to see which toolchains were
 selected by bazel for your target platform.
 
 For specifying unregistered toolchains on the command line, please use the
-`--extra_toolchains` flag.  For example,
+`--extra_toolchains` flag. For example,
 `--extra_toolchains=@llvm_toolchain//:cc-toolchain-x86_64-linux`.
 
 We no longer support the `--crosstool_top=@llvm_toolchain//:toolchain` flag,
@@ -173,6 +174,7 @@ The toolchain supports cross-compilation if you bring your own sysroot. When
 cross-compiling, we link against the libstdc++ from the sysroot
 (single-platform build behavior is to link against libc++ bundled with LLVM).
 The following pairs have been tested to work for some hello-world binaries:
+
 - {linux, x86_64} -> {linux, aarch64}
 - {linux, aarch64} -> {linux, x86_64}
 - {darwin, x86_64} -> {linux, x86_64}
@@ -183,6 +185,7 @@ for single-platform builds, and one with sysroot for cross-compilation builds.
 Then, when cross-compiling, explicitly specify the toolchain with the sysroot
 and the target platform. For example, see the [WORKSPACE](tests/WORKSPACE) file and
 the [test script](tests/scripts/run_xcompile_tests.sh) for cross-compilation.
+
 ```
 bazel build \
   --platforms=@com_grail_bazel_toolchain//platforms:linux-x86_64 \
@@ -212,7 +215,7 @@ The following is a rough (untested) list of steps:
 
 Sandboxing the toolchain introduces a significant overhead (100ms per action,
 as of mid 2018). To overcome this, one can use
-`--experimental_sandbox_base=/dev/shm`.  However, not all environments might
+`--experimental_sandbox_base=/dev/shm`. However, not all environments might
 have enough shared memory available to load all the files in memory. If this is
 a concern, you may set the attribute for using absolute paths, which will
 substitute templated paths to the toolchain as absolute paths. When running

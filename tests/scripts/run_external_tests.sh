@@ -46,5 +46,4 @@ test_args=(
   @io_bazel_rules_go//tests/core/cgo:all \
   -@io_bazel_rules_go//tests/core/cgo:cc_libs_test \
   -@io_bazel_rules_go//tests/core/cgo:external_includes_test \
-  $("${bazel}" query 'attr(timeout, short, tests(@com_google_absl//absl/...))') \
-
+  $("${bazel}" query 'attr(timeout, short, tests(@com_google_absl//absl/...))')

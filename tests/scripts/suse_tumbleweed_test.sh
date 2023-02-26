@@ -16,7 +16,7 @@
 set -euox pipefail
 
 images=(
-"opensuse/tumbleweed:latest"
+  "opensuse/tumbleweed:latest"
 )
 
 # See note next to the definition of this toolchain in the WORKSPACE file.

@@ -20,9 +20,9 @@
 args=()
 for a in "${@}"; do
   if [[ ${a} =~ @.* ]]; then
-    IFS=$'\n' read -d '' -r -a args_in_file < "${a:1}"
+    IFS=$'\n' read -d '' -r -a args_in_file <"${a:1}"
     for arg in "${args_in_file[@]}"; do
-        args+=("${arg}")
+      args+=("${arg}")
     done
   else
     args+=("${a}")

@@ -16,7 +16,7 @@
 set -euo pipefail
 
 images=(
-"ubuntu:20.04"
+  "ubuntu:20.04"
 )
 
 git_root=$(git rev-parse --show-toplevel)

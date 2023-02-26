@@ -13,6 +13,11 @@
 # limitations under the License.
 
 load(
+    "//toolchain:aliases.bzl",
+    _aliased_libs = "aliased_libs",
+    _aliased_tools = "aliased_tools",
+)
+load(
     "//toolchain/internal:common.bzl",
     _arch = "arch",
     _canonical_dir_path = "canonical_dir_path",
@@ -24,7 +29,6 @@ load(
     _os = "os",
     _os_arch_pair = "os_arch_pair",
     _os_bzl = "os_bzl",
-    _pkg_name_from_label = "pkg_name_from_label",
     _pkg_path_from_label = "pkg_path_from_label",
     _supported_targets = "SUPPORTED_TARGETS",
     _toolchain_tools = "toolchain_tools",
@@ -33,11 +37,6 @@ load(
     "//toolchain/internal:sysroot.bzl",
     _default_sysroot_path = "default_sysroot_path",
     _sysroot_paths_dict = "sysroot_paths_dict",
-)
-load(
-    "//toolchain:aliases.bzl",
-    _aliased_libs = "aliased_libs",
-    _aliased_tools = "aliased_tools",
 )
 
 def _include_dirs_str(rctx, key):
@@ -202,9 +201,9 @@ def llvm_register_toolchains():
         {
             "%{cc_toolchain_config_bzl}": str(rctx.attr._cc_toolchain_config_bzl),
             "%{cc_toolchains}": cc_toolchains_str,
+            "%{convenience_targets}": convenience_targets_str,
             "%{symlinked_tools}": symlinked_tools_str,
             "%{wrapper_bin_prefix}": wrapper_bin_prefix,
-            "%{convenience_targets}": convenience_targets_str,
         },
     )
 
@@ -270,7 +269,7 @@ def _cc_toolchains_str(
     return cc_toolchains_str, toolchain_labels_str
 
 # Gets a value from the dict for the target pair, falling back to an empty
-# key, if present.  Bazel 4.* doesn't support nested skylark functions, so
+# key, if present.  Bazel 4.* doesn't support nested starlark functions, so
 # we cannot simplify _dict_value() by defining it as a nested function.
 def _dict_value(d, target_pair, default = None):
     return d.get(target_pair, d.get("", default))

@@ -115,8 +115,8 @@ llvm_toolchain(
     name = "llvm_toolchain_with_sysroot",
     llvm_versions = {
         "": "15.0.6",
-        "darwin-x86_64": "15.0.7",
         "darwin-aarch64": "15.0.7",
+        "darwin-x86_64": "15.0.7",
     },
     sysroot = {
         "linux-x86_64": "@org_chromium_sysroot_linux_x64//:sysroot",

@@ -2,9 +2,9 @@ name: Tests
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
 jobs:
   test:
@@ -19,43 +19,53 @@ jobs:
           - script: run_external_tests.sh
             bazel_version: 5.1.0
     steps:
-    - uses: actions/checkout@v2
-    - name: test
-      env:
-        USE_BAZEL_VERSION: ${{ matrix.bazel_version }}
-      run: tests/scripts/${{ matrix.script }}
+      - uses: actions/checkout@v2
+      - name: test
+        env:
+          USE_BAZEL_VERSION: ${{ matrix.bazel_version }}
+        run: tests/scripts/${{ matrix.script }}
   container_test:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        script: [archlinux, debian, fedora, suse_leap, suse_tumbleweed, ubuntu_18_04, ubuntu_20_04, linux_sysroot]
+        script:
+          [
+            archlinux,
+            debian,
+            fedora,
+            suse_leap,
+            suse_tumbleweed,
+            ubuntu_18_04,
+            ubuntu_20_04,
+            linux_sysroot,
+          ]
     steps:
-    - uses: actions/checkout@v2
-    - name: test
-      run: tests/scripts/${{ matrix.script }}_test.sh
+      - uses: actions/checkout@v2
+      - name: test
+        run: tests/scripts/${{ matrix.script }}_test.sh
   xcompile_test:
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: test
-      run: tests/scripts/run_xcompile_tests.sh
+      - uses: actions/checkout@v2
+      - name: test
+        run: tests/scripts/run_xcompile_tests.sh
   abs_paths_test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: test
-      run: tests/scripts/run_tests.sh -t @llvm_toolchain_with_absolute_paths//:cc-toolchain-x86_64-linux
+      - uses: actions/checkout@v2
+      - name: test
+        run: tests/scripts/run_tests.sh -t @llvm_toolchain_with_absolute_paths//:cc-toolchain-x86_64-linux
   sys_paths_test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Download and Extract LLVM distribution
-      env:
-        release: "llvmorg-15.0.6"
-        archive: "clang+llvm-15.0.6-x86_64-linux-gnu-ubuntu-18.04"
-        ext: ".tar.xz"
-        local_path: "/tmp/llvm-15"
-      run: wget --no-verbose "https://github.com/llvm/llvm-project/releases/download/${release}/${archive}${ext}" && tar -xf "${archive}${ext}" && mv "${archive}" "${local_path}"
-    - name: test
-      run: tests/scripts/run_tests.sh -t @llvm_toolchain_with_system_llvm//:cc-toolchain-x86_64-linux
+      - uses: actions/checkout@v2
+      - name: Download and Extract LLVM distribution
+        env:
+          release: "llvmorg-15.0.6"
+          archive: "clang+llvm-15.0.6-x86_64-linux-gnu-ubuntu-18.04"
+          ext: ".tar.xz"
+          local_path: "/tmp/llvm-15"
+        run: wget --no-verbose "https://github.com/llvm/llvm-project/releases/download/${release}/${archive}${ext}" && tar -xf "${archive}${ext}" && mv "${archive}" "${local_path}"
+      - name: test
+        run: tests/scripts/run_tests.sh -t @llvm_toolchain_with_system_llvm//:cc-toolchain-x86_64-linux

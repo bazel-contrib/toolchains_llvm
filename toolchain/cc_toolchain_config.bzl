@@ -24,7 +24,7 @@ load(
     _os_arch_pair = "os_arch_pair",
 )
 
-# Bazel 4.* doesn't support nested skylark functions, so we cannot simplify
+# Bazel 4.* doesn't support nested starlark functions, so we cannot simplify
 # _fmt_flags() by defining it as a nested function.
 def _fmt_flags(flags, toolchain_path_prefix):
     return [f.format(toolchain_path_prefix = toolchain_path_prefix) for f in flags]
@@ -60,15 +60,6 @@ def cc_toolchain_config(
         abi_version,
         abi_libc_version,
     ) = {
-        "darwin-x86_64": (
-            "clang-x86_64-darwin",
-            "x86_64-apple-macosx",
-            "darwin",
-            "macosx",
-            "clang",
-            "darwin_x86_64",
-            "darwin_x86_64",
-        ),
         "darwin-aarch64": (
             "clang-aarch64-darwin",
             "aarch64-apple-macosx",
@@ -77,6 +68,15 @@ def cc_toolchain_config(
             "clang",
             "darwin_aarch64",
             "darwin_aarch64",
+        ),
+        "darwin-x86_64": (
+            "clang-x86_64-darwin",
+            "x86_64-apple-macosx",
+            "darwin",
+            "macosx",
+            "clang",
+            "darwin_x86_64",
+            "darwin_x86_64",
         ),
         "linux-aarch64": (
             "clang-aarch64-linux",

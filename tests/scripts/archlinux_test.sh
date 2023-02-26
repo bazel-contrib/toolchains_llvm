@@ -16,7 +16,7 @@
 set -euo pipefail
 
 images=(
-"archlinux:base-devel"
+  "archlinux:base-devel"
 )
 
 # See note next to the definition of this toolchain in the WORKSPACE file.

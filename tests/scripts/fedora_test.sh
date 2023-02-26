@@ -16,7 +16,7 @@
 set -euo pipefail
 
 images=(
-"fedora:latest"
+  "fedora:latest"
 )
 
 git_root=$(git rev-parse --show-toplevel)
