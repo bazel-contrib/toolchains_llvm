@@ -236,9 +236,22 @@ _llvm_distributions = {
 
     # 15.0.7
     "clang+llvm-15.0.7-arm64-apple-darwin22.0.tar.xz": "867c6afd41158c132ef05a8f1ddaecf476a26b91c85def8e124414f9a9ba188d",
+    "clang+llvm-15.0.7-powerpc64-ibm-aix-7.2.tar.xz": "6cbc7c7f4395abb9c1a5bdcab3811bd6b1a6c4d08756ba674bfbbd732e2b23ac"
     "clang+llvm-15.0.7-powerpc64le-linux-rhel-8.4.tar.xz": "2163cc934437146dc30810a21a46327ba3983f123c3bea19be316a64135b6414",
     "clang+llvm-15.0.7-powerpc64le-linux-ubuntu-18.04.tar.xz": "19a16d768e15966923b0cbf8fc7dc148c89e316857acd89ad3aff72dcfcd61f4",
     "clang+llvm-15.0.7-x86_64-apple-darwin21.0.tar.xz": "d16b6d536364c5bec6583d12dd7e6cf841b9f508c4430d9ee886726bd9983f1c",
+
+    # 16.0.0
+    "clang+llvm-16.0.0-aarch64-linux-gnu.tar.xz": "b750ba3120e6153fc5b316092f19b52cf3eb64e19e5f44bd1b962cb54a20cf0a",
+    "clang+llvm-16.0.0-amd64-pc-solaris2.11.tar.xz": "b637b7da383d3417ac4862342911cb467fba2ec00f48f163eb8308f2bbb9b7ad",
+    "clang+llvm-16.0.0-amd64-unknown-freebsd13.tar.xz": "c4fe6293349b3ab7d802793103d1d44f58831884e63ff1b40ce29c3e7408257b",
+    "clang+llvm-16.0.0-arm64-apple-darwin22.0.tar.xz": "2041587b90626a4a87f0de14a5842c14c6c3374f42c8ed12726ef017416409d9",
+    "clang+llvm-16.0.0-powerpc64-ibm-aix-7.2.tar.xz": "e51209eeea3c3db41084d8625ab3357991980831e0b641d633ec23e9d858333f",
+    "clang+llvm-16.0.0-powerpc64le-linux-rhel-8.4.tar.xz": "eb56949af9a83a12754f7cf254886d30c4be8a1da4dd0f27db790a7fcd35a3bf",
+    "clang+llvm-16.0.0-powerpc64le-linux-ubuntu-18.04.tar.xz": "ae34b037cde14f19c3c431de5fc04e06fa43d2cce3f8d44a63659b48afdf1f7a",
+    "clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz": "a2627fcb6d97405b38c9e4c17ccfdc5d61fdd1bee742dcce0726ed39e2dcd92c",
+    "clang+llvm-16.0.0-sparcv9-sun-solaris2.11.tar.xz": "45c2ac0c10c3876332407a1ea893dccbde77a490f4a9b54a00e4881681a3c5ea",
+    "clang+llvm-16.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz": "2b8a69798e8dddeb57a186ecac217a35ea45607cb2b3cf30014431cff4340ad1",
 }
 
 # Note: Unlike the user-specified llvm_mirror attribute, the URL prefixes in
@@ -263,6 +276,8 @@ _llvm_distributions_base_url = {
     "14.0.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
     "15.0.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
     "15.0.6": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
+    "15.0.7": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
+    "16.0.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
 }
 
 def _get_auth(ctx, urls):
