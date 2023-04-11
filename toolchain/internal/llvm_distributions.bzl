@@ -236,7 +236,7 @@ _llvm_distributions = {
 
     # 15.0.7
     "clang+llvm-15.0.7-arm64-apple-darwin22.0.tar.xz": "867c6afd41158c132ef05a8f1ddaecf476a26b91c85def8e124414f9a9ba188d",
-    "clang+llvm-15.0.7-powerpc64-ibm-aix-7.2.tar.xz": "6cbc7c7f4395abb9c1a5bdcab3811bd6b1a6c4d08756ba674bfbbd732e2b23ac"
+    "clang+llvm-15.0.7-powerpc64-ibm-aix-7.2.tar.xz": "6cbc7c7f4395abb9c1a5bdcab3811bd6b1a6c4d08756ba674bfbbd732e2b23ac",
     "clang+llvm-15.0.7-powerpc64le-linux-rhel-8.4.tar.xz": "2163cc934437146dc30810a21a46327ba3983f123c3bea19be316a64135b6414",
     "clang+llvm-15.0.7-powerpc64le-linux-ubuntu-18.04.tar.xz": "19a16d768e15966923b0cbf8fc7dc148c89e316857acd89ad3aff72dcfcd61f4",
     "clang+llvm-15.0.7-x86_64-apple-darwin21.0.tar.xz": "d16b6d536364c5bec6583d12dd7e6cf841b9f508c4430d9ee886726bd9983f1c",
