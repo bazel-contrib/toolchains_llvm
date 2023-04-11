@@ -29,6 +29,17 @@ _target_pairs = ", ".join(_supported_os_arch_keys())
 
 # Atributes common to both `llvm` and `toolchain` repository rules.
 _common_attrs = {
+    "llvm_versions": attr.string_dict(
+        mandatory = False,
+        doc = ("LLVM version strings that map os-arch to versions with the empty key " +
+               "defining the default version in case the os-arch target has not been " +
+               "specified explicitly. This allows to define a base version and specifc " +
+               "target versions for targets that require a differnt version. " +
+               "If no `toolchain_roots` is given, then the toolchain will be looked up " +
+               "in the list of known llvm_distributions using the identified target " +
+               "and the provided version. " +
+               "If unset, a default value is set from the `llvm_version` attribute."),
+    ),
 }
 
 _llvm_repo_attrs = dict(_common_attrs)
@@ -238,11 +249,6 @@ _llvm_config_attrs.update({
                "assumed to be a system path and the toolchain is configured to use absolute " +
                "paths. Else, the value will be assumed to be a bazel package containing the " +
                "filegroup targets as in BUILD.llvm_repo."),
-    ),
-    "llvm_versions": attr.string_dict(
-        mandatory = True,
-        doc = ("LLVM version strings for each entry in the `toolchain_roots` attribute; " +
-               "if unset, a default value is set from the `llvm_version` attribute."),
     ),
     "absolute_paths": attr.bool(
         default = False,

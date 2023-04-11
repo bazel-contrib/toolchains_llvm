@@ -55,6 +55,16 @@ llvm_toolchain(
     },
 )
 
+# The following automatically gets the full archive details from llvm_distributions.bzl.
+llvm_toolchain(
+    name = "llvm_toolchain_auto",
+    llvm_versions = {
+        "": "15.0.6",
+        "darwin-aarch64": "15.0.7",
+        "darwin-x86_64": "15.0.7",
+    },
+)
+
 # This is the latest version of LLVM that seems to work with rules_go; later
 # versions cause the tests to crash.
 llvm_toolchain(
