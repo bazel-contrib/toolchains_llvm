@@ -19,7 +19,7 @@ def _darwin_apple_suffix(llvm_version, arch):
         "darwin-apple"
     elif major_llvm_version >= 15:
         if arch == "arm64":
-            if patch_llvm_version <= 6:
+            if major_llvm_version == 15 and patch_llvm_version <= 6:
                 return "apple-darwin21.0"
             else:
                 return "apple-darwin22.0"
