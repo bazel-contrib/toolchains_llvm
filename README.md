@@ -45,11 +45,7 @@ load("@com_grail_bazel_toolchain//toolchain:rules.bzl", "llvm_toolchain")
 
 llvm_toolchain(
     name = "llvm_toolchain",
-    llvm_versions = {
-        "": "15.0.6",
-        "darwin-aarch64": "15.0.7",
-        "darwin-x86_64": "15.0.7",
-    },
+    llvm_version = "16.0.0",
 )
 
 load("@llvm_toolchain//:toolchains.bzl", "llvm_register_toolchains")
@@ -73,6 +69,30 @@ See in-code documentation in [rules.bzl](toolchain/rules.bzl) for available
 attributes to `llvm_toolchain`.
 
 ## Advanced Usage
+
+#### Per target LLVM version
+
+LLVM does not come with distributions for all targets in each version. In
+particular mini versions often come with few prebuilt packages. This means
+that a single version probably is not enough to address all targets one wants
+to support.
+
+This can be solved by providing a target/version map with a default version.
+The example below selects `15.0.6` as the default version for all targets not
+specified explicitly. This is like providing `llvm_version = "15.0.6"`, just
+like in the example on the top. However, here we provide two more entries that
+map their respective target to a distinct version:
+
+```
+llvm_toolchain(
+    name = "llvm_toolchain",
+    llvm_versions = {
+        "": "15.0.6",
+        "darwin-aarch64": "15.0.7",
+        "darwin-x86_64": "15.0.7",
+    },
+)
+```
 
 #### Customizations
 
