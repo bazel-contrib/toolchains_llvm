@@ -339,7 +339,7 @@ def _get_llvm_version(rctx):
         return rctx.attr.llvm_version
     if not rctx.attr.llvm_versions:
         fail("Neither 'llvm_version' nor 'llvm_versions' given.")
-    (key, llvm_version) = _host_os_arch_dict_value(rctx, "llvm_versions", debug=True)
+    (key, llvm_version) = _host_os_arch_dict_value(rctx, "llvm_versions")
     if not llvm_version:
         fail("LLVM version string missing for ({os}, {arch})", os=_os(rctx), arch=_arch(rctx))
     return llvm_version
