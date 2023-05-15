@@ -31,13 +31,12 @@ _target_pairs = ", ".join(_supported_os_arch_keys())
 _common_attrs = {
     "llvm_versions": attr.string_dict(
         mandatory = False,
-        doc = ("LLVM version strings that map os-arch to versions with the empty key " +
-               "defining the default version in case the os-arch target has not been " +
-               "specified explicitly. This allows to define a base version and specifc " +
-               "target versions for targets that require a differnt version. " +
+        doc = ("LLVM version strings, keyed by host OS release name and architecture, " +
+               "e.g. darwin-x86_64, darwin-aarch64, ubuntu-20.04-x86_64, etc., or a " +
+               "less specific OS and arch pair ({}). ".format(_target_pairs) +
+               "An empty key is used to specify a fallback default for all hosts. " +
                "If no `toolchain_roots` is given, then the toolchain will be looked up " +
-               "in the list of known llvm_distributions using the identified target " +
-               "and the provided version. " +
+               "in the list of known llvm_distributions using the provided version. " +
                "If unset, a default value is set from the `llvm_version` attribute."),
     ),
 }
@@ -53,7 +52,7 @@ _llvm_repo_attrs.update({
         mandatory = False,
         doc = ("URLs to LLVM pre-built binary distribution archives, keyed by host OS " +
                "release name and architecture, e.g. darwin-x86_64, darwin-aarch64, " +
-               "ubuntu-20.04-x86_64, etc, or a less specific OS and arch pair " +
+               "ubuntu-20.04-x86_64, etc., or a less specific OS and arch pair " +
                "({}). ".format(_target_pairs) +
                "May also need the `strip_prefix` attribute. " +
                "Consider also setting the `sha256` attribute. An empty key is " +
