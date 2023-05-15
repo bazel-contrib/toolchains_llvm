@@ -45,7 +45,7 @@ load("@com_grail_bazel_toolchain//toolchain:rules.bzl", "llvm_toolchain")
 
 llvm_toolchain(
     name = "llvm_toolchain",
-    llvm_version = "15.0.6",
+    llvm_version = "16.0.0",
 )
 
 load("@llvm_toolchain//:toolchains.bzl", "llvm_register_toolchains")
@@ -69,6 +69,30 @@ See in-code documentation in [rules.bzl](toolchain/rules.bzl) for available
 attributes to `llvm_toolchain`.
 
 ## Advanced Usage
+
+#### Per host architecture LLVM version
+
+LLVM does not come with distributions for all host architectures in each
+version. In particular patch versions often come with few prebuilt packages.
+This means that a single version probably is not enough to address all hosts
+one wants to support.
+
+This can be solved by providing a target/version map with a default version.
+The example below selects `15.0.6` as the default version for all targets not
+specified explicitly. This is like providing `llvm_version = "15.0.6"`, just
+like in the example on the top. However, here we provide two more entries that
+map their respective target to a distinct version:
+
+```
+llvm_toolchain(
+    name = "llvm_toolchain",
+    llvm_versions = {
+        "": "15.0.6",
+        "darwin-aarch64": "15.0.7",
+        "darwin-x86_64": "15.0.7",
+    },
+)
+```
 
 #### Customizations
 
@@ -132,11 +156,12 @@ and instead rely on the `--incompatible_enable_cc_toolchain_resolution` flag.
 The following mechanisms are available for using an LLVM toolchain:
 
 1. Host OS information is used to find the right pre-built binary distribution
-   from llvm.org, given the `llvm_version` attribute. The LLVM toolchain
-   archive is downloaded and extracted as a separate repository with the suffix
-   `_llvm`. The detection is not perfect, so you may have to use other options
-   for some host OS type and versions. We expect the detection logic to grow
-   through community contributions. We welcome PRs.
+   from llvm.org, given the `llvm_version` or `llvm_versions` attribute. The
+   LLVM toolchain archive is downloaded and extracted as a separate repository
+   with the suffix `_llvm`. The detection logic for `llvm_version` is not
+   perfect, so you may have to use `llvm_versions` for some host OS type and
+   versions. We expect the detection logic to grow through community
+   contributions. We welcome PRs.
 2. You can use the `urls` attribute to specify your own URLs for each OS type,
    version and architecture. For example, you can specify a different URL for
    Arch Linux and a different one for Ubuntu. Just as with the option above,

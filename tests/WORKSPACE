@@ -27,12 +27,23 @@ bazel_toolchain_dependencies()
 load("@com_grail_bazel_toolchain//toolchain:rules.bzl", "llvm_toolchain")
 
 # When updating this version, also update the versions associated with
-# llvm_toolchain below, sys_paths_test in the worflows file, and xcompile_test
+# llvm_toolchain below, sys_paths_test in the workflows file, and xcompile_test
 # through the `llvm_toolchain_with_sysroot` toolchain.
 LLVM_VERSION = "15.0.6"
 
 llvm_toolchain(
     name = "llvm_toolchain",
+    llvm_versions = {
+        "": "15.0.6",
+        "darwin-aarch64": "15.0.7",
+        "darwin-x86_64": "15.0.7",
+    },
+)
+
+# Example toolchain with user provided URLs.
+# TODO(siddharthab): Add test.
+llvm_toolchain(
+    name = "llvm_toolchain_with_urls",
     llvm_versions = {
         "": "15.0.6",
         "darwin-aarch64": "15.0.7",

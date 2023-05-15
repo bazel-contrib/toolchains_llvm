@@ -13,7 +13,7 @@
 # limitations under the License.
 
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "read_netrc", "use_netrc")
-load("//toolchain/internal:common.bzl", _arch = "arch", _attr_dict = "attr_dict", _host_os_arch_dict_value = "host_os_arch_dict_value")
+load("//toolchain/internal:common.bzl", _arch = "arch", _attr_dict = "attr_dict", _host_os_arch_dict_value = "host_os_arch_dict_value", _os = "os")
 load("//toolchain/internal:release_name.bzl", _llvm_release_name = "llvm_release_name")
 
 # If a new LLVM version is missing from this list, please add the shasums here
@@ -334,8 +334,18 @@ def _urls(rctx):
 
     return urls, sha256, strip_prefix, key
 
+def _get_llvm_version(rctx):
+    if rctx.attr.llvm_version:
+        return rctx.attr.llvm_version
+    if not rctx.attr.llvm_versions:
+        fail("Neither 'llvm_version' nor 'llvm_versions' given.")
+    (key, llvm_version) = _host_os_arch_dict_value(rctx, "llvm_versions")
+    if not llvm_version:
+        fail("LLVM version string missing for ({os}, {arch})", os=_os(rctx), arch=_arch(rctx))
+    return llvm_version
+
 def _distribution_urls(rctx):
-    llvm_version = rctx.attr.llvm_version
+    llvm_version = _get_llvm_version(rctx)
 
     if rctx.attr.distribution == "auto":
         basename = _llvm_release_name(rctx, llvm_version)

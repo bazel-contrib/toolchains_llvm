@@ -29,6 +29,16 @@ _target_pairs = ", ".join(_supported_os_arch_keys())
 
 # Atributes common to both `llvm` and `toolchain` repository rules.
 _common_attrs = {
+    "llvm_versions": attr.string_dict(
+        mandatory = False,
+        doc = ("LLVM version strings, keyed by host OS release name and architecture, " +
+               "e.g. darwin-x86_64, darwin-aarch64, ubuntu-20.04-x86_64, etc., or a " +
+               "less specific OS and arch pair ({}). ".format(_target_pairs) +
+               "An empty key is used to specify a fallback default for all hosts. " +
+               "If no `toolchain_roots` is given, then the toolchain will be looked up " +
+               "in the list of known llvm_distributions using the provided version. " +
+               "If unset, a default value is set from the `llvm_version` attribute."),
+    ),
 }
 
 _llvm_repo_attrs = dict(_common_attrs)
@@ -42,7 +52,7 @@ _llvm_repo_attrs.update({
         mandatory = False,
         doc = ("URLs to LLVM pre-built binary distribution archives, keyed by host OS " +
                "release name and architecture, e.g. darwin-x86_64, darwin-aarch64, " +
-               "ubuntu-20.04-x86_64, etc, or a less specific OS and arch pair " +
+               "ubuntu-20.04-x86_64, etc., or a less specific OS and arch pair " +
                "({}). ".format(_target_pairs) +
                "May also need the `strip_prefix` attribute. " +
                "Consider also setting the `sha256` attribute. An empty key is " +
@@ -238,11 +248,6 @@ _llvm_config_attrs.update({
                "assumed to be a system path and the toolchain is configured to use absolute " +
                "paths. Else, the value will be assumed to be a bazel package containing the " +
                "filegroup targets as in BUILD.llvm_repo."),
-    ),
-    "llvm_versions": attr.string_dict(
-        mandatory = True,
-        doc = ("LLVM version strings for each entry in the `toolchain_roots` attribute; " +
-               "if unset, a default value is set from the `llvm_version` attribute."),
     ),
     "absolute_paths": attr.bool(
         default = False,
