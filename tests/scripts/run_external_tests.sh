@@ -27,6 +27,7 @@ cd "${scripts_dir}"
 
 test_args=(
   "${common_test_args[@]}"
+  "--enable_bzlmod=${USE_BZLMOD:-false}"
   # Fix LLVM version to be 14.0.0 because that's the last known version with
   # which the tests in rules_go pass.
   "--extra_toolchains=@llvm_toolchain_14_0_0//:all"

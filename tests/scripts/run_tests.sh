@@ -36,10 +36,12 @@ cd "${scripts_dir}"
 
 set -x
 test_args=(
-  --extra_toolchains="${toolchain_name}"
-  --copt=-v
-  --linkopt=-Wl,-t
+  "--enable_bzlmod=${USE_BZLMOD:-false}"
+  "--extra_toolchains=${toolchain_name}"
+  "--copt=-v"
+  "--linkopt=-Wl,-t"
 )
+
 "${bazel}" ${TEST_MIGRATION:+"--strict"} --bazelrc=/dev/null test \
   "${common_test_args[@]}" "${test_args[@]}" //:all
 

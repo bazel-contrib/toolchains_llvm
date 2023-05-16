@@ -1,4 +1,4 @@
 exports_files(
     srcs = glob(["**/*.h"]),
-    visibility = ["@openssl//:__pkg__"],
+    visibility = ["//visibility:public"],
 )

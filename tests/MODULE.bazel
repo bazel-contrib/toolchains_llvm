@@ -1,0 +1,119 @@
+module(name = "com_grail_bazel_toolchain_tests")
+
+bazel_dep(name = "com_grail_bazel_toolchain", version = "0.8.2")
+bazel_dep(name = "bazel_skylib", version = "1.4.1")
+bazel_dep(name = "rules_foreign_cc", version = "0.9.0")
+
+local_path_override(module_name = "com_grail_bazel_toolchain", path = "..")
+
+llvm = use_extension("@com_grail_bazel_toolchain//toolchain:extensions.bzl", "llvm")
+
+# When updating this version, also update the versions associated with
+# llvm_toolchain below, sys_paths_test in the workflows file, and xcompile_test
+# through the `llvm_toolchain_with_sysroot` toolchain.
+LLVM_VERSION = "15.0.6"
+
+llvm.toolchain(
+    name = "llvm_toolchain",
+    llvm_versions = {
+        "": "15.0.6",
+        "darwin-aarch64": "15.0.7",
+        "darwin-x86_64": "15.0.7",
+    },
+)
+
+use_repo(llvm, "llvm_toolchain")
+use_repo(llvm, "llvm_toolchain_llvm")
+register_toolchains("@llvm_toolchain//:all")
+
+# Example toolchain with user provided URLs.
+# TODO(siddharthab): Add test.
+llvm.toolchain(
+    name = "llvm_toolchain_with_urls",
+    llvm_versions = {
+        "": "15.0.6",
+        "darwin-aarch64": "15.0.7",
+        "darwin-x86_64": "15.0.7",
+    },
+    sha256 = {
+        "": "38bc7f5563642e73e69ac5626724e206d6d539fbef653541b34cae0ba9c3f036",
+        "darwin-aarch64": "867c6afd41158c132ef05a8f1ddaecf476a26b91c85def8e124414f9a9ba188d",
+        "darwin-x86_64": "d16b6d536364c5bec6583d12dd7e6cf841b9f508c4430d9ee886726bd9983f1c",
+    },
+    strip_prefix = {
+        "": "clang+llvm-15.0.6-x86_64-linux-gnu-ubuntu-18.04",
+        "darwin-aarch64": "clang+llvm-15.0.7-arm64-apple-darwin22.0",
+        "darwin-x86_64": "clang+llvm-15.0.7-x86_64-apple-darwin21.0",
+    },
+    urls = {
+        "": ["https://github.com/llvm/llvm-project/releases/download/llvmorg-15.0.6/clang+llvm-15.0.6-x86_64-linux-gnu-ubuntu-18.04.tar.xz"],
+        "darwin-aarch64": ["https://github.com/llvm/llvm-project/releases/download/llvmorg-15.0.7/clang+llvm-15.0.7-arm64-apple-darwin22.0.tar.xz"],
+        "darwin-x86_64": ["https://github.com/llvm/llvm-project/releases/download/llvmorg-15.0.7/clang+llvm-15.0.7-x86_64-apple-darwin21.0.tar.xz"],
+    },
+)
+
+use_repo(llvm, "llvm_toolchain_with_urls")
+
+# # This is the latest version of LLVM that seems to work with rules_go; later
+# # versions cause the tests to crash.
+llvm.toolchain(
+    name = "llvm_toolchain_14_0_0",
+    llvm_version = "14.0.0",
+)
+
+use_repo(llvm, "llvm_toolchain_14_0_0")
+
+# # This is the last known LLVM version with zlib support in ld.lld. Without zlib
+# # support, if the installed gcc toolchain has compressed sections in its object
+# # files, then ld.lld won't be able to process them. Example is archlinux docker
+# # image base-devel as of the time of this writing (23 May 2022).
+llvm.toolchain(
+    name = "llvm_toolchain_13_0_0",
+    llvm_version = "13.0.0",
+)
+
+use_repo(llvm, "llvm_toolchain_13_0_0")
+
+# ## Toolchain example with absolute paths; tested in GitHub CI.
+llvm.toolchain(
+    name = "llvm_toolchain_with_absolute_paths",
+    absolute_paths = True,
+    llvm_version = LLVM_VERSION,
+    # We can share the downloaded LLVM distribution with the first configuration.
+    toolchain_roots = {
+        "": "@llvm_toolchain_llvm//",
+    },
+)
+
+use_repo(llvm, "llvm_toolchain_with_absolute_paths")
+
+# ## Toolchain example with system LLVM; tested in GitHub CI.
+llvm.toolchain(
+    name = "llvm_toolchain_with_system_llvm",
+    llvm_version = LLVM_VERSION,
+    # For this toolchain to work, the LLVM distribution archive would need to be unpacked here.
+    # A path in /tmp to be part of system tmp cleanup schedule.
+    toolchain_roots = {"": "/tmp/llvm-15"},
+)
+
+use_repo(llvm, "llvm_toolchain_with_system_llvm")
+
+# ## Toolchain example with a sysroot.
+
+llvm.toolchain(
+    name = "llvm_toolchain_with_sysroot",
+    llvm_versions = {
+        "": "15.0.6",
+        "darwin-x86_64": "15.0.7",
+        "darwin-aarch64": "15.0.7",
+    },
+    sysroot = {
+        "linux-x86_64": "@org_chromium_sysroot_linux_x64//:sysroot",
+    },
+    # We can share the downloaded LLVM distribution with the first configuration.
+    toolchain_roots = {
+        "": "@llvm_toolchain_llvm//",
+    },
+)
+
+use_repo(llvm, "llvm_toolchain_with_sysroot")

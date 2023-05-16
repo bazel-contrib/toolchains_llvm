@@ -14,8 +14,13 @@ jobs:
       matrix:
         os: [macos-latest, ubuntu-latest]
         script: [run_tests.sh, run_external_tests.sh]
-        bazel_version: [latest, 5.1.0]
+        bazel_version: [latest, 6.2.0, 5.1.0]
+        bzlmod: [yes, no]
         exclude:
+          - bzlmod: yes
+            bazel_version: 5.1.0
+          - bzlmod: no
+            bazel_version: 5.1.0
           - script: run_external_tests.sh
             bazel_version: 5.1.0
     steps:
@@ -23,6 +28,7 @@ jobs:
     - name: test
       env:
         USE_BAZEL_VERSION: ${{ matrix.bazel_version }}
+        USE_BZLMOD: ${{ matrix.bzlmod }}
       run: tests/scripts/${{ matrix.script }}
   container_test:
     runs-on: ubuntu-latest

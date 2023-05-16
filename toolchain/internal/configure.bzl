@@ -62,10 +62,10 @@ def llvm_register_toolchains():
 
     (key, toolchain_root) = _host_os_arch_dict_value(rctx, "toolchain_roots")
     if not toolchain_root:
-        fail("LLVM toolchain root missing for ({}, {})", os, arch)
+        fail("LLVM toolchain root missing for ({}, {})".format(os, arch))
     (key, llvm_version) = _host_os_arch_dict_value(rctx, "llvm_versions")
     if not llvm_version:
-        fail("LLVM version string missing for ({}, {})", os, arch)
+        fail("LLVM version string missing for ({}, {})".format(os, arch))
 
     config_repo_path = "external/%s/" % rctx.name
 
@@ -270,7 +270,7 @@ def _cc_toolchains_str(
     return cc_toolchains_str, toolchain_labels_str
 
 # Gets a value from the dict for the target pair, falling back to an empty
-# key, if present.  Bazel 4.* doesn't support nested skylark functions, so
+# key, if present.  Bazel 4.* doesn't support nested starlark functions, so
 # we cannot simplify _dict_value() by defining it as a nested function.
 def _dict_value(d, target_pair, default = None):
     return d.get(target_pair, d.get("", default))
