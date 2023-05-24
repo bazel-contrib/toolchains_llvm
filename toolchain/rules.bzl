@@ -256,6 +256,21 @@ _llvm_config_attrs.update({
     "_cc_toolchain_config_bzl": attr.label(
         default = "//toolchain:cc_toolchain_config.bzl",
     ),
+    "_toolchains_bzl_tpl": attr.label(
+        default = "//toolchain:toolchains.bzl.tpl",
+    ),
+    "_build_toolchain_tpl": attr.label(
+        default = "//toolchain:BUILD.toolchain.tpl",
+    ),
+    "_darwin_cc_wrapper_sh_tpl": attr.label(
+        default = "//toolchain:osx_cc_wrapper.sh.tpl",
+    ),
+    "_cc_wrapper_sh_tpl": attr.label(
+        default = "//toolchain:cc_wrapper.sh.tpl",
+    ),
+    "_host_libtool_wrapper_sh_tpl": attr.label(
+        default = "//toolchain:host_libtool_wrapper.sh.tpl",
+    ),
 })
 
 llvm = repository_rule(
