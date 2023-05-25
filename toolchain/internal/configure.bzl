@@ -189,7 +189,7 @@ def llvm_register_toolchains():
     # Convenience macro to register all generated toolchains.
     rctx.template(
         "toolchains.bzl",
-        Label("//toolchain:toolchains.bzl.tpl"),
+        rctx.attr._toolchains_bzl_tpl,
         {
             "%{toolchain_labels}": toolchain_labels_str,
         },
@@ -198,7 +198,7 @@ def llvm_register_toolchains():
     # BUILD file with all the generated toolchain definitions.
     rctx.template(
         "BUILD.bazel",
-        Label("//toolchain:BUILD.toolchain.tpl"),
+        rctx.attr._build_toolchain_tpl,
         {
             "%{cc_toolchain_config_bzl}": str(rctx.attr._cc_toolchain_config_bzl),
             "%{cc_toolchains}": cc_toolchains_str,
@@ -210,12 +210,12 @@ def llvm_register_toolchains():
 
     # CC wrapper script; see comments near the definition of `wrapper_bin_prefix`.
     if os == "darwin":
-        cc_wrapper_tpl = "//toolchain:osx_cc_wrapper.sh.tpl"
+        cc_wrapper_tpl = rctx.attr._darwin_cc_wrapper_sh_tpl
     else:
-        cc_wrapper_tpl = "//toolchain:cc_wrapper.sh.tpl"
+        cc_wrapper_tpl = rctx.attr._cc_wrapper_sh_tpl
     rctx.template(
         "bin/cc_wrapper.sh",
-        Label(cc_wrapper_tpl),
+        cc_wrapper_tpl,
         {
             "%{toolchain_path_prefix}": llvm_dist_path_prefix,
         },
@@ -224,7 +224,7 @@ def llvm_register_toolchains():
     # libtool wrapper; used if the host libtool doesn't support arg files:
     rctx.template(
         "bin/host_libtool_wrapper.sh",
-        Label("//toolchain:host_libtool_wrapper.sh.tpl"),
+        rctx.attr._host_libtool_wrapper_sh_tpl,
         {
             "%{libtool_path}": "/usr/bin/libtool",
         },
