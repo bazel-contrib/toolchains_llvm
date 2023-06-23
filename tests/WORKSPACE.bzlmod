@@ -19,24 +19,10 @@ filegroup(
 # Well known repos; present here only for testing.
 
 http_archive(
-    name = "com_google_googletest",
-    sha256 = "81964fe578e9bd7c94dfdb09c8e4d6e6759e19967e397dbea48d1c10e45d0df2",
-    strip_prefix = "googletest-release-1.12.1",
-    urls = ["https://github.com/google/googletest/archive/release-1.12.1.tar.gz"],
-)
-
-http_archive(
     name = "com_github_google_benchmark",
     sha256 = "6430e4092653380d9dc4ccb45a1e2dc9259d581f4866dc0759713126056bc1d7",
     strip_prefix = "benchmark-1.7.1",
     urls = ["https://github.com/google/benchmark/archive/v1.7.1.tar.gz"],
-)
-
-http_archive(
-    name = "com_google_absl",
-    sha256 = "91ac87d30cc6d79f9ab974c51874a704de9c2647c40f6932597329a282217ba8",
-    strip_prefix = "abseil-cpp-20220623.1",
-    urls = ["https://github.com/abseil/abseil-cpp/archive/refs/tags/20220623.1.tar.gz"],
 )
 
 http_archive(
@@ -46,23 +32,6 @@ http_archive(
     strip_prefix = "openssl-1.1.1c",
     urls = ["https://www.openssl.org/source/openssl-1.1.1c.tar.gz"],
 )
-
-# For testing rules_go.
-
-http_archive(
-    name = "io_bazel_rules_go",
-    sha256 = "56d8c5a5c91e1af73eca71a6fab2ced959b67c86d12ba37feedb0a2dfea441a6",
-    urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.37.0/rules_go-v0.37.0.zip",
-        "https://github.com/bazelbuild/rules_go/releases/download/v0.37.0/rules_go-v0.37.0.zip",
-    ],
-)
-
-load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
-
-go_rules_dependencies()
-
-go_register_toolchains(version = "1.19.3")
 
 # For testing rules_rust.
 

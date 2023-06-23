@@ -3,6 +3,12 @@ module(name = "com_grail_bazel_toolchain_tests")
 bazel_dep(name = "com_grail_bazel_toolchain", version = "0.8.2")
 bazel_dep(name = "bazel_skylib", version = "1.4.1")
 bazel_dep(name = "rules_foreign_cc", version = "0.9.0")
+bazel_dep(name = "googletest", version = "1.12.1", repo_name = "com_github_googletest")
+bazel_dep(name = "abseil-cpp", version = "20230125.1", repo_name = "com_google_absl")
+
+bazel_dep(name = "rules_go", version = "0.40.0", repo_name = "io_bazel_rules_go")
+
+git_override(module_name = "rules_foreign_cc", remote = "https://github.com/bazelbuild/rules_foreign_cc.git", commit="6ecc134b114f6e086537f5f0148d166467042226")
 
 local_path_override(module_name = "com_grail_bazel_toolchain", path = "..")
 
@@ -22,8 +28,7 @@ llvm.toolchain(
     },
 )
 
-use_repo(llvm, "llvm_toolchain")
-use_repo(llvm, "llvm_toolchain_llvm")
+use_repo(llvm, "llvm_toolchain", "llvm_toolchain_llvm")
 register_toolchains("@llvm_toolchain//:all")
 
 # Example toolchain with user provided URLs.
