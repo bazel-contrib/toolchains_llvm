@@ -3,7 +3,6 @@ module(name = "com_grail_bazel_toolchain_tests")
 bazel_dep(name = "com_grail_bazel_toolchain", version = "0.8.2")
 bazel_dep(name = "bazel_skylib", version = "1.4.1")
 bazel_dep(name = "rules_foreign_cc", version = "0.9.0")
-bazel_dep(name = "googletest", version = "1.12.1", repo_name = "com_github_googletest")
 bazel_dep(name = "abseil-cpp", version = "20230125.1", repo_name = "com_google_absl")
 
 bazel_dep(name = "rules_go", version = "0.40.0", repo_name = "io_bazel_rules_go")
