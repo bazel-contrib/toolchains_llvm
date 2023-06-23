@@ -29,7 +29,7 @@ test_args=(
   "${common_test_args[@]}"
   # Fix LLVM version to be 14.0.0 because that's the last known version with
   # which the tests in rules_go pass.
-  "--extra_toolchains=@llvm_toolchain_14_0_0//:all"
+  "--extra_toolchains=@llvm_toolchain//:all"
   # Options needed for LLVM 15 when we switch to using it for these tests
   #"--copt=-Wno-deprecated-builtins" # https://github.com/abseil/abseil-cpp/issues/1201
 )
