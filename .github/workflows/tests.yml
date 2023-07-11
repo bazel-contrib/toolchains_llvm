@@ -32,8 +32,8 @@ jobs:
       matrix:
         os: [macos-latest, ubuntu-latest]
         bazel_version: [latest, 6.2.0]
-        bzlmod: [no]
         include:
+          - bzlmod: no
           - bzlmod: yes
             experimental: true
           - bzlmod: no
