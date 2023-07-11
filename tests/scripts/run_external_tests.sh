@@ -40,10 +40,14 @@ test_args=(
 #   link it statically on linux.
 # - external_includes_test from rules_go because it is a nested bazel test and so takes a long time
 #   to run, and it is not particularly useful to us.
+#   The rules_rust tests should be:
+# @rules_rust//test/unit/{native_deps,linkstamps,interleaved_cc_info}:all 
+#   but under bzlmod the linkstamp tests fail due to the fact we are currently
+#   overriding rules_rust locally as its not yet released in the BCR
 "${bazel}" --bazelrc=/dev/null test "${test_args[@]}" -- \
   //foreign:pcre \
   @openssl//:libssl \
-  @rules_rust//test/unit/{native_deps,linkstamps,interleaved_cc_info}:all \
+  @rules_rust//test/unit/{native_deps,interleaved_cc_info}:all \
   @io_bazel_rules_go//tests/core/cgo:all \
   -@io_bazel_rules_go//tests/core/cgo:cc_libs_test \
   -@io_bazel_rules_go//tests/core/cgo:external_includes_test \
