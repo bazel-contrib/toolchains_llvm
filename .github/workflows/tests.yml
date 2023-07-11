@@ -13,7 +13,6 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, ubuntu-latest]
-        script: [run_tests.sh]
         bazel_version: [latest, 6.2.0, 5.1.0]
         bzlmod: [yes, no]
         exclude:
@@ -25,14 +24,13 @@ jobs:
       env:
         USE_BAZEL_VERSION: ${{ matrix.bazel_version }}
         USE_BZLMOD: ${{ matrix.bzlmod }}
-      run: tests/scripts/${{ matrix.script }}
+      run: tests/scripts/run_tests.sh
   external_test:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [macos-latest, ubuntu-latest]
-        script: [run_external_tests.sh]
         bazel_version: [latest, 6.2.0, 5.1.0]
         bzlmod: [no]
         include:
@@ -47,7 +45,7 @@ jobs:
       env:
         USE_BAZEL_VERSION: ${{ matrix.bazel_version }}
         USE_BZLMOD: ${{ matrix.bzlmod }}
-      run: tests/scripts/${{ matrix.script }}
+      run: tests/scripts/run_external_tests.sh
   container_test:
     runs-on: ubuntu-latest
     strategy:
