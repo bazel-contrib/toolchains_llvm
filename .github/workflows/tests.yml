@@ -15,7 +15,7 @@ jobs:
         os: [macos-latest, ubuntu-latest]
         script: [run_tests.sh, run_external_tests.sh]
         bazel_version: [latest, 6.2.0, 5.1.0]
-        bzlmod: no
+        bzlmod: [no]
         include:
           - bzlmod: yes
             experimental: true
