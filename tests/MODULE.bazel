@@ -13,7 +13,7 @@ bazel_dep(name = "rules_rust", version = "0.25.1")
 
 # We have to patch abseil-cpp to add a dep on googletest
 bazel_dep(name = "abseil-cpp", repo_name = "com_google_absl")
-archive_override(module_name = "abseil-cpp", urls = ["https://github.com/abseil/abseil-cpp/archive/refs/tags/20230125.3.tar.gz"], patches = ["//patches:abseil-cpp.patch"])
+archive_override(module_name = "abseil-cpp", urls = ["https://github.com/abseil/abseil-cpp/archive/refs/tags/20230125.3.tar.gz"], patches = ["//patches:abseil-cpp.patch"], strip_prefix="abseil-cpp-20230125.3")
 
 # Temporary overrides until newer versions of these rulesets are released in the central registry
 git_override(module_name = "rules_foreign_cc", remote = "https://github.com/bazelbuild/rules_foreign_cc.git", commit="6ecc134b114f6e086537f5f0148d166467042226")
