@@ -15,13 +15,12 @@ jobs:
         os: [macos-latest, ubuntu-latest]
         script: [run_tests.sh, run_external_tests.sh]
         bazel_version: [latest, 6.2.0, 5.1.0]
-        bzlmod: [yes, no]
+        bzlmod: no
+        include:
+          - bzlmod: yes
+            experimental: true
         exclude:
           - bzlmod: yes
-            bazel_version: 5.1.0
-          - bzlmod: no
-            bazel_version: 5.1.0
-          - script: run_external_tests.sh
             bazel_version: 5.1.0
     steps:
     - uses: actions/checkout@v2
