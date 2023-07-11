@@ -38,6 +38,8 @@ test_args=(
 # We exclude the following targets:
 # - cc_libs_test from rules_go because it assumes that stdlibc++ has been dynamically linked, but we
 #   link it statically on linux.
+# - versioned_dylib_test from rules_go because rules_go can't find the libversioned.so.2 input file
+#   when run under bzlmod
 # - external_includes_test from rules_go because it is a nested bazel test and so takes a long time
 #   to run, and it is not particularly useful to us.
 # - time_zone_format_test from abseil-cpp because it assumes TZ is set to America/Los_Angeles, but
@@ -53,6 +55,7 @@ test_args=(
   @io_bazel_rules_go//tests/core/cgo:all \
   -@io_bazel_rules_go//tests/core/cgo:cc_libs_test \
   -@io_bazel_rules_go//tests/core/cgo:external_includes_test \
+  -@io_bazel_rules_go//tests/core/cgo:versioned_dylib_test \
   $("${bazel}" query 'attr(timeout, short, tests(@com_google_absl//absl/...))') \
   -@abseil-cpp//absl/time/internal/cctz:time_zone_format_test
 
