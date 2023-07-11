@@ -57,5 +57,5 @@ test_args=(
   -@io_bazel_rules_go//tests/core/cgo:external_includes_test \
   -@io_bazel_rules_go//tests/core/cgo:versioned_dylib_test \
   $("${bazel}" query 'attr(timeout, short, tests(@com_google_absl//absl/...))') \
-  -@abseil-cpp//absl/time/internal/cctz:time_zone_format_test
+  -@com_google_abseil//absl/time/internal/cctz:time_zone_format_test
 
