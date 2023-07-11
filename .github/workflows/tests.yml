@@ -40,7 +40,7 @@ jobs:
             bazel_version: 5.1.0
     steps:
     - uses: actions/checkout@v2
-    - name: test
+    - name: external_test
       env:
         USE_BAZEL_VERSION: ${{ matrix.bazel_version }}
         USE_BZLMOD: ${{ matrix.bzlmod }}
