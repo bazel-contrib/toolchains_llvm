@@ -1,6 +1,6 @@
 --- MODULE.bazel
 +++ MODULE.bazel
-@@ -0,0 +1,8 @@
+@@ -0,0 +1,9 @@
 +module(
 +    name = "abseil-cpp",
 +    version = "20230125.1",
