@@ -31,13 +31,12 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, ubuntu-latest]
-        bazel_version: [latest, 6.2.0, 5.1.0]
+        bazel_version: [latest, 6.2.0]
         bzlmod: [no]
         include:
           - bzlmod: yes
             experimental: true
-        exclude:
-          - bzlmod: yes
+          - bzlmod: no
             bazel_version: 5.1.0
     steps:
     - uses: actions/checkout@v2
