@@ -156,6 +156,7 @@ def cc_toolchain_config(
         use_lld = False
         link_flags.extend([
             "-headerpad_max_install_names",
+            "-fobjc-link-runtime",
         ])
     else:
         # Note that for xcompiling from darwin to linux, the native ld64 is
