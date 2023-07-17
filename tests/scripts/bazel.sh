@@ -40,6 +40,10 @@ readonly common_test_args=(
   --test_output=errors
 )
 
+if [[ $(uname -s) == 'Darwin' ]]; then
+  common_test_args+=(--features=-supports_dynamic_linker)
+fi
+
 # Do not run autoconf to configure local CC toolchains.
 export BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
 
