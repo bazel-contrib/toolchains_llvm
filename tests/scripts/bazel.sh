@@ -31,7 +31,7 @@ readonly url="https://github.com/bazelbuild/bazelisk/releases/download/${bazelis
 bazel="${TMPDIR:-/tmp}/bazelisk"
 readonly bazel
 
-readonly common_test_args=(
+common_test_args=(
   --incompatible_enable_cc_toolchain_resolution
   --symlink_prefix=/
   --color=yes
