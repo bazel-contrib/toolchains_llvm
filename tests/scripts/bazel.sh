@@ -31,7 +31,7 @@ readonly url="https://github.com/bazelbuild/bazelisk/releases/download/${bazelis
 bazel="${TMPDIR:-/tmp}/bazelisk"
 readonly bazel
 
-readonly common_test_args=(
+common_test_args=(
   --incompatible_enable_cc_toolchain_resolution
   --symlink_prefix=/
   --color=yes
@@ -39,6 +39,12 @@ readonly common_test_args=(
   --keep_going
   --test_output=errors
 )
+
+# TODO: Remove this once we no longer support bazel 6.x.
+# This feature isn't intentionally supported on macOS.
+if [[ $(uname -s) == 'Darwin' ]]; then
+  common_test_args+=(--features=-supports_dynamic_linker)
+fi
 
 # Do not run autoconf to configure local CC toolchains.
 export BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
