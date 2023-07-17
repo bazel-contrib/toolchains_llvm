@@ -19,7 +19,7 @@ jobs:
           - script: run_external_tests.sh
             bazel_version: 5.1.0
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: test
       env:
         USE_BAZEL_VERSION: ${{ matrix.bazel_version }}
@@ -31,25 +31,25 @@ jobs:
       matrix:
         script: [archlinux, debian, fedora, suse_leap, suse_tumbleweed, ubuntu_20_04, ubuntu_22_04, linux_sysroot]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: test
       run: tests/scripts/${{ matrix.script }}_test.sh
   xcompile_test:
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: test
       run: tests/scripts/run_xcompile_tests.sh
   abs_paths_test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: test
       run: tests/scripts/run_tests.sh -t @llvm_toolchain_with_absolute_paths//:cc-toolchain-x86_64-linux
   sys_paths_test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Download and Extract LLVM distribution
       env:
         release: "llvmorg-15.0.6"
