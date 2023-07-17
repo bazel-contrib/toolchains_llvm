@@ -40,6 +40,8 @@ common_test_args=(
   --test_output=errors
 )
 
+# TODO: Remove this once we no longer support bazel 6.x.
+# This feature isn't intentionally supported on macOS.
 if [[ $(uname -s) == 'Darwin' ]]; then
   common_test_args+=(--features=-supports_dynamic_linker)
 fi
