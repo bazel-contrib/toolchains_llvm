@@ -34,7 +34,7 @@ set -exuo pipefail
 
 # Common setup
 zypper -n update
-zypper -n install pkgconf-pkg-config curl python tar gzip findutils gcc libc++1 libncurses5 binutils-gold
+zypper -n install curl gcc libc++1
 
 # Run tests
 cd /src
