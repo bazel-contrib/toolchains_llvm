@@ -18,13 +18,11 @@ load(
     _canonical_dir_path = "canonical_dir_path",
     _check_os_arch_keys = "check_os_arch_keys",
     _host_os_arch_dict_value = "host_os_arch_dict_value",
-    _host_tool_features = "host_tool_features",
     _host_tools = "host_tools",
     _list_to_string = "list_to_string",
     _os = "os",
     _os_arch_pair = "os_arch_pair",
     _os_bzl = "os_bzl",
-    _pkg_name_from_label = "pkg_name_from_label",
     _pkg_path_from_label = "pkg_path_from_label",
     _supported_targets = "SUPPORTED_TARGETS",
     _toolchain_tools = "toolchain_tools",
@@ -39,12 +37,6 @@ load(
     _aliased_libs = "aliased_libs",
     _aliased_tools = "aliased_tools",
 )
-
-def _include_dirs_str(rctx, key):
-    dirs = rctx.attr.cxx_builtin_include_directories.get(key)
-    if not dirs:
-        return ""
-    return ("\n" + 12 * " ").join(["\"%s\"," % d for d in dirs])
 
 def llvm_config_impl(rctx):
     _check_os_arch_keys(rctx.attr.sysroot)
@@ -160,16 +152,16 @@ def llvm_register_toolchains():
     host_dl_ext = "dylib" if os == "darwin" else "so"
     host_tools_info = dict([
         pair
-        for (key, tool_path, features) in [
+        for (key, tool_path) in [
             # This is used for macOS hosts:
-            ("libtool", "/usr/bin/libtool", [_host_tool_features.SUPPORTS_ARG_FILE]),
+            ("libtool", "/usr/bin/libtool"),
             # This is used with old (pre 7) LLVM versions:
-            ("strip", "/usr/bin/strip", []),
+            ("strip", "/usr/bin/strip"),
             # This is used when lld doesn't support the target platform (i.e.
             # Mach-O for macOS):
-            ("ld", "/usr/bin/ld", []),
+            ("ld", "/usr/bin/ld"),
         ]
-        for pair in _host_tools.get_tool_info(rctx, tool_path, features, key).items()
+        for pair in _host_tools.get_tool_info(rctx, tool_path, key).items()
     ])
     cc_toolchains_str, toolchain_labels_str = _cc_toolchains_str(
         workspace_name,
@@ -218,15 +210,6 @@ def llvm_register_toolchains():
         cc_wrapper_tpl,
         {
             "%{toolchain_path_prefix}": llvm_dist_path_prefix,
-        },
-    )
-
-    # libtool wrapper; used if the host libtool doesn't support arg files:
-    rctx.template(
-        "bin/host_libtool_wrapper.sh",
-        rctx.attr._host_libtool_wrapper_sh_tpl,
-        {
-            "%{libtool_path}": "/usr/bin/libtool",
         },
     )
 
