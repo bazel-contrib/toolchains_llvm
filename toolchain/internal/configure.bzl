@@ -163,8 +163,6 @@ def llvm_register_toolchains():
         for (key, tool_path, features) in [
             # This is used for macOS hosts:
             ("libtool", "/usr/bin/libtool", [_host_tool_features.SUPPORTS_ARG_FILE]),
-            # This is used with old (pre 7) LLVM versions:
-            ("strip", "/usr/bin/strip", []),
             # This is used when lld doesn't support the target platform (i.e.
             # Mach-O for macOS):
             ("ld", "/usr/bin/ld", []),

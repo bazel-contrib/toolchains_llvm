@@ -295,12 +295,6 @@ def cc_toolchain_config(
     ## NOTE: make variables are missing here; unix_cc_toolchain_config doesn't
     ## pass these to `create_cc_toolchain_config_info`.
 
-    # Tool paths:
-    # `llvm-strip` was introduced in V7 (https://reviews.llvm.org/D46407):
-    llvm_version = llvm_version.split(".")
-    llvm_major_ver = int(llvm_version[0]) if len(llvm_version) else 0
-    strip_binary = (tools_path_prefix + "llvm-strip") if llvm_major_ver >= 7 else _host_tools.get_and_assert(host_tools_info, "strip")
-
     # TODO: The command line formed on darwin does not work with llvm-ar.
     ar_binary = tools_path_prefix + "llvm-ar"
     if host_os == "darwin":
@@ -328,7 +322,7 @@ def cc_toolchain_config(
         "nm": tools_path_prefix + "llvm-nm",
         "objcopy": tools_path_prefix + "llvm-objcopy",
         "objdump": tools_path_prefix + "llvm-objdump",
-        "strip": strip_binary,
+        "strip": tools_path_prefix + "llvm-strip",
     }
 
     # Start-end group linker support:
