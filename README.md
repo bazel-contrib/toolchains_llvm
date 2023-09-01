@@ -20,7 +20,7 @@ implementation, please let me know and I can redirect people there.
 
 ## Quickstart
 
-Minimum bazel version: **4.2.1**
+Minimum bazel version: **6.0.0**
 
 To use this toolchain, include this section in your WORKSPACE:
 ```starlark
