@@ -53,10 +53,14 @@ load("@llvm_toolchain//:toolchains.bzl", "llvm_register_toolchains")
 llvm_register_toolchains()
 ```
 
-And add the following section to your .bazelrc file (not needed after
-this [issue](https://github.com/bazelbuild/bazel/issues/7260) is closed):
+And add the following section to your .bazelrc file:
 ```
+# Not needed after https://github.com/bazelbuild/bazel/issues/7260 is closed
 build --incompatible_enable_cc_toolchain_resolution
+
+# Tell Bazel to pass the right flags for llvm-ar, not libtool. Only needed if you are building on darwin.
+# See https://github.com/bazelbuild/bazel/blob/5c75d0acec21459bbb13520817e3806e1507e907/tools/cpp/unix_cc_toolchain_config.bzl#L1000-L1024
+build --features=-libtool
 ```
 
 ## Basic Usage
