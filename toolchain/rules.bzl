@@ -268,9 +268,6 @@ _llvm_config_attrs.update({
     "_cc_wrapper_sh_tpl": attr.label(
         default = "//toolchain:cc_wrapper.sh.tpl",
     ),
-    "_host_libtool_wrapper_sh_tpl": attr.label(
-        default = "//toolchain:host_libtool_wrapper.sh.tpl",
-    ),
 })
 
 llvm = repository_rule(
