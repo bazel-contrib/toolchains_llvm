@@ -14,7 +14,7 @@ jobs:
       matrix:
         os: [macos-latest, ubuntu-latest]
         bazel_version: [latest, 6.3.0]
-        bzlmod: [yes, no]
+        bzlmod: [true, false]
     steps:
     - uses: actions/checkout@v3
     - name: test
@@ -29,7 +29,7 @@ jobs:
       matrix:
         os: [macos-latest, ubuntu-latest]
         bazel_version: [latest, 6.3.0]
-        bzlmod: [no, yes]
+        bzlmod: [true, false]
         include:
           - bzlmod: no
             os: macos-latest
