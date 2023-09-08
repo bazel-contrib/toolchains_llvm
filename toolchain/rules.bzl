@@ -36,7 +36,7 @@ toolchain = repository_rule(
     implementation = _llvm_config_impl,
 )
 
-def llvm_toolchain(name, bzlmod = False, bzlmod_module_version = None, **kwargs):
+def llvm_toolchain(name, **kwargs):
     if kwargs.get("llvm_version") == kwargs.get("llvm_versions"):
         fail("Exactly one of llvm_version or llvm_versions must be set")
 
@@ -46,17 +46,7 @@ def llvm_toolchain(name, bzlmod = False, bzlmod_module_version = None, **kwargs)
             for k, v in kwargs.items()
             if (k not in _llvm_config_attrs.keys()) or (k in _common_attrs.keys())
         }
-        llvm_repository_name = name + "_llvm"
         llvm(name = name + "_llvm", **llvm_args)
-        if bzlmod:
-            if not bzlmod_module_version:
-                bzlmod_module_version = "override"
-            kwargs.update(toolchain_roots = {"": "@@com_grail_bazel_toolchain~{module_version}~llvm~{repository_name}//".format(
-                module_version = bzlmod_module_version,
-                repository_name = llvm_repository_name,
-            )})
-        else:
-            kwargs.update(toolchain_roots = {"": "@%s_llvm//" % name})
 
     if not kwargs.get("llvm_versions"):
         kwargs.update(llvm_versions = {"": kwargs.get("llvm_version")})

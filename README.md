@@ -25,9 +25,9 @@ Minimum bazel version: **4.2.1**
 If you're using `bzlmod`, add the following to `MODULE.bazel`:
 
 ```starlark
-bazel_dep(name = "com_grail_bazel_toolchain", version = "0.8.2")
+bazel_dep(name = "grail_llvm_toolchain", version = "0.8.2")
 
-llvm = use_extension("@com_grail_bazel_toolchain//toolchain:extensions.bzl", "llvm")
+llvm = use_extension("@grail_llvm_toolchain//toolchain/extensions:llvm.bzl", "llvm")
 llvm.toolchain(
    llvm_version = "15.0.6",
 )
@@ -54,11 +54,11 @@ http_archive(
     url = "https://github.com/grailbio/bazel-toolchain/archive/refs/tags/{tag}.tar.gz".format(tag = BAZEL_TOOLCHAIN_TAG),
 )
 
-load("@com_grail_bazel_toolchain//toolchain:deps.bzl", "bazel_toolchain_dependencies")
+load("@grail_llvm_toolchain//toolchain:deps.bzl", "bazel_toolchain_dependencies")
 
 bazel_toolchain_dependencies()
 
-load("@com_grail_bazel_toolchain//toolchain:rules.bzl", "llvm_toolchain")
+load("@grail_llvm_toolchain//toolchain:rules.bzl", "llvm_toolchain")
 
 llvm_toolchain(
     name = "llvm_toolchain",
@@ -190,7 +190,7 @@ The following mechanisms are available for using an LLVM toolchain:
    attribute. When using a bazel package path, each of the values is typically
    a package in the user's workspace or configured through `local_repository` or
    `http_archive`; the BUILD file of the package should be similar to
-   `@com_grail_bazel_toolchain//toolchain:BUILD.llvm_repo`. If using only
+   `@grail_llvm_toolchain//toolchain:BUILD.llvm_repo`. If using only
    `http_archive`, maybe consider using the `urls` attribute instead to get more
    flexibility if you need.
 4. All the above options rely on host OS information, and are not suited for
@@ -227,7 +227,7 @@ and the target platform. For example, see the [WORKSPACE](tests/WORKSPACE) file 
 the [test script](tests/scripts/run_xcompile_tests.sh) for cross-compilation.
 ```
 bazel build \
-  --platforms=@com_grail_bazel_toolchain//platforms:linux-x86_64 \
+  --platforms=@grail_llvm_toolchain//platforms:linux-x86_64 \
   --extra_toolchains=@llvm_toolchain_with_sysroot//:cc-toolchain-x86_64-linux \
   //...
 ```

@@ -40,6 +40,10 @@ load(
     _aliased_tools = "aliased_tools",
 )
 
+# When bzlmod is enabled, canonical repos names have @@ in them, while under
+# workspace builds, there is never a @@ in labels.
+BZLMOD_ENABLED = "@@" in str(Label("//:unused"))
+
 def _include_dirs_str(rctx, key):
     dirs = rctx.attr.cxx_builtin_include_directories.get(key)
     if not dirs:
@@ -60,14 +64,16 @@ def llvm_register_toolchains():
         return
     arch = _arch(rctx)
 
-    (key, toolchain_root) = _host_os_arch_dict_value(rctx, "toolchain_roots")
+    if not rctx.attr.toolchain_roots:
+        toolchain_root = "@@%s_llvm//" % rctx.attr.name if BZLMOD_ENABLED else "@%s_llvm//" % rctx.attr.name
+    else:
+        toolchain_root = _host_os_arch_dict_value(rctx, "toolchain_roots")
+
     if not toolchain_root:
         fail("LLVM toolchain root missing for ({}, {})".format(os, arch))
-    (key, llvm_version) = _host_os_arch_dict_value(rctx, "llvm_versions")
+    (_key, llvm_version) = _host_os_arch_dict_value(rctx, "llvm_versions")
     if not llvm_version:
         fail("LLVM version string missing for ({}, {})".format(os, arch))
-
-    config_repo_path = "external/%s/" % rctx.name
 
     use_absolute_paths_llvm = rctx.attr.absolute_paths
     use_absolute_paths_sysroot = use_absolute_paths_llvm

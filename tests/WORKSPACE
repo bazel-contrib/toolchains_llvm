@@ -20,11 +20,11 @@ local_repository(
 )
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-load("@com_grail_bazel_toolchain//toolchain:deps.bzl", "bazel_toolchain_dependencies")
+load("@grail_llvm_toolchain//toolchain:deps.bzl", "bazel_toolchain_dependencies")
 
 bazel_toolchain_dependencies()
 
-load("@com_grail_bazel_toolchain//toolchain:rules.bzl", "llvm_toolchain")
+load("@grail_llvm_toolchain//toolchain:rules.bzl", "llvm_toolchain")
 
 # When updating this version, also update the versions associated with
 # llvm_toolchain below, sys_paths_test in the workflows file, and xcompile_test
