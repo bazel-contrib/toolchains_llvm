@@ -1,6 +1,6 @@
 module(name = "com_grail_bazel_toolchain_tests")
 
-bazel_dep(name = "grail_llvm_toolchain", version = "0.8.2")
+bazel_dep(name = "grail_llvm_toolchain", version = "0.8.2", repo_name = "com_grail_bazel_toolchain")
 local_path_override(module_name = "grail_llvm_toolchain", path = "..")
 
 bazel_dep(name = "bazel_skylib", version = "1.4.2")
@@ -27,7 +27,7 @@ use_repo(
 
 register_toolchains("@rust_toolchains//:all")
 
-llvm = use_extension("@grail_llvm_toolchain//toolchain/extensions:llvm.bzl", "llvm")
+llvm = use_extension("@com_grail_bazel_toolchain//toolchain/extensions:llvm.bzl", "llvm")
 
 # When updating this version, also update the versions associated with
 # llvm_toolchain below, sys_paths_test in the workflows file, and xcompile_test

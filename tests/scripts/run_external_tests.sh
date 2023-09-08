@@ -25,9 +25,10 @@ cd "${scripts_dir}"
 "${bazel}" fetch @io_bazel_rules_go//tests/core/cgo:all
 "$("${bazel}" info output_base)/external/io_bazel_rules_go/tests/core/cgo/generate_imported_dylib.sh"
 
+set -x
 test_args=(
   "${common_test_args[@]}"
-  "--experimental_enable_bzlmod=${USE_BZLMOD:-false}"
+  "--enable_bzlmod=${USE_BZLMOD:-false}"
   # Fix LLVM version to be 14.0.0 because that's the last known version with
   # which the tests in rules_go pass.
   "--extra_toolchains=@llvm_toolchain_14_0_0//:all"
@@ -45,7 +46,7 @@ test_args=(
 # - time_zone_format_test from abseil-cpp because it assumes TZ is set to America/Los_Angeles, but
 #   we run the tests in UTC.
 #   The rules_rust tests should be:
-# @rules_rust//test/unit/{native_deps,linkstamps,interleaved_cc_info}:all 
+# @rules_rust//test/unit/{native_deps,linkstamps,interleaved_cc_info}:all
 #   but under bzlmod the linkstamp tests fail due to the fact we are currently
 #   overriding rules_rust locally as its not yet released in the BCR
 "${bazel}" --bazelrc=/dev/null test "${test_args[@]}" -- \
