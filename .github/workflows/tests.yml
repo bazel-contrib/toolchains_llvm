@@ -13,12 +13,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, ubuntu-latest]
-        script: [run_tests.sh, run_external_tests.sh]
         bazel_version: [latest, 6.3.0]
         bzlmod: [yes, no]
-        exclude:
-          - script: run_external_tests.sh
-            bazel_version: 6.3.0
     steps:
     - uses: actions/checkout@v3
     - name: test
