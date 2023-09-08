@@ -14,10 +14,6 @@
 
 SUPPORTED_TARGETS = [("linux", "x86_64"), ("linux", "aarch64"), ("darwin", "x86_64"), ("darwin", "aarch64")]
 
-host_tool_features = struct(
-    SUPPORTS_ARG_FILE = "supports_arg_file",
-)
-
 toolchain_tools = [
     "clang-cpp",
     "ld.lld",
@@ -181,103 +177,31 @@ def attr_dict(attr):
 
     return dict(tuples)
 
-# Tries to figure out if a tool supports newline separated arg files (i.e.
-# `@file`).
-def _tool_supports_arg_file(rctx, tool_path):
-    # We assume nothing other than that `tool_path` is an executable.
-    #
-    # First we have to find out what command line flag gets the tool to just
-    # print out some text and exit successfully.
-    #
-    # Most tools support `-v` or `--version` or (for `libtool`) `-V` but some
-    # tools don't have such an option (BSD `ranlib` and `ar`, for example).
-    #
-    # We just try all the options we know of until one works and if none work
-    # we return "None" indicating an indeterminate result.
-    opts = (
-        ["-v", "--version", "-version", "-V"] +
-        ["-h", "--help", "-help", "-H"]
-    )
-
-    no_op_opt = None
-    for opt in opts:
-        if rctx.execute([tool_path, opt], timeout = 2).return_code == 0:
-            no_op_opt = opt
-            break
-
-    if no_op_opt == None:
-        return None
-
-    # Okay! Once we have an opt that we *know* does nothing but make the
-    # executable exit successfully, we'll stick that opt in a file and try
-    # again:
-    tmp_file = "tmp-arg-file"
-    rctx.file(tmp_file, content = "{}\n".format(no_op_opt), executable = False)
-
-    res = rctx.execute([tool_path, "@{}".format(tmp_file)]).return_code == 0
-    rctx.delete(tmp_file)
-
-    return res
-
-def _get_host_tool_info(rctx, tool_path, features_to_test = [], tool_key = None):
+def _get_host_tool_info(rctx, tool_path, tool_key = None):
     if tool_key == None:
         tool_key = tool_path
 
     if tool_path == None or not rctx.path(tool_path).exists:
         return {}
 
-    f = host_tool_features
-    features = {}
-    for feature in features_to_test:
-        features[feature] = {
-            f.SUPPORTS_ARG_FILE: _tool_supports_arg_file,
-        }[feature](rctx, tool_path)
-
     return {
         tool_key: struct(
             path = tool_path,
-            features = features,
+            features = [],
         ),
     }
 
-def _extract_tool_path_and_features(tool_info):
+def _extract_tool_path(tool_info):
     # Have to support structs or dicts:
-    tool_path = tool_info.path if type(tool_info) == "struct" else tool_info["path"]
-    tool_features = tool_info.features if type(tool_info) == "struct" else tool_info["features"]
+    return tool_info.path if type(tool_info) == "struct" else tool_info["path"]
 
-    return (tool_path, tool_features)
-
-def _check_host_tool_supports(host_tool_info, tool_key, features = []):
+def _get_host_tool(host_tool_info, tool_key):
     if tool_key in host_tool_info:
-        _, tool_features = _extract_tool_path_and_features(host_tool_info[tool_key])
-
-        for f in features:
-            if not f in tool_features or not tool_features[f]:
-                return False
-
-        return True
+        return _extract_tool_path(host_tool_info[tool_key])
     else:
-        return False
-
-def _get_host_tool_and_assert_supports(host_tool_info, tool_key, features = []):
-    if tool_key in host_tool_info:
-        tool_path, tool_features = _extract_tool_path_and_features(host_tool_info[tool_key])
-
-        missing = [f for f in features if not f in tool_features or not tool_features[f]]
-
-        if missing:
-            fail("Host tool `{key}` (`{path}`) is missing these features: `{missing}`.".format(
-                key = tool_key,
-                path = tool_path,
-                missing = missing,
-            ))
-
-        return tool_path
-    else:
-        return False
+        return None
 
 host_tools = struct(
     get_tool_info = _get_host_tool_info,
-    tool_supports = _check_host_tool_supports,
-    get_and_assert = _get_host_tool_and_assert_supports,
+    get_and_assert = _get_host_tool,
 )

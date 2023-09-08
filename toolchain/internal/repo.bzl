@@ -23,7 +23,7 @@ load(
 
 _target_pairs = ", ".join(_supported_os_arch_keys())
 
-# Attributes common to both `llvm` and `toolchain` repository rules.
+# Atributes common to both `llvm` and `toolchain` repository rules.
 common_attrs = {
     "llvm_versions": attr.string_dict(
         mandatory = False,
@@ -36,6 +36,73 @@ common_attrs = {
                "If unset, a default value is set from the `llvm_version` attribute."),
     ),
 }
+
+llvm_repo_attrs = dict(common_attrs)
+llvm_repo_attrs.update({
+    "llvm_version": attr.string(
+        doc = ("One of the supported versions of LLVM, e.g. 12.0.0; used with the " +
+               "`auto` value for the `distribution` attribute, and as a default value " +
+               "for the `llvm_versions` attribute."),
+    ),
+    "urls": attr.string_list_dict(
+        mandatory = False,
+        doc = ("URLs to LLVM pre-built binary distribution archives, keyed by host OS " +
+               "release name and architecture, e.g. darwin-x86_64, darwin-aarch64, " +
+               "ubuntu-20.04-x86_64, etc., or a less specific OS and arch pair " +
+               "({}). ".format(_target_pairs) +
+               "May also need the `strip_prefix` attribute. " +
+               "Consider also setting the `sha256` attribute. An empty key is " +
+               "used to specify a fallback default for all hosts. This attribute " +
+               "overrides `distribution`, `llvm_version`, `llvm_mirror` and " +
+               "`alternative_llvm_sources` attributes if the host OS key is present."),
+    ),
+    "sha256": attr.string_dict(
+        mandatory = False,
+        doc = "The expected SHA-256 of the file downloaded as per the `urls` attribute.",
+    ),
+    "strip_prefix": attr.string_dict(
+        mandatory = False,
+        doc = "The prefix to strip from the extracted file from the `urls` attribute.",
+    ),
+    "distribution": attr.string(
+        default = "auto",
+        doc = ("LLVM pre-built binary distribution filename, must be one " +
+               "listed on http://releases.llvm.org/download.html for the version " +
+               "specified in the `llvm_version` attribute. A special value of " +
+               "'auto' tries to detect the version based on host OS."),
+    ),
+    "llvm_mirror": attr.string(
+        doc = "Base URL for an LLVM release mirror." +
+              "\n\n" +
+              "This mirror must follow the same structure as the official LLVM release " +
+              "sources (`releases.llvm.org` for versions <= 9, `llvm/llvm-project` GitHub " +
+              "releases for newer versions)." +
+              "\n\n" +
+              "If provided, this mirror will be given precedence over the official LLVM release " +
+              "sources (see: " +
+              "https://github.com/grailbio/bazel-toolchain/toolchain/internal/llvm_distributions.bzl).",
+    ),
+    "alternative_llvm_sources": attr.string_list(
+        doc = "Patterns for alternative LLVM release sources. Unlike URLs specified for `llvm_mirror` " +
+              "these do not have to follow the same structure as the official LLVM release sources." +
+              "\n\n" +
+              "Patterns may include `{llvm_version}` (which will be substituted for the full LLVM " +
+              "version, i.e. 13.0.0) and `{basename}` (which will be replaced with the filename " +
+              "used by the official LLVM release sources for a particular distribution; i.e. " +
+              "`llvm-13.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz`)." +
+              "\n\n" +
+              "As with `llvm_mirror`, these sources will take precedence over the official LLVM " +
+              "release sources.",
+    ),
+    "netrc": attr.string(
+        mandatory = False,
+        doc = "Path to the netrc file for authenticated LLVM URL downloads.",
+    ),
+    "auth_patterns": attr.string_dict(
+        mandatory = False,
+        doc = "An optional dict mapping host names to custom authorization patterns.",
+    ),
+})
 
 _compiler_configuration_attrs = {
     "sysroot": attr.string_dict(
@@ -160,73 +227,6 @@ _compiler_configuration_attrs = {
     ),
 }
 
-llvm_repo_attrs = dict(common_attrs)
-llvm_repo_attrs.update({
-    "llvm_version": attr.string(
-        doc = ("One of the supported versions of LLVM, e.g. 12.0.0; used with the " +
-               "`auto` value for the `distribution` attribute, and as a default value " +
-               "for the `llvm_versions` attribute."),
-    ),
-    "urls": attr.string_list_dict(
-        mandatory = False,
-        doc = ("URLs to LLVM pre-built binary distribution archives, keyed by host OS " +
-               "release name and architecture, e.g. darwin-x86_64, darwin-aarch64, " +
-               "ubuntu-20.04-x86_64, etc., or a less specific OS and arch pair " +
-               "({}). ".format(_target_pairs) +
-               "May also need the `strip_prefix` attribute. " +
-               "Consider also setting the `sha256` attribute. An empty key is " +
-               "used to specify a fallback default for all hosts. This attribute " +
-               "overrides `distribution`, `llvm_version`, `llvm_mirror` and " +
-               "`alternative_llvm_sources` attributes if the host OS key is present."),
-    ),
-    "sha256": attr.string_dict(
-        mandatory = False,
-        doc = "The expected SHA-256 of the file downloaded as per the `urls` attribute.",
-    ),
-    "strip_prefix": attr.string_dict(
-        mandatory = False,
-        doc = "The prefix to strip from the extracted file from the `urls` attribute.",
-    ),
-    "distribution": attr.string(
-        default = "auto",
-        doc = ("LLVM pre-built binary distribution filename, must be one " +
-               "listed on http://releases.llvm.org/download.html for the version " +
-               "specified in the `llvm_version` attribute. A special value of " +
-               "'auto' tries to detect the version based on host OS."),
-    ),
-    "llvm_mirror": attr.string(
-        doc = "Base URL for an LLVM release mirror." +
-              "\n\n" +
-              "This mirror must follow the same structure as the official LLVM release " +
-              "sources (`releases.llvm.org` for versions <= 9, `llvm/llvm-project` GitHub " +
-              "releases for newer versions)." +
-              "\n\n" +
-              "If provided, this mirror will be given precedence over the official LLVM release " +
-              "sources (see: " +
-              "https://github.com/grailbio/bazel-toolchain/toolchain/internal/llvm_distributions.bzl).",
-    ),
-    "alternative_llvm_sources": attr.string_list(
-        doc = "Patterns for alternative LLVM release sources. Unlike URLs specified for `llvm_mirror` " +
-              "these do not have to follow the same structure as the official LLVM release sources." +
-              "\n\n" +
-              "Patterns may include `{llvm_version}` (which will be substituted for the full LLVM " +
-              "version, i.e. 13.0.0) and `{basename}` (which will be replaced with the filename " +
-              "used by the official LLVM release sources for a particular distribution; i.e. " +
-              "`llvm-13.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz`)." +
-              "\n\n" +
-              "As with `llvm_mirror`, these sources will take precedence over the official LLVM " +
-              "release sources.",
-    ),
-    "netrc": attr.string(
-        mandatory = False,
-        doc = "Path to the netrc file for authenticated LLVM URL downloads.",
-    ),
-    "auth_patterns": attr.string_dict(
-        mandatory = False,
-        doc = "An optional dict mapping host names to custom authorization patterns.",
-    ),
-})
-
 llvm_config_attrs = dict(common_attrs)
 llvm_config_attrs.update(_compiler_configuration_attrs)
 llvm_config_attrs.update({
@@ -263,9 +263,6 @@ llvm_config_attrs.update({
     ),
     "_cc_wrapper_sh_tpl": attr.label(
         default = "//toolchain:cc_wrapper.sh.tpl",
-    ),
-    "_host_libtool_wrapper_sh_tpl": attr.label(
-        default = "//toolchain:host_libtool_wrapper.sh.tpl",
     ),
 })
 
