@@ -30,13 +30,6 @@ jobs:
         os: [macos-latest, ubuntu-latest]
         bazel_version: [latest, 6.3.0]
         bzlmod: [true, false]
-        include:
-          - bzlmod: no
-            os: macos-latest
-            bazel_version: 5.1.0
-          - bzlmod: no
-            os: ubuntu-latest
-            bazel_version: 5.1.0
     steps:
     - uses: actions/checkout@v2
     - name: external_test
