@@ -1,8 +1,8 @@
 """LLVM extension for use with bzlmod"""
 
-load("@grail_llvm_toolchain//toolchain:rules.bzl", "llvm_toolchain")
+load("@llvm_toolchain//toolchain:rules.bzl", "llvm_toolchain")
 load(
-    "@grail_llvm_toolchain//toolchain/internal:repo.bzl",
+    "@llvm_toolchain//toolchain/internal:repo.bzl",
     _llvm_config_attrs = "llvm_config_attrs",
     _llvm_repo_attrs = "llvm_repo_attrs",
 )

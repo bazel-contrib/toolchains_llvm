@@ -25,9 +25,9 @@ Minimum bazel version: **6.0.0**
 If you're using `bzlmod`, add the following to `MODULE.bazel`:
 
 ```starlark
-bazel_dep(name = "grail_llvm_toolchain", version = "0.8.2")
+bazel_dep(name = "llvm_toolchain", version = "0.8.2")
 
-llvm = use_extension("@grail_llvm_toolchain//toolchain/extensions:llvm.bzl", "llvm")
+llvm = use_extension("@llvm_toolchain//toolchain/extensions:llvm.bzl", "llvm")
 llvm.toolchain(
    llvm_version = "15.0.6",
 )

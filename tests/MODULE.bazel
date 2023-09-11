@@ -1,7 +1,7 @@
 module(name = "com_grail_bazel_toolchain_tests")
 
-bazel_dep(name = "grail_llvm_toolchain", version = "0.8.2", repo_name = "com_grail_bazel_toolchain")
-local_path_override(module_name = "grail_llvm_toolchain", path = "..")
+bazel_dep(name = "llvm_toolchain", version = "0.8.2", repo_name = "com_grail_bazel_toolchain")
+local_path_override(module_name = "llvm_toolchain", path = "..")
 
 bazel_dep(name = "bazel_skylib", version = "1.4.2")
 bazel_dep(name = "platforms", version = "0.0.6")
