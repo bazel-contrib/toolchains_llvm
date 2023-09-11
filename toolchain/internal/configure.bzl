@@ -65,7 +65,7 @@ def llvm_register_toolchains():
     if not rctx.attr.toolchain_roots:
         toolchain_root = "@@%s_llvm//" % rctx.attr.name if BZLMOD_ENABLED else "@%s_llvm//" % rctx.attr.name
     else:
-        toolchain_root = _host_os_arch_dict_value(rctx, "toolchain_roots")
+        (_key, toolchain_root) = _host_os_arch_dict_value(rctx, "toolchain_roots")
 
     if not toolchain_root:
         fail("LLVM toolchain root missing for ({}, {})".format(os, arch))
