@@ -16,7 +16,7 @@
 set -euox pipefail
 
 images=(
-"opensuse/leap:latest"
+  "opensuse/leap:latest"
 )
 
 # See note next to the definition of this toolchain in the WORKSPACE file.

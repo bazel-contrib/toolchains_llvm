@@ -33,7 +33,7 @@ set -eu
 # Call the C++ compiler.
 if [[ -f %{toolchain_path_prefix}bin/clang ]]; then
   exec %{toolchain_path_prefix}bin/clang "$@"
-elif [[ "${BASH_SOURCE[0]}" == "/"* ]]; then
+elif [[ ${BASH_SOURCE[0]} == "/"* ]]; then
   # Some consumers of `CcToolchainConfigInfo` (e.g. `cmake` from rules_foreign_cc)
   # change CWD and call $CC (this script) with its absolute path.
   # the execroot (i.e. `cmake` from `rules_foreign_cc`) and call CC . For cases like this,
@@ -43,6 +43,6 @@ elif [[ "${BASH_SOURCE[0]}" == "/"* ]]; then
   clang="${execroot_path}/%{toolchain_path_prefix}bin/clang"
   exec "${clang}" "${@}"
 else
-  >&2 echo "ERROR: could not find clang; PWD=\"$(pwd)\"; PATH=\"${PATH}\"."
+  echo >&2 "ERROR: could not find clang; PWD=\"$(pwd)\"; PATH=\"${PATH}\"."
   exit 5
 fi

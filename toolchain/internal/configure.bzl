@@ -13,6 +13,11 @@
 # limitations under the License.
 
 load(
+    "//toolchain:aliases.bzl",
+    _aliased_libs = "aliased_libs",
+    _aliased_tools = "aliased_tools",
+)
+load(
     "//toolchain/internal:common.bzl",
     _arch = "arch",
     _canonical_dir_path = "canonical_dir_path",
@@ -31,11 +36,6 @@ load(
     "//toolchain/internal:sysroot.bzl",
     _default_sysroot_path = "default_sysroot_path",
     _sysroot_paths_dict = "sysroot_paths_dict",
-)
-load(
-    "//toolchain:aliases.bzl",
-    _aliased_libs = "aliased_libs",
-    _aliased_tools = "aliased_tools",
 )
 
 # When bzlmod is enabled, canonical repos names have @@ in them, while under

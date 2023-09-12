@@ -16,7 +16,7 @@
 set -euo pipefail
 
 images=(
-"debian:latest"
+  "debian:latest"
 )
 
 git_root=$(git rev-parse --show-toplevel)

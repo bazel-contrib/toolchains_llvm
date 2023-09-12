@@ -19,7 +19,7 @@ exit 1
 set -euo pipefail
 
 images=(
-"centos:7"
+  "centos:7"
 )
 
 git_root=$(git rev-parse --show-toplevel)

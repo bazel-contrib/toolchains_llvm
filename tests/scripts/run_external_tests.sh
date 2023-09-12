@@ -23,7 +23,7 @@ cd "${scripts_dir}"
 
 # Generate some files needed for the tests.
 "${bazel}" query "${common_args[@]}" @io_bazel_rules_go//tests/core/cgo:dylib_test >/dev/null
-if [[ "$USE_BZLMOD" == "true" ]]; then
+if [[ $USE_BZLMOD == "true" ]]; then
   "$("${bazel}" info output_base)/external/rules_go~0.41.0/tests/core/cgo/generate_imported_dylib.sh"
 else
   "$("${bazel}" info output_base)/external/io_bazel_rules_go/tests/core/cgo/generate_imported_dylib.sh"
@@ -59,4 +59,3 @@ test_args=(
   -@io_bazel_rules_go//tests/core/cgo:external_includes_test \
   $("${bazel}" query 'attr(timeout, short, tests(@com_google_absl//absl/...))') \
   -@com_google_absl//absl/time/internal/cctz:time_zone_format_test
-
