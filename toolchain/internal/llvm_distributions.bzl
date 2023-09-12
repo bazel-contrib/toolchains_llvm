@@ -357,7 +357,7 @@ def download_llvm(rctx):
     return updated_attrs
 
 def _urls(rctx):
-    (key, urls) = _host_os_arch_dict_value(rctx, "urls", debug = True)
+    (key, urls) = _host_os_arch_dict_value(rctx, "urls", debug = False)
     if not urls:
         print("LLVM archive URLs missing and no default fallback provided; will try 'distribution' attribute")
 

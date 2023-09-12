@@ -38,6 +38,16 @@ load(
     _aliased_tools = "aliased_tools",
 )
 
+# When bzlmod is enabled, canonical repos names have @@ in them, while under
+# workspace builds, there is never a @@ in labels.
+BZLMOD_ENABLED = "@@" in str(Label("//:unused"))
+
+def _include_dirs_str(rctx, key):
+    dirs = rctx.attr.cxx_builtin_include_directories.get(key)
+    if not dirs:
+        return ""
+    return ("\n" + 12 * " ").join(["\"%s\"," % d for d in dirs])
+
 def llvm_config_impl(rctx):
     _check_os_arch_keys(rctx.attr.sysroot)
     _check_os_arch_keys(rctx.attr.cxx_builtin_include_directories)
@@ -52,14 +62,16 @@ def llvm_register_toolchains():
         return
     arch = _arch(rctx)
 
-    (key, toolchain_root) = _host_os_arch_dict_value(rctx, "toolchain_roots")
-    if not toolchain_root:
-        fail("LLVM toolchain root missing for ({}, {})", os, arch)
-    (key, llvm_version) = _host_os_arch_dict_value(rctx, "llvm_versions")
-    if not llvm_version:
-        fail("LLVM version string missing for ({}, {})", os, arch)
+    if not rctx.attr.toolchain_roots:
+        toolchain_root = "@@%s_llvm//" % rctx.attr.name if BZLMOD_ENABLED else "@%s_llvm//" % rctx.attr.name
+    else:
+        (_key, toolchain_root) = _host_os_arch_dict_value(rctx, "toolchain_roots")
 
-    config_repo_path = "external/%s/" % rctx.name
+    if not toolchain_root:
+        fail("LLVM toolchain root missing for ({}, {})".format(os, arch))
+    (_key, llvm_version) = _host_os_arch_dict_value(rctx, "llvm_versions")
+    if not llvm_version:
+        fail("LLVM version string missing for ({}, {})".format(os, arch))
 
     use_absolute_paths_llvm = rctx.attr.absolute_paths
     use_absolute_paths_sysroot = use_absolute_paths_llvm
@@ -249,7 +261,7 @@ def _cc_toolchains_str(
     return cc_toolchains_str, toolchain_labels_str
 
 # Gets a value from the dict for the target pair, falling back to an empty
-# key, if present.  Bazel 4.* doesn't support nested skylark functions, so
+# key, if present.  Bazel 4.* doesn't support nested starlark functions, so
 # we cannot simplify _dict_value() by defining it as a nested function.
 def _dict_value(d, target_pair, default = None):
     return d.get(target_pair, d.get("", default))

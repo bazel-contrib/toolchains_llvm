@@ -22,7 +22,24 @@ implementation, please let me know and I can redirect people there.
 
 Minimum bazel version: **6.0.0**
 
-To use this toolchain, include this section in your WORKSPACE:
+If you're using `bzlmod`, add the following to `MODULE.bazel`:
+
+```starlark
+bazel_dep(name = "llvm_toolchain", version = "0.8.2")
+
+llvm = use_extension("@llvm_toolchain//toolchain/extensions:llvm.bzl", "llvm")
+llvm.toolchain(
+   llvm_version = "15.0.6",
+)
+
+use_repo(llvm, "llvm_toolchain")
+# use_repo(llvm, "llvm_toolchain_llvm") # if you depend on specific tools in scripts
+
+register_toolchains("@llvm_toolchain//:all")
+```
+
+To use this toolchain, include this section in your `WORKSPACE`:
+
 ```starlark
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 

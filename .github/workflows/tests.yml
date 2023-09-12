@@ -13,17 +13,30 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, ubuntu-latest]
-        script: [run_tests.sh, run_external_tests.sh]
-        bazel_version: [latest, 6.0.0]
-        exclude:
-          - script: run_external_tests.sh
-            bazel_version: 6.0.0
+        bazel_version: [latest, 6.3.0]
+        bzlmod: [true, false]
     steps:
     - uses: actions/checkout@v3
     - name: test
       env:
         USE_BAZEL_VERSION: ${{ matrix.bazel_version }}
-      run: tests/scripts/${{ matrix.script }}
+        USE_BZLMOD: ${{ matrix.bzlmod }}
+      run: tests/scripts/run_tests.sh
+  external_test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+        bazel_version: [latest, 6.3.0]
+        bzlmod: [true, false]
+    steps:
+    - uses: actions/checkout@v2
+    - name: external_test
+      env:
+        USE_BAZEL_VERSION: ${{ matrix.bazel_version }}
+        USE_BZLMOD: ${{ matrix.bzlmod }}
+      run: tests/scripts/run_external_tests.sh
   container_test:
     runs-on: ubuntu-latest
     strategy:

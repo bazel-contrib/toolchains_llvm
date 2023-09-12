@@ -119,6 +119,10 @@ cc_test(
 sh_test(
     name = "file_dependency_test",
     srcs = ["file_dependency_test.sh"],
+    args = [
+        "$(execpath @llvm_toolchain_llvm//:bin/clang-format)",
+        "$(rootpaths @llvm_toolchain_llvm//:lib)",
+    ],
     data = [
         "@llvm_toolchain_llvm//:bin/clang-format",
         "@llvm_toolchain_llvm//:lib",
