@@ -19,18 +19,22 @@ use_github_host=0
 
 while getopts "v:gh" opt; do
   case "$opt" in
-    "v") llvm_version="$OPTARG";;
-    "g") use_github_host=1;;
-    "h") echo "Usage:"
-       echo "-v - Version of clang+llvm to use"
-       echo "-g - Use github to download releases"
-       exit 2
-       ;;
-    "?") echo "invalid option: -$OPTARG"; exit 1;;
+  "v") llvm_version="$OPTARG" ;;
+  "g") use_github_host=1 ;;
+  "h")
+    echo "Usage:"
+    echo "-v - Version of clang+llvm to use"
+    echo "-g - Use github to download releases"
+    exit 2
+    ;;
+  "?")
+    echo "invalid option: -$OPTARG"
+    exit 1
+    ;;
   esac
 done
 
-if ! [[ "${llvm_version:-}" ]]; then
+if ! [[ "${llvm_version-}" ]]; then
   echo "Usage: ${BASH_SOURCE[0]} [-g] -v llvm_version"
   exit 1
 fi
@@ -54,17 +58,17 @@ llvm_host() {
 github_host() {
   output_dir="${tmp_dir}"
   (
-  cd "${output_dir}"
-  curl -s "https://api.github.com/repos/llvm/llvm-project/releases/tags/llvmorg-${llvm_version}" | \
-    jq .assets[].browser_download_url | \
-    tee ./urls.txt | \
-    grep 'clang%2Bllvm.*tar.xz"$' | \
-    tee ./filtered_urls.txt | \
-    xargs -n1 curl -L -O
+    cd "${output_dir}"
+    curl -s "https://api.github.com/repos/llvm/llvm-project/releases/tags/llvmorg-${llvm_version}" |
+      jq .assets[].browser_download_url |
+      tee ./urls.txt |
+      grep 'clang%2Bllvm.*tar.xz"$' |
+      tee ./filtered_urls.txt |
+      xargs -n1 curl -L -O
   )
 }
 
-if (( use_github_host )); then
+if ((use_github_host)); then
   github_host
 else
   llvm_host
@@ -73,8 +77,8 @@ fi
 echo ""
 echo "===="
 echo "Checksums for clang+llvm distributions are:"
-find "${output_dir}" -type f -name '*.xz' -exec shasum -a 256 {} \; | \
-  sed -e "s@${output_dir}/@@" | \
-  awk '{ printf "\"%s\": \"%s\",\n", $2, $1 }' | \
-  sed -e 's/%2[Bb]/+/' | \
+find "${output_dir}" -type f -name '*.xz' -exec shasum -a 256 {} \; |
+  sed -e "s@${output_dir}/@@" |
+  awk '{ printf "\"%s\": \"%s\",\n", $2, $1 }' |
+  sed -e 's/%2[Bb]/+/' |
   sort

@@ -14,17 +14,17 @@
 # limitations under the License.
 
 fail() {
-  >&2 echo "$@"
+  echo >&2 "$@"
   exit 1
 }
 
 clang_format_path=$1
 libcpp_path=$2
 
-[[ -a "${clang_format_path}" ]] || fail "bin/clang-format not found"
+[[ -e ${clang_format_path} ]] || fail "bin/clang-format not found"
 
-[[ -a "${libcpp_path}" ]] \
-  || compgen -G "${libcpp_path}" >/dev/null \
-  || fail "libc++.a not found"
+[[ -e ${libcpp_path} ]] ||
+  compgen -G "${libcpp_path}" >/dev/null ||
+  fail "libc++.a not found"
 
 echo "SUCCESS!"
