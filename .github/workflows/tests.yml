@@ -2,80 +2,91 @@ name: Tests
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
+
+permissions: read-all
 
 jobs:
   test:
-    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [macos-latest, ubuntu-latest]
-        bazel_version: [latest, 6.0.0]
+        bazel_version: [latest]
         bzlmod: [true, false]
         # bzlmod needs 6.1.0 (issue unrelated to this project)
-        exclude:
-          - bazel_version: 6.0.0
-            bzlmod: true
         include:
+          - bazel_version: 6.0.0
+            bzlmod: false
           - bazel_version: 6.1.0
             bzlmod: true
-    steps:
-    - uses: actions/checkout@v3
-    - name: test
-      env:
-        USE_BAZEL_VERSION: ${{ matrix.bazel_version }}
-        USE_BZLMOD: ${{ matrix.bzlmod }}
-      run: tests/scripts/run_tests.sh
-  external_test:
     runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: test
+        env:
+          USE_BAZEL_VERSION: ${{ matrix.bazel_version }}
+          USE_BZLMOD: ${{ matrix.bzlmod }}
+        run: tests/scripts/run_tests.sh
+  external_test:
     strategy:
       fail-fast: false
       matrix:
         os: [macos-latest, ubuntu-latest]
         bazel_version: [latest] # rules_rust bzlmod support is experimental and needs latest version as of now (20230912).
         bzlmod: [true, false]
+    runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v2
-    - name: external_test
-      env:
-        USE_BAZEL_VERSION: ${{ matrix.bazel_version }}
-        USE_BZLMOD: ${{ matrix.bzlmod }}
-      run: tests/scripts/run_external_tests.sh
+      - uses: actions/checkout@v3
+      - name: external_test
+        env:
+          USE_BAZEL_VERSION: ${{ matrix.bazel_version }}
+          USE_BZLMOD: ${{ matrix.bzlmod }}
+        run: tests/scripts/run_external_tests.sh
   container_test:
-    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        script: [archlinux, debian, fedora, suse_leap, suse_tumbleweed, ubuntu_20_04, ubuntu_22_04, linux_sysroot]
+        script:
+          [
+            archlinux,
+            debian,
+            fedora,
+            suse_leap,
+            suse_tumbleweed,
+            ubuntu_20_04,
+            ubuntu_22_04,
+            linux_sysroot,
+          ]
+    runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: test
-      run: tests/scripts/${{ matrix.script }}_test.sh
+      - uses: actions/checkout@v3
+      - name: test
+        run: tests/scripts/${{ matrix.script }}_test.sh
   xcompile_test:
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: test
-      run: tests/scripts/run_xcompile_tests.sh
+      - uses: actions/checkout@v3
+      - name: test
+        run: tests/scripts/run_xcompile_tests.sh
   abs_paths_test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: test
-      run: tests/scripts/run_tests.sh -t @llvm_toolchain_with_absolute_paths//:cc-toolchain-x86_64-linux
+      - uses: actions/checkout@v3
+      - name: test
+        run: tests/scripts/run_tests.sh -t @llvm_toolchain_with_absolute_paths//:cc-toolchain-x86_64-linux
   sys_paths_test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: Download and Extract LLVM distribution
-      env:
-        release: "llvmorg-15.0.6"
-        archive: "clang+llvm-15.0.6-x86_64-linux-gnu-ubuntu-18.04"
-        ext: ".tar.xz"
-        local_path: "/tmp/llvm-15"
-      run: wget --no-verbose "https://github.com/llvm/llvm-project/releases/download/${release}/${archive}${ext}" && tar -xf "${archive}${ext}" && mv "${archive}" "${local_path}"
-    - name: test
-      run: tests/scripts/run_tests.sh -t @llvm_toolchain_with_system_llvm//:cc-toolchain-x86_64-linux
+      - uses: actions/checkout@v3
+      - name: Download and Extract LLVM distribution
+        env:
+          release: llvmorg-15.0.6
+          archive: clang+llvm-15.0.6-x86_64-linux-gnu-ubuntu-18.04
+          ext: .tar.xz
+          local_path: /tmp/llvm-15
+        run: wget --no-verbose "https://github.com/llvm/llvm-project/releases/download/${release}/${archive}${ext}" && tar -xf "${archive}${ext}" && mv "${archive}" "${local_path}"
+      - name: test
+        run: tests/scripts/run_tests.sh -t @llvm_toolchain_with_system_llvm//:cc-toolchain-x86_64-linux
