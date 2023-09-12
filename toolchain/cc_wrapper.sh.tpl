@@ -13,7 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
+
 # OS X relpath is not really working. This is a wrapper script around gcc
 # to simulate relpath behavior.
 #
@@ -24,7 +24,9 @@
 #
 # See https://blogs.oracle.com/dipol/entry/dynamic_libraries_rpath_and_mac
 # on how to set those paths for Mach-O binaries.
-#
+
+# shellcheck disable=SC1083
+
 set -eu
 
 # See note in toolchain/internal/configure.bzl where we define
@@ -43,6 +45,6 @@ elif [[ ${BASH_SOURCE[0]} == "/"* ]]; then
   clang="${execroot_path}/%{toolchain_path_prefix}bin/clang"
   exec "${clang}" "${@}"
 else
-  echo >&2 "ERROR: could not find clang; PWD=\"$(pwd)\"; PATH=\"${PATH}\"."
+  echo >&2 "ERROR: could not find clang; PWD=\"${PWD}\"; PATH=\"${PATH}\"."
   exit 5
 fi

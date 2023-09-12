@@ -18,8 +18,8 @@ set -euo pipefail
 use_github_host=0
 
 while getopts "v:gh" opt; do
-  case "$opt" in
-  "v") llvm_version="$OPTARG" ;;
+  case "${opt}" in
+  "v") llvm_version="${OPTARG}" ;;
   "g") use_github_host=1 ;;
   "h")
     echo "Usage:"
@@ -27,14 +27,14 @@ while getopts "v:gh" opt; do
     echo "-g - Use github to download releases"
     exit 2
     ;;
-  "?")
-    echo "invalid option: -$OPTARG"
+  *)
+    echo "invalid option: -${OPTARG}"
     exit 1
     ;;
   esac
 done
 
-if ! [[ "${llvm_version-}" ]]; then
+if [[ -z ${llvm_version-} ]]; then
   echo "Usage: ${BASH_SOURCE[0]} [-g] -v llvm_version"
   exit 1
 fi
@@ -44,7 +44,7 @@ tmp_dir="$(mktemp -d)"
 cleanup() {
   rc=$?
   rm -rf "${tmp_dir}"
-  exit $rc
+  exit "${rc}"
 }
 trap 'cleanup' INT HUP QUIT TERM EXIT
 

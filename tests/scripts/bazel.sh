@@ -12,7 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-os="$(uname -s | tr "[:upper:]" "[:lower:]")"
+# shellcheck shell=bash
+
+short_uname="$(uname -s)"
+readonly short_uname
+
+os="$(echo "${short_uname}" | tr "[:upper:]" "[:lower:]")"
 readonly os
 
 arch="$(uname -m)"
@@ -47,7 +52,7 @@ common_test_args=(
 
 # TODO: Remove this once we no longer support bazel 6.x.
 # This feature isn't intentionally supported on macOS.
-if [[ $(uname -s) == 'Darwin' ]]; then
+if [[ ${short_uname} == 'Darwin' ]]; then
   common_test_args+=(--features=-supports_dynamic_linker)
 fi
 
