@@ -8,7 +8,7 @@ bazel_dep(name = "platforms", version = "0.0.6")
 bazel_dep(name = "rules_cc", version = "0.0.8")
 bazel_dep(name = "rules_go", version = "0.40.1", repo_name = "io_bazel_rules_go")
 bazel_dep(name = "rules_foreign_cc", version = "0.9.0")
-bazel_dep(name = "rules_rust", version = "0.25.1")
+bazel_dep(name = "rules_rust", version = "0.27.0")
 
 # We have to patch abseil-cpp to add a dep on googletest
 bazel_dep(name = "abseil-cpp", repo_name = "com_google_absl")
@@ -16,7 +16,7 @@ archive_override(module_name = "abseil-cpp", urls = ["https://github.com/abseil/
 
 # Temporary overrides until newer versions of these rulesets are released in the central registry
 git_override(module_name = "rules_foreign_cc", remote = "https://github.com/bazelbuild/rules_foreign_cc.git", commit = "6ecc134b114f6e086537f5f0148d166467042226")
-git_override(module_name = "rules_rust", remote = "https://github.com/bazelbuild/rules_rust.git", commit = "bf9ddeb7c83a9fe8a7d87c76134cdd8e16131b62")
+git_override(module_name = "rules_rust", remote = "https://github.com/bazelbuild/rules_rust.git", commit = "4dbb81a008f4031c9ad65138fa2a49f32352f80f")
 
 rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
 rust.toolchain(edition = "2021")
