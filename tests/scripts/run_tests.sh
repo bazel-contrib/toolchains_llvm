@@ -36,7 +36,6 @@ cd "${scripts_dir}"
 
 set -x
 test_args=(
-  "--enable_bzlmod=${USE_BZLMOD:-false}"
   "--extra_toolchains=${toolchain_name}"
   "--copt=-v"
   "--linkopt=-Wl,-t"

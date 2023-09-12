@@ -22,9 +22,9 @@ source "${scripts_dir}/bazel.sh"
 cd "${scripts_dir}"
 
 # Generate some files needed for the tests.
-"${bazel}" fetch @io_bazel_rules_go//tests/core/cgo:all
+"${bazel}" query "${common_args[@]}" @io_bazel_rules_go//tests/core/cgo:dylib_test >/dev/null
 if [[ "$USE_BZLMOD" == "true" ]]; then
-  "$("${bazel}" info output_base)/external/rules_go~0.40.1/tests/core/cgo/generate_imported_dylib.sh"
+  "$("${bazel}" info output_base)/external/rules_go~0.41.0/tests/core/cgo/generate_imported_dylib.sh"
 else
   "$("${bazel}" info output_base)/external/io_bazel_rules_go/tests/core/cgo/generate_imported_dylib.sh"
 fi
@@ -32,7 +32,6 @@ fi
 set -x
 test_args=(
   "${common_test_args[@]}"
-  "--enable_bzlmod=${USE_BZLMOD:-false}"
   # Fix LLVM version to be 14.0.0 because that's the last known version with
   # which the tests in rules_go pass.
   "--extra_toolchains=@llvm_toolchain_14_0_0//:all"

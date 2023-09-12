@@ -26,18 +26,23 @@ fi
 readonly arch
 
 # Use bazelisk to catch migration problems.
-readonly bazelisk_version="v1.11.0"
+readonly bazelisk_version="v1.18.0"
 readonly url="https://github.com/bazelbuild/bazelisk/releases/download/${bazelisk_version}/bazelisk-${os}-${arch}"
 bazel="${TMPDIR:-/tmp}/bazelisk"
 readonly bazel
 
+common_args=(
+  "--enable_bzlmod=${USE_BZLMOD:-false}"
+)
+
 common_test_args=(
-  --incompatible_enable_cc_toolchain_resolution
-  --symlink_prefix=/
-  --color=yes
-  --show_progress_rate_limit=30
-  --keep_going
-  --test_output=errors
+  "${common_args[@]}"
+  "--symlink_prefix=/"
+  "--incompatible_enable_cc_toolchain_resolution"
+  "--color=yes"
+  "--show_progress_rate_limit=30"
+  "--keep_going"
+  "--test_output=errors"
 )
 
 # TODO: Remove this once we no longer support bazel 6.x.

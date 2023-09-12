@@ -13,8 +13,15 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, ubuntu-latest]
-        bazel_version: [latest, 6.3.0]
+        bazel_version: [latest, 6.0.0]
         bzlmod: [true, false]
+        # bzlmod needs 6.1.0 (issue unrelated to this project)
+        exclude:
+          - bazel_version: 6.0.0
+            bzlmod: true
+        include:
+          - bazel_version: 6.1.0
+            bzlmod: true
     steps:
     - uses: actions/checkout@v3
     - name: test
@@ -28,7 +35,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, ubuntu-latest]
-        bazel_version: [latest, 6.3.0]
+        bazel_version: [latest] # rules_rust bzlmod support is experimental and needs latest version as of now (20230912).
         bzlmod: [true, false]
     steps:
     - uses: actions/checkout@v2

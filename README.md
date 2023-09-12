@@ -20,7 +20,7 @@ implementation, please let me know and I can redirect people there.
 
 ## Quickstart
 
-Minimum bazel version: **6.0.0**
+Minimum bazel version: **6.0.0** (6.1.0 if using blzmod)
 
 If you're using `bzlmod`, add the following to `MODULE.bazel`:
 
