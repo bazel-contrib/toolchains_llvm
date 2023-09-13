@@ -66,13 +66,6 @@ llvm_toolchain(
     },
 )
 
-# This is the latest version of LLVM that seems to work with rules_go; later
-# versions cause the tests to crash.
-llvm_toolchain(
-    name = "llvm_toolchain_14_0_0",
-    llvm_version = "14.0.0",
-)
-
 # This is the last known LLVM version with zlib support in ld.lld. Without zlib
 # support, if the installed gcc toolchain has compressed sections in its object
 # files, then ld.lld won't be able to process them. Example is archlinux docker
