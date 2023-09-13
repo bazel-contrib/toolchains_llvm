@@ -18,15 +18,15 @@ set -euo pipefail
 toolchain_name=""
 
 while getopts "t:h" opt; do
-  case "$opt" in
-  "t") toolchain_name="$OPTARG" ;;
+  case "${opt}" in
+  "t") toolchain_name="${OPTARG}" ;;
   "h")
     echo "Usage:"
     echo "-t - Toolchain name to use for testing; default is llvm_toolchain"
     exit 2
     ;;
-  "?")
-    echo "invalid option: -$OPTARG"
+  *)
+    echo "invalid option: -${OPTARG}"
     exit 1
     ;;
   esac

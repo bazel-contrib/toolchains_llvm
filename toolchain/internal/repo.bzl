@@ -269,8 +269,8 @@ llvm_config_attrs.update({
 def llvm_repo_impl(rctx):
     os = _os(rctx)
     if os == "windows":
-        rctx.file("BUILD", executable = False)
-        return
+        rctx.file("BUILD.bazel", executable = False)
+        return None
 
     rctx.file(
         "BUILD.bazel",

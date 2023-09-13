@@ -26,7 +26,7 @@ def _darwin_sdk_path(rctx):
     if exec_result.return_code:
         fail("Failed to detect OSX SDK path: \n%s\n%s" % (exec_result.stdout, exec_result.stderr))
     if exec_result.stderr:
-        print(exec_result.stderr)
+        print(exec_result.stderr)  # buildifier: disable=print
     return exec_result.stdout.strip()
 
 # Default sysroot path can be used when the user has not provided an explicit

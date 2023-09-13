@@ -42,12 +42,6 @@ load(
 # workspace builds, there is never a @@ in labels.
 BZLMOD_ENABLED = "@@" in str(Label("//:unused"))
 
-def _include_dirs_str(rctx, key):
-    dirs = rctx.attr.cxx_builtin_include_directories.get(key)
-    if not dirs:
-        return ""
-    return ("\n" + 12 * " ").join(["\"%s\"," % d for d in dirs])
-
 def llvm_config_impl(rctx):
     _check_os_arch_keys(rctx.attr.sysroot)
     _check_os_arch_keys(rctx.attr.cxx_builtin_include_directories)

@@ -23,13 +23,12 @@ cd "${scripts_dir}"
 
 # Generate some files needed for the tests.
 "${bazel}" query "${common_args[@]}" @io_bazel_rules_go//tests/core/cgo:dylib_test >/dev/null
-if [[ $USE_BZLMOD == "true" ]]; then
+if [[ ${USE_BZLMOD} == "true" ]]; then
   "$("${bazel}" info output_base)/external/rules_go~0.41.0/tests/core/cgo/generate_imported_dylib.sh"
 else
   "$("${bazel}" info output_base)/external/io_bazel_rules_go/tests/core/cgo/generate_imported_dylib.sh"
 fi
 
-set -x
 test_args=(
   "${common_test_args[@]}"
   # Fix LLVM version to be 14.0.0 because that's the last known version with
@@ -50,6 +49,8 @@ test_args=(
 # @rules_rust//test/unit/{native_deps,linkstamps,interleaved_cc_info}:all
 #   but under bzlmod the linkstamp tests fail due to the fact we are currently
 #   overriding rules_rust locally as its not yet released in the BCR
+# shellcheck disable=SC2207
+absl_targets=($("${bazel}" query "${common_args[@]}" 'attr(timeout, short, tests(@com_google_absl//absl/...))'))
 "${bazel}" --bazelrc=/dev/null test "${test_args[@]}" -- \
   //foreign:pcre \
   @openssl//:libssl \
@@ -57,5 +58,5 @@ test_args=(
   @io_bazel_rules_go//tests/core/cgo:all \
   -@io_bazel_rules_go//tests/core/cgo:cc_libs_test \
   -@io_bazel_rules_go//tests/core/cgo:external_includes_test \
-  $("${bazel}" query 'attr(timeout, short, tests(@com_google_absl//absl/...))') \
+  "${absl_targets[@]}" \
   -@com_google_absl//absl/time/internal/cctz:time_zone_format_test

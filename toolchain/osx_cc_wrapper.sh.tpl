@@ -13,7 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
+
 # OS X relpath is not really working. This is a wrapper script around gcc
 # to simulate relpath behavior.
 #
@@ -24,7 +24,9 @@
 #
 # See https://blogs.oracle.com/dipol/entry/dynamic_libraries_rpath_and_mac
 # on how to set those paths for Mach-O binaries.
-#
+
+# shellcheck disable=all
+
 set -eu
 
 INSTALL_NAME_TOOL="/usr/bin/install_name_tool"
