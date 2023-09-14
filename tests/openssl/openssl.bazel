@@ -50,10 +50,10 @@ CONF_FILES = [
 
 genrule(
     name = "configure",
-    srcs = [("@com_grail_bazel_toolchain//tests/openssl:" + f) for f in CONF_FILES],
+    srcs = [("@toolchains_llvm_tests//openssl:" + f) for f in CONF_FILES],
     outs = CONF_FILES,
     cmd = "\n".join([
-        "cp $(location @com_grail_bazel_toolchain//tests/openssl:{0}) $(location {0})".format(f)
+        "cp $(location @toolchains_llvm_tests//openssl:{0}) $(location {0})".format(f)
         for f in CONF_FILES
     ]),
     visibility = ["//visibility:private"],

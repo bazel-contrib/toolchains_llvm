@@ -24,11 +24,11 @@ Minimum bazel version: **6.0.0** (6.1.0 if using blzmod)
 If you're using `bzlmod`, add the following to `MODULE.bazel`:
 
 ```starlark
-bazel_dep(name = "llvm_toolchain", version = "0.9")
+bazel_dep(name = "toolchains_llvm", version = "0.10.0")
 
-llvm = use_extension("@llvm_toolchain//toolchain/extensions:llvm.bzl", "llvm")
+llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
 llvm.toolchain(
-   llvm_version = "15.0.6",
+   llvm_version = "16.0.0",
 )
 
 use_repo(llvm, "llvm_toolchain")
@@ -46,25 +46,25 @@ BAZEL_TOOLCHAIN_TAG = "0.9"
 BAZEL_TOOLCHAIN_SHA = "95f0bab6982c7e5a83447e08bf32fa7a47f210169da5e5ec62411fef0d8e7f59"
 
 http_archive(
-    name = "com_grail_bazel_toolchain",
+    name = "toolchains_llvm",
     sha256 = BAZEL_TOOLCHAIN_SHA,
     strip_prefix = "bazel-toolchain-{tag}".format(tag = BAZEL_TOOLCHAIN_TAG),
     canonical_id = BAZEL_TOOLCHAIN_TAG,
     url = "https://github.com/grailbio/bazel-toolchain/archive/refs/tags/{tag}.tar.gz".format(tag = BAZEL_TOOLCHAIN_TAG),
 )
 
-load("@com_grail_bazel_toolchain//toolchain:deps.bzl", "bazel_toolchain_dependencies")
+load("@toolchains_llvm//toolchain:deps.bzl", "bazel_toolchain_dependencies")
 
 bazel_toolchain_dependencies()
 
-load("@com_grail_bazel_toolchain//toolchain:rules.bzl", "llvm_toolchain")
+load("@toolchains_llvm//toolchain:rules.bzl", "llvm_toolchain")
 
 llvm_toolchain(
     name = "llvm_toolchain",
     llvm_version = "16.0.0",
 )
 
-load("@llvm_toolchain//:toolchains.bzl", "llvm_register_toolchains")
+load("@toolchains_llvm//:toolchains.bzl", "llvm_register_toolchains")
 
 llvm_register_toolchains()
 ```
@@ -194,7 +194,7 @@ The following mechanisms are available for using an LLVM toolchain:
    attribute. When using a bazel package path, each of the values is typically
    a package in the user's workspace or configured through `local_repository` or
    `http_archive`; the BUILD file of the package should be similar to
-   `@com_grail_bazel_toolchain//toolchain:BUILD.llvm_repo`. If using only
+   `@toolchains_llvm//toolchain:BUILD.llvm_repo`. If using only
    `http_archive`, maybe consider using the `urls` attribute instead to get more
    flexibility if you need.
 4. All the above options rely on host OS information, and are not suited for
@@ -233,7 +233,7 @@ the [test script](tests/scripts/run_xcompile_tests.sh) for cross-compilation.
 
 ```sh
 bazel build \
-  --platforms=@com_grail_bazel_toolchain//platforms:linux-x86_64 \
+  --platforms=@toolchains_llvm//platforms:linux-x86_64 \
   --extra_toolchains=@llvm_toolchain_with_sysroot//:cc-toolchain-x86_64-linux \
   //...
 ```

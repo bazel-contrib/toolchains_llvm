@@ -1,4 +1,4 @@
-workspace(name = "com_grail_bazel_toolchain_tests")
+workspace(name = "toolchains_llvm_tests")
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
