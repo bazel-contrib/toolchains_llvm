@@ -43,6 +43,8 @@ def _linux_dist(rctx):
     info = {}
     for line in res.stdout.splitlines():
         parts = line.split("=", 1)
+        if len(parts) == 1:
+            continue
         info[parts[0]] = parts[1]
 
     distname = info["ID"].strip('\"')
