@@ -12,20 +12,18 @@ def _llvm_impl_(module_ctx):
         if not mod.is_root:
             fail("Only the root module can use the 'llvm' extension")
         for toolchain_attr in mod.tags.toolchain:
+            attrs = {
+                key: getattr(toolchain_attr, key)
+                for key in dir(toolchain_attr)
+                if not key.startswith("_")
+            }
             llvm_toolchain(
-                name = toolchain_attr.name,
-                llvm_version = toolchain_attr.llvm_version,
-                llvm_versions = toolchain_attr.llvm_versions,
-                stdlib = toolchain_attr.stdlib,
-                sha256 = toolchain_attr.sha256,
-                strip_prefix = toolchain_attr.strip_prefix,
-                urls = toolchain_attr.urls,
+                **attrs
             )
 
 _attrs = {
     "name": attr.string(doc = """\
-        Base name for generated repositories, allowing more than one mylang toolchain to be registered.
-        Overriding the default is only permitted in the root module.
+        Base name for the generated repositories, allowing more than one LLVM toolchain to be registered.
     """, default = "llvm_toolchain"),
 }
 _attrs.update(_llvm_config_attrs)
