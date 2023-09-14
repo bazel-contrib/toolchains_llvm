@@ -190,7 +190,10 @@ load("@io_bazel_rules_go//go:deps.bzl", "go_download_sdk", "go_rules_dependencie
 
 go_rules_dependencies()
 
-go_download_sdk(name = "go_sdk", version = "1.21.0")
+go_download_sdk(
+    name = "go_sdk",
+    version = "1.21.0",
+)
 
 # For testing rules_rust.
 
