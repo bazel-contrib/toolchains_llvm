@@ -24,7 +24,7 @@ Minimum bazel version: **6.0.0** (6.1.0 if using blzmod)
 If you're using `bzlmod`, add the following to `MODULE.bazel`:
 
 ```starlark
-bazel_dep(name = "llvm_toolchain", version = "0.8.2")
+bazel_dep(name = "llvm_toolchain", version = "0.9")
 
 llvm = use_extension("@llvm_toolchain//toolchain/extensions:llvm.bzl", "llvm")
 llvm.toolchain(
@@ -42,8 +42,8 @@ To use this toolchain, include this section in your `WORKSPACE`:
 ```starlark
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-BAZEL_TOOLCHAIN_TAG = "0.8.2"
-BAZEL_TOOLCHAIN_SHA = "0fc3a2b0c9c929920f4bed8f2b446a8274cad41f5ee823fd3faa0d7641f20db0"
+BAZEL_TOOLCHAIN_TAG = "0.9"
+BAZEL_TOOLCHAIN_SHA = "95f0bab6982c7e5a83447e08bf32fa7a47f210169da5e5ec62411fef0d8e7f59"
 
 http_archive(
     name = "com_grail_bazel_toolchain",
