@@ -19,66 +19,10 @@ implementation, please let me know and I can redirect people there.
 
 ## Quickstart
 
-Minimum bazel version: **6.0.0** (6.1.0 if using blzmod)
+See notes on the [release](https://github.com/grailbio/bazel-toolchain/releases)
+for how to get started.
 
-If you're using `bzlmod`, add the following to `MODULE.bazel`:
-
-```starlark
-bazel_dep(name = "toolchains_llvm", version = "0.10.0")
-
-llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
-llvm.toolchain(
-   llvm_version = "16.0.0",
-)
-
-use_repo(llvm, "llvm_toolchain")
-# use_repo(llvm, "llvm_toolchain_llvm") # if you depend on specific tools in scripts
-
-register_toolchains("@llvm_toolchain//:all")
-```
-
-To use this toolchain, include this section in your `WORKSPACE`:
-
-```starlark
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-
-BAZEL_TOOLCHAIN_TAG = "0.9"
-BAZEL_TOOLCHAIN_SHA = "95f0bab6982c7e5a83447e08bf32fa7a47f210169da5e5ec62411fef0d8e7f59"
-
-http_archive(
-    name = "toolchains_llvm",
-    sha256 = BAZEL_TOOLCHAIN_SHA,
-    strip_prefix = "bazel-toolchain-{tag}".format(tag = BAZEL_TOOLCHAIN_TAG),
-    canonical_id = BAZEL_TOOLCHAIN_TAG,
-    url = "https://github.com/grailbio/bazel-toolchain/archive/refs/tags/{tag}.tar.gz".format(tag = BAZEL_TOOLCHAIN_TAG),
-)
-
-load("@toolchains_llvm//toolchain:deps.bzl", "bazel_toolchain_dependencies")
-
-bazel_toolchain_dependencies()
-
-load("@toolchains_llvm//toolchain:rules.bzl", "llvm_toolchain")
-
-llvm_toolchain(
-    name = "llvm_toolchain",
-    llvm_version = "16.0.0",
-)
-
-load("@toolchains_llvm//:toolchains.bzl", "llvm_register_toolchains")
-
-llvm_register_toolchains()
-```
-
-And add the following section to your .bazelrc file:
-
-```sh
-# Not needed after https://github.com/bazelbuild/bazel/issues/7260 is closed
-build --incompatible_enable_cc_toolchain_resolution
-
-# Tell Bazel to pass the right flags for llvm-ar, not libtool. Only needed if you are building on darwin.
-# See https://github.com/bazelbuild/bazel/blob/5c75d0acec21459bbb13520817e3806e1507e907/tools/cpp/unix_cc_toolchain_config.bzl#L1000-L1024
-build --features=-libtool
-```
+<!-- Release Notes template is at .github/workflows/release_prep.sh -->
 
 ## Basic Usage
 
