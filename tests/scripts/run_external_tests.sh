@@ -31,7 +31,7 @@ fi
 
 test_args=(
   "${common_test_args[@]}"
-  "--linkopt=-nopie"                # https://github.com/grailbio/bazel-toolchain/issues/183
+  "--linkopt=-nopie"                # Not needed after https://github.com/bazelbuild/rules_go/pull/3692.
   "--copt=-Wno-deprecated-builtins" # https://github.com/abseil/abseil-cpp/issues/1201
 )
 
