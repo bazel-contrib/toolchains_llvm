@@ -13,5 +13,5 @@
 # limitations under the License.
 
 workspace(
-    name = "com_grail_bazel_toolchain",
+    name = "toolchains_llvm",
 )

@@ -1,13 +1,27 @@
-module(name = "com_grail_bazel_toolchain_tests")
+# Copyright 2023 The Bazel Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-bazel_dep(name = "llvm_toolchain", version = "0.8.2", repo_name = "com_grail_bazel_toolchain")
+module(name = "toolchains_llvm_tests")
+
+bazel_dep(name = "toolchains_llvm", version = "0.0.0")
 local_path_override(
-    module_name = "llvm_toolchain",
+    module_name = "toolchains_llvm",
     path = "..",
 )
 
 bazel_dep(name = "bazel_skylib", version = "1.4.2")
-bazel_dep(name = "platforms", version = "0.0.6")
+bazel_dep(name = "platforms", version = "0.0.7")
 bazel_dep(name = "rules_cc", version = "0.0.8")
 bazel_dep(name = "rules_go", version = "0.41.0", repo_name = "io_bazel_rules_go")
 bazel_dep(name = "rules_foreign_cc", version = "0.9.0")
@@ -38,6 +52,15 @@ git_override(
     remote = "https://github.com/bazelbuild/rules_rust.git",
 )
 
+go_sdk = use_extension("@io_bazel_rules_go//go:extensions.bzl", "go_sdk")
+go_sdk.download(
+    name = "go_sdk",
+    version = "1.21.0",
+)
+use_repo(go_sdk, "go_toolchains")
+
+register_toolchains("@go_toolchains//:all")
+
 rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
 rust.toolchain(edition = "2021")
 use_repo(
@@ -47,7 +70,7 @@ use_repo(
 
 register_toolchains("@rust_toolchains//:all")
 
-llvm = use_extension("@com_grail_bazel_toolchain//toolchain/extensions:llvm.bzl", "llvm")
+llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
 
 # When updating this version, also update the versions associated with
 # llvm_toolchain below, sys_paths_test in the workflows file, and xcompile_test

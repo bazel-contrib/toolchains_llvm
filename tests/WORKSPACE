@@ -12,19 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-workspace(name = "com_grail_bazel_toolchain_tests")
+workspace(name = "toolchains_llvm_tests")
 
 local_repository(
-    name = "com_grail_bazel_toolchain",
+    name = "toolchains_llvm",
     path = "..",
 )
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-load("@com_grail_bazel_toolchain//toolchain:deps.bzl", "bazel_toolchain_dependencies")
+load("@toolchains_llvm//toolchain:deps.bzl", "bazel_toolchain_dependencies")
 
 bazel_toolchain_dependencies()
 
-load("@com_grail_bazel_toolchain//toolchain:rules.bzl", "llvm_toolchain")
+load("@toolchains_llvm//toolchain:rules.bzl", "llvm_toolchain")
 
 # When updating this version, also update the versions associated with
 # llvm_toolchain below, sys_paths_test in the workflows file, and xcompile_test
@@ -186,11 +186,11 @@ http_archive(
     ],
 )
 
-load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
+load("@io_bazel_rules_go//go:deps.bzl", "go_download_sdk", "go_rules_dependencies")
 
 go_rules_dependencies()
 
-go_register_toolchains(version = "1.20.5")
+go_download_sdk(name = "go_sdk", version = "1.21.0")
 
 # For testing rules_rust.
 

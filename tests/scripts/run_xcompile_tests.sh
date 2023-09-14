@@ -36,7 +36,7 @@ echo ""
 echo "Testing static linked user libraries and dynamic linked system libraries"
 build_args=(
   --incompatible_enable_cc_toolchain_resolution
-  --platforms=@com_grail_bazel_toolchain//platforms:linux-x86_64
+  --platforms=@toolchains_llvm//platforms:linux-x86_64
   --extra_toolchains=@llvm_toolchain_with_sysroot//:cc-toolchain-x86_64-linux
   --symlink_prefix=/
   --color=yes
