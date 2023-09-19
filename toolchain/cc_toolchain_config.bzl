@@ -45,6 +45,7 @@ def cc_toolchain_config(
     host_os_arch_key = _os_arch_pair(host_os, host_arch)
     target_os_arch_key = _os_arch_pair(target_os, target_arch)
     _check_os_arch_keys([host_os_arch_key, target_os_arch_key])
+    major_llvm_version = int(llvm_version.split(".")[0])
 
     # A bunch of variables that get passed straight through to
     # `create_cc_toolchain_config_info`.
@@ -269,6 +270,9 @@ def cc_toolchain_config(
             toolchain_path_prefix + "lib/clang/{}/include".format(llvm_version),
             toolchain_path_prefix + "lib/clang/{}/share".format(llvm_version),
             toolchain_path_prefix + "lib64/clang/{}/include".format(llvm_version),
+            toolchain_path_prefix + "lib/clang/{}/include".format(major_llvm_version),
+            toolchain_path_prefix + "lib/clang/{}/share".format(major_llvm_version),
+            toolchain_path_prefix + "lib64/clang/{}/include".format(major_llvm_version),
         ])
 
     sysroot_path = compiler_configuration["sysroot_path"]
