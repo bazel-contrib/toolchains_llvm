@@ -28,7 +28,7 @@ for image in "${images[@]}"; do
 set -exuo pipefail
 
 # Need system glibc headers (e.g. features.h).
-dnf install -qy glibc-headers
+dnf install -qy glibc-headers ncurses-compat-libs
 
 # Run tests
 cd /src
