@@ -29,26 +29,24 @@ load("@toolchains_llvm//toolchain:rules.bzl", "llvm_toolchain")
 # When updating this version, also update the versions associated with
 # llvm_toolchain below, sys_paths_test in the workflows file, and xcompile_test
 # through the `llvm_toolchain_with_sysroot` toolchain.
-LLVM_VERSION = "15.0.6"
+LLVM_VERSION = "16.0.0"
+
+LLVM_VERSIONS = {
+    "": "16.0.0",
+    "darwin-aarch64": "16.0.5",
+    "darwin-x86_64": "15.0.7",
+}
 
 llvm_toolchain(
     name = "llvm_toolchain",
-    llvm_versions = {
-        "": "15.0.6",
-        "darwin-aarch64": "15.0.7",
-        "darwin-x86_64": "15.0.7",
-    },
+    llvm_versions = LLVM_VERSIONS,
 )
 
 # Example toolchain with user provided URLs.
 # TODO(siddharthab): Add test.
 llvm_toolchain(
     name = "llvm_toolchain_with_urls",
-    llvm_versions = {
-        "": "15.0.6",
-        "darwin-aarch64": "15.0.7",
-        "darwin-x86_64": "15.0.7",
-    },
+    llvm_versions = LLVM_VERSIONS,
     sha256 = {
         "": "38bc7f5563642e73e69ac5626724e206d6d539fbef653541b34cae0ba9c3f036",
         "darwin-aarch64": "867c6afd41158c132ef05a8f1ddaecf476a26b91c85def8e124414f9a9ba188d",
@@ -96,7 +94,7 @@ llvm_toolchain(
     llvm_version = LLVM_VERSION,
     # For this toolchain to work, the LLVM distribution archive would need to be unpacked here.
     # A path in /tmp to be part of system tmp cleanup schedule.
-    toolchain_roots = {"": "/tmp/llvm-15"},
+    toolchain_roots = {"": "/tmp/llvm-16"},
 )
 
 ## Toolchain example with a sysroot.
@@ -117,11 +115,7 @@ filegroup(
 
 llvm_toolchain(
     name = "llvm_toolchain_with_sysroot",
-    llvm_versions = {
-        "": "15.0.6",
-        "darwin-x86_64": "15.0.7",
-        "darwin-aarch64": "15.0.7",
-    },
+    llvm_versions = LLVM_VERSIONS,
     sysroot = {
         "linux-x86_64": "@org_chromium_sysroot_linux_x64//:sysroot",
     },
