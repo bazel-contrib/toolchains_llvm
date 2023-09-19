@@ -76,14 +76,15 @@ llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
 # llvm_toolchain below, sys_paths_test in the workflows file, and xcompile_test
 # through the `llvm_toolchain_with_sysroot` toolchain.
 LLVM_VERSION = "15.0.6"
+LLVM_VERSIONS = {
+    "": "16.0.0",
+    "darwin-aarch64": "16.0.5",
+    "darwin-x86_64": "15.0.7",
+}
 
 llvm.toolchain(
     name = "llvm_toolchain",
-    llvm_versions = {
-        "": "15.0.6",
-        "darwin-aarch64": "15.0.7",
-        "darwin-x86_64": "15.0.7",
-    },
+    llvm_versions = LLVM_VERSIONS,
 )
 use_repo(llvm, "llvm_toolchain", "llvm_toolchain_llvm")
 
@@ -144,7 +145,7 @@ llvm.toolchain(
     llvm_version = LLVM_VERSION,
     # For this toolchain to work, the LLVM distribution archive would need to be unpacked here.
     # A path in /tmp to be part of system tmp cleanup schedule.
-    toolchain_roots = {"": "/tmp/llvm-15"},
+    toolchain_roots = {"": "/tmp/llvm-16"},
 )
 use_repo(llvm, "llvm_toolchain_with_system_llvm")
 
@@ -152,11 +153,7 @@ use_repo(llvm, "llvm_toolchain_with_system_llvm")
 
 llvm.toolchain(
     name = "llvm_toolchain_with_sysroot",
-    llvm_versions = {
-        "": "15.0.6",
-        "darwin-x86_64": "15.0.7",
-        "darwin-aarch64": "15.0.7",
-    },
+    llvm_versions = LLVM_VERSIONS,
     sysroot = {
         "linux-x86_64": "@org_chromium_sysroot_linux_x64//:sysroot",
     },
