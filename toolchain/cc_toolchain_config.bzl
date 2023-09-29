@@ -188,7 +188,7 @@ def cc_toolchain_config(
             link_flags.extend([
                 "-l:libc++.a",
                 "-l:libc++abi.a",
-               # "-l:libunwind.a",
+                "-l:libunwind.a",
                 # Compiler runtime features.
                 "-rtlib=compiler-rt",
                 # To support libunwind.
