@@ -213,6 +213,18 @@ _llvm_distributions = {
     "clang+llvm-14.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz": "61582215dafafb7b576ea30cc136be92c877ba1f1c31ddbbd372d6d65622fef5",
     "clang+llvm-14.0.0-x86_64-linux-sles12.4.tar.xz": "78f70cc94c3b6f562455b15cebb63e75571d50c3d488d53d9aa4cd9dded30627",
 
+    # 14.0.6
+    "clang+llvm-14.0.6-aarch64-linux-gnu.tar.xz": "1a81fda984f5e607584916fdf69cf41e5385b219b983544d2c1a14950d5a65cf",
+    "clang+llvm-14.0.6-amd64-unknown-freebsd12.tar.xz": "b0a7b86dacb12afb8dd2ca99ea1b894d9cce84aab7711cb1964b3005dfb09af3",
+    "clang+llvm-14.0.6-amd64-unknown-freebsd13.tar.xz": "503e806ae67323c4f790ea2b1fe21e52809814d6a51263e2618f0c22ec47f6ff",
+    "clang+llvm-14.0.6-arm64-apple-darwin22.3.0.tar.xz": "82f4f7607a16c9aaf7314b945bde6a4639836ec9d2b474ebb3a31dee33e3c15a",
+    "clang+llvm-14.0.6-armv7a-linux-gnueabihf.tar.xz": "e50243c191334b80faa0bb18bbadb8afa35cd3d19cb521353c666c1a7ef20173",
+    "clang+llvm-14.0.6-powerpc64-ibm-aix-7.2.tar.xz": "38af6625848a8343dc834c2a272ba88028efab575681d913a39a3c6eaa3c11dc",
+    "clang+llvm-14.0.6-powerpc64le-linux-rhel-8.4.tar.xz": "4ef7c608ac026bca64149e59fb3abfe0f5212f2be0af12fe6e52c9413b1f7c4a",
+    "clang+llvm-14.0.6-powerpc64le-linux-ubuntu-18.04.5.tar.xz": "5eaff8c40a94d36336221f31b413fba500ec240403fa12e99dd49b56b736eeb3",
+    "clang+llvm-14.0.6-x86_64-apple-darwin.tar.xz": "e6cc6b8279661fd4452c2847cb8e55ce1e54e1faf4ab497b37c85ffdb6685e7c",
+    "clang+llvm-14.0.6-x86_64-linux-gnu-rhel-8.4.tar.xz": "7412026be8bb8f6b4c25ef58c7a1f78ed5ea039d94f0fa633a386de9c60a6942",
+
     # 15.0.0
     "clang+llvm-15.0.0-aarch64-linux-gnu.tar.xz": "527ed550784681f95ec7a1be8fbf5a24bd03d7da9bf31afb6523996f45670be3",
     "clang+llvm-15.0.0-amd64-pc-solaris2.11.tar.xz": "5b9fd6a30ce6941adf74667d2076a49aa047fa040e3690f7af26c264d4ce58e7",
@@ -323,6 +335,7 @@ _llvm_distributions_base_url = {
     "13.0.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
     "13.0.1": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
     "14.0.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
+    "14.0.6": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
     "15.0.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
     "15.0.2": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
     "15.0.6": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
