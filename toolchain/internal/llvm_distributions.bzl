@@ -313,6 +313,9 @@ _llvm_distributions = {
     # 16.0.6
     "clang+llvm-16.0.6-aarch64-linux-gnu.tar.xz": "283e904048425f05798a98f1b288ae0d28ce75eb1049e0837f959e911369945b",
     "clang+llvm-16.0.6-powerpc64le-linux-rhel-8.7.tar.xz": "1f8d73c342efc82618bd8d58fa8855bc7e70bd2a6ed9646065aabfa4b468e82d",
+
+    # 17.0.2
+    "clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04.tar.xz": "df297df804766f8fb18f10a188af78e55d82bb8881751408c2fa694ca19163a8",
 }
 
 # Note: Unlike the user-specified llvm_mirror attribute, the URL prefixes in
@@ -347,6 +350,7 @@ _llvm_distributions_base_url = {
     "16.0.4": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
     "16.0.5": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
     "16.0.6": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
+    "17.0.2": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
 }
 
 def _get_auth(ctx, urls):
