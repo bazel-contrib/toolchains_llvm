@@ -105,11 +105,12 @@ def llvm_register_toolchains():
         # symlinked path from the wrapper.
         wrapper_bin_prefix = "bin/"
         tools_path_prefix = "bin/"
-        for tool_name in _toolchain_tools:
+        tools = _toolchain_tools(os)
+        for tool_name in tools:
             rctx.symlink(llvm_dist_rel_path + "bin/" + tool_name, tools_path_prefix + tool_name)
         symlinked_tools_str = "".join([
-            "\n" + (" " * 8) + "\"" + tools_path_prefix + name + "\","
-            for name in _toolchain_tools
+            "\n" + (" " * 8) + "\"" + tools_path_prefix + tool_name + "\","
+            for tool_name in tools
         ])
     else:
         llvm_dist_rel_path = llvm_dist_path_prefix
