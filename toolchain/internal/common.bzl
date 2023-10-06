@@ -37,11 +37,8 @@ def host_os_key(rctx):
 _known_distros = ["freebsd", "suse", "ubuntu", "arch", "manjaro", "debian", "fedora", "centos", "amzn", "raspbian", "pop", "rhel"]
 
 def _linux_dist(rctx):
-    res = rctx.execute(["cat", "/etc/os-release"])
-    if res.return_code:
-        fail("Failed to detect machine architecture: \n%s\n%s" % (res.stdout, res.stderr))
     info = {}
-    for line in res.stdout.splitlines():
+    for line in rctx.read("/etc/os-release").splitlines():
         parts = line.split("=", 1)
         if len(parts) == 1:
             continue
