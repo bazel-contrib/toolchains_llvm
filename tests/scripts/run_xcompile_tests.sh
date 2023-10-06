@@ -29,13 +29,13 @@ check_with_image() {
     return
   fi
   local image="$1"
-  docker run --rm --mount "type=bind,source=${binpath},target=/stdlib_test" "${image}" /stdlib_test
+  docker run --rm -it --platform=linux/amd64 \
+    --mount "type=bind,source=${binpath},target=/stdlib_test" "${image}" /stdlib_test
 }
 
 echo ""
 echo "Testing static linked user libraries and dynamic linked system libraries"
 build_args=(
-  --incompatible_enable_cc_toolchain_resolution
   --platforms=@toolchains_llvm//platforms:linux-x86_64
   --extra_toolchains=@llvm_toolchain_with_sysroot//:cc-toolchain-x86_64-linux
   --symlink_prefix=/
@@ -44,7 +44,7 @@ build_args=(
 )
 "${bazel}" --bazelrc=/dev/null build "${build_args[@]}" //:stdlib_test
 file "${binpath}" | tee /dev/stderr | grep -q ELF
-check_with_image "frolvlad/alpine-glibc" # Need glibc image for system libraries.
+check_with_image "gcr.io/distroless/cc-debian11" # Need glibc image for system libraries.
 
 echo ""
 echo "Testing static linked user and system libraries"
@@ -53,4 +53,4 @@ build_args+=(
 )
 "${bazel}" --bazelrc=/dev/null build "${build_args[@]}" //:stdlib_test
 file "${binpath}" | tee /dev/stderr | grep -q ELF
-check_with_image "alpine"
+check_with_image "gcr.io/distroless/static-debian11"
