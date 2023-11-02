@@ -330,6 +330,16 @@ _llvm_distributions = {
     "clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz": "950d1ef440f17e29c4201450ad619d3b4a37a0bbf15f19ce03195e0b4da7d73f",
     "clang+llvm-17.0.2-sparcv9-sun-solaris2.11.tar.xz": "3702914668b5758817374271fa8a41fe67c77b2e86f17706c9d6906f250de6ae",
     "clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04.tar.xz": "df297df804766f8fb18f10a188af78e55d82bb8881751408c2fa694ca19163a8",
+
+    # 17.0.3
+    "clang+llvm-17.0.3-aarch64-linux-gnu.tar.xz": "289da98e4cbc157153e987ff24ce835717a36cfab03ecd03bf359378ee4ae9d7",
+    "clang+llvm-17.0.3-arm64-apple-darwin22.0.tar.xz": "da452a1aa33954c123d5264bd849ebc572a28e8511b868b43e82d6960fda60d7", 
+    "clang+llvm-17.0.3-powerpc64le-linux-rhel-8.8.tar.xz": "fcba4ac2a717762ff1b5fe482a811648837d7dc7bf7b654702c80f2fa044d07d",
+
+    # 17.0.4
+    "clang+llvm-17.0.4-aarch64-linux-gnu.tar.xz": "18b326b3e17168fc423726b5059b4d55b6070d49408e51440ad3fca2ebb37779",
+    "clang+llvm-17.0.4-powerpc64le-linux-rhel-8.8.tar.xz": "2e3ac8b7288ed5d5c3549e457332bbf3c913022fdd7cfbe13fde46448f76d136",
+    "clang+llvm-17.0.4-x86_64-linux-gnu-ubuntu-22.04.tar.xz": "6b45be6c0483b7ee3f63981678093b731fd9f4ea6987b4ceb6efde21890ffca7",
 }
 
 # Note: Unlike the user-specified llvm_mirror attribute, the URL prefixes in
@@ -366,6 +376,8 @@ _llvm_distributions_base_url = {
     "16.0.6": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
     "17.0.1": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
     "17.0.2": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
+    "17.0.3": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
+    "17.0.4": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
 }
 
 def _get_auth(ctx, urls):
