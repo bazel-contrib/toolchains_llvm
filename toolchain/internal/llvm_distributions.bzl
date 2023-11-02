@@ -333,7 +333,7 @@ _llvm_distributions = {
 
     # 17.0.3
     "clang+llvm-17.0.3-aarch64-linux-gnu.tar.xz": "289da98e4cbc157153e987ff24ce835717a36cfab03ecd03bf359378ee4ae9d7",
-    "clang+llvm-17.0.3-arm64-apple-darwin22.0.tar.xz": "da452a1aa33954c123d5264bd849ebc572a28e8511b868b43e82d6960fda60d7", 
+    "clang+llvm-17.0.3-arm64-apple-darwin22.0.tar.xz": "da452a1aa33954c123d5264bd849ebc572a28e8511b868b43e82d6960fda60d7",
     "clang+llvm-17.0.3-powerpc64le-linux-rhel-8.8.tar.xz": "fcba4ac2a717762ff1b5fe482a811648837d7dc7bf7b654702c80f2fa044d07d",
 
     # 17.0.4
