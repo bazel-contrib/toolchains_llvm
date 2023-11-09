@@ -48,6 +48,11 @@ filegroup(
 )
 
 filegroup(
+  name = "all_includes",
+  srcs = glob(["include/**"]),
+)
+
+filegroup(
     name = "bin",
     srcs = glob(["bin/**"]),
 )
