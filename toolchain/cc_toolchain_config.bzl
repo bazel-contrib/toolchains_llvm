@@ -157,6 +157,18 @@ def cc_toolchain_config(
             "-headerpad_max_install_names",
             "-fobjc-link-runtime",
         ])
+        # (david) custom changes to expose important system libs. womp womp.
+        # TODO: clean these up if we ever find a way
+        link_flags.extend([
+            "-lxml2",
+            "-lcurl",
+            "-lm",
+            "-lsasl2",
+            "-lz",
+            "-ldl",
+            "-lpthread",
+        ])
+
     else:
         # Note that for xcompiling from darwin to linux, the native ld64 is
         # not an option because it is not a cross-linker, so lld is the
