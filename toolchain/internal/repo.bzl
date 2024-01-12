@@ -225,6 +225,13 @@ _compiler_configuration_attrs = {
         mandatory = False,
         doc = ("Override the toolchain's `target_settings` attribute."),
     ),
+    "extra_compiler_files": attr.string(
+        mandatory = False,
+        doc = ("Extra label to add to the srcs of the filegroup that for the toolchain's " +
+               "compiler_files attr. It will be available for compile actions. " +
+               "Useful for sanitizer compile-time ignorelists. " +
+               "Example: \"@@//sanitizers:ignorelist.txt\""),
+    ),
 }
 
 llvm_config_attrs = dict(common_attrs)

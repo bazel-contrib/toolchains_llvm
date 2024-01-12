@@ -152,6 +152,7 @@ def llvm_register_toolchains():
         coverage_link_flags_dict = rctx.attr.coverage_link_flags,
         unfiltered_compile_flags_dict = rctx.attr.unfiltered_compile_flags,
         llvm_version = llvm_version,
+        extra_compiler_files = rctx.attr.extra_compiler_files,
     )
     host_dl_ext = "dylib" if os == "darwin" else "so"
     host_tools_info = dict([
@@ -293,6 +294,10 @@ def _cc_toolchain_str(
             # TODO: Are there situations where we can continue?
             return ""
 
+    extra_compiler_files = ""
+    if toolchain_info.extra_compiler_files:
+        extra_compiler_files = '"{}",'.format(toolchain_info.extra_compiler_files)
+
     extra_files_str = "\":internal-use-files\""
 
     # `struct` isn't allowed in `BUILD` files so we JSON encode + decode to turn
@@ -358,7 +363,10 @@ filegroup(
         template = template + """
 filegroup(
     name = "compiler-components-{suffix}",
-    srcs = [":sysroot-components-{suffix}"],
+    srcs = [
+        ":sysroot-components-{suffix}"
+        {extra_compiler_files}
+    ],
 )
 
 filegroup(
@@ -391,6 +399,7 @@ filegroup(
         "{llvm_dist_label_prefix}clang",
         "{llvm_dist_label_prefix}include",
         ":sysroot-components-{suffix}",
+        {extra_compiler_files}
     ],
 )
 
@@ -468,6 +477,7 @@ cc_toolchain(
         coverage_link_flags = _list_to_string(_dict_value(toolchain_info.coverage_link_flags_dict, target_pair)),
         unfiltered_compile_flags = _list_to_string(_dict_value(toolchain_info.unfiltered_compile_flags_dict, target_pair)),
         llvm_version = toolchain_info.llvm_version,
+        extra_compiler_files = extra_compiler_files,
         extra_files_str = extra_files_str,
         host_tools_info = host_tools_info,
     )
