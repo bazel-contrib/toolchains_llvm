@@ -43,7 +43,18 @@ elif [[ ${BASH_SOURCE[0]} == "/"* ]]; then
   # This script is at _execroot_/external/_repo_name_/bin/clang_wrapper.sh
   execroot_path="${BASH_SOURCE[0]%/*/*/*/*}"
   clang="${execroot_path}/%{toolchain_path_prefix}bin/clang"
-  exec "${clang}" "${@}"
+
+  # If we're compiling with -fsanitize-ignorelist, we need fix that path
+  args=("$@")
+  for ((i = 0; i < $#; i++)); do
+    if [[ ${args[i]} =~ ^-fsanitize-(ignore|black)list=[^/] ]]; then
+      path="${args[i]#*=}"
+      args[i]="-fsanitize-blacklist=${execroot_path}/${path}"
+      break
+    fi
+  done
+
+  exec "${clang}" "${args[@]}"
 else
   echo >&2 "ERROR: could not find clang; PWD=\"${PWD}\"; PATH=\"${PATH}\"."
   exit 5
