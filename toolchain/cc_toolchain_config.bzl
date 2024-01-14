@@ -22,6 +22,10 @@ load(
     _host_tools = "host_tools",
     _os_arch_pair = "os_arch_pair",
 )
+load(
+    "//toolchain/internal:system_module_map.bzl",
+    "system_module_map",
+)
 
 # Bazel 4.* doesn't support nested starlark functions, so we cannot simplify
 # _fmt_flags() by defining it as a nested function.
@@ -41,6 +45,7 @@ def cc_toolchain_config(
         wrapper_bin_prefix,
         compiler_configuration,
         llvm_version,
+        all_files,
         host_tools_info = {}):
     host_os_arch_key = _os_arch_pair(host_os, host_arch)
     target_os_arch_key = _os_arch_pair(target_os, target_arch)
@@ -262,18 +267,16 @@ def cc_toolchain_config(
     ## doesn't seem to have a feature for this.
 
     # C++ built-in include directories:
-    cxx_builtin_include_directories = []
-    if toolchain_path_prefix.startswith("/"):
-        cxx_builtin_include_directories.extend([
-            toolchain_path_prefix + "include/c++/v1",
-            toolchain_path_prefix + "include/{}/c++/v1".format(target_system_name),
-            toolchain_path_prefix + "lib/clang/{}/include".format(llvm_version),
-            toolchain_path_prefix + "lib/clang/{}/share".format(llvm_version),
-            toolchain_path_prefix + "lib64/clang/{}/include".format(llvm_version),
-            toolchain_path_prefix + "lib/clang/{}/include".format(major_llvm_version),
-            toolchain_path_prefix + "lib/clang/{}/share".format(major_llvm_version),
-            toolchain_path_prefix + "lib64/clang/{}/include".format(major_llvm_version),
-        ])
+    cxx_builtin_include_directories = [
+        toolchain_path_prefix + "include/c++/v1",
+        toolchain_path_prefix + "include/{}/c++/v1".format(target_system_name),
+        toolchain_path_prefix + "lib/clang/{}/include".format(llvm_version),
+        toolchain_path_prefix + "lib/clang/{}/share".format(llvm_version),
+        toolchain_path_prefix + "lib64/clang/{}/include".format(llvm_version),
+        toolchain_path_prefix + "lib/clang/{}/include".format(major_llvm_version),
+        toolchain_path_prefix + "lib/clang/{}/share".format(major_llvm_version),
+        toolchain_path_prefix + "lib64/clang/{}/include".format(major_llvm_version),
+    ]
 
     sysroot_path = compiler_configuration["sysroot_path"]
     sysroot_prefix = ""
@@ -370,4 +373,11 @@ def cc_toolchain_config(
         coverage_link_flags = coverage_link_flags,
         supports_start_end_lib = supports_start_end_lib,
         builtin_sysroot = sysroot_path,
+    )
+
+    system_module_map(
+        name = name + "-module",
+        toolchain = all_files,
+        cxx_builtin_include_directories = cxx_builtin_include_directories,
+        sysroot_path = sysroot_path,
     )

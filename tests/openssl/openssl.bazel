@@ -864,6 +864,7 @@ cc_library(
 cc_library(
     name = "libssl",
     srcs = [
+        "e_os.h",
         "ssl/bio_ssl.c",
         "ssl/d1_lib.c",
         "ssl/d1_msg.c",

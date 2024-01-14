@@ -329,6 +329,7 @@ cc_toolchain_config(
     }},
     llvm_version = "{llvm_version}",
     host_tools_info = {host_tools_info},
+    all_files = "all-files-{suffix}",
 )
 
 toolchain(
@@ -436,6 +437,7 @@ cc_toolchain(
     objcopy_files = "objcopy-files-{suffix}",
     strip_files = "strip-files-{suffix}",
     toolchain_config = "local-{suffix}",
+    module_map = "local-{suffix}-module",
 )
 """
 
