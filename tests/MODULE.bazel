@@ -77,6 +77,7 @@ llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
 # llvm_toolchain below, sys_paths_test in the workflows file, and xcompile_test
 # through the `llvm_toolchain_with_sysroot` toolchain.
 LLVM_VERSION = "15.0.6"
+
 LLVM_VERSIONS = {
     "": "16.0.0",
     "darwin-aarch64": "16.0.5",
@@ -156,11 +157,13 @@ llvm.toolchain(
     name = "llvm_toolchain_with_sysroot",
     llvm_versions = LLVM_VERSIONS,
     sysroot = {
-        "linux-x86_64": "@org_chromium_sysroot_linux_x64//:sysroot",
+        # TODO: Use an apparent repo name after #234 has been fixed.
+        "linux-x86_64": "@@org_chromium_sysroot_linux_x64//:sysroot",
     },
     # We can share the downloaded LLVM distribution with the first configuration.
     toolchain_roots = {
-        "": "@llvm_toolchain_llvm//",
+        # TODO: Use an apparent repo name after #234 has been fixed.
+        "": "@@toolchains_llvm~override~llvm~llvm_toolchain_llvm//",
     },
 )
 use_repo(llvm, "llvm_toolchain_with_sysroot")
