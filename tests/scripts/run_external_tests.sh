@@ -24,7 +24,7 @@ cd "${scripts_dir}"
 # Generate some files needed for the tests.
 "${bazel}" query "${common_args[@]}" @io_bazel_rules_go//tests/core/cgo:dylib_test >/dev/null
 if [[ ${USE_BZLMOD} == "true" ]]; then
-  "$("${bazel}" info output_base)/external/rules_go~0.41.0/tests/core/cgo/generate_imported_dylib.sh"
+  "$("${bazel}" info output_base)/external/rules_go~override/tests/core/cgo/generate_imported_dylib.sh"
 else
   "$("${bazel}" info output_base)/external/io_bazel_rules_go/tests/core/cgo/generate_imported_dylib.sh"
 fi

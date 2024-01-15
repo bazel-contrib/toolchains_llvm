@@ -53,6 +53,14 @@ git_override(
     remote = "https://github.com/bazelbuild/rules_rust.git",
 )
 
+# Temporary override until newer version is released to the central registry.
+# https://github.com/bazelbuild/rules_go/commit/31549c1f0fbe850aee3d2b7dd7a1303952f7cd75
+git_override(
+    module_name = "rules_go",
+    commit = "31549c1f0fbe850aee3d2b7dd7a1303952f7cd75",
+    remote = "https://github.com/bazelbuild/rules_go.git",
+)
+
 go_sdk = use_extension("@io_bazel_rules_go//go:extensions.bzl", "go_sdk")
 go_sdk.download(
     name = "go_sdk",
