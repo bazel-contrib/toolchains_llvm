@@ -31,10 +31,10 @@ bazel_dep(name = "rules_rust", version = "0.27.0")
 bazel_dep(name = "abseil-cpp", repo_name = "com_google_absl")
 archive_override(
     module_name = "abseil-cpp",
-    integrity = "sha256-4c3q1DMUJmjzz0ldlHdYT0Bv0rZoxTNuJqIguoQt5Vw=",
+    integrity = "sha256-y4VIbqbtC5jid7maB/QbWfwl9Yu0IZrDWaXGqQipvmk=",
     patches = ["//patches:abseil-cpp.patch"],
-    strip_prefix = "abseil-cpp-0ef3ef432996de4c5afa879b93b2ba4f6c130ab2",
-    urls = ["https://github.com/abseil/abseil-cpp/archive/0ef3ef432996de4c5afa879b93b2ba4f6c130ab2.tar.gz"],
+    strip_prefix = "abseil-cpp-b2dd3a5be797f8194bbc230c65f35aadd3998535",
+    urls = ["https://github.com/abseil/abseil-cpp/archive/b2dd3a5be797f8194bbc230c65f35aadd3998535.tar.gz"],
 )
 
 # Temporary override until newer version is released to the central registry.

@@ -55,5 +55,4 @@ absl_targets=($("${bazel}" query "${common_args[@]}" 'attr(timeout, short, tests
   -@io_bazel_rules_go//tests/core/cgo:cc_libs_test \
   -@io_bazel_rules_go//tests/core/cgo:external_includes_test \
   "${absl_targets[@]}" \
-  -@com_google_absl//absl/time/internal/cctz:time_zone_format_test \
-  -@com_google_absl//absl/time/internal/cctz:civil_time_test
+  -@com_google_absl//absl/time/internal/cctz:time_zone_format_test
