@@ -110,7 +110,7 @@ jobs:
           release: llvmorg-16.0.0
           archive: clang+llvm-16.0.0-x86_64-linux-gnu-ubuntu-18.04
           ext: .tar.xz
-          local_path: /tmp/llvm-16
+          local_path: /opt/llvm-16
         run: wget --no-verbose "https://github.com/llvm/llvm-project/releases/download/${release}/${archive}${ext}" && tar -xf "${archive}${ext}" && mv "${archive}" "${local_path}"
       - name: Test
         run: tests/scripts/run_tests.sh -t @llvm_toolchain_with_system_llvm//:cc-toolchain-x86_64-linux
