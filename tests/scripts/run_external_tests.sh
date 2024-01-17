@@ -32,6 +32,10 @@ fi
 test_args=(
   "${common_test_args[@]}"
   "--copt=-Wno-deprecated-builtins" # https://github.com/abseil/abseil-cpp/issues/1201
+  # Disable the "hermetic sandbox /tmp" behavior of Bazel 7 as it results in broken symlinks when
+  # rules_foreign_cc builds pcre.
+  # TODO: Remove this once rules_foreign_cc is fully compatible with Bazel 7.
+  "--sandbox_add_mount_pair=/tmp"
 )
 
 # We exclude the following targets:
