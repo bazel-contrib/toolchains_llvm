@@ -15,11 +15,6 @@
 def _system_module_map(ctx):
     module_map = ctx.actions.declare_file(ctx.attr.name + ".modulemap")
 
-    # The builtin include directories are relative to the execroot, but the
-    # paths in the module map must be relative to the directory that contains
-    # the module map.
-    to_execroot = (module_map.dirname.count("/") + 1) * "../"
-
     dirs = []
     non_hermetic = False
     for dir in ctx.attr.cxx_builtin_include_directories:
@@ -27,8 +22,6 @@ def _system_module_map(ctx):
             dir = ctx.attr.sysroot_path + dir[len("%sysroot%"):]
         if dir.startswith("/"):
             non_hermetic = True
-        else:
-            dir = to_execroot + dir
         dir = dir.replace("//", "/")
         dirs.append(dir)
 
@@ -41,17 +34,23 @@ def _system_module_map(ctx):
             "no-remote": "",
         }
 
+    # The builtin include directories are relative to the execroot, but the
+    # paths in the module map must be relative to the directory that contains
+    # the module map.
+    execroot_prefix = (module_map.dirname.count("/") + 1) * "../"
+
     ctx.actions.run_shell(
         outputs = [module_map],
         inputs = ctx.attr.toolchain[DefaultInfo].files,
-        arguments = [
-            ctx.executable._generate_system_module_map.path,
-            module_map.path,
-        ] + dirs,
-        tools = [ctx.executable._generate_system_module_map],
         command = """
-"$1" "${@:3}" > "$2"
-""",
+{tool} "$@" > {module_map}
+""".format(
+            tool = ctx.executable._generate_system_module_map.path,
+            module_map = module_map.path,
+        ),
+        arguments = dirs,
+        tools = [ctx.executable._generate_system_module_map],
+        env = {"EXECROOT_PREFIX": execroot_prefix},
         execution_requirements = execution_requirements,
         mnemonic = "LlvmSystemModuleMap",
         progress_message = "Generating system module map",
@@ -66,7 +65,7 @@ system_module_map = rule(
         "cxx_builtin_include_directories": attr.string_list(mandatory = True),
         "sysroot_path": attr.string(),
         "_generate_system_module_map": attr.label(
-            default = "@bazel_tools//tools/cpp:generate_system_module_map.sh",
+            default = ":generate_system_module_map.sh",
             allow_single_file = True,
             cfg = "exec",
             executable = True,
