@@ -16,7 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -eu
+set -euo pipefail
 
 echo 'module "crosstool" [system] {'
 
@@ -24,7 +24,7 @@ for dir in "$@"; do
   find -L "${dir}" -type f 2>/dev/null | LANG=C sort | uniq | while read -r header; do
     case "${dir}" in
     /*) ;;
-    *) header=${EXECROOT_PREFIX}"${header}" ;;
+    *) header="${EXECROOT_PREFIX}${header}" ;;
     esac
     echo "  textual header \"${header}\""
   done

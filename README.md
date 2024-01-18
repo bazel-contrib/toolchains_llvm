@@ -243,7 +243,7 @@ then they can be referenced as:
 
 The toolchain supports Bazel's `layering_check` feature, which relies on
 [Clang modules](https://clang.llvm.org/docs/Modules.html) to implement strict
-deps (also known as "depend on what you use") for `cc_*` rules. This features
+deps (also known as "depend on what you use") for `cc_*` rules. This feature
 can be enabled by enabling the `layering_check` feature on a per-target,
 per-package or global basis.
 

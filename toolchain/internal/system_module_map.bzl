@@ -52,7 +52,7 @@ def _system_module_map(ctx):
         tools = [ctx.executable._generate_system_module_map],
         env = {"EXECROOT_PREFIX": execroot_prefix},
         execution_requirements = execution_requirements,
-        mnemonic = "LlvmSystemModuleMap",
+        mnemonic = "LLVMSystemModuleMap",
         progress_message = "Generating system module map",
     )
     return DefaultInfo(files = depset([module_map]))
