@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@bazel_skylib//lib:paths.bzl", "paths")
+
 def _system_module_map(ctx):
     module_map = ctx.actions.declare_file(ctx.attr.name + ".modulemap")
 
@@ -22,8 +24,7 @@ def _system_module_map(ctx):
             dir = ctx.attr.sysroot_path + dir[len("%sysroot%"):]
         if dir.startswith("/"):
             non_hermetic = True
-        dir = dir.replace("//", "/")
-        dirs.append(dir)
+        dirs.append(paths.normalize(dir))
 
     # If the action references a file outside of the execroot, it isn't safe to
     # cache or run remotely.
@@ -41,7 +42,7 @@ def _system_module_map(ctx):
 
     ctx.actions.run_shell(
         outputs = [module_map],
-        inputs = ctx.attr.toolchain[DefaultInfo].files,
+        inputs = ctx.attr.cxx_builtin_include_files[DefaultInfo].files,
         command = """
 {tool} "$@" > {module_map}
 """.format(
@@ -61,7 +62,7 @@ system_module_map = rule(
     doc = """Generates a Clang module map for the toolchain and sysroot headers.""",
     implementation = _system_module_map,
     attrs = {
-        "toolchain": attr.label(mandatory = True),
+        "cxx_builtin_include_files": attr.label(mandatory = True),
         "cxx_builtin_include_directories": attr.string_list(mandatory = True),
         "sysroot_path": attr.string(),
         "_generate_system_module_map": attr.label(

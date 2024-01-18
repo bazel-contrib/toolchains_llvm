@@ -93,7 +93,6 @@ llvm_toolchain(
     name = "llvm_toolchain_with_system_llvm",
     llvm_version = LLVM_VERSION,
     # For this toolchain to work, the LLVM distribution archive would need to be unpacked here.
-    # A path in /tmp to be part of system tmp cleanup schedule.
     toolchain_roots = {"": "/opt/llvm-16"},
 )
 

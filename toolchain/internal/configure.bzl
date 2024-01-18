@@ -329,7 +329,6 @@ cc_toolchain_config(
     }},
     llvm_version = "{llvm_version}",
     host_tools_info = {host_tools_info},
-    all_files = "all-files-{suffix}",
 )
 
 toolchain(
@@ -426,6 +425,21 @@ filegroup(name = "strip-files-{suffix}", srcs = ["{llvm_dist_label_prefix}strip"
 """
 
     template = template + """
+filegroup(
+    name = "include-components-{suffix}",
+    srcs = [
+        ":compiler-components-{suffix}",
+        ":sysroot-components-{suffix}",
+    ],
+)
+
+system_module_map(
+    name = "module-{suffix}",
+    cxx_builtin_include_files = ":include-components-{suffix}",
+    cxx_builtin_include_directories = cxx_builtin_include_directories,
+    sysroot_path = %{sysroot_path},
+)
+
 cc_toolchain(
     name = "cc-clang-{suffix}",
     all_files = "all-files-{suffix}",
@@ -437,7 +451,7 @@ cc_toolchain(
     objcopy_files = "objcopy-files-{suffix}",
     strip_files = "strip-files-{suffix}",
     toolchain_config = "local-{suffix}",
-    module_map = "local-{suffix}-module",
+    module_map = "module-{suffix}",
 )
 """
 

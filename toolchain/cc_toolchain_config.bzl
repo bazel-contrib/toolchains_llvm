@@ -22,10 +22,6 @@ load(
     _host_tools = "host_tools",
     _os_arch_pair = "os_arch_pair",
 )
-load(
-    "//toolchain/internal:system_module_map.bzl",
-    "system_module_map",
-)
 
 # Bazel 4.* doesn't support nested starlark functions, so we cannot simplify
 # _fmt_flags() by defining it as a nested function.
@@ -45,7 +41,6 @@ def cc_toolchain_config(
         wrapper_bin_prefix,
         compiler_configuration,
         llvm_version,
-        all_files,
         host_tools_info = {}):
     host_os_arch_key = _os_arch_pair(host_os, host_arch)
     target_os_arch_key = _os_arch_pair(target_os, target_arch)
@@ -266,7 +261,13 @@ def cc_toolchain_config(
     ## NOTE: framework paths is missing here; unix_cc_toolchain_config
     ## doesn't seem to have a feature for this.
 
-    # C++ built-in include directories:
+    # C++ built-in include directories.
+    # This contains both the includes shipped with the compiler as well as the sysroot (or host)
+    # include directories. While Bazel's default undeclared inclusions check does not seem to be
+    # triggered by header files under the execroot, we still include those paths here as they are
+    # visible via the "built_in_include_directories" attribute of CcToolchainInfo as well as to keep
+    # them in sync with the directories included in the system module map generated for the stricter
+    # "layering_check" feature.
     cxx_builtin_include_directories = [
         toolchain_path_prefix + "include/c++/v1",
         toolchain_path_prefix + "include/{}/c++/v1".format(target_system_name),
@@ -373,11 +374,4 @@ def cc_toolchain_config(
         coverage_link_flags = coverage_link_flags,
         supports_start_end_lib = supports_start_end_lib,
         builtin_sysroot = sysroot_path,
-    )
-
-    system_module_map(
-        name = name + "-module",
-        toolchain = all_files,
-        cxx_builtin_include_directories = cxx_builtin_include_directories,
-        sysroot_path = sysroot_path,
     )

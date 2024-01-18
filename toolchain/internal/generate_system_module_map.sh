@@ -16,7 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -euo pipefail
+set -eu
 
 echo 'module "crosstool" [system] {'
 
@@ -26,6 +26,8 @@ for dir in "$@"; do
     /*) ;;
     *) header="${EXECROOT_PREFIX}${header}" ;;
     esac
+    # The module map is expected to contain all possibly transitively included headers, including
+    # those provided by the sysroot or the host machine.
     echo "  textual header \"${header}\""
   done
 done
