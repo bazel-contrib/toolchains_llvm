@@ -93,8 +93,7 @@ llvm_toolchain(
     name = "llvm_toolchain_with_system_llvm",
     llvm_version = LLVM_VERSION,
     # For this toolchain to work, the LLVM distribution archive would need to be unpacked here.
-    # A path in /tmp to be part of system tmp cleanup schedule.
-    toolchain_roots = {"": "/tmp/llvm-16"},
+    toolchain_roots = {"": "/opt/llvm-16"},
 )
 
 ## Toolchain example with a sysroot.
@@ -156,9 +155,8 @@ http_archive(
 
 http_archive(
     name = "com_google_absl",
-    sha256 = "91ac87d30cc6d79f9ab974c51874a704de9c2647c40f6932597329a282217ba8",
-    strip_prefix = "abseil-cpp-20220623.1",
-    urls = ["https://github.com/abseil/abseil-cpp/archive/refs/tags/20220623.1.tar.gz"],
+    strip_prefix = "abseil-cpp-b2dd3a5be797f8194bbc230c65f35aadd3998535",
+    urls = ["https://github.com/abseil/abseil-cpp/archive/b2dd3a5be797f8194bbc230c65f35aadd3998535.tar.gz"],
 )
 
 http_archive(
@@ -171,13 +169,13 @@ http_archive(
 
 # For testing rules_go.
 
+# Temporary override until newer version is released to the central registry.
+# https://github.com/bazelbuild/rules_go/commit/31549c1f0fbe850aee3d2b7dd7a1303952f7cd75
 http_archive(
     name = "io_bazel_rules_go",
-    sha256 = "278b7ff5a826f3dc10f04feaf0b70d48b68748ccd512d7f98bf442077f043fe3",
-    urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.41.0/rules_go-v0.41.0.zip",
-        "https://github.com/bazelbuild/rules_go/releases/download/v0.41.0/rules_go-v0.41.0.zip",
-    ],
+    integrity = "sha256-8cixNZS5cm7qapSierAHoRQh8fA9dKMyFD5PBRvFgOY=",
+    strip_prefix = "rules_go-31549c1f0fbe850aee3d2b7dd7a1303952f7cd75",
+    urls = ["https://github.com/bazelbuild/rules_go/archive/31549c1f0fbe850aee3d2b7dd7a1303952f7cd75.tar.gz"],
 )
 
 load("@io_bazel_rules_go//go:deps.bzl", "go_download_sdk", "go_rules_dependencies")

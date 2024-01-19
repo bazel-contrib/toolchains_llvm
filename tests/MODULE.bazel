@@ -31,9 +31,10 @@ bazel_dep(name = "rules_rust", version = "0.27.0")
 bazel_dep(name = "abseil-cpp", repo_name = "com_google_absl")
 archive_override(
     module_name = "abseil-cpp",
+    integrity = "sha256-y4VIbqbtC5jid7maB/QbWfwl9Yu0IZrDWaXGqQipvmk=",
     patches = ["//patches:abseil-cpp.patch"],
-    strip_prefix = "abseil-cpp-20230125.3",
-    urls = ["https://github.com/abseil/abseil-cpp/archive/refs/tags/20230125.3.tar.gz"],
+    strip_prefix = "abseil-cpp-b2dd3a5be797f8194bbc230c65f35aadd3998535",
+    urls = ["https://github.com/abseil/abseil-cpp/archive/b2dd3a5be797f8194bbc230c65f35aadd3998535.tar.gz"],
 )
 
 # Temporary override until newer version is released to the central registry.
@@ -50,6 +51,14 @@ git_override(
     module_name = "rules_rust",
     commit = "4dbb81a008f4031c9ad65138fa2a49f32352f80f",
     remote = "https://github.com/bazelbuild/rules_rust.git",
+)
+
+# Temporary override until newer version is released to the central registry.
+# https://github.com/bazelbuild/rules_go/commit/31549c1f0fbe850aee3d2b7dd7a1303952f7cd75
+git_override(
+    module_name = "rules_go",
+    commit = "31549c1f0fbe850aee3d2b7dd7a1303952f7cd75",
+    remote = "https://github.com/bazelbuild/rules_go.git",
 )
 
 go_sdk = use_extension("@io_bazel_rules_go//go:extensions.bzl", "go_sdk")
@@ -76,6 +85,7 @@ llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
 # llvm_toolchain below, sys_paths_test in the workflows file, and xcompile_test
 # through the `llvm_toolchain_with_sysroot` toolchain.
 LLVM_VERSION = "15.0.6"
+
 LLVM_VERSIONS = {
     "": "16.0.0",
     "darwin-aarch64": "16.0.5",
@@ -144,8 +154,7 @@ llvm.toolchain(
     name = "llvm_toolchain_with_system_llvm",
     llvm_version = LLVM_VERSION,
     # For this toolchain to work, the LLVM distribution archive would need to be unpacked here.
-    # A path in /tmp to be part of system tmp cleanup schedule.
-    toolchain_roots = {"": "/tmp/llvm-16"},
+    toolchain_roots = {"": "/opt/llvm-16"},
 )
 use_repo(llvm, "llvm_toolchain_with_system_llvm")
 
@@ -155,11 +164,13 @@ llvm.toolchain(
     name = "llvm_toolchain_with_sysroot",
     llvm_versions = LLVM_VERSIONS,
     sysroot = {
-        "linux-x86_64": "@org_chromium_sysroot_linux_x64//:sysroot",
+        # TODO: Use an apparent repo name after #234 has been fixed.
+        "linux-x86_64": "@@org_chromium_sysroot_linux_x64//:sysroot",
     },
     # We can share the downloaded LLVM distribution with the first configuration.
     toolchain_roots = {
-        "": "@llvm_toolchain_llvm//",
+        # TODO: Use an apparent repo name after #234 has been fixed.
+        "": "@@toolchains_llvm~override~llvm~llvm_toolchain_llvm//",
     },
 )
 use_repo(llvm, "llvm_toolchain_with_sysroot")

@@ -299,6 +299,52 @@ def _cc_toolchain_str(
     # them into `dict`s.
     host_tools_info = json.decode(json.encode(host_tools_info))
 
+    # C++ built-in include directories.
+    # This contains both the includes shipped with the compiler as well as the sysroot (or host)
+    # include directories. While Bazel's default undeclared inclusions check does not seem to be
+    # triggered by header files under the execroot, we still include those paths here as they are
+    # visible via the "built_in_include_directories" attribute of CcToolchainInfo as well as to keep
+    # them in sync with the directories included in the system module map generated for the stricter
+    # "layering_check" feature.
+    toolchain_path_prefix = toolchain_info.llvm_dist_path_prefix
+    llvm_version = toolchain_info.llvm_version
+    major_llvm_version = int(llvm_version.split(".")[0])
+    target_system_name = {
+        "darwin-x86_64": "x86_64-apple-macosx",
+        "darwin-aarch64": "aarch64-apple-macosx",
+        "linux-aarch64": "aarch64-unknown-linux-gnu",
+        "linux-x86_64": "x86_64-unknown-linux-gnu",
+    }[target_pair]
+    cxx_builtin_include_directories = [
+        toolchain_path_prefix + "include/c++/v1",
+        toolchain_path_prefix + "include/{}/c++/v1".format(target_system_name),
+        toolchain_path_prefix + "lib/clang/{}/include".format(llvm_version),
+        toolchain_path_prefix + "lib/clang/{}/share".format(llvm_version),
+        toolchain_path_prefix + "lib64/clang/{}/include".format(llvm_version),
+        toolchain_path_prefix + "lib/clang/{}/include".format(major_llvm_version),
+        toolchain_path_prefix + "lib/clang/{}/share".format(major_llvm_version),
+        toolchain_path_prefix + "lib64/clang/{}/include".format(major_llvm_version),
+    ]
+
+    sysroot_prefix = ""
+    if sysroot_path:
+        sysroot_prefix = "%sysroot%"
+    if target_os == "linux":
+        cxx_builtin_include_directories.extend([
+            sysroot_prefix + "/include",
+            sysroot_prefix + "/usr/include",
+            sysroot_prefix + "/usr/local/include",
+        ])
+    elif target_os == "darwin":
+        cxx_builtin_include_directories.extend([
+            sysroot_prefix + "/usr/include",
+            sysroot_prefix + "/System/Library/Frameworks",
+        ])
+    else:
+        fail("Unreachable")
+
+    cxx_builtin_include_directories.extend(toolchain_info.additional_include_dirs_dict.get(target_pair, []))
+
     template = """
 # CC toolchain for cc-clang-{suffix}.
 
@@ -308,11 +354,11 @@ cc_toolchain_config(
     host_os = "{host_os}",
     target_arch = "{target_arch}",
     target_os = "{target_os}",
+    target_system_name = "{target_system_name}",
     toolchain_path_prefix = "{llvm_dist_path_prefix}",
     tools_path_prefix = "{tools_path_prefix}",
     wrapper_bin_prefix = "{wrapper_bin_prefix}",
     compiler_configuration = {{
-      "additional_include_dirs": {additional_include_dirs},
       "sysroot_path": "{sysroot_path}",
       "stdlib": "{stdlib}",
       "cxx_standard": "{cxx_standard}",
@@ -327,8 +373,8 @@ cc_toolchain_config(
       "coverage_link_flags": {coverage_link_flags},
       "unfiltered_compile_flags": {unfiltered_compile_flags},
     }},
-    llvm_version = "{llvm_version}",
     host_tools_info = {host_tools_info},
+    cxx_builtin_include_directories = {cxx_builtin_include_directories},
 )
 
 toolchain(
@@ -425,6 +471,21 @@ filegroup(name = "strip-files-{suffix}", srcs = ["{llvm_dist_label_prefix}strip"
 """
 
     template = template + """
+filegroup(
+    name = "include-components-{suffix}",
+    srcs = [
+        ":compiler-components-{suffix}",
+        ":sysroot-components-{suffix}",
+    ],
+)
+
+system_module_map(
+    name = "module-{suffix}",
+    cxx_builtin_include_files = ":include-components-{suffix}",
+    cxx_builtin_include_directories = {cxx_builtin_include_directories},
+    sysroot_path = "{sysroot_path}",
+)
+
 cc_toolchain(
     name = "cc-clang-{suffix}",
     all_files = "all-files-{suffix}",
@@ -436,6 +497,7 @@ cc_toolchain(
     objcopy_files = "objcopy-files-{suffix}",
     strip_files = "strip-files-{suffix}",
     toolchain_config = "local-{suffix}",
+    module_map = "module-{suffix}",
 )
 """
 
@@ -447,6 +509,7 @@ cc_toolchain(
         host_arch = host_arch,
         target_settings = _list_to_string(_dict_value(toolchain_info.target_settings_dict, target_pair)),
         target_os_bzl = target_os_bzl,
+        target_system_name = target_system_name,
         host_os_bzl = host_os_bzl,
         llvm_dist_label_prefix = toolchain_info.llvm_dist_label_prefix,
         llvm_dist_path_prefix = toolchain_info.llvm_dist_path_prefix,
@@ -454,7 +517,6 @@ cc_toolchain(
         wrapper_bin_prefix = toolchain_info.wrapper_bin_prefix,
         sysroot_label_str = sysroot_label_str,
         sysroot_path = sysroot_path,
-        additional_include_dirs = _list_to_string(toolchain_info.additional_include_dirs_dict.get(target_pair, [])),
         stdlib = _dict_value(toolchain_info.stdlib_dict, target_pair, "builtin-libc++"),
         cxx_standard = _dict_value(toolchain_info.cxx_standard_dict, target_pair, "c++17"),
         compile_flags = _list_to_string(_dict_value(toolchain_info.compile_flags_dict, target_pair)),
@@ -467,9 +529,9 @@ cc_toolchain(
         coverage_compile_flags = _list_to_string(_dict_value(toolchain_info.coverage_compile_flags_dict, target_pair)),
         coverage_link_flags = _list_to_string(_dict_value(toolchain_info.coverage_link_flags_dict, target_pair)),
         unfiltered_compile_flags = _list_to_string(_dict_value(toolchain_info.unfiltered_compile_flags_dict, target_pair)),
-        llvm_version = toolchain_info.llvm_version,
         extra_files_str = extra_files_str,
         host_tools_info = host_tools_info,
+        cxx_builtin_include_directories = _list_to_string(cxx_builtin_include_directories),
     )
 
 def _convenience_targets_str(rctx, use_absolute_paths, llvm_dist_rel_path, llvm_dist_label_prefix, host_dl_ext):

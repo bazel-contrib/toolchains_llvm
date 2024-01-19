@@ -36,16 +36,16 @@ def cc_toolchain_config(
         host_os,
         target_arch,
         target_os,
+        target_system_name,
         toolchain_path_prefix,
         tools_path_prefix,
         wrapper_bin_prefix,
         compiler_configuration,
-        llvm_version,
+        cxx_builtin_include_directories,
         host_tools_info = {}):
     host_os_arch_key = _os_arch_pair(host_os, host_arch)
     target_os_arch_key = _os_arch_pair(target_os, target_arch)
     _check_os_arch_keys([host_os_arch_key, target_os_arch_key])
-    major_llvm_version = int(llvm_version.split(".")[0])
 
     # A bunch of variables that get passed straight through to
     # `create_cc_toolchain_config_info`.
@@ -53,7 +53,6 @@ def cc_toolchain_config(
     host_system_name = host_arch
     (
         toolchain_identifier,
-        target_system_name,
         target_cpu,
         target_libc,
         compiler,
@@ -62,7 +61,6 @@ def cc_toolchain_config(
     ) = {
         "darwin-x86_64": (
             "clang-x86_64-darwin",
-            "x86_64-apple-macosx",
             "darwin",
             "macosx",
             "clang",
@@ -71,7 +69,6 @@ def cc_toolchain_config(
         ),
         "darwin-aarch64": (
             "clang-aarch64-darwin",
-            "aarch64-apple-macosx",
             "darwin",
             "macosx",
             "clang",
@@ -80,7 +77,6 @@ def cc_toolchain_config(
         ),
         "linux-aarch64": (
             "clang-aarch64-linux",
-            "aarch64-unknown-linux-gnu",
             "aarch64",
             "glibc_unknown",
             "clang",
@@ -89,7 +85,6 @@ def cc_toolchain_config(
         ),
         "linux-x86_64": (
             "clang-x86_64-linux",
-            "x86_64-unknown-linux-gnu",
             "k8",
             "glibc_unknown",
             "clang",
@@ -175,6 +170,7 @@ def cc_toolchain_config(
     # always link C++ libraries.
     cxx_standard = compiler_configuration["cxx_standard"]
     stdlib = compiler_configuration["stdlib"]
+    sysroot_path = compiler_configuration["sysroot_path"]
     if stdlib == "builtin-libc++" and is_xcompile:
         stdlib = "stdc++"
     if stdlib == "builtin-libc++":
@@ -207,7 +203,7 @@ def cc_toolchain_config(
             # have the sysroot directory on the search path and then add the
             # toolchain directory back after we are done.
             link_flags.extend([
-                "-L{}/usr/lib".format(compiler_configuration["sysroot_path"]),
+                "-L{}/usr/lib".format(sysroot_path),
                 "-lc++",
                 "-lc++abi",
             ])
@@ -260,40 +256,6 @@ def cc_toolchain_config(
 
     ## NOTE: framework paths is missing here; unix_cc_toolchain_config
     ## doesn't seem to have a feature for this.
-
-    # C++ built-in include directories:
-    cxx_builtin_include_directories = []
-    if toolchain_path_prefix.startswith("/"):
-        cxx_builtin_include_directories.extend([
-            toolchain_path_prefix + "include/c++/v1",
-            toolchain_path_prefix + "include/{}/c++/v1".format(target_system_name),
-            toolchain_path_prefix + "lib/clang/{}/include".format(llvm_version),
-            toolchain_path_prefix + "lib/clang/{}/share".format(llvm_version),
-            toolchain_path_prefix + "lib64/clang/{}/include".format(llvm_version),
-            toolchain_path_prefix + "lib/clang/{}/include".format(major_llvm_version),
-            toolchain_path_prefix + "lib/clang/{}/share".format(major_llvm_version),
-            toolchain_path_prefix + "lib64/clang/{}/include".format(major_llvm_version),
-        ])
-
-    sysroot_path = compiler_configuration["sysroot_path"]
-    sysroot_prefix = ""
-    if sysroot_path:
-        sysroot_prefix = "%sysroot%"
-    if target_os == "linux":
-        cxx_builtin_include_directories.extend([
-            sysroot_prefix + "/include",
-            sysroot_prefix + "/usr/include",
-            sysroot_prefix + "/usr/local/include",
-        ])
-    elif target_os == "darwin":
-        cxx_builtin_include_directories.extend([
-            sysroot_prefix + "/usr/include",
-            sysroot_prefix + "/System/Library/Frameworks",
-        ])
-    else:
-        fail("Unreachable")
-
-    cxx_builtin_include_directories.extend(compiler_configuration["additional_include_dirs"])
 
     ## NOTE: make variables are missing here; unix_cc_toolchain_config doesn't
     ## pass these to `create_cc_toolchain_config_info`.

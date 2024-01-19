@@ -24,7 +24,7 @@ cd "${scripts_dir}"
 # Generate some files needed for the tests.
 "${bazel}" query "${common_args[@]}" @io_bazel_rules_go//tests/core/cgo:dylib_test >/dev/null
 if [[ ${USE_BZLMOD} == "true" ]]; then
-  "$("${bazel}" info output_base)/external/rules_go~0.41.0/tests/core/cgo/generate_imported_dylib.sh"
+  "$("${bazel}" info output_base)/external/rules_go~override/tests/core/cgo/generate_imported_dylib.sh"
 else
   "$("${bazel}" info output_base)/external/io_bazel_rules_go/tests/core/cgo/generate_imported_dylib.sh"
 fi
@@ -32,6 +32,10 @@ fi
 test_args=(
   "${common_test_args[@]}"
   "--copt=-Wno-deprecated-builtins" # https://github.com/abseil/abseil-cpp/issues/1201
+  # Disable the "hermetic sandbox /tmp" behavior of Bazel 7 as it results in broken symlinks when
+  # rules_foreign_cc builds pcre.
+  # TODO: Remove this once rules_foreign_cc is fully compatible with Bazel 7.
+  "--sandbox_add_mount_pair=/tmp"
 )
 
 # We exclude the following targets:

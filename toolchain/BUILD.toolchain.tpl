@@ -16,6 +16,7 @@ package(default_visibility = ["//visibility:public"])
 
 load("@bazel_skylib//rules:native_binary.bzl", "native_binary")
 load("@rules_cc//cc:defs.bzl", "cc_toolchain", "cc_toolchain_suite")
+load("@toolchains_llvm//toolchain/internal:system_module_map.bzl", "system_module_map")
 load("%{cc_toolchain_config_bzl}", "cc_toolchain_config")
 
 # Following filegroup targets are used when not using absolute paths and shared
