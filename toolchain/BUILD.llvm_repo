@@ -63,6 +63,7 @@ filegroup(
         [
             "lib/**/lib*.a",
             "lib/clang/*/lib/**/*.a",
+            "lib/clang/*/lib/**/*.dylib",
             # clang_rt.*.o supply crtbegin and crtend sections.
             "lib/**/clang_rt.*.o",
         ],
@@ -72,9 +73,9 @@ filegroup(
             "lib/liblld*.a",
         ],
     ),
-    # Do not include the .dylib files in the linker sandbox because they will
-    # not be available at runtime. Any library linked from the toolchain should
-    # be linked statically.
+    # Include the .dylib files in the linker sandbox even though they will
+    # not be available at runtime to allow sanitizers to work locally.
+    # Any library linked from the toolchain to be released should be linked statically.
 )
 
 filegroup(

@@ -206,6 +206,9 @@ def cc_toolchain_config(
                 "-L{}/usr/lib".format(sysroot_path),
                 "-lc++",
                 "-lc++abi",
+                "-Bstatic",
+                "-lunwind",
+                "-Bdynamic",
             ])
 
             # Let's provide the path to the toolchain library directory
