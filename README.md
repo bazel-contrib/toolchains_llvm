@@ -1,22 +1,5 @@
 # LLVM toolchain for Bazel [![Tests](https://github.com/grailbio/bazel-toolchain/actions/workflows/tests.yml/badge.svg)](https://github.com/grailbio/bazel-toolchain/actions/workflows/tests.yml)
 
----
-
-The project is in a relatively stable state and in use for all code development
-at GRAIL and other organizations. Having said that, I am unable to give time to
-it at any regular cadence.
-
-I rely on the community for maintenance and new feature implementations. If you
-are interested in being part of this project, please let me know and I can give
-you write access, so you can merge your changes directly.
-
-If you feel like you have a better maintained fork or an alternative/derived
-implementation, please let me know and I can redirect people there.
-
-– @siddharthab
-
----
-
 ## Quickstart
 
 See notes on the [release](https://github.com/grailbio/bazel-toolchain/releases)
