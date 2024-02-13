@@ -80,7 +80,7 @@ llvm_repo_attrs.update({
               "\n\n" +
               "If provided, this mirror will be given precedence over the official LLVM release " +
               "sources (see: " +
-              "https://github.com/grailbio/bazel-toolchain/toolchain/internal/llvm_distributions.bzl).",
+              "https://github.com/bazel-contrib/toolchains_llvm/toolchain/internal/llvm_distributions.bzl).",
     ),
     "alternative_llvm_sources": attr.string_list(
         doc = "Patterns for alternative LLVM release sources. Unlike URLs specified for `llvm_mirror` " +

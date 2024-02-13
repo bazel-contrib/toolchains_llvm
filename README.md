@@ -1,8 +1,8 @@
-# LLVM toolchain for Bazel [![Tests](https://github.com/grailbio/bazel-toolchain/actions/workflows/tests.yml/badge.svg)](https://github.com/grailbio/bazel-toolchain/actions/workflows/tests.yml)
+# LLVM toolchain for Bazel [![Tests](https://github.com/bazel-contrib/toolchains_llvm/actions/workflows/tests.yml/badge.svg)](https://github.com/bazel-contrib/toolchains_llvm/actions/workflows/tests.yml)
 
 ## Quickstart
 
-See notes on the [release](https://github.com/grailbio/bazel-toolchain/releases)
+See notes on the [release](https://github.com/bazel-contrib/toolchains_llvm/releases)
 for how to get started.
 
 <!-- Release Notes template is at .github/workflows/release_prep.sh -->

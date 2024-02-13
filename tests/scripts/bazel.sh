@@ -56,7 +56,7 @@ if [[ ${short_uname} == 'Darwin' ]]; then
     # Without this, one can use `--linkopt='-undefined dynamic_lookup'`.
     # This feature is intentionally not supported on macOS.
     --features=-supports_dynamic_linker
-    # Not needed after https://github.com/grailbio/bazel-toolchain/pull/229.
+    # Not needed after https://github.com/bazel-contrib/toolchains_llvm/pull/229.
     --features=-libtool
   )
 fi

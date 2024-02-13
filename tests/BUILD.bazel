@@ -66,7 +66,7 @@ build_test(
 # (https://github.com/bazelbuild/bazel/issues/14038).
 #
 # #109 in this repo and this comment
-# (https://github.com/grailbio/bazel-toolchain/pull/108#issuecomment-928839768)
+# (https://github.com/bazel-contrib/toolchains_llvm/pull/108#issuecomment-928839768)
 # have some additional details.
 #
 # For now, we'll specify `-c dbg` when building `.dwo` and `.dwp` files.
