@@ -5,6 +5,8 @@
 See notes on the [release](https://github.com/bazel-contrib/toolchains_llvm/releases)
 for how to get started.
 
+NOTE: For releases prior to 0.10.1, please also see [these notes](REPO_RENAME.md).
+
 <!-- Release Notes template is at .github/workflows/release_prep.sh -->
 
 ## Basic Usage
