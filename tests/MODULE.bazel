@@ -41,7 +41,7 @@ archive_override(
 # https://github.com/bazelbuild/rules_foreign_cc/issues/1080
 git_override(
     module_name = "rules_foreign_cc",
-    commit = "60813d57a0e99be1a009c1a0e9627cdbe81fcd19",
+    commit = "5547abc63b12c521113208eea0c5d7f66ba494d4",
     remote = "https://github.com/bazelbuild/rules_foreign_cc.git",
 )
 
