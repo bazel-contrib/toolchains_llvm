@@ -137,7 +137,7 @@ def _linux(llvm_version, distname, version, arch):
     elif distname == "raspbian":
         arch = "armv7a"
         os_name = "linux-gnueabihf"
-    elif distname in ["rhel", "ol"]:
+    elif distname in ["rhel", "ol", "almalinux"]:
         if 8 <= float(version) and float(version) < 9:
             os_name = _ubuntu_osname(arch, "18.04", major_llvm_version, llvm_version)
         elif float(version) >= 9:

@@ -34,7 +34,22 @@ def host_os_key(rctx):
     else:
         return "%s-%s-%s" % (os, version, arch)
 
-_known_distros = ["freebsd", "suse", "ubuntu", "arch", "manjaro", "debian", "fedora", "centos", "amzn", "raspbian", "pop", "rhel", "ol"]
+_known_distros = [
+    "freebsd",
+    "suse",
+    "ubuntu",
+    "arch",
+    "manjaro",
+    "debian",
+    "fedora",
+    "centos",
+    "amzn",
+    "raspbian",
+    "pop",
+    "rhel",
+    "ol",
+    "almalinux",
+]
 
 def _linux_dist(rctx):
     info = {}
