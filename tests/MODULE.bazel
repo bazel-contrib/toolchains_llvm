@@ -49,7 +49,7 @@ git_override(
 # https://github.com/bazelbuild/rules_rust/issues/1493
 git_override(
     module_name = "rules_rust",
-    commit = "a844b19241eefa515631f5d790d7c3c703d250fc",
+    commit = "8b977b5f7020fc3a3b3bbc318e414269014f126a",
     remote = "https://github.com/bazelbuild/rules_rust.git",
 )
 
