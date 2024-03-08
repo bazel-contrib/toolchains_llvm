@@ -21,7 +21,7 @@ jobs:
       - name: Prepare release
         run: .github/workflows/release_prep.sh > release_notes.txt
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           prerelease: false
           generate_release_notes: true
