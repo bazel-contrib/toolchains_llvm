@@ -57,7 +57,7 @@ git_override(
 # https://github.com/bazelbuild/rules_go/commit/31549c1f0fbe850aee3d2b7dd7a1303952f7cd75
 git_override(
     module_name = "rules_go",
-    commit = "31549c1f0fbe850aee3d2b7dd7a1303952f7cd75",
+    commit = "36e04e9f1e9b56c865332edfb49e1620beaedf2c",
     remote = "https://github.com/bazelbuild/rules_go.git",
 )
 
