@@ -40,26 +40,15 @@ common_args=(
   "--enable_bzlmod=${USE_BZLMOD:-false}"
 )
 
+# shellcheck disable=SC2034
 common_test_args=(
   "${common_args[@]}"
   "--symlink_prefix=/"
-  "--incompatible_enable_cc_toolchain_resolution"
   "--color=yes"
   "--show_progress_rate_limit=30"
   "--keep_going"
   "--test_output=errors"
 )
-
-if [[ ${short_uname} == 'Darwin' ]]; then
-  common_test_args+=(
-    # Needed for Bazel versions before 7.
-    # Without this, one can use `--linkopt='-undefined dynamic_lookup'`.
-    # This feature is intentionally not supported on macOS.
-    --features=-supports_dynamic_linker
-    # Not needed after https://github.com/bazel-contrib/toolchains_llvm/pull/229.
-    --features=-libtool
-  )
-fi
 
 # Do not run autoconf to configure local CC toolchains.
 export BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1

@@ -98,9 +98,6 @@ For specifying unregistered toolchains on the command line, please use the
 `--extra_toolchains` flag. For example,
 `--extra_toolchains=@llvm_toolchain//:cc-toolchain-x86_64-linux`.
 
-We no longer support the `--crosstool_top=@llvm_toolchain//:toolchain` flag,
-and instead rely on the `--incompatible_enable_cc_toolchain_resolution` flag.
-
 ### Bring Your Own LLVM
 
 The following mechanisms are available for using an LLVM toolchain:

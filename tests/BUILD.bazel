@@ -128,3 +128,14 @@ sh_test(
         "@llvm_toolchain_llvm//:lib",
     ],
 )
+
+# As a workaround for https://github.com/bazelbuild/rules_foreign_cc/issues/1018.
+toolchain(
+    name = "ninja_mac_arm64_toolchain",
+    exec_compatible_with = [
+        "@platforms//cpu:arm64",
+        "@platforms//os:macos",
+    ],
+    toolchain = "@@rules_foreign_cc~~tools~ninja_1.11.1_mac//:ninja_tool",
+    toolchain_type = "@rules_foreign_cc//toolchains:ninja_toolchain",
+)

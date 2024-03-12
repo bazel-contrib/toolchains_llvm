@@ -165,6 +165,14 @@ _compiler_configuration_attrs = {
                "target OS and arch pair you want to override " +
                "({}); empty key overrides all.".format(_target_pairs)),
     ),
+    "archive_flags": attr.string_list_dict(
+        mandatory = False,
+        doc = ("Override for archive_flags, replacing the default values. " +
+               "`{toolchain_path_prefix}` in the flags will be substituted by the path " +
+               "to the root LLVM distribution directory. Provide one list for each " +
+               "target OS and arch pair you want to override " +
+               "({}); empty key overrides all.".format(_target_pairs)),
+    ),
     "link_libs": attr.string_list_dict(
         mandatory = False,
         doc = ("Override for link_libs, replacing the default values. " +
