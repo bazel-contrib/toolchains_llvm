@@ -99,17 +99,17 @@ llvm.toolchain(
 )
 use_repo(llvm, "llvm_toolchain_with_urls")
 
-# # This is the last known LLVM version with zlib support in ld.lld. Without zlib
-# # support, if the installed gcc toolchain has compressed sections in its object
-# # files, then ld.lld won't be able to process them. Example is archlinux docker
-# # image base-devel as of the time of this writing (23 May 2022).
+# This is the last known LLVM version with zlib support in ld.lld. Without zlib
+# support, if the installed gcc toolchain has compressed sections in its object
+# files, then ld.lld won't be able to process them. Example is archlinux docker
+# image base-devel as of the time of this writing (23 May 2022).
 llvm.toolchain(
     name = "llvm_toolchain_13_0_0",
     llvm_version = "13.0.0",
 )
 use_repo(llvm, "llvm_toolchain_13_0_0")
 
-# ## Toolchain example with absolute paths; tested in GitHub CI.
+# Toolchain example with absolute paths; tested in GitHub CI.
 llvm.toolchain(
     name = "llvm_toolchain_with_absolute_paths",
     absolute_paths = True,
@@ -121,7 +121,7 @@ llvm.toolchain(
 )
 use_repo(llvm, "llvm_toolchain_with_absolute_paths")
 
-# ## Toolchain example with system LLVM; tested in GitHub CI.
+# Toolchain example with system LLVM; tested in GitHub CI.
 llvm.toolchain(
     name = "llvm_toolchain_with_system_llvm",
     llvm_version = LLVM_VERSION,
@@ -130,8 +130,7 @@ llvm.toolchain(
 )
 use_repo(llvm, "llvm_toolchain_with_system_llvm")
 
-# ## Toolchain example with a sysroot.
-
+# Toolchain example with a sysroot.
 llvm.toolchain(
     name = "llvm_toolchain_with_sysroot",
     llvm_versions = LLVM_VERSIONS,
@@ -142,7 +141,7 @@ llvm.toolchain(
     # We can share the downloaded LLVM distribution with the first configuration.
     toolchain_roots = {
         # TODO: Use an apparent repo name after #234 has been fixed.
-        "": "@@toolchains_llvm~override~llvm~llvm_toolchain_llvm//",
+        "": "@@toolchains_llvm~~llvm~llvm_toolchain_llvm//",
     },
 )
 use_repo(llvm, "llvm_toolchain_with_sysroot")
