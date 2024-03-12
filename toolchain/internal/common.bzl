@@ -74,7 +74,7 @@ def _linux_dist(rctx):
 
     distname = info["ID"].strip('\"')
 
-    if distname not in _known_distros:
+    if distname not in _known_distros and "ID_LIKE" in info:
         for distro in info["ID_LIKE"].strip('\"').split(" "):
             if distro in _known_distros:
                 distname = distro
