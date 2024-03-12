@@ -141,8 +141,9 @@ bazel_skylib_workspace()
 
 http_archive(
     name = "com_google_absl",
-    strip_prefix = "abseil-cpp-b2dd3a5be797f8194bbc230c65f35aadd3998535",
-    urls = ["https://github.com/abseil/abseil-cpp/archive/b2dd3a5be797f8194bbc230c65f35aadd3998535.tar.gz"],
+    sha256 = "3c743204df78366ad2eaf236d6631d83f6bc928d1705dd0000b872e53b73dc6a",
+    strip_prefix = "abseil-cpp-20240116.1",
+    urls = ["https://github.com/abseil/abseil-cpp/releases/download/20240116.1/abseil-cpp-20240116.1.tar.gz"],
 )
 
 # As a test dep of com_google_absl.
