@@ -106,11 +106,11 @@ def llvm_register_toolchains():
         wrapper_bin_prefix = "bin/"
         tools_path_prefix = "bin/"
         tools = _toolchain_tools(os)
-        for tool_name in tools:
-            rctx.symlink(llvm_dist_rel_path + "bin/" + tool_name, tools_path_prefix + tool_name)
+        for tool_name, symlink_name in tools.items():
+            rctx.symlink(llvm_dist_rel_path + "bin/" + tool_name, tools_path_prefix + symlink_name)
         symlinked_tools_str = "".join([
-            "\n" + (" " * 8) + "\"" + tools_path_prefix + tool_name + "\","
-            for tool_name in tools
+            "\n" + (" " * 8) + "\"" + tools_path_prefix + symlink_name + "\","
+            for symlink_name in tools.values()
         ])
     else:
         llvm_dist_rel_path = llvm_dist_path_prefix
@@ -145,6 +145,7 @@ def llvm_register_toolchains():
         compile_flags_dict = rctx.attr.compile_flags,
         cxx_flags_dict = rctx.attr.cxx_flags,
         link_flags_dict = rctx.attr.link_flags,
+        archive_flags_dict = rctx.attr.archive_flags,
         link_libs_dict = rctx.attr.link_libs,
         opt_compile_flags_dict = rctx.attr.opt_compile_flags,
         opt_link_flags_dict = rctx.attr.opt_link_flags,
@@ -366,6 +367,7 @@ cc_toolchain_config(
       "compile_flags": {compile_flags},
       "cxx_flags": {cxx_flags},
       "link_flags": {link_flags},
+      "archive_flags": {archive_flags},
       "link_libs": {link_libs},
       "opt_compile_flags": {opt_compile_flags},
       "opt_link_flags": {opt_link_flags},
@@ -523,6 +525,7 @@ cc_toolchain(
         compile_flags = _list_to_string(_dict_value(toolchain_info.compile_flags_dict, target_pair)),
         cxx_flags = _list_to_string(_dict_value(toolchain_info.cxx_flags_dict, target_pair)),
         link_flags = _list_to_string(_dict_value(toolchain_info.link_flags_dict, target_pair)),
+        archive_flags = _list_to_string(_dict_value(toolchain_info.archive_flags_dict, target_pair)),
         link_libs = _list_to_string(_dict_value(toolchain_info.link_libs_dict, target_pair)),
         opt_compile_flags = _list_to_string(_dict_value(toolchain_info.opt_compile_flags_dict, target_pair)),
         opt_link_flags = _list_to_string(_dict_value(toolchain_info.opt_link_flags_dict, target_pair)),

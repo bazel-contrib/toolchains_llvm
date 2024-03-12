@@ -144,6 +144,9 @@ def cc_toolchain_config(
     # unused symbols are not stripped.
     link_libs = []
 
+    # Flags for ar.
+    archive_flags = []
+
     # Linker flags:
     if host_os == "darwin" and not is_xcompile:
         # lld is experimental for Mach-O, so we use the native ld64 linker.
@@ -152,6 +155,16 @@ def cc_toolchain_config(
         link_flags.extend([
             "-headerpad_max_install_names",
             "-fobjc-link-runtime",
+        ])
+
+        # Use the bundled libtool (llvm-libtool-darwin).
+        use_libtool = True
+
+        # Pre-installed libtool on macOS has -static as default, but llvm-libtool-darwin needs it
+        # explicitly. cc_common.create_link_variables does not automatically add this either if
+        # output_file arg to it is None.
+        archive_flags.extend([
+            "-static",
         ])
     else:
         # Note that for xcompiling from darwin to linux, the native ld64 is
@@ -164,6 +177,7 @@ def cc_toolchain_config(
             "-Wl,--hash-style=gnu",
             "-Wl,-z,relro,-z,now",
         ])
+        use_libtool = False
 
     # Flags related to C++ standard.
     # The linker has no way of knowing if there are C++ objects; so we
@@ -263,7 +277,7 @@ def cc_toolchain_config(
     # The tool names come from [here](https://github.com/bazelbuild/bazel/blob/c7e58e6ce0a78fdaff2d716b4864a5ace8917626/src/main/java/com/google/devtools/build/lib/rules/cpp/CppConfiguration.java#L76-L90):
     # NOTE: Ensure these are listed in toolchain_tools in toolchain/internal/common.bzl.
     tool_paths = {
-        "ar": tools_path_prefix + ("llvm-ar" if (host_os != "darwin" or is_xcompile) else "llvm-libtool-darwin"),
+        "ar": tools_path_prefix + ("llvm-ar" if not use_libtool else "libtool"),
         "cpp": tools_path_prefix + "clang-cpp",
         "dwp": tools_path_prefix + "llvm-dwp",
         "gcc": wrapper_bin_prefix + "cc_wrapper.sh",
@@ -292,6 +306,8 @@ def cc_toolchain_config(
         cxx_flags = _fmt_flags(compiler_configuration["cxx_flags"], toolchain_path_prefix)
     if compiler_configuration["link_flags"] != None:
         link_flags = _fmt_flags(compiler_configuration["link_flags"], toolchain_path_prefix)
+    if compiler_configuration["archive_flags"] != None:
+        archive_flags = _fmt_flags(compiler_configuration["archive_flags"], toolchain_path_prefix)
     if compiler_configuration["link_libs"] != None:
         link_libs = _fmt_flags(compiler_configuration["link_libs"], toolchain_path_prefix)
     if compiler_configuration["opt_compile_flags"] != None:
@@ -325,6 +341,7 @@ def cc_toolchain_config(
         opt_compile_flags = opt_compile_flags,
         cxx_flags = cxx_flags,
         link_flags = link_flags,
+        archive_flags = archive_flags,
         link_libs = link_libs,
         opt_link_flags = opt_link_flags,
         unfiltered_compile_flags = unfiltered_compile_flags,
