@@ -42,17 +42,20 @@ load(
 # workspace builds, there is never a @@ in labels.
 BZLMOD_ENABLED = "@@" in str(Label("//:unused"))
 
+def _empty_repository(rctx):
+    rctx.file("BUILD.bazel")
+    rctx.file("toolchains.bzl", """\
+def llvm_register_toolchains():
+    pass
+""")
+
 def llvm_config_impl(rctx):
     _check_os_arch_keys(rctx.attr.sysroot)
     _check_os_arch_keys(rctx.attr.cxx_builtin_include_directories)
 
     os = _os(rctx)
     if os == "windows":
-        rctx.file("BUILD.bazel")
-        rctx.file("toolchains.bzl", """\
-def llvm_register_toolchains():
-    pass
-""")
+        _empty_repository(rctx)
         return
     arch = _arch(rctx)
 
@@ -65,8 +68,9 @@ def llvm_register_toolchains():
         fail("LLVM toolchain root missing for ({}, {})".format(os, arch))
     (_key, llvm_version) = _host_os_arch_dict_value(rctx, "llvm_versions")
     if not llvm_version:
-        fail("LLVM version string missing for ({}, {})".format(os, arch))
-
+        # LLVM version missing for (os, arch)
+        _empty_repository(rctx)
+        return
     use_absolute_paths_llvm = rctx.attr.absolute_paths
     use_absolute_paths_sysroot = use_absolute_paths_llvm
 
