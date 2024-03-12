@@ -83,6 +83,8 @@ def _linux_dist(rctx):
     version = ""
     if "VERSION_ID" in info:
         version = info["VERSION_ID"].strip('"')
+    elif "VERSION_CODENAME" in info:
+        version = info["VERSION_CODENAME"].strip('"')
 
     return distname, version
 
