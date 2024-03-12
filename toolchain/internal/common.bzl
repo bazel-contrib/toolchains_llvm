@@ -14,18 +14,31 @@
 
 SUPPORTED_TARGETS = [("linux", "x86_64"), ("linux", "aarch64"), ("darwin", "x86_64"), ("darwin", "aarch64")]
 
-toolchain_tools = [
-    "clang-cpp",
-    "ld.lld",
-    "llvm-ar",
-    "llvm-dwp",
-    "llvm-profdata",
-    "llvm-cov",
-    "llvm-nm",
-    "llvm-objcopy",
-    "llvm-objdump",
-    "llvm-strip",
-]
+# Map of tool name to its symlinked name in the tools directory.
+_toolchain_tools = {
+    name: name
+    for name in [
+        "clang-cpp",
+        "ld.lld",
+        "llvm-ar",
+        "llvm-dwp",
+        "llvm-profdata",
+        "llvm-cov",
+        "llvm-nm",
+        "llvm-objcopy",
+        "llvm-objdump",
+        "llvm-strip",
+    ]
+}
+
+# Extra tools for Darwin.
+_toolchain_tools_darwin = {
+    # rules_foreign_cc relies on the filename of the linker to set flags.
+    # Also see archive_flags in cc_toolchain_config.bzl.
+    # https://github.com/bazelbuild/rules_foreign_cc/blob/5547abc63b12c521113208eea0c5d7f66ba494d4/foreign_cc/built_tools/make_build.bzl#L71
+    # https://github.com/bazelbuild/rules_foreign_cc/blob/5547abc63b12c521113208eea0c5d7f66ba494d4/foreign_cc/private/cmake_script.bzl#L319
+    "llvm-libtool-darwin": "libtool",
+}
 
 def host_os_key(rctx):
     (os, version, arch) = os_version_arch(rctx)
@@ -34,7 +47,22 @@ def host_os_key(rctx):
     else:
         return "%s-%s-%s" % (os, version, arch)
 
-_known_distros = ["freebsd", "suse", "ubuntu", "arch", "manjaro", "debian", "fedora", "centos", "amzn", "raspbian", "pop", "rhel"]
+_known_distros = [
+    "freebsd",
+    "suse",
+    "ubuntu",
+    "arch",
+    "manjaro",
+    "debian",
+    "fedora",
+    "centos",
+    "amzn",
+    "raspbian",
+    "pop",
+    "rhel",
+    "ol",
+    "almalinux",
+]
 
 def _linux_dist(rctx):
     info = {}
@@ -175,6 +203,12 @@ def attr_dict(attr):
         tuples.append((key, val))
 
     return dict(tuples)
+
+def toolchain_tools(os):
+    tools = dict(_toolchain_tools)
+    if os == "darwin":
+        tools.update(_toolchain_tools_darwin)
+    return tools
 
 def _get_host_tool_info(rctx, tool_path, tool_key = None):
     if tool_key == None:

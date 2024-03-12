@@ -140,23 +140,18 @@ bazel_skylib_workspace()
 # Well known repos; present here only for testing.
 
 http_archive(
+    name = "com_google_absl",
+    sha256 = "3c743204df78366ad2eaf236d6631d83f6bc928d1705dd0000b872e53b73dc6a",
+    strip_prefix = "abseil-cpp-20240116.1",
+    urls = ["https://github.com/abseil/abseil-cpp/releases/download/20240116.1/abseil-cpp-20240116.1.tar.gz"],
+)
+
+# As a test dep of com_google_absl.
+http_archive(
     name = "com_google_googletest",
     sha256 = "8ad598c73ad796e0d8280b082cebd82a630d73e73cd3c70057938a6501bba5d7",
     strip_prefix = "googletest-1.14.0",
     urls = ["https://github.com/google/googletest/archive/v1.14.0.tar.gz"],
-)
-
-http_archive(
-    name = "com_github_google_benchmark",
-    sha256 = "6bc180a57d23d4d9515519f92b0c83d61b05b5bab188961f36ac7b06b0d9e9ce",
-    strip_prefix = "benchmark-1.8.3",
-    urls = ["https://github.com/google/benchmark/archive/v1.8.3.tar.gz"],
-)
-
-http_archive(
-    name = "com_google_absl",
-    strip_prefix = "abseil-cpp-b2dd3a5be797f8194bbc230c65f35aadd3998535",
-    urls = ["https://github.com/abseil/abseil-cpp/archive/b2dd3a5be797f8194bbc230c65f35aadd3998535.tar.gz"],
 )
 
 http_archive(
@@ -167,15 +162,13 @@ http_archive(
     urls = ["https://www.openssl.org/source/openssl-1.1.1c.tar.gz"],
 )
 
-# For testing rules_go.
-
-# Temporary override until newer version is released to the central registry.
-# https://github.com/bazelbuild/rules_go/commit/31549c1f0fbe850aee3d2b7dd7a1303952f7cd75
 http_archive(
     name = "io_bazel_rules_go",
-    integrity = "sha256-8cixNZS5cm7qapSierAHoRQh8fA9dKMyFD5PBRvFgOY=",
-    strip_prefix = "rules_go-31549c1f0fbe850aee3d2b7dd7a1303952f7cd75",
-    urls = ["https://github.com/bazelbuild/rules_go/archive/31549c1f0fbe850aee3d2b7dd7a1303952f7cd75.tar.gz"],
+    sha256 = "80a98277ad1311dacd837f9b16db62887702e9f1d1c4c9f796d0121a46c8e184",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.46.0/rules_go-v0.46.0.zip",
+        "https://github.com/bazelbuild/rules_go/releases/download/v0.46.0/rules_go-v0.46.0.zip",
+    ],
 )
 
 load("@io_bazel_rules_go//go:deps.bzl", "go_download_sdk", "go_rules_dependencies")
@@ -191,8 +184,8 @@ go_download_sdk(
 
 http_archive(
     name = "rules_rust",
-    sha256 = "1ae45a413d0b9433987320df2ad410db6a15fafb6c88cf0fd1bf3baacbe826db",
-    urls = ["https://github.com/bazelbuild/rules_rust/releases/download/0.39.0/rules_rust-v0.39.0.tar.gz"],
+    sha256 = "c30dfdf1e86fd50650a76ea645b3a45f2f00667b06187a685e9554e167ca97ee",
+    urls = ["https://github.com/bazelbuild/rules_rust/releases/download/0.40.0/rules_rust-v0.40.0.tar.gz"],
 )
 
 load("@rules_rust//rust:repositories.bzl", "rules_rust_dependencies", "rust_register_toolchains")

@@ -175,7 +175,7 @@ def _linux(llvm_version, distname, version, arch):
     elif distname == "raspbian":
         arch = "armv7a"
         os_name = "linux-gnueabihf"
-    elif distname == "rhel":
+    elif distname in ["rhel", "ol", "almalinux"]:
         os_name = _rhel_osname(arch, version, major_llvm_version, llvm_version)
 
     if not os_name:
