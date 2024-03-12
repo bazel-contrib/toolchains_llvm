@@ -34,9 +34,7 @@ filegroup(
 
 filegroup(
     name = "ld",
-    srcs = [
-        "bin/ld.lld",
-    ],
+    srcs = glob(["bin/ld.lld", "bin/ld64.lld"]),
 )
 
 filegroup(
