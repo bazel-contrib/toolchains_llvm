@@ -301,10 +301,6 @@ def _cc_toolchain_str(
             # TODO: Are there situations where we can continue?
             return ""
 
-    extra_compiler_files = ""
-    if toolchain_info.extra_compiler_files:
-        extra_compiler_files = '"{}",'.format(toolchain_info.extra_compiler_files)
-
     extra_files_str = "\":internal-use-files\""
 
     # `struct` isn't allowed in `BUILD` files so we JSON encode + decode to turn
@@ -418,7 +414,7 @@ filegroup(
 filegroup(
     name = "compiler-components-{suffix}",
     srcs = [
-        ":sysroot-components-{suffix}"
+        ":sysroot-components-{suffix}",
         {extra_compiler_files}
     ],
 )
@@ -550,7 +546,7 @@ cc_toolchain(
         extra_files_str = extra_files_str,
         host_tools_info = host_tools_info,
         cxx_builtin_include_directories = _list_to_string(cxx_builtin_include_directories),
-        extra_compiler_files = extra_compiler_files,
+        extra_compiler_files = ("\"%s\"," % str(toolchain_info.extra_compiler_files)) if toolchain_info.extra_compiler_files else "",
     )
 
 def _convenience_targets_str(rctx, use_absolute_paths, llvm_dist_rel_path, llvm_dist_label_prefix, host_dl_ext):

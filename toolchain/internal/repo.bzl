@@ -233,12 +233,11 @@ _compiler_configuration_attrs = {
         mandatory = False,
         doc = ("Override the toolchain's `target_settings` attribute."),
     ),
-    "extra_compiler_files": attr.string(
+    "extra_compiler_files": attr.label(
         mandatory = False,
-        doc = ("Extra label to add to the srcs of the filegroup that for the toolchain's " +
-               "compiler_files attr. It will be available for compile actions. " +
-               "Useful for sanitizer compile-time ignorelists. " +
-               "Example: \"@@//sanitizers:ignorelist.txt\""),
+        doc = ("Files to be made available in the sandbox for compile actions. " +
+               "Mostly useful for providing files containing lists of flags, e.g. " +
+               "sanitizer ignorelists."),
     ),
 }
 

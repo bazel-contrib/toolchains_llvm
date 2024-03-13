@@ -25,9 +25,9 @@
 # See https://blogs.oracle.com/dipol/entry/dynamic_libraries_rpath_and_mac
 # on how to set those paths for Mach-O binaries.
 
-# shellcheck disable=all
+# shellcheck disable=SC1083
 
-set -eu
+set -euo pipefail
 
 INSTALL_NAME_TOOL="/usr/bin/install_name_tool"
 
@@ -39,29 +39,65 @@ OUTPUT=
 function parse_option() {
   local -r opt="$1"
   if [[ ${OUTPUT} == "1" ]]; then
-    OUTPUT=$opt
-  elif [[ $opt =~ ^-l(.*)$ ]]; then
-    LIBS="${BASH_REMATCH[1]} $LIBS"
-  elif [[ $opt =~ ^-L(.*)$ ]]; then
-    LIB_DIRS="${BASH_REMATCH[1]} $LIB_DIRS"
-  elif [[ $opt =~ ^\@loader_path/(.*)$ ]]; then
+    OUTPUT=${opt}
+  elif [[ ${opt} =~ ^-l(.*)$ ]]; then
+    LIBS="${BASH_REMATCH[1]} ${LIBS}"
+  elif [[ ${opt} =~ ^-L(.*)$ ]]; then
+    LIB_DIRS="${BASH_REMATCH[1]} ${LIB_DIRS}"
+  elif [[ ${opt} =~ ^\@loader_path/(.*)$ ]]; then
     RPATHS="${BASH_REMATCH[1]} ${RPATHS}"
-  elif [[ $opt =~ ^-Wl,-rpath,\@loader_path/(.*)$ ]]; then
+  elif [[ ${opt} =~ ^-Wl,-rpath,\@loader_path/(.*)$ ]]; then
     RPATHS="${BASH_REMATCH[1]} ${RPATHS}"
-  elif [[ $opt == "-o" ]]; then
+  elif [[ ${opt} == "-o" ]]; then
     # output is coming
     OUTPUT=1
   fi
 }
 
-# let parse the option list
-for i in "$@"; do
-  if [[ $i == @* ]]; then
-    while IFS= read -r opt; do
-      parse_option "$opt"
-    done <"${i:1}" || exit 1
+if [[ -f %{toolchain_path_prefix}bin/clang ]]; then
+  execroot_path=""
+elif [[ ${BASH_SOURCE[0]} == "/"* ]]; then
+  # Some consumers of `CcToolchainConfigInfo` (e.g. `cmake` from rules_foreign_cc)
+  # change CWD and call $CC (this script) with its absolute path.
+  # For cases like this, we'll try to find `clang` through an absolute path.
+  # This script is at _execroot_/external/_repo_name_/bin/cc_wrapper.sh
+  execroot_path="${BASH_SOURCE[0]%/*/*/*/*}/"
+else
+  echo >&2 "ERROR: could not find clang; PWD=\"${PWD}\"; PATH=\"${PATH}\"."
+  exit 5
+fi
+
+function sanitize_option() {
+  local -r opt=$1
+  if [[ ${opt} == */cc_wrapper.sh ]]; then
+    printf "%s" "${execroot_path}%{toolchain_path_prefix}bin/clang"
+  elif [[ ${opt} =~ ^-fsanitize-(ignore|black)list=[^/] ]]; then
+    # shellcheck disable=SC2206
+    parts=(${opt/=/ }) # Split flag name and value into array.
+    printf "%s" "${parts[0]}=${execroot_path}${parts[1]}"
   else
-    parse_option "$i"
+    printf "%s" "${opt}"
+  fi
+}
+
+cmd=()
+for ((i = 0; i <= $#; i++)); do
+  if [[ ${!i} == @* ]]; then
+    while IFS= read -r opt; do
+      opt="$(
+        set -e
+        sanitize_option "${opt}"
+      )"
+      parse_option "${opt}"
+      cmd+=("${opt}")
+    done <"${!i:1}"
+  else
+    opt="$(
+      set -e
+      sanitize_option "${!i}"
+    )"
+    parse_option "${opt}"
+    cmd+=("${opt}")
   fi
 done
 
@@ -86,27 +122,13 @@ if [[ ":${PATH}:" != *":/usr/bin:"* ]]; then
 fi
 
 # Call the C++ compiler.
-if [[ -f %{toolchain_path_prefix}bin/clang ]]; then
-  %{toolchain_path_prefix}bin/clang "$@"
-elif [[ ${BASH_SOURCE[0]} == "/"* ]]; then
-  # Some consumers of `CcToolchainConfigInfo` (e.g. `cmake` from rules_foreign_cc)
-  # change CWD and call $CC (this script) with its absolute path.
-  # the execroot (i.e. `cmake` from `rules_foreign_cc`) and call CC . For cases like this,
-  # we'll try to find `clang` relative to this script.
-  # This script is at _execroot_/external/_repo_name_/bin/cc_wrapper.sh
-  execroot_path="${BASH_SOURCE[0]%/*/*/*/*}"
-  clang="${execroot_path}/%{toolchain_path_prefix}bin/clang"
-  "${clang}" "${@}"
-else
-  echo >&2 "ERROR: could not find clang; PWD=\"$(pwd)\"; PATH=\"${PATH}\"."
-  exit 5
-fi
+"${cmd[@]}"
 
 function get_library_path() {
   for libdir in ${LIB_DIRS}; do
-    if [ -f ${libdir}/lib$1.so ]; then
+    if [[ -f "${libdir}/lib$1".so ]]; then
       echo "${libdir}/lib$1.so"
-    elif [ -f ${libdir}/lib$1.dylib ]; then
+    elif [[ -f "${libdir}"/lib"$1".dylib ]]; then
       echo "${libdir}/lib$1.dylib"
     fi
   done
@@ -116,8 +138,9 @@ function get_library_path() {
 # and multi-level symlinks.
 function get_realpath() {
   local previous="$1"
-  local next=$(readlink "${previous}")
-  while [ -n "${next}" ]; do
+  local next
+  next="$(readlink "${previous}")"
+  while [[ -n ${next} ]]; do
     previous="${next}"
     next=$(readlink "${previous}")
   done
@@ -127,24 +150,25 @@ function get_realpath() {
 # Get the path of a lib inside a tool
 function get_otool_path() {
   # the lib path is the path of the original lib relative to the workspace
-  get_realpath $1 | sed 's|^.*/bazel-out/|bazel-out/|'
+  get_realpath "$1" | sed 's|^.*/bazel-out/|bazel-out/|'
 }
 
 # Do replacements in the output
 for rpath in ${RPATHS}; do
   for lib in ${LIBS}; do
     unset libname
-    if [ -f "$(dirname ${OUTPUT})/${rpath}/lib${lib}.so" ]; then
+    if [[ -f "$(dirname "${OUTPUT}")/${rpath}/lib${lib}.so" ]]; then
       libname="lib${lib}.so"
-    elif [ -f "$(dirname ${OUTPUT})/${rpath}/lib${lib}.dylib" ]; then
+    elif [[ -f "$(dirname "${OUTPUT}")/${rpath}/lib${lib}.dylib" ]]; then
       libname="lib${lib}.dylib"
     fi
     # ${libname-} --> return $libname if defined, or undefined otherwise. This is to make
     # this set -e friendly
     if [[ -n ${libname-} ]]; then
-      libpath=$(get_library_path ${lib})
-      if [ -n "${libpath}" ]; then
-        ${INSTALL_NAME_TOOL} -change $(get_otool_path "${libpath}") \
+      libpath="$(get_library_path "${lib}")"
+      if [[ -n ${libpath} ]]; then
+        otool_path="$(get_otool_path "${libpath}")"
+        "${INSTALL_NAME_TOOL}" -change "${otool_path}" \
           "@loader_path/${rpath}/${libname}" "${OUTPUT}"
       fi
     fi
