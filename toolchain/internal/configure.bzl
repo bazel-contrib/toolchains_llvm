@@ -298,8 +298,6 @@ def _cc_toolchain_str(
         else:
             # We are trying to cross-compile without a sysroot, let's bail.
             # TODO: Are there situations where we can continue?
-            # trunk-ignore(buildifier/print): See #219.
-            print("Not generating cross-compiling toolchain for (%s, %s) because sysroot is not provided." % (target_os, target_arch))
             return ""
 
     extra_files_str = "\":internal-use-files\""
