@@ -66,7 +66,7 @@ build_test(
 # (https://github.com/bazelbuild/bazel/issues/14038).
 #
 # #109 in this repo and this comment
-# (https://github.com/grailbio/bazel-toolchain/pull/108#issuecomment-928839768)
+# (https://github.com/bazel-contrib/toolchains_llvm/pull/108#issuecomment-928839768)
 # have some additional details.
 #
 # For now, we'll specify `-c dbg` when building `.dwo` and `.dwp` files.
@@ -127,4 +127,15 @@ sh_test(
         "@llvm_toolchain_llvm//:bin/clang-format",
         "@llvm_toolchain_llvm//:lib",
     ],
+)
+
+# As a workaround for https://github.com/bazelbuild/rules_foreign_cc/issues/1018.
+toolchain(
+    name = "ninja_mac_arm64_toolchain",
+    exec_compatible_with = [
+        "@platforms//cpu:arm64",
+        "@platforms//os:macos",
+    ],
+    toolchain = "@@rules_foreign_cc~~tools~ninja_1.11.1_mac//:ninja_tool",
+    toolchain_type = "@rules_foreign_cc//toolchains:ninja_toolchain",
 )

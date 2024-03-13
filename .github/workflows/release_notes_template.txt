@@ -1,4 +1,4 @@
-Minimum bazel version: **6.0.0** (6.1.0 if using blzmod)
+Minimum bazel version: **7.0.0**
 
 If you're using `bzlmod`, add the following to `MODULE.bazel`:
 
@@ -10,7 +10,7 @@ bazel_dep(name = "toolchains_llvm", version = "{tag}")
 git_override(
   module_name = "toolchains_llvm",
   commit = "{commit}",
-  remote = "https://github.com/grailbio/bazel-toolchain",
+  remote = "https://github.com/bazel-contrib/toolchains_llvm",
 )
 
 # Configure and register the toolchain.
@@ -35,7 +35,7 @@ http_archive(
     sha256 = "{sha}",
     strip_prefix = "{prefix}",
     canonical_id = "{tag}",
-    url = "https://github.com/grailbio/bazel-toolchain/releases/download/{tag}/{archive}",
+    url = "https://github.com/bazel-contrib/toolchains_llvm/releases/download/{tag}/{archive}",
 )
 
 load("@toolchains_llvm//toolchain:deps.bzl", "bazel_toolchain_dependencies")
@@ -52,20 +52,4 @@ llvm_toolchain(
 load("@llvm_toolchain//:toolchains.bzl", "llvm_register_toolchains")
 
 llvm_register_toolchains()
-```
-
-And add the following section to your .bazelrc file:
-
-```sh
-# Not needed after https://github.com/bazelbuild/bazel/issues/7260 is closed
-build --incompatible_enable_cc_toolchain_resolution
-
-# For macOS only:
-
-# Needed for Bazel versions before 7.
-# Without this, one can use `--linkopt='-undefined dynamic_lookup'`.
-# This feature is intentionally not supported on macOS.
-build --features=-supports_dynamic_linker
-# Not needed after https://github.com/grailbio/bazel-toolchain/pull/229.
-build --features=-libtool
 ```

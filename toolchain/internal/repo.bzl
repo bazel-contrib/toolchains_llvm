@@ -80,7 +80,7 @@ llvm_repo_attrs.update({
               "\n\n" +
               "If provided, this mirror will be given precedence over the official LLVM release " +
               "sources (see: " +
-              "https://github.com/grailbio/bazel-toolchain/toolchain/internal/llvm_distributions.bzl).",
+              "https://github.com/bazel-contrib/toolchains_llvm/toolchain/internal/llvm_distributions.bzl).",
     ),
     "alternative_llvm_sources": attr.string_list(
         doc = "Patterns for alternative LLVM release sources. Unlike URLs specified for `llvm_mirror` " +
@@ -160,6 +160,14 @@ _compiler_configuration_attrs = {
     "link_flags": attr.string_list_dict(
         mandatory = False,
         doc = ("Override for link_flags, replacing the default values. " +
+               "`{toolchain_path_prefix}` in the flags will be substituted by the path " +
+               "to the root LLVM distribution directory. Provide one list for each " +
+               "target OS and arch pair you want to override " +
+               "({}); empty key overrides all.".format(_target_pairs)),
+    ),
+    "archive_flags": attr.string_list_dict(
+        mandatory = False,
+        doc = ("Override for archive_flags, replacing the default values. " +
                "`{toolchain_path_prefix}` in the flags will be substituted by the path " +
                "to the root LLVM distribution directory. Provide one list for each " +
                "target OS and arch pair you want to override " +

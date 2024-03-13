@@ -20,36 +20,17 @@ local_path_override(
     path = "..",
 )
 
-bazel_dep(name = "bazel_skylib", version = "1.4.2")
-bazel_dep(name = "platforms", version = "0.0.7")
-bazel_dep(name = "rules_cc", version = "0.0.8")
-bazel_dep(name = "rules_go", version = "0.41.0", repo_name = "io_bazel_rules_go")
-bazel_dep(name = "rules_foreign_cc", version = "0.9.0")
-bazel_dep(name = "rules_rust", version = "0.27.0")
+bazel_dep(name = "bazel_skylib", version = "1.5.0")
+bazel_dep(name = "platforms", version = "0.0.8")
+bazel_dep(name = "rules_cc", version = "0.0.9")
+bazel_dep(name = "rules_go", version = "0.46.0", repo_name = "io_bazel_rules_go")
+bazel_dep(name = "rules_rust", version = "0.40.0")
+bazel_dep(name = "rules_foreign_cc", version = "0.10.1")
+bazel_dep(name = "abseil-cpp", version = "20240116.1", repo_name = "com_google_absl")
 
-# We have to patch abseil-cpp to add a dep on googletest
-bazel_dep(name = "abseil-cpp", repo_name = "com_google_absl")
-archive_override(
-    module_name = "abseil-cpp",
-    patches = ["//patches:abseil-cpp.patch"],
-    strip_prefix = "abseil-cpp-20230125.3",
-    urls = ["https://github.com/abseil/abseil-cpp/archive/refs/tags/20230125.3.tar.gz"],
-)
-
-# Temporary override until newer version is released to the central registry.
-# https://github.com/bazelbuild/rules_foreign_cc/issues/1080
-git_override(
-    module_name = "rules_foreign_cc",
-    commit = "60813d57a0e99be1a009c1a0e9627cdbe81fcd19",
-    remote = "https://github.com/bazelbuild/rules_foreign_cc.git",
-)
-
-# rules_rust is not yet released to the central registry.
-# https://github.com/bazelbuild/rules_rust/issues/1493
-git_override(
-    module_name = "rules_rust",
-    commit = "4dbb81a008f4031c9ad65138fa2a49f32352f80f",
-    remote = "https://github.com/bazelbuild/rules_rust.git",
+# As a workaround for https://github.com/bazelbuild/rules_foreign_cc/issues/1018.
+register_toolchains(
+    "//:ninja_mac_arm64_toolchain",
 )
 
 go_sdk = use_extension("@io_bazel_rules_go//go:extensions.bzl", "go_sdk")
@@ -62,7 +43,7 @@ use_repo(go_sdk, "go_toolchains")
 register_toolchains("@go_toolchains//:all")
 
 rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
-rust.toolchain(edition = "2021")
+rust.toolchain(edition = "2023")
 use_repo(
     rust,
     "rust_toolchains",
@@ -75,7 +56,6 @@ llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
 # When updating this version, also update the versions associated with
 # llvm_toolchain below, sys_paths_test in the workflows file, and xcompile_test
 # through the `llvm_toolchain_with_sysroot` toolchain.
-LLVM_VERSION = "15.0.6"
 LLVM_VERSIONS = {
     "": "16.0.0",
     "darwin-aarch64": "16.0.5",
@@ -117,49 +97,54 @@ llvm.toolchain(
 )
 use_repo(llvm, "llvm_toolchain_with_urls")
 
-# # This is the last known LLVM version with zlib support in ld.lld. Without zlib
-# # support, if the installed gcc toolchain has compressed sections in its object
-# # files, then ld.lld won't be able to process them. Example is archlinux docker
-# # image base-devel as of the time of this writing (23 May 2022).
+# This is the last known LLVM version with zlib support in ld.lld. Without zlib
+# support, if the installed gcc toolchain has compressed sections in its object
+# files, then ld.lld won't be able to process them. Example is archlinux docker
+# image base-devel as of the time of this writing (23 May 2022).
 llvm.toolchain(
     name = "llvm_toolchain_13_0_0",
     llvm_version = "13.0.0",
 )
 use_repo(llvm, "llvm_toolchain_13_0_0")
 
-# ## Toolchain example with absolute paths; tested in GitHub CI.
+# Toolchain example with absolute paths; tested in GitHub CI.
 llvm.toolchain(
     name = "llvm_toolchain_with_absolute_paths",
     absolute_paths = True,
-    llvm_version = LLVM_VERSION,
-    # We can share the downloaded LLVM distribution with the first configuration.
-    toolchain_roots = {
-        "": "@llvm_toolchain_llvm//",
-    },
+    llvm_versions = LLVM_VERSIONS,
+)
+# We can share the downloaded LLVM distribution with the first configuration.
+llvm.toolchain_root(
+    name = "llvm_toolchain_with_absolute_paths",
+    label = "@llvm_toolchain_llvm//:BUILD",
 )
 use_repo(llvm, "llvm_toolchain_with_absolute_paths")
 
-# ## Toolchain example with system LLVM; tested in GitHub CI.
+# Toolchain example with system LLVM; tested in GitHub CI.
 llvm.toolchain(
     name = "llvm_toolchain_with_system_llvm",
-    llvm_version = LLVM_VERSION,
-    # For this toolchain to work, the LLVM distribution archive would need to be unpacked here.
-    # A path in /tmp to be part of system tmp cleanup schedule.
-    toolchain_roots = {"": "/tmp/llvm-16"},
+    llvm_versions = LLVM_VERSIONS,
+)
+# For this toolchain to work, the LLVM distribution archive would need to be unpacked here.
+llvm.toolchain_root(
+    name = "llvm_toolchain_with_system_llvm",
+    path = "/opt/llvm-16",
 )
 use_repo(llvm, "llvm_toolchain_with_system_llvm")
 
-# ## Toolchain example with a sysroot.
-
+# Toolchain example with a sysroot.
 llvm.toolchain(
     name = "llvm_toolchain_with_sysroot",
     llvm_versions = LLVM_VERSIONS,
-    sysroot = {
-        "linux-x86_64": "@org_chromium_sysroot_linux_x64//:sysroot",
-    },
-    # We can share the downloaded LLVM distribution with the first configuration.
-    toolchain_roots = {
-        "": "@llvm_toolchain_llvm//",
-    },
+)
+# We can share the downloaded LLVM distribution with the first configuration.
+llvm.toolchain_root(
+    name = "llvm_toolchain_with_sysroot",
+    label = "@llvm_toolchain_llvm//:BUILD",
+)
+llvm.sysroot(
+    name = "llvm_toolchain_with_sysroot",
+    targets = ["linux-x86_64"],
+    label = "@@org_chromium_sysroot_linux_x64//:sysroot",
 )
 use_repo(llvm, "llvm_toolchain_with_sysroot")

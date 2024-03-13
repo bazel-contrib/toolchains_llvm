@@ -95,5 +95,4 @@ dwp_file = rule(
             default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
         ),
     },
-    incompatible_use_toolchain_transition = True,
 )

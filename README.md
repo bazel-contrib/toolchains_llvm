@@ -1,26 +1,11 @@
-# LLVM toolchain for Bazel [![Tests](https://github.com/grailbio/bazel-toolchain/actions/workflows/tests.yml/badge.svg)](https://github.com/grailbio/bazel-toolchain/actions/workflows/tests.yml)
-
----
-
-The project is in a relatively stable state and in use for all code development
-at GRAIL and other organizations. Having said that, I am unable to give time to
-it at any regular cadence.
-
-I rely on the community for maintenance and new feature implementations. If you
-are interested in being part of this project, please let me know and I can give
-you write access, so you can merge your changes directly.
-
-If you feel like you have a better maintained fork or an alternative/derived
-implementation, please let me know and I can redirect people there.
-
-– @siddharthab
-
----
+# LLVM toolchain for Bazel [![Tests](https://github.com/bazel-contrib/toolchains_llvm/actions/workflows/tests.yml/badge.svg)](https://github.com/bazel-contrib/toolchains_llvm/actions/workflows/tests.yml)
 
 ## Quickstart
 
-See notes on the [release](https://github.com/grailbio/bazel-toolchain/releases)
+See notes on the [release](https://github.com/bazel-contrib/toolchains_llvm/releases)
 for how to get started.
+
+NOTE: For releases prior to 0.10.1, please also see [these notes](REPO_RENAME.md).
 
 <!-- Release Notes template is at .github/workflows/release_prep.sh -->
 
@@ -113,9 +98,6 @@ For specifying unregistered toolchains on the command line, please use the
 `--extra_toolchains` flag. For example,
 `--extra_toolchains=@llvm_toolchain//:cc-toolchain-x86_64-linux`.
 
-We no longer support the `--crosstool_top=@llvm_toolchain//:toolchain` flag,
-and instead rely on the `--incompatible_enable_cc_toolchain_resolution` flag.
-
 ### Bring Your Own LLVM
 
 The following mechanisms are available for using an LLVM toolchain:
@@ -133,7 +115,8 @@ The following mechanisms are available for using an LLVM toolchain:
    the archive is downloaded and extracted as a separate repository with the
    suffix `_llvm`.
 3. You can also specify your own bazel package paths or local absolute paths
-   for each host os-arch pair through the `toolchain_roots` attribute. Note
+   for each host os-arch pair through the `toolchain_roots` attribute (without
+   bzlmod) or the `toolchain_root` module extension tags (with bzlmod). Note
    that the keys here are different and less granular than the keys in the `urls`
    attribute. When using a bazel package path, each of the values is typically
    a package in the user's workspace or configured through `local_repository` or
@@ -150,11 +133,12 @@ The following mechanisms are available for using an LLVM toolchain:
 
 ### Sysroots
 
-A sysroot can be specified through the `sysroot` attribute. This can be either
-a path on the user's system, or a bazel `filegroup` like label. One way to
-create a sysroot is to use `docker export` to get a single archive of the
-entire filesystem for the image you want. Another way is to use the build
-scripts provided by the [Chromium
+A sysroot can be specified through the `sysroot` attribute (without bzlmod) or
+the `sysroot` module extension tag (with bzlmod). This can be either a path on
+the user's system, or a bazel `filegroup` like label. One way to create a
+sysroot is to use `docker export` to get a single archive of the entire
+filesystem for the image you want. Another way is to use the build scripts
+provided by the [Chromium
 project](https://chromium.googlesource.com/chromium/src/+/HEAD/docs/linux/sysroot.md).
 
 ### Cross-compilation
@@ -238,6 +222,19 @@ then they can be referenced as:
 - `@llvm_toolchain//:omp`
 - `@llvm_toolchain//:clang-format`
 - `@llvm_toolchain//:llvm-cov`
+
+### Strict header deps (Linux only)
+
+The toolchain supports Bazel's `layering_check` feature, which relies on
+[Clang modules](https://clang.llvm.org/docs/Modules.html) to implement strict
+deps (also known as "depend on what you use") for `cc_*` rules. This feature
+can be enabled by enabling the `layering_check` feature on a per-target,
+per-package or global basis.
+
+If one of toolchain or sysroot are specified via an absolute path rather than
+managed by Bazel, the `layering_check` feature may require running
+`bazel clean --expunge` after making changes to the set of header files
+installed on the host.
 
 ## Prior Art
 

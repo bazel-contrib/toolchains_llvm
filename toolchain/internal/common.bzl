@@ -14,18 +14,31 @@
 
 SUPPORTED_TARGETS = [("linux", "x86_64"), ("linux", "aarch64"), ("darwin", "x86_64"), ("darwin", "aarch64")]
 
-toolchain_tools = [
-    "clang-cpp",
-    "ld.lld",
-    "llvm-ar",
-    "llvm-dwp",
-    "llvm-profdata",
-    "llvm-cov",
-    "llvm-nm",
-    "llvm-objcopy",
-    "llvm-objdump",
-    "llvm-strip",
-]
+# Map of tool name to its symlinked name in the tools directory.
+_toolchain_tools = {
+    name: name
+    for name in [
+        "clang-cpp",
+        "ld.lld",
+        "llvm-ar",
+        "llvm-dwp",
+        "llvm-profdata",
+        "llvm-cov",
+        "llvm-nm",
+        "llvm-objcopy",
+        "llvm-objdump",
+        "llvm-strip",
+    ]
+}
+
+# Extra tools for Darwin.
+_toolchain_tools_darwin = {
+    # rules_foreign_cc relies on the filename of the linker to set flags.
+    # Also see archive_flags in cc_toolchain_config.bzl.
+    # https://github.com/bazelbuild/rules_foreign_cc/blob/5547abc63b12c521113208eea0c5d7f66ba494d4/foreign_cc/built_tools/make_build.bzl#L71
+    # https://github.com/bazelbuild/rules_foreign_cc/blob/5547abc63b12c521113208eea0c5d7f66ba494d4/foreign_cc/private/cmake_script.bzl#L319
+    "llvm-libtool-darwin": "libtool",
+}
 
 def host_os_key(rctx):
     (os, version, arch) = os_version_arch(rctx)
@@ -34,7 +47,22 @@ def host_os_key(rctx):
     else:
         return "%s-%s-%s" % (os, version, arch)
 
-_known_distros = ["freebsd", "suse", "ubuntu", "arch", "manjaro", "debian", "fedora", "centos", "amzn", "raspbian", "pop", "rhel"]
+_known_distros = [
+    "freebsd",
+    "suse",
+    "ubuntu",
+    "arch",
+    "manjaro",
+    "debian",
+    "fedora",
+    "centos",
+    "amzn",
+    "raspbian",
+    "pop",
+    "rhel",
+    "ol",
+    "almalinux",
+]
 
 def _linux_dist(rctx):
     info = {}
@@ -46,7 +74,7 @@ def _linux_dist(rctx):
 
     distname = info["ID"].strip('\"')
 
-    if distname not in _known_distros:
+    if distname not in _known_distros and "ID_LIKE" in info:
         for distro in info["ID_LIKE"].strip('\"').split(" "):
             if distro in _known_distros:
                 distname = distro
@@ -55,6 +83,8 @@ def _linux_dist(rctx):
     version = ""
     if "VERSION_ID" in info:
         version = info["VERSION_ID"].strip('"')
+    elif "VERSION_CODENAME" in info:
+        version = info["VERSION_CODENAME"].strip('"')
 
     return distname, version
 
@@ -134,6 +164,9 @@ def canonical_dir_path(path):
         return path + "/"
     return path
 
+def is_absolute_path(val):
+    return val and val[0] == "/" and (len(val) == 1 or val[1] != "/")
+
 def pkg_name_from_label(label):
     if label.workspace_name:
         return "@" + label.workspace_name + "//" + label.package
@@ -175,6 +208,12 @@ def attr_dict(attr):
         tuples.append((key, val))
 
     return dict(tuples)
+
+def toolchain_tools(os):
+    tools = dict(_toolchain_tools)
+    if os == "darwin":
+        tools.update(_toolchain_tools_darwin)
+    return tools
 
 def _get_host_tool_info(rctx, tool_path, tool_key = None):
     if tool_key == None:

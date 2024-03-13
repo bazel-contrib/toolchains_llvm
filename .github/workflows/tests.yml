@@ -20,7 +20,7 @@ jobs:
       contents: read # For repo checkout
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Trunk Check
         uses: trunk-io/trunk-action@v1
   test:
@@ -28,20 +28,14 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, ubuntu-latest]
-        bazel_version: [6.0.0, 6.1.0, latest]
+        bazel_version: [7.0.0, latest] # Minimum supported Bazel version is 7.0.0.
         bzlmod: [true, false]
-        # bzlmod needs 6.1.0 (issue unrelated to this project)
-        exclude:
-          - bazel_version: 6.0.0
-            bzlmod: true
-          - bazel_version: 6.1.0
-            bzlmod: false
     runs-on: ${{ matrix.os }}
     steps:
       - if: startsWith(matrix.os, 'ubuntu')
         name: Install APT packages
         run: sudo apt-get -y install libtinfo5
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Test
         env:
           USE_BAZEL_VERSION: ${{ matrix.bazel_version }}
@@ -59,7 +53,7 @@ jobs:
       - if: startsWith(matrix.os, 'ubuntu')
         name: Install APT packages
         run: sudo apt-get -y install libtinfo5
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Test
         env:
           USE_BAZEL_VERSION: ${{ matrix.bazel_version }}
@@ -80,37 +74,58 @@ jobs:
             ubuntu_22_04,
             linux_sysroot,
           ]
+        bzlmod: [true, false]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Test
+        env:
+          USE_BZLMOD: ${{ matrix.bzlmod }}
         run: tests/scripts/${{ matrix.script }}_test.sh
   xcompile_test:
+    strategy:
+      fail-fast: false
+      matrix:
+        bzlmod: [true, false]
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Test
+        env:
+          USE_BZLMOD: ${{ matrix.bzlmod }}
         run: tests/scripts/run_xcompile_tests.sh
   abs_paths_test:
+    strategy:
+      fail-fast: false
+      matrix:
+        bzlmod: [true, false]
     runs-on: ubuntu-latest
     steps:
       - name: Install APT packages
         run: sudo apt-get -y install libtinfo5
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Test
+        env:
+          USE_BZLMOD: ${{ matrix.bzlmod }}
         run: tests/scripts/run_tests.sh -t @llvm_toolchain_with_absolute_paths//:cc-toolchain-x86_64-linux
   sys_paths_test:
+    strategy:
+      fail-fast: false
+      matrix:
+        bzlmod: [true, false]
     runs-on: ubuntu-latest
     steps:
       - name: Install APT packages
         run: sudo apt-get -y install libtinfo5
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Download and Extract LLVM distribution
         env:
           release: llvmorg-16.0.0
           archive: clang+llvm-16.0.0-x86_64-linux-gnu-ubuntu-18.04
           ext: .tar.xz
-          local_path: /tmp/llvm-16
+          local_path: /opt/llvm-16
         run: wget --no-verbose "https://github.com/llvm/llvm-project/releases/download/${release}/${archive}${ext}" && tar -xf "${archive}${ext}" && mv "${archive}" "${local_path}"
       - name: Test
+        env:
+          USE_BZLMOD: ${{ matrix.bzlmod }}
         run: tests/scripts/run_tests.sh -t @llvm_toolchain_with_system_llvm//:cc-toolchain-x86_64-linux

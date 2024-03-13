@@ -36,16 +36,16 @@ def cc_toolchain_config(
         host_os,
         target_arch,
         target_os,
+        target_system_name,
         toolchain_path_prefix,
         tools_path_prefix,
         wrapper_bin_prefix,
         compiler_configuration,
-        llvm_version,
+        cxx_builtin_include_directories,
         host_tools_info = {}):
     host_os_arch_key = _os_arch_pair(host_os, host_arch)
     target_os_arch_key = _os_arch_pair(target_os, target_arch)
     _check_os_arch_keys([host_os_arch_key, target_os_arch_key])
-    major_llvm_version = int(llvm_version.split(".")[0])
 
     # A bunch of variables that get passed straight through to
     # `create_cc_toolchain_config_info`.
@@ -53,7 +53,6 @@ def cc_toolchain_config(
     host_system_name = host_arch
     (
         toolchain_identifier,
-        target_system_name,
         target_cpu,
         target_libc,
         compiler,
@@ -62,7 +61,6 @@ def cc_toolchain_config(
     ) = {
         "darwin-x86_64": (
             "clang-x86_64-darwin",
-            "x86_64-apple-macosx",
             "darwin",
             "macosx",
             "clang",
@@ -71,7 +69,6 @@ def cc_toolchain_config(
         ),
         "darwin-aarch64": (
             "clang-aarch64-darwin",
-            "aarch64-apple-macosx",
             "darwin",
             "macosx",
             "clang",
@@ -80,7 +77,6 @@ def cc_toolchain_config(
         ),
         "linux-aarch64": (
             "clang-aarch64-linux",
-            "aarch64-unknown-linux-gnu",
             "aarch64",
             "glibc_unknown",
             "clang",
@@ -89,7 +85,6 @@ def cc_toolchain_config(
         ),
         "linux-x86_64": (
             "clang-x86_64-linux",
-            "x86_64-unknown-linux-gnu",
             "k8",
             "glibc_unknown",
             "clang",
@@ -149,6 +144,9 @@ def cc_toolchain_config(
     # unused symbols are not stripped.
     link_libs = []
 
+    # Flags for ar.
+    archive_flags = []
+
     # Linker flags:
     if host_os == "darwin" and not is_xcompile:
         # lld is experimental for Mach-O, so we use the native ld64 linker.
@@ -157,6 +155,16 @@ def cc_toolchain_config(
         link_flags.extend([
             "-headerpad_max_install_names",
             "-fobjc-link-runtime",
+        ])
+
+        # Use the bundled libtool (llvm-libtool-darwin).
+        use_libtool = True
+
+        # Pre-installed libtool on macOS has -static as default, but llvm-libtool-darwin needs it
+        # explicitly. cc_common.create_link_variables does not automatically add this either if
+        # output_file arg to it is None.
+        archive_flags.extend([
+            "-static",
         ])
     else:
         # Note that for xcompiling from darwin to linux, the native ld64 is
@@ -169,12 +177,14 @@ def cc_toolchain_config(
             "-Wl,--hash-style=gnu",
             "-Wl,-z,relro,-z,now",
         ])
+        use_libtool = False
 
     # Flags related to C++ standard.
     # The linker has no way of knowing if there are C++ objects; so we
     # always link C++ libraries.
     cxx_standard = compiler_configuration["cxx_standard"]
     stdlib = compiler_configuration["stdlib"]
+    sysroot_path = compiler_configuration["sysroot_path"]
     if stdlib == "builtin-libc++" and is_xcompile:
         stdlib = "stdc++"
     if stdlib == "builtin-libc++":
@@ -196,32 +206,22 @@ def cc_toolchain_config(
                 "-ldl",
             ])
         else:
-            # The only known mechanism to static link libraries in ld64 is to
-            # not have the corresponding .dylib files in the library search
-            # path. The link time sandbox does not include the .dylib files, so
-            # anything we pick up from the toolchain should be statically
-            # linked. However, several system libraries on macOS dynamically
-            # link libc++ and libc++abi, so static linking them becomes a problem.
-            # We need to ensure that they are dynamic linked from the system
-            # sysroot and not static linked from the toolchain, so explicitly
-            # have the sysroot directory on the search path and then add the
-            # toolchain directory back after we are done.
+            # Several system libraries on macOS dynamically link libc++ and
+            # libc++abi, so static linking them becomes a problem. We need to
+            # ensure that they are dynamic linked from the system sysroot and
+            # not static linked from the toolchain, so explicitly have the
+            # sysroot directory on the search path and then add the toolchain
+            # directory back after we are done.
             link_flags.extend([
-                "-L{}/usr/lib".format(compiler_configuration["sysroot_path"]),
+                "-L{}/usr/lib".format(sysroot_path),
                 "-lc++",
                 "-lc++abi",
-            ])
-
-            # Let's provide the path to the toolchain library directory
-            # explicitly as part of the search path to make it easy for a user
-            # to pick up something. This also makes the behavior consistent with
-            # targets when a user explicitly depends on something like
-            # libomp.dylib, which adds this directory to the search path, and would
-            # (unintentionally) lead to static linking of libraries from the
-            # toolchain.
-            link_flags.extend([
+                "-Bstatic",
+                "-lunwind",
+                "-Bdynamic",
                 "-L{}lib".format(toolchain_path_prefix),
             ])
+
     elif stdlib == "libc++":
         cxx_flags = [
             "-std=" + cxx_standard,
@@ -261,47 +261,13 @@ def cc_toolchain_config(
     ## NOTE: framework paths is missing here; unix_cc_toolchain_config
     ## doesn't seem to have a feature for this.
 
-    # C++ built-in include directories:
-    cxx_builtin_include_directories = []
-    if toolchain_path_prefix.startswith("/"):
-        cxx_builtin_include_directories.extend([
-            toolchain_path_prefix + "include/c++/v1",
-            toolchain_path_prefix + "include/{}/c++/v1".format(target_system_name),
-            toolchain_path_prefix + "lib/clang/{}/include".format(llvm_version),
-            toolchain_path_prefix + "lib/clang/{}/share".format(llvm_version),
-            toolchain_path_prefix + "lib64/clang/{}/include".format(llvm_version),
-            toolchain_path_prefix + "lib/clang/{}/include".format(major_llvm_version),
-            toolchain_path_prefix + "lib/clang/{}/share".format(major_llvm_version),
-            toolchain_path_prefix + "lib64/clang/{}/include".format(major_llvm_version),
-        ])
-
-    sysroot_path = compiler_configuration["sysroot_path"]
-    sysroot_prefix = ""
-    if sysroot_path:
-        sysroot_prefix = "%sysroot%"
-    if target_os == "linux":
-        cxx_builtin_include_directories.extend([
-            sysroot_prefix + "/include",
-            sysroot_prefix + "/usr/include",
-            sysroot_prefix + "/usr/local/include",
-        ])
-    elif target_os == "darwin":
-        cxx_builtin_include_directories.extend([
-            sysroot_prefix + "/usr/include",
-            sysroot_prefix + "/System/Library/Frameworks",
-        ])
-    else:
-        fail("Unreachable")
-
-    cxx_builtin_include_directories.extend(compiler_configuration["additional_include_dirs"])
-
     ## NOTE: make variables are missing here; unix_cc_toolchain_config doesn't
     ## pass these to `create_cc_toolchain_config_info`.
 
     # The tool names come from [here](https://github.com/bazelbuild/bazel/blob/c7e58e6ce0a78fdaff2d716b4864a5ace8917626/src/main/java/com/google/devtools/build/lib/rules/cpp/CppConfiguration.java#L76-L90):
     # NOTE: Ensure these are listed in toolchain_tools in toolchain/internal/common.bzl.
     tool_paths = {
-        "ar": tools_path_prefix + "llvm-ar",
+        "ar": tools_path_prefix + ("llvm-ar" if not use_libtool else "libtool"),
         "cpp": tools_path_prefix + "clang-cpp",
         "dwp": tools_path_prefix + "llvm-dwp",
         "gcc": wrapper_bin_prefix + "cc_wrapper.sh",
@@ -330,6 +296,8 @@ def cc_toolchain_config(
         cxx_flags = _fmt_flags(compiler_configuration["cxx_flags"], toolchain_path_prefix)
     if compiler_configuration["link_flags"] != None:
         link_flags = _fmt_flags(compiler_configuration["link_flags"], toolchain_path_prefix)
+    if compiler_configuration["archive_flags"] != None:
+        archive_flags = _fmt_flags(compiler_configuration["archive_flags"], toolchain_path_prefix)
     if compiler_configuration["link_libs"] != None:
         link_libs = _fmt_flags(compiler_configuration["link_libs"], toolchain_path_prefix)
     if compiler_configuration["opt_compile_flags"] != None:
@@ -363,6 +331,7 @@ def cc_toolchain_config(
         opt_compile_flags = opt_compile_flags,
         cxx_flags = cxx_flags,
         link_flags = link_flags,
+        archive_flags = archive_flags,
         link_libs = link_libs,
         opt_link_flags = opt_link_flags,
         unfiltered_compile_flags = unfiltered_compile_flags,
