@@ -233,6 +233,12 @@ _compiler_configuration_attrs = {
         mandatory = False,
         doc = ("Override the toolchain's `target_settings` attribute."),
     ),
+    "extra_compiler_files": attr.label(
+        mandatory = False,
+        doc = ("Files to be made available in the sandbox for compile actions. " +
+               "Mostly useful for providing files containing lists of flags, e.g. " +
+               "sanitizer ignorelists."),
+    ),
 }
 
 llvm_config_attrs = dict(common_attrs)
