@@ -114,10 +114,11 @@ llvm.toolchain(
     name = "llvm_toolchain_with_absolute_paths",
     absolute_paths = True,
     llvm_version = LLVM_VERSION,
-    # We can share the downloaded LLVM distribution with the first configuration.
-    toolchain_roots = {
-        "": "@llvm_toolchain_llvm//",
-    },
+)
+# We can share the downloaded LLVM distribution with the first configuration.
+llvm.toolchain_root(
+    name = "llvm_toolchain_with_absolute_paths",
+    label = "@llvm_toolchain_llvm//:BUILD",
 )
 use_repo(llvm, "llvm_toolchain_with_absolute_paths")
 
@@ -125,8 +126,11 @@ use_repo(llvm, "llvm_toolchain_with_absolute_paths")
 llvm.toolchain(
     name = "llvm_toolchain_with_system_llvm",
     llvm_version = LLVM_VERSION,
-    # For this toolchain to work, the LLVM distribution archive would need to be unpacked here.
-    toolchain_roots = {"": "/opt/llvm-16"},
+)
+# For this toolchain to work, the LLVM distribution archive would need to be unpacked here.
+llvm.toolchain_root(
+    name = "llvm_toolchain_with_system_llvm",
+    path = "/opt/llvm-16",
 )
 use_repo(llvm, "llvm_toolchain_with_system_llvm")
 
@@ -134,14 +138,15 @@ use_repo(llvm, "llvm_toolchain_with_system_llvm")
 llvm.toolchain(
     name = "llvm_toolchain_with_sysroot",
     llvm_versions = LLVM_VERSIONS,
-    sysroot = {
-        # TODO: Use an apparent repo name after #234 has been fixed.
-        "linux-x86_64": "@@org_chromium_sysroot_linux_x64//:sysroot",
-    },
-    # We can share the downloaded LLVM distribution with the first configuration.
-    toolchain_roots = {
-        # TODO: Use an apparent repo name after #234 has been fixed.
-        "": "@@toolchains_llvm~~llvm~llvm_toolchain_llvm//",
-    },
+)
+# We can share the downloaded LLVM distribution with the first configuration.
+llvm.toolchain_root(
+    name = "llvm_toolchain_with_sysroot",
+    label = "@llvm_toolchain_llvm//:BUILD",
+)
+llvm.sysroot(
+    name = "llvm_toolchain_with_sysroot",
+    targets = ["linux-x86_64"],
+    label = "@@org_chromium_sysroot_linux_x64//:sysroot",
 )
 use_repo(llvm, "llvm_toolchain_with_sysroot")

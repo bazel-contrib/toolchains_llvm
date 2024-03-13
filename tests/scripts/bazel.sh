@@ -37,7 +37,7 @@ bazel="${TMPDIR:-/tmp}/bazelisk"
 readonly bazel
 
 common_args=(
-  "--enable_bzlmod=${USE_BZLMOD:-false}"
+  "--enable_bzlmod=${USE_BZLMOD:-true}"
 )
 
 # shellcheck disable=SC2034

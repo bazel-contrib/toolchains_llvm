@@ -24,6 +24,7 @@ load(
     _check_os_arch_keys = "check_os_arch_keys",
     _host_os_arch_dict_value = "host_os_arch_dict_value",
     _host_tools = "host_tools",
+    _is_absolute_path = "is_absolute_path",
     _list_to_string = "list_to_string",
     _os = "os",
     _os_arch_pair = "os_arch_pair",
@@ -60,7 +61,7 @@ def llvm_config_impl(rctx):
     arch = _arch(rctx)
 
     if not rctx.attr.toolchain_roots:
-        toolchain_root = "@@%s_llvm//" % rctx.attr.name if BZLMOD_ENABLED else "@%s_llvm//" % rctx.attr.name
+        toolchain_root = ("@" if BZLMOD_ENABLED else "") + "@%s_llvm//" % rctx.attr.name
     else:
         (_key, toolchain_root) = _host_os_arch_dict_value(rctx, "toolchain_roots")
 
@@ -76,7 +77,7 @@ def llvm_config_impl(rctx):
 
     # Check if the toolchain root is a system path.
     system_llvm = False
-    if toolchain_root[0] == "/" and (len(toolchain_root) == 1 or toolchain_root[1] != "/"):
+    if _is_absolute_path(toolchain_root):
         use_absolute_paths_llvm = True
         system_llvm = True
 
