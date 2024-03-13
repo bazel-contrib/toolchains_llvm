@@ -37,7 +37,7 @@ bazel="${TMPDIR:-/tmp}/bazelisk"
 readonly bazel
 
 common_args=(
-  "--enable_bzlmod=${USE_BZLMOD:-false}"
+  "--enable_bzlmod=${USE_BZLMOD:-true}"
 )
 
 # shellcheck disable=SC2034
@@ -48,6 +48,7 @@ common_test_args=(
   "--show_progress_rate_limit=30"
   "--keep_going"
   "--test_output=errors"
+  "--features=layering_check"
 )
 
 # Do not run autoconf to configure local CC toolchains.

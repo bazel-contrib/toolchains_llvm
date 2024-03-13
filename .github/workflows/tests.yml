@@ -74,26 +74,45 @@ jobs:
             ubuntu_22_04,
             linux_sysroot,
           ]
+        bzlmod: [true, false]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Test
+        env:
+          USE_BZLMOD: ${{ matrix.bzlmod }}
         run: tests/scripts/${{ matrix.script }}_test.sh
   xcompile_test:
+    strategy:
+      fail-fast: false
+      matrix:
+        bzlmod: [true, false]
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
       - name: Test
+        env:
+          USE_BZLMOD: ${{ matrix.bzlmod }}
         run: tests/scripts/run_xcompile_tests.sh
   abs_paths_test:
+    strategy:
+      fail-fast: false
+      matrix:
+        bzlmod: [true, false]
     runs-on: ubuntu-latest
     steps:
       - name: Install APT packages
         run: sudo apt-get -y install libtinfo5
       - uses: actions/checkout@v4
       - name: Test
+        env:
+          USE_BZLMOD: ${{ matrix.bzlmod }}
         run: tests/scripts/run_tests.sh -t @llvm_toolchain_with_absolute_paths//:cc-toolchain-x86_64-linux
   sys_paths_test:
+    strategy:
+      fail-fast: false
+      matrix:
+        bzlmod: [true, false]
     runs-on: ubuntu-latest
     steps:
       - name: Install APT packages
@@ -107,4 +126,6 @@ jobs:
           local_path: /opt/llvm-16
         run: wget --no-verbose "https://github.com/llvm/llvm-project/releases/download/${release}/${archive}${ext}" && tar -xf "${archive}${ext}" && mv "${archive}" "${local_path}"
       - name: Test
+        env:
+          USE_BZLMOD: ${{ matrix.bzlmod }}
         run: tests/scripts/run_tests.sh -t @llvm_toolchain_with_system_llvm//:cc-toolchain-x86_64-linux
