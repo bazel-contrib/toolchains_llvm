@@ -56,8 +56,6 @@ llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
 # When updating this version, also update the versions associated with
 # llvm_toolchain below, sys_paths_test in the workflows file, and xcompile_test
 # through the `llvm_toolchain_with_sysroot` toolchain.
-LLVM_VERSION = "15.0.6"
-
 LLVM_VERSIONS = {
     "": "16.0.0",
     "darwin-aarch64": "16.0.5",
@@ -113,7 +111,7 @@ use_repo(llvm, "llvm_toolchain_13_0_0")
 llvm.toolchain(
     name = "llvm_toolchain_with_absolute_paths",
     absolute_paths = True,
-    llvm_version = LLVM_VERSION,
+    llvm_versions = LLVM_VERSIONS,
 )
 # We can share the downloaded LLVM distribution with the first configuration.
 llvm.toolchain_root(
@@ -125,7 +123,7 @@ use_repo(llvm, "llvm_toolchain_with_absolute_paths")
 # Toolchain example with system LLVM; tested in GitHub CI.
 llvm.toolchain(
     name = "llvm_toolchain_with_system_llvm",
-    llvm_version = LLVM_VERSION,
+    llvm_versions = LLVM_VERSIONS,
 )
 # For this toolchain to work, the LLVM distribution archive would need to be unpacked here.
 llvm.toolchain_root(
