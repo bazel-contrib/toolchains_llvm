@@ -115,7 +115,8 @@ The following mechanisms are available for using an LLVM toolchain:
    the archive is downloaded and extracted as a separate repository with the
    suffix `_llvm`.
 3. You can also specify your own bazel package paths or local absolute paths
-   for each host os-arch pair through the `toolchain_roots` attribute. Note
+   for each host os-arch pair through the `toolchain_roots` attribute (without
+   bzlmod) or the `toolchain_root` module extension tags (with bzlmod). Note
    that the keys here are different and less granular than the keys in the `urls`
    attribute. When using a bazel package path, each of the values is typically
    a package in the user's workspace or configured through `local_repository` or
@@ -132,11 +133,12 @@ The following mechanisms are available for using an LLVM toolchain:
 
 ### Sysroots
 
-A sysroot can be specified through the `sysroot` attribute. This can be either
-a path on the user's system, or a bazel `filegroup` like label. One way to
-create a sysroot is to use `docker export` to get a single archive of the
-entire filesystem for the image you want. Another way is to use the build
-scripts provided by the [Chromium
+A sysroot can be specified through the `sysroot` attribute (without bzlmod) or
+the `sysroot` module extension tag (with bzlmod). This can be either a path on
+the user's system, or a bazel `filegroup` like label. One way to create a
+sysroot is to use `docker export` to get a single archive of the entire
+filesystem for the image you want. Another way is to use the build scripts
+provided by the [Chromium
 project](https://chromium.googlesource.com/chromium/src/+/HEAD/docs/linux/sysroot.md).
 
 ### Cross-compilation
