@@ -206,16 +206,12 @@ def cc_toolchain_config(
                 "-ldl",
             ])
         else:
-            # The only known mechanism to static link libraries in ld64 is to
-            # not have the corresponding .dylib files in the library search
-            # path. The link time sandbox does not include the .dylib files, so
-            # anything we pick up from the toolchain should be statically
-            # linked. However, several system libraries on macOS dynamically
-            # link libc++ and libc++abi, so static linking them becomes a problem.
-            # We need to ensure that they are dynamic linked from the system
-            # sysroot and not static linked from the toolchain, so explicitly
-            # have the sysroot directory on the search path and then add the
-            # toolchain directory back after we are done.
+            # Several system libraries on macOS dynamically link libc++ and
+            # libc++abi, so static linking them becomes a problem. We need to
+            # ensure that they are dynamic linked from the system sysroot and
+            # not static linked from the toolchain, so explicitly have the
+            # sysroot directory on the search path and then add the toolchain
+            # directory back after we are done.
             link_flags.extend([
                 "-L{}/usr/lib".format(sysroot_path),
                 "-lc++",
@@ -223,18 +219,9 @@ def cc_toolchain_config(
                 "-Bstatic",
                 "-lunwind",
                 "-Bdynamic",
-            ])
-
-            # Let's provide the path to the toolchain library directory
-            # explicitly as part of the search path to make it easy for a user
-            # to pick up something. This also makes the behavior consistent with
-            # targets when a user explicitly depends on something like
-            # libomp.dylib, which adds this directory to the search path, and would
-            # (unintentionally) lead to static linking of libraries from the
-            # toolchain.
-            link_flags.extend([
                 "-L{}lib".format(toolchain_path_prefix),
             ])
+
     elif stdlib == "libc++":
         cxx_flags = [
             "-std=" + cxx_standard,
