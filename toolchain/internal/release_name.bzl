@@ -22,12 +22,14 @@ def _darwin_apple_suffix(llvm_version, arch):
             return "apple-darwin22.3.0"
         else:
             return "apple-darwin"
+    elif major_llvm_version == 15 and patch_llvm_version <= 6:
+        if arch == "arm64":
+            return "apple-darwin21.0"
+        else:
+            return "apple-darwin"
     elif major_llvm_version >= 15:
         if arch == "arm64":
-            if major_llvm_version == 15 and patch_llvm_version <= 6:
-                return "apple-darwin21.0"
-            else:
-                return "apple-darwin22.0"
+            return "apple-darwin22.0"
         else:
             return "apple-darwin21.0"
     else:
@@ -55,19 +57,30 @@ def _windows(llvm_version, arch):
     )
 
 def _ubuntu_osname(arch, version, major_llvm_version, llvm_version):
-    if arch == "powerpc64le":
-        if major_llvm_version > 11:
-            return "linux-gnu-ubuntu-18.04"
-        else:
-            return "linux-gnu-ubuntu-16.04"
+    patch_llvm_version = _patch_llvm_version(llvm_version)
 
-    is_llvm_major_release = (_minor_llvm_version(llvm_version) == 0) and (_patch_llvm_version(llvm_version) == 0)
+    if arch == "powerpc64le":
+        if major_llvm_version >= 17 or (major_llvm_version == 16 and patch_llvm_version >= 1):
+            return "linux-ubuntu-20.04"
+        elif major_llvm_version == 15 and patch_llvm_version == 0:
+            return "linux-ubuntu-18.04.6"
+        elif ((major_llvm_version == 15 and patch_llvm_version <= 5) or
+              (major_llvm_version == 14 and patch_llvm_version >= 4)):
+            return "linux-ubuntu-18.04.5"
+        elif major_llvm_version >= 11:
+            return "linux-ubuntu-18.04"
+        else:
+            return "linux-ubuntu-16.04"
+
+    is_llvm_major_release = (_minor_llvm_version(llvm_version) == 0) and (patch_llvm_version == 0)
     major_ubuntu_version = int(version.split(".")[0])
     if (major_ubuntu_version >= 20 and (not version.startswith("20.04")) and
         (llvm_version in ["11.0.1", "11.1.0"])):
         os_name = "linux-gnu-ubuntu-20.10"
     elif is_llvm_major_release:
-        if major_llvm_version >= 14:
+        if major_llvm_version >= 17:
+            os_name = "linux-gnu-ubuntu-22.04"
+        elif major_llvm_version >= 14:
             os_name = "linux-gnu-ubuntu-18.04"
         elif major_llvm_version >= 11:
             os_name = "linux-gnu-ubuntu-" + ("20.04" if major_ubuntu_version >= 20 else "16.04")
@@ -78,11 +91,11 @@ def _ubuntu_osname(arch, version, major_llvm_version, llvm_version):
             os_name = "linux-gnu-ubuntu-16.04"
     else:
         # Availability may be sparse for patch releases.
-        if llvm_version in ["17.0.6", "17.0.5", "17.0.4", "17.0.3", "17.0.2", "16.0.4", "16.0.3", "16.0.2"]:
+        if llvm_version in ["17.0.6", "17.0.5", "17.0.4", "17.0.2", "16.0.4", "16.0.3", "16.0.2"]:
             os_name = "linux-gnu-ubuntu-22.04"
         elif llvm_version in ["16.0.1"]:
             os_name = "linux-gnu-ubuntu-20.04"
-        elif llvm_version in ["15.0.6", "13.0.1"]:
+        elif llvm_version in ["15.0.6", "15.0.5", "13.0.1"]:
             os_name = "linux-gnu-ubuntu-18.04"
         elif llvm_version in ["15.0.2"]:
             os_name = "unknown-linux-gnu-rhel86"
@@ -94,6 +107,31 @@ def _ubuntu_osname(arch, version, major_llvm_version, llvm_version):
             fail("LLVM patch release %s not available for Ubuntu %s" % (llvm_version, version))
 
     return os_name
+
+def _rhel_osname(arch, version, major_llvm_version, llvm_version):
+    if arch == "powerpc64le":
+        patch_llvm_version = _patch_llvm_version(llvm_version)
+
+        if major_llvm_version >= 17:
+            return "powerpc64le-linux-rhel-8.8"
+        elif major_llvm_version == 16 and patch_llvm_version >= 5:
+            return "powerpc64le-linux-rhel-8.7"
+        elif major_llvm_version >= 15 or (major_llvm_version == 14 and patch_llvm_version >= 1):
+            return "powerpc64le-linux-rhel-8.4"
+        elif major_llvm_version >= 12:
+            return "powerpc64le-linux-rhel-7.9"
+        else:
+            return "powerpc64le-linux-rhel-7.4"
+
+    if 8 <= float(version) and float(version) < 9:
+        if llvm_version in ["15.0.0", "14.0.6"]:
+            return "x86_64-linux-gnu-rhel-8.4"
+
+        return _ubuntu_osname(arch, "18.04", major_llvm_version, llvm_version)
+    elif float(version) >= 9:
+        return _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version)
+
+    return None
 
 def _linux(llvm_version, distname, version, arch):
     major_llvm_version = _major_llvm_version(llvm_version)
@@ -137,11 +175,8 @@ def _linux(llvm_version, distname, version, arch):
     elif distname == "raspbian":
         arch = "armv7a"
         os_name = "linux-gnueabihf"
-    elif distname == "rhel":
-        if 8 <= float(version) and float(version) < 9:
-            os_name = _ubuntu_osname(arch, "18.04", major_llvm_version, llvm_version)
-        elif float(version) >= 9:
-            os_name = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version)
+    elif distname in ["rhel", "ol", "almalinux"]:
+        os_name = _rhel_osname(arch, version, major_llvm_version, llvm_version)
 
     if not os_name:
         fail("Unsupported linux distribution and version: %s, %s" % (distname, version))

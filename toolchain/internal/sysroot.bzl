@@ -15,6 +15,7 @@
 load(
     "//toolchain/internal:common.bzl",
     _canonical_dir_path = "canonical_dir_path",
+    _is_absolute_path = "is_absolute_path",
     _os_arch_pair = "os_arch_pair",
     _pkg_name_from_label = "pkg_name_from_label",
     _pkg_path_from_label = "pkg_path_from_label",
@@ -47,7 +48,7 @@ def _sysroot_path(sysroot_dict, os, arch):
     # If the sysroot is an absolute path, use it as-is. Check for things that
     # start with "/" and not "//" to identify absolute paths, but also support
     # passing the sysroot as "/" to indicate the root directory.
-    if sysroot[0] == "/" and (len(sysroot) == 1 or sysroot[1] != "/"):
+    if _is_absolute_path(sysroot):
         return (sysroot, None)
 
     label = Label(sysroot)

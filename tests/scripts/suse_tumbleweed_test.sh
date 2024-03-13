@@ -29,7 +29,7 @@ echo "git root: ${git_root}"
 
 for image in "${images[@]}"; do
   docker pull "${image}"
-  docker run --rm --entrypoint=/bin/bash --volume="${git_root}:/src" "${image}" -c """
+  docker run --rm --entrypoint=/bin/bash --env USE_BZLMOD --volume="${git_root}:/src" "${image}" -c """
 set -exuo pipefail
 
 # Common setup

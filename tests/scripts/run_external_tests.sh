@@ -24,7 +24,7 @@ cd "${scripts_dir}"
 # Generate some files needed for the tests.
 "${bazel}" query "${common_args[@]}" @io_bazel_rules_go//tests/core/cgo:dylib_test >/dev/null
 if [[ ${USE_BZLMOD} == "true" ]]; then
-  "$("${bazel}" info output_base)/external/rules_go~override/tests/core/cgo/generate_imported_dylib.sh"
+  "$("${bazel}" info output_base)/external/rules_go~/tests/core/cgo/generate_imported_dylib.sh"
 else
   "$("${bazel}" info output_base)/external/io_bazel_rules_go/tests/core/cgo/generate_imported_dylib.sh"
 fi
@@ -45,18 +45,17 @@ test_args=(
 #   to run, and it is not particularly useful to us.
 # - time_zone_format_test from abseil-cpp because it assumes TZ is set to America/Los_Angeles, but
 #   we run the tests in UTC.
-#   The rules_rust tests should be:
-# @rules_rust//test/unit/{native_deps,linkstamps,interleaved_cc_info}:all
-#   but under bzlmod the linkstamp tests fail due to the fact we are currently
-#   overriding rules_rust locally as its not yet released in the BCR
+# - {cdylib,bin}_has_native_dep_and_alwayslink_test from rules_rust because they assume the test is
+#    being run in the root module (use 'rules_rust' in the bazel-bin path instead of 'rules_rust~').
 # shellcheck disable=SC2207
-absl_targets=($("${bazel}" query "${common_args[@]}" 'attr(timeout, short, tests(@com_google_absl//absl/...))'))
+absl_targets=($("${bazel}" query "${common_args[@]}" 'attr(timeout, short, tests(@com_google_absl//absl/...) except attr(tags, benchmark, tests(@com_google_absl//absl/...)))'))
 "${bazel}" --bazelrc=/dev/null test "${test_args[@]}" -- \
   //foreign:pcre \
   @openssl//:libssl \
-  @rules_rust//test/unit/interleaved_cc_info:all \
+  @rules_rust//test/unit/{interleaved_cc_info,native_deps}:all \
   @io_bazel_rules_go//tests/core/cgo:all \
   -@io_bazel_rules_go//tests/core/cgo:cc_libs_test \
   -@io_bazel_rules_go//tests/core/cgo:external_includes_test \
+  -@rules_rust//test/unit/native_deps:{cdylib,bin}_has_native_dep_and_alwayslink_test \
   "${absl_targets[@]}" \
   -@com_google_absl//absl/time/internal/cctz:time_zone_format_test

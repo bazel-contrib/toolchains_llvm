@@ -24,6 +24,7 @@ load(
     _check_os_arch_keys = "check_os_arch_keys",
     _host_os_arch_dict_value = "host_os_arch_dict_value",
     _host_tools = "host_tools",
+    _is_absolute_path = "is_absolute_path",
     _list_to_string = "list_to_string",
     _os = "os",
     _os_arch_pair = "os_arch_pair",
@@ -42,22 +43,25 @@ load(
 # workspace builds, there is never a @@ in labels.
 BZLMOD_ENABLED = "@@" in str(Label("//:unused"))
 
+def _empty_repository(rctx):
+    rctx.file("BUILD.bazel")
+    rctx.file("toolchains.bzl", """\
+def llvm_register_toolchains():
+    pass
+""")
+
 def llvm_config_impl(rctx):
     _check_os_arch_keys(rctx.attr.sysroot)
     _check_os_arch_keys(rctx.attr.cxx_builtin_include_directories)
 
     os = _os(rctx)
     if os == "windows":
-        rctx.file("BUILD.bazel")
-        rctx.file("toolchains.bzl", """\
-def llvm_register_toolchains():
-    pass
-""")
+        _empty_repository(rctx)
         return
     arch = _arch(rctx)
 
     if not rctx.attr.toolchain_roots:
-        toolchain_root = "@@%s_llvm//" % rctx.attr.name if BZLMOD_ENABLED else "@%s_llvm//" % rctx.attr.name
+        toolchain_root = ("@" if BZLMOD_ENABLED else "") + "@%s_llvm//" % rctx.attr.name
     else:
         (_key, toolchain_root) = _host_os_arch_dict_value(rctx, "toolchain_roots")
 
@@ -65,14 +69,15 @@ def llvm_register_toolchains():
         fail("LLVM toolchain root missing for ({}, {})".format(os, arch))
     (_key, llvm_version) = _host_os_arch_dict_value(rctx, "llvm_versions")
     if not llvm_version:
-        fail("LLVM version string missing for ({}, {})".format(os, arch))
-
+        # LLVM version missing for (os, arch)
+        _empty_repository(rctx)
+        return
     use_absolute_paths_llvm = rctx.attr.absolute_paths
     use_absolute_paths_sysroot = use_absolute_paths_llvm
 
     # Check if the toolchain root is a system path.
     system_llvm = False
-    if toolchain_root[0] == "/" and (len(toolchain_root) == 1 or toolchain_root[1] != "/"):
+    if _is_absolute_path(toolchain_root):
         use_absolute_paths_llvm = True
         system_llvm = True
 
@@ -105,11 +110,12 @@ def llvm_register_toolchains():
         # symlinked path from the wrapper.
         wrapper_bin_prefix = "bin/"
         tools_path_prefix = "bin/"
-        for tool_name in _toolchain_tools:
-            rctx.symlink(llvm_dist_rel_path + "bin/" + tool_name, tools_path_prefix + tool_name)
+        tools = _toolchain_tools(os)
+        for tool_name, symlink_name in tools.items():
+            rctx.symlink(llvm_dist_rel_path + "bin/" + tool_name, tools_path_prefix + symlink_name)
         symlinked_tools_str = "".join([
-            "\n" + (" " * 8) + "\"" + tools_path_prefix + name + "\","
-            for name in _toolchain_tools
+            "\n" + (" " * 8) + "\"" + tools_path_prefix + symlink_name + "\","
+            for symlink_name in tools.values()
         ])
     else:
         llvm_dist_rel_path = llvm_dist_path_prefix
@@ -144,6 +150,7 @@ def llvm_register_toolchains():
         compile_flags_dict = rctx.attr.compile_flags,
         cxx_flags_dict = rctx.attr.cxx_flags,
         link_flags_dict = rctx.attr.link_flags,
+        archive_flags_dict = rctx.attr.archive_flags,
         link_libs_dict = rctx.attr.link_libs,
         opt_compile_flags_dict = rctx.attr.opt_compile_flags,
         opt_link_flags_dict = rctx.attr.opt_link_flags,
@@ -365,6 +372,7 @@ cc_toolchain_config(
       "compile_flags": {compile_flags},
       "cxx_flags": {cxx_flags},
       "link_flags": {link_flags},
+      "archive_flags": {archive_flags},
       "link_libs": {link_libs},
       "opt_compile_flags": {opt_compile_flags},
       "opt_link_flags": {opt_link_flags},
@@ -522,6 +530,7 @@ cc_toolchain(
         compile_flags = _list_to_string(_dict_value(toolchain_info.compile_flags_dict, target_pair)),
         cxx_flags = _list_to_string(_dict_value(toolchain_info.cxx_flags_dict, target_pair)),
         link_flags = _list_to_string(_dict_value(toolchain_info.link_flags_dict, target_pair)),
+        archive_flags = _list_to_string(_dict_value(toolchain_info.archive_flags_dict, target_pair)),
         link_libs = _list_to_string(_dict_value(toolchain_info.link_libs_dict, target_pair)),
         opt_compile_flags = _list_to_string(_dict_value(toolchain_info.opt_compile_flags_dict, target_pair)),
         opt_link_flags = _list_to_string(_dict_value(toolchain_info.opt_link_flags_dict, target_pair)),
