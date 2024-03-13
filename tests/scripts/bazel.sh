@@ -48,6 +48,7 @@ common_test_args=(
   "--show_progress_rate_limit=30"
   "--keep_going"
   "--test_output=errors"
+  "--features=layering_check"
 )
 
 # Do not run autoconf to configure local CC toolchains.
