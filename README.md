@@ -251,11 +251,6 @@ deps (also known as "depend on what you use") for `cc_*` rules. This feature
 can be enabled by enabling the `layering_check` feature on a per-target,
 per-package or global basis.
 
-If one of toolchain or sysroot are specified via an absolute path rather than
-managed by Bazel, the `layering_check` feature may require running
-`bazel clean --expunge` after making changes to the set of header files
-installed on the host.
-
 ## Prior Art
 
 Other examples of toolchain configuration:

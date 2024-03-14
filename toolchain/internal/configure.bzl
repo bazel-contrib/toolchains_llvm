@@ -545,7 +545,14 @@ cc_toolchain(
         unfiltered_compile_flags = _list_to_string(_dict_value(toolchain_info.unfiltered_compile_flags_dict, target_pair)),
         extra_files_str = extra_files_str,
         host_tools_info = host_tools_info,
-        cxx_builtin_include_directories = _list_to_string(cxx_builtin_include_directories),
+        cxx_builtin_include_directories = _list_to_string([
+            # Filter out non-existing directories with absolute paths as they
+            # result in a -Wincomplete-umbrella warning when mentioned in the
+            # system module map.
+            dir
+            for dir in cxx_builtin_include_directories
+            if _is_hermetic_or_exists(rctx, dir, sysroot_prefix)
+        ]),
         extra_compiler_files = ("\"%s\"," % str(toolchain_info.extra_compiler_files)) if toolchain_info.extra_compiler_files else "",
     )
 
@@ -586,3 +593,9 @@ native_binary(
         llvm_dist_label_prefix = llvm_dist_label_prefix,
         host_dl_ext = host_dl_ext,
     )
+
+def _is_hermetic_or_exists(rctx, path, sysroot_prefix):
+    path = path.replace("%sysroot%", sysroot_prefix)
+    if not path.startswith("/"):
+        return True
+    return rctx.path(path).exists
