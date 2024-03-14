@@ -19,7 +19,6 @@ load(
 load(
     "//toolchain/internal:common.bzl",
     _check_os_arch_keys = "check_os_arch_keys",
-    _host_tools = "host_tools",
     _os_arch_pair = "os_arch_pair",
 )
 
@@ -32,8 +31,8 @@ def _fmt_flags(flags, toolchain_path_prefix):
 # right paths and flags for the tools.
 def cc_toolchain_config(
         name,
-        host_arch,
-        host_os,
+        exec_arch,
+        exec_os,
         target_arch,
         target_os,
         target_system_name,
@@ -41,16 +40,14 @@ def cc_toolchain_config(
         tools_path_prefix,
         wrapper_bin_prefix,
         compiler_configuration,
-        cxx_builtin_include_directories,
-        host_tools_info = {}):
-    host_os_arch_key = _os_arch_pair(host_os, host_arch)
+        cxx_builtin_include_directories):
+    exec_os_arch_key = _os_arch_pair(exec_os, exec_arch)
     target_os_arch_key = _os_arch_pair(target_os, target_arch)
-    _check_os_arch_keys([host_os_arch_key, target_os_arch_key])
+    _check_os_arch_keys([exec_os_arch_key, target_os_arch_key])
 
     # A bunch of variables that get passed straight through to
     # `create_cc_toolchain_config_info`.
     # TODO: What do these values mean, and are they actually all correct?
-    host_system_name = host_arch
     (
         toolchain_identifier,
         target_cpu,
@@ -107,7 +104,7 @@ def cc_toolchain_config(
         "-fdebug-prefix-map={}=__bazel_toolchain_llvm_repo__/".format(toolchain_path_prefix),
     ]
 
-    is_xcompile = not (host_os == target_os and host_arch == target_arch)
+    is_xcompile = not (exec_os == target_os and exec_arch == target_arch)
 
     # Default compiler flags:
     compile_flags = [
@@ -148,7 +145,7 @@ def cc_toolchain_config(
     archive_flags = []
 
     # Linker flags:
-    if host_os == "darwin" and not is_xcompile:
+    if exec_os == "darwin" and not is_xcompile:
         # lld is experimental for Mach-O, so we use the native ld64 linker.
         # TODO: How do we cross-compile from Linux to Darwin?
         use_lld = False
@@ -264,7 +261,10 @@ def cc_toolchain_config(
     ## NOTE: make variables are missing here; unix_cc_toolchain_config doesn't
     ## pass these to `create_cc_toolchain_config_info`.
 
-    # The tool names come from [here](https://github.com/bazelbuild/bazel/blob/c7e58e6ce0a78fdaff2d716b4864a5ace8917626/src/main/java/com/google/devtools/build/lib/rules/cpp/CppConfiguration.java#L76-L90):
+    # The requirements here come from
+    # https://cs.opensource.google/bazel/bazel/+/master:src/main/starlark/builtins_bzl/common/cc/cc_toolchain_provider_helper.bzl;l=75;drc=f0150efd1cca473640269caaf92b5a23c288089d
+    # https://cs.opensource.google/bazel/bazel/+/master:src/main/java/com/google/devtools/build/lib/rules/cpp/CcModule.java;l=1257;drc=6743d76f9ecde726d592e88d8914b9db007b1c43
+    # https://cs.opensource.google/bazel/bazel/+/refs/tags/7.0.0:tools/cpp/unix_cc_toolchain_config.bzl;l=192,201;drc=044a14cca2747aeff258fc71eaeb153c08cb34d5
     # NOTE: Ensure these are listed in toolchain_tools in toolchain/internal/common.bzl.
     tool_paths = {
         "ar": tools_path_prefix + ("llvm-ar" if not use_libtool else "libtool"),
@@ -272,7 +272,7 @@ def cc_toolchain_config(
         "dwp": tools_path_prefix + "llvm-dwp",
         "gcc": wrapper_bin_prefix + "cc_wrapper.sh",
         "gcov": tools_path_prefix + "llvm-profdata",
-        "ld": tools_path_prefix + "ld.lld" if use_lld else _host_tools.get_and_assert(host_tools_info, "ld"),
+        "ld": tools_path_prefix + "ld.lld" if use_lld else "/usr/bin/ld",
         "llvm-cov": tools_path_prefix + "llvm-cov",
         "llvm-profdata": tools_path_prefix + "llvm-profdata",
         "nm": tools_path_prefix + "llvm-nm",
@@ -319,7 +319,7 @@ def cc_toolchain_config(
         cpu = target_cpu,
         compiler = compiler,
         toolchain_identifier = toolchain_identifier,
-        host_system_name = host_system_name,
+        host_system_name = exec_arch,
         target_system_name = target_system_name,
         target_libc = target_libc,
         abi_version = abi_version,
