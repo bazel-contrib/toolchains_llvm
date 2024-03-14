@@ -148,3 +148,17 @@ llvm.sysroot(
     label = "@@org_chromium_sysroot_linux_x64//:sysroot",
 )
 use_repo(llvm, "llvm_toolchain_with_sysroot")
+
+llvm.toolchain(
+    name = "llvm_toolchain_linux_exec",
+    llvm_version = "17.0.6",
+    # Option 1:
+    sha256 = {"": "884ee67d647d77e58740c1e645649e29ae9e8a6fe87c1376be0f3a30f3cc9ab3"},
+    strip_prefix = {"": "clang+llvm-17.0.6-x86_64-linux-gnu-ubuntu-22.04"},
+    urls = {"": ["https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.6/clang+llvm-17.0.6-x86_64-linux-gnu-ubuntu-22.04.tar.xz"]},
+    # Option 2:
+    # distribution = "clang+llvm-17.0.6-x86_64-linux-gnu-ubuntu-22.04.tar.xz",
+    exec_os = "linux",
+    exec_arch = "amd64",
+)
+use_repo(llvm, "llvm_toolchain_linux_exec")

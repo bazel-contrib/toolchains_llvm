@@ -156,13 +156,33 @@ The following pairs have been tested to work for some hello-world binaries:
 A recommended approach would be to define two toolchains, one without sysroot
 for single-platform builds, and one with sysroot for cross-compilation builds.
 Then, when cross-compiling, explicitly specify the toolchain with the sysroot
-and the target platform. For example, see the [WORKSPACE](tests/WORKSPACE) file and
-the [test script](tests/scripts/run_xcompile_tests.sh) for cross-compilation.
+and the target platform. For example, see the [MODULE.bazel](tests/MODULE.bazel)
+file for `llvm_toolchain_with_sysroot` and the [test
+script](tests/scripts/run_xcompile_tests.sh) for cross-compilation.
 
 ```sh
 bazel build \
   --platforms=@toolchains_llvm//platforms:linux-x86_64 \
   --extra_toolchains=@llvm_toolchain_with_sysroot//:cc-toolchain-x86_64-linux \
+  //...
+```
+
+### Multi-platform builds
+
+The toolchain supports multi-platform builds through the combination of the
+`exec_os`, `exec_arch` attribute pair, and either the `distribution` attribute,
+or the `urls` attribute. This allows one to run their builds on one platform
+(e.g. macOS) and their build actions to run on another (e.g. Linux), enabling
+remote build execution (RBE). For example, see the [MODULE.bazel](tests/MODULE.bazel)
+file for `llvm_toolchain_linux_exec` and the [test
+script](tests/scripts/run_docker_exec_test.sh) for running the build actions on
+Linux even if the build is being run from macOS.
+
+```sh
+bazel build \
+  --platforms=@toolchains_llvm//platforms:linux-x86_64 \
+  --extra_execution_platforms=@toolchains_llvm//platforms:linux-x86_64 \
+  --extra_toolchains=@llvm_toolchain_linux_exec//:cc-toolchain-x86_64-linux \
   //...
 ```
 

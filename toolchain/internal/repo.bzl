@@ -35,6 +35,14 @@ common_attrs = {
                "in the list of known llvm_distributions using the provided version. " +
                "If unset, a default value is set from the `llvm_version` attribute."),
     ),
+    "exec_os": attr.string(
+        mandatory = False,
+        doc = "Execution platform OS, if different from host OS.",
+    ),
+    "exec_arch": attr.string(
+        mandatory = False,
+        doc = "Execution platform architecture, if different from host arch.",
+    ),
 }
 
 llvm_repo_attrs = dict(common_attrs)
