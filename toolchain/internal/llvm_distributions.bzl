@@ -13,7 +13,7 @@
 # limitations under the License.
 
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "read_netrc", "use_netrc")
-load("//toolchain/internal:common.bzl", _arch = "arch", _attr_dict = "attr_dict", _host_os_arch_dict_value = "host_os_arch_dict_value", _os = "os")
+load("//toolchain/internal:common.bzl", _arch = "arch", _attr_dict = "attr_dict", _exec_os_arch_dict_value = "exec_os_arch_dict_value", _os = "os")
 load("//toolchain/internal:release_name.bzl", _llvm_release_name = "llvm_release_name")
 
 # If a new LLVM version is missing from this list, please add the shasums here
@@ -547,7 +547,7 @@ def download_llvm(rctx):
     return updated_attrs
 
 def _urls(rctx):
-    (key, urls) = _host_os_arch_dict_value(rctx, "urls", debug = False)
+    (key, urls) = _exec_os_arch_dict_value(rctx, "urls", debug = False)
     if not urls:
         print("LLVM archive URLs missing and no default fallback provided; will try 'distribution' attribute")  # buildifier: disable=print
 
@@ -561,7 +561,7 @@ def _get_llvm_version(rctx):
         return rctx.attr.llvm_version
     if not rctx.attr.llvm_versions:
         fail("Neither 'llvm_version' nor 'llvm_versions' given.")
-    (_, llvm_version) = _host_os_arch_dict_value(rctx, "llvm_versions")
+    (_, llvm_version) = _exec_os_arch_dict_value(rctx, "llvm_versions")
     if not llvm_version:
         fail("LLVM version string missing for ({os}, {arch})", os = _os(rctx), arch = _arch(rctx))
     return llvm_version
