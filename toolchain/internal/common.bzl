@@ -92,7 +92,7 @@ def os_version_arch(rctx):
     _os = os(rctx)
     _arch = arch(rctx)
 
-    if _os == "linux":
+    if _os == "linux" and not rctx.attr.exec_os:
         (distname, version) = _linux_dist(rctx)
         return distname, version, _arch
 
@@ -100,6 +100,13 @@ def os_version_arch(rctx):
 
 def os(rctx):
     # Less granular host OS name, e.g. linux.
+
+    name = rctx.attr.exec_os
+    if name:
+        if name in ("linux", "darwin"):
+            return name
+        else:
+            fail("Unsupported value for exec_os: %s" % name)
 
     name = rctx.os.name
     if name == "linux":
@@ -115,6 +122,15 @@ def os_bzl(os):
     return {"darwin": "osx", "linux": "linux"}[os]
 
 def arch(rctx):
+    arch = rctx.attr.exec_arch
+    if arch:
+        if arch in ("arm64", "aarch64"):
+            return "aarch64"
+        elif arch in ("amd64", "x86_64"):
+            return "x86_64"
+        else:
+            fail("Unsupported value for exec_arch: %s" % arch)
+
     arch = rctx.os.arch
     if arch == "arm64":
         return "aarch64"
