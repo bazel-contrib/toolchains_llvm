@@ -42,6 +42,7 @@ set -x
 test_args=(
   "--extra_toolchains=${toolchain_name}"
   "--copt=-v"
+  "--linkopt=-Wl,-v"
   "--linkopt=-Wl,-t"
 )
 

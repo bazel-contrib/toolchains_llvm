@@ -19,6 +19,7 @@ load(
 load(
     "//toolchain/internal:common.bzl",
     _check_os_arch_keys = "check_os_arch_keys",
+    _host_tools = "host_tools",
     _os_arch_pair = "os_arch_pair",
 )
 
@@ -41,7 +42,7 @@ def cc_toolchain_config(
         wrapper_bin_prefix,
         compiler_configuration,
         cxx_builtin_include_directories,
-        host_tools_info = {}):  # trunk-ignore(buildifier/unused-variable)
+        host_tools_info = {}):
     host_os_arch_key = _os_arch_pair(host_os, host_arch)
     target_os_arch_key = _os_arch_pair(target_os, target_arch)
     _check_os_arch_keys([host_os_arch_key, target_os_arch_key])
@@ -148,10 +149,10 @@ def cc_toolchain_config(
 
     # Linker flags:
     if host_os == "darwin" and not is_xcompile:
+        # lld is experimental for Mach-O, so we use the native ld64 linker.
+        # TODO: How do we cross-compile from Linux to Darwin?
         use_lld = False
-        ld_name = "ld64.lld"
         link_flags.extend([
-            "-fuse-ld=ld64.lld",  # This is converted to absolute path in cc_wrapper.sh
             "-headerpad_max_install_names",
             "-fobjc-link-runtime",
         ])
@@ -170,7 +171,6 @@ def cc_toolchain_config(
         # not an option because it is not a cross-linker, so lld is the
         # only option.
         use_lld = True
-        ld_name = "lld"
         link_flags.extend([
             "-fuse-ld=lld",
             "-Wl,--build-id=md5",
@@ -272,7 +272,7 @@ def cc_toolchain_config(
         "dwp": tools_path_prefix + "llvm-dwp",
         "gcc": wrapper_bin_prefix + "cc_wrapper.sh",
         "gcov": tools_path_prefix + "llvm-profdata",
-        "ld": tools_path_prefix + ld_name,
+        "ld": tools_path_prefix + "ld.lld" if use_lld else _host_tools.get_and_assert(host_tools_info, "ld"),
         "llvm-cov": tools_path_prefix + "llvm-cov",
         "llvm-profdata": tools_path_prefix + "llvm-profdata",
         "nm": tools_path_prefix + "llvm-nm",
