@@ -21,7 +21,7 @@ source "${scripts_dir}/bazel.sh"
 
 cd "${scripts_dir}"
 
-binpath="$("${bazel}" info bazel-bin)/stdlib_test"
+binpath="$("${bazel}" info "${common_args[@]}" bazel-bin)/stdlib_test"
 
 check_with_image() {
   if "${CI:-false}"; then
@@ -36,6 +36,7 @@ check_with_image() {
 echo ""
 echo "Testing static linked user libraries and dynamic linked system libraries"
 build_args=(
+  "${common_args[@]}"
   --platforms=@toolchains_llvm//platforms:linux-x86_64
   --extra_toolchains=@llvm_toolchain_with_sysroot//:cc-toolchain-x86_64-linux
   --symlink_prefix=/
