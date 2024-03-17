@@ -34,7 +34,7 @@ source "${scripts_dir}/bazel.sh"
 cd "${scripts_dir}"
 
 base_image="debian:stable-slim"
-binpath="$("${bazel}" info bazel-bin)/stdlib_test"
+binpath="$("${bazel}" info "${common_args[@]}" bazel-bin)/stdlib_test"
 
 docker build --platform=linux/amd64 --pull --tag=bazel-docker-sandbox - <<-EOF
 	FROM ${base_image}
@@ -44,6 +44,7 @@ docker build --platform=linux/amd64 --pull --tag=bazel-docker-sandbox - <<-EOF
 EOF
 
 build_args=(
+  "${common_args[@]}"
   # Platforms
   "--platforms=@toolchains_llvm//platforms:linux-x86_64"
   "--extra_execution_platforms=@toolchains_llvm//platforms:linux-x86_64"

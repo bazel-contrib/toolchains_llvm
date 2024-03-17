@@ -137,7 +137,7 @@ def _linux(llvm_version, distname, version, arch):
     major_llvm_version = _major_llvm_version(llvm_version)
 
     # NOTE: Many of these systems are untested because I do not have access to them.
-    # If you find this mapping wrong, please send a Pull Request on Github.
+    # If you find this mapping wrong, please send a Pull Request on GitHub.
     os_name = None
     if arch in ["aarch64", "armv7a", "mips", "mipsel"]:
         os_name = "linux-gnu"
