@@ -122,6 +122,10 @@ llvm_toolchain(
     },
 )
 
+load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
+
+bazel_skylib_workspace()
+
 llvm_toolchain(
     name = "llvm_toolchain_linux_exec",
     exec_arch = "amd64",
