@@ -448,6 +448,29 @@ _llvm_distributions = {
     "clang+llvm-17.0.6-powerpc64le-linux-rhel-8.8.tar.xz": "04e18072797920c2b5e9bdf0c3ee9e5a61adf76bd5ffeb438fafd9e32fc48b62",
     "clang+llvm-17.0.6-sparcv9-sun-solaris2.11.tar.xz": "b7df7b383679af98640640f88114f461f38a6efdfe7c369692b0675751ac2773",
     "clang+llvm-17.0.6-x86_64-linux-gnu-ubuntu-22.04.tar.xz": "884ee67d647d77e58740c1e645649e29ae9e8a6fe87c1376be0f3a30f3cc9ab3",
+
+    # 18.1.0
+    "clang+llvm-18.1.0-aarch64-linux-gnu.tar.xz": "32faaad5b6e072d763a603f7c51e4ee63e2d82c16e945524a539df84e3f2b058",
+    "clang+llvm-18.1.0-amd64-pc-solaris2.11.tar.xz": "c352b81dd6add029e3def54a7b90387bb1df15f76497adac0b9f305694eb2d8c",
+    "clang+llvm-18.1.0-powerpc64-ibm-aix-7.2.tar.xz": "cc9bcf2b2132c158a71f7f3971d105454131701c25767f97e977c568418aff89",
+    "clang+llvm-18.1.0-powerpc64le-linux-rhel-8.8.tar.xz": "730c40a0c79d89ca8875c2004fd49180e9b65585b24f68728232b06b3d8bda32",
+    "clang+llvm-18.1.0-sparcv9-sun-solaris2.11.tar.xz": "e871f472ceafbe0197cff81d7240552e45e55ead00fe82f4fb326af32bbfb657",
+    "clang+llvm-18.1.0-sparcv9-unknown-linux-gnu.tar.xz": "0f6d94d9e3eccb5596def41e48b3f8a400f27edc2374e6fc53d0b6baea0d79b3",
+    "clang+llvm-18.1.0-x86_64-pc-windows-msvc.tar.xz": "d128c0f5f7831c77d549296a910fc9972407ff028b720fb628ffa837ed7ff04e",
+
+    # 18.1.1
+    "clang+llvm-18.1.1-aarch64-linux-gnu.tar.xz": "6815ef3c314566605f90cff7922ff3ef5a6eaaf854604e4add6a170e6e98389f",
+    "clang+llvm-18.1.1-powerpc64-ibm-aix-7.2.tar.xz": "c900418e781d0de1f316fcce50ffeca903fa15d97df0dd90f6ac4bd2b43105d4",
+    "clang+llvm-18.1.1-powerpc64le-linux-rhel-8.8.tar.xz": "7415429a0c0eceeacedc00b3f99f9a869909682fab130c2e514f240379539741",
+    "clang+llvm-18.1.1-x86_64-pc-windows-msvc.tar.xz": "79ea242c0fbd66c632ed3aaebf6f821c1e4c03140497c67ea750443eb36bfc5d",
+
+    # 18.1.2
+    "clang+llvm-18.1.2-aarch64-linux-gnu.tar.xz": "aa9d6c6e70cbe2344be1f4b780525a9a4feb70a6e4fa46ea67822f0e7f839c21",
+    "clang+llvm-18.1.2-amd64-pc-solaris2.11.tar.xz": "83ca7644b5eebf5ac55014e628d0bbe685a79416d70a0d80d24ece0ddfc05c6d",
+    "clang+llvm-18.1.2-powerpc64-ibm-aix-7.2.tar.xz": "ad7351206905f61933be5937017fc454995d287346f7f0325c48c4552803af87",
+    "clang+llvm-18.1.2-powerpc64le-linux-rhel-8.8.tar.xz": "0dc4831dab74f47691dab934a52a055ea8fae6bfeec2ed5261991146b38f1cf3",
+    "clang+llvm-18.1.2-sparcv9-sun-solaris2.11.tar.xz": "b719027e8423296f06375ee151652623b0a1df46848dac0bb2614210e5bd233e",
+    "clang+llvm-18.1.2-x86_64-pc-windows-msvc.tar.xz": "0f3df344d9342905ba5ee6b6f669468d9c105a5812b794e7898d7b39780ce3ad",
 }
 
 # Note: Unlike the user-specified llvm_mirror attribute, the URL prefixes in
@@ -497,6 +520,9 @@ _llvm_distributions_base_url = {
     "17.0.4": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
     "17.0.5": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
     "17.0.6": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
+    "18.1.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
+    "18.1.1": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
+    "18.1.2": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
 }
 
 def _get_auth(ctx, urls):
