@@ -24,4 +24,5 @@ aliased_tools = [
     "clang-format",
     "clang-tidy",
     "llvm-cov",
+    "llvm-profdata",
 ]
