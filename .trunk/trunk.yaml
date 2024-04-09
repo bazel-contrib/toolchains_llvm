@@ -40,13 +40,13 @@ lint:
       environment:
         - name: PATH
           list: ["${linter}"]
-      known_good_version: 6.1.0
+      known_good_version: 7.1.0
       version_command:
         parse_regex: ${semver}
         run: buildifier --version
   enabled:
     - actionlint@1.6.25
-    - buildifier@6.3.3
+    - buildifier@7.1.0
     - checkov@2.4.9
     - git-diff-check
     - markdownlint@0.36.0
