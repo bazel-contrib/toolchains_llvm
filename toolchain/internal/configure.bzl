@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@bazel_skylib//lib:paths.bzl", "paths")
 load(
     "//toolchain:aliases.bzl",
     _aliased_libs = "aliased_libs",
@@ -48,6 +49,12 @@ def _empty_repository(rctx):
 def llvm_register_toolchains():
     pass
 """)
+
+def _join(path1, path2):
+    if path1:
+        return paths.join(path1, path2.lstrip("/"))
+    else:
+        return path2
 
 def llvm_config_impl(rctx):
     _check_os_arch_keys(rctx.attr.sysroot)
@@ -321,14 +328,14 @@ def _cc_toolchain_str(
         sysroot_prefix = "%sysroot%"
     if target_os == "linux":
         cxx_builtin_include_directories.extend([
-            sysroot_prefix + "/include",
-            sysroot_prefix + "/usr/include",
-            sysroot_prefix + "/usr/local/include",
+            _join(sysroot_prefix, "/include"),
+            _join(sysroot_prefix, "/usr/include"),
+            _join(sysroot_prefix, "/usr/local/include"),
         ])
     elif target_os == "darwin":
         cxx_builtin_include_directories.extend([
-            sysroot_prefix + "/usr/include",
-            sysroot_prefix + "/System/Library/Frameworks",
+            _join(sysroot_prefix, "/usr/include"),
+            _join(sysroot_prefix, "/System/Library/Frameworks"),
         ])
     else:
         fail("Unreachable")
