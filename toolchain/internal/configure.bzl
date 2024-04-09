@@ -322,14 +322,14 @@ def _cc_toolchain_str(
         sysroot_prefix = "%sysroot%"
     if target_os == "linux":
         cxx_builtin_include_directories.extend([
-            paths.join(sysroot_prefix, "/include"),
-            paths.join(sysroot_prefix, "/usr/include"),
-            paths.join(sysroot_prefix, "/usr/local/include"),
+            paths.join(sysroot_prefix, "include"),
+            paths.join(sysroot_prefix, "usr/include"),
+            paths.join(sysroot_prefix, "usr/local/include"),
         ])
     elif target_os == "darwin":
         cxx_builtin_include_directories.extend([
-            paths.join(sysroot_prefix, "/usr/include"),
-            paths.join(sysroot_prefix, "/System/Library/Frameworks"),
+            paths.join(sysroot_prefix, "usr/include"),
+            paths.join(sysroot_prefix, "System/Library/Frameworks"),
         ])
     else:
         fail("Unreachable")
