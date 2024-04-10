@@ -538,7 +538,7 @@ cc_toolchain(
             # system module map.
             dir
             for dir in cxx_builtin_include_directories
-            if _is_hermetic_or_exists(rctx, dir, sysroot_prefix)
+            if _is_hermetic_or_exists(rctx, dir, sysroot_path)
         ]),
         extra_compiler_files = ("\"%s\"," % str(toolchain_info.extra_compiler_files)) if toolchain_info.extra_compiler_files else "",
     )
@@ -581,8 +581,8 @@ native_binary(
         exec_dl_ext = exec_dl_ext,
     )
 
-def _is_hermetic_or_exists(rctx, path, sysroot_prefix):
-    path = path.replace("%sysroot%", sysroot_prefix)
+def _is_hermetic_or_exists(rctx, path, sysroot_path):
+    path = path.replace("%sysroot%", sysroot_path).replace("//", "/")
     if not path.startswith("/"):
         return True
     return rctx.path(path).exists
