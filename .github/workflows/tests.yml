@@ -27,7 +27,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-13, ubuntu-latest]
+        os: [macos-latest, ubuntu-latest]
         bazel_version: [7.0.0, latest] # Minimum supported Bazel version is 7.0.0.
         bzlmod: [true, false]
     runs-on: ${{ matrix.os }}
@@ -45,7 +45,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, ubuntu-latest]
+        # TODO: This doesn't work with arm64 Macs yet, hence pinning to macos-13.
+        os: [macos-13, ubuntu-latest]
         bazel_version: [latest] # rules_rust bzlmod support is experimental and needs latest version as of now (20230912).
         bzlmod: [true, false]
     runs-on: ${{ matrix.os }}
