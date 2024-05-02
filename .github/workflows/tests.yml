@@ -27,7 +27,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, ubuntu-latest]
+        os: [macos-13, ubuntu-latest]
         bazel_version: [7.0.0, latest] # Minimum supported Bazel version is 7.0.0.
         bzlmod: [true, false]
     runs-on: ${{ matrix.os }}
