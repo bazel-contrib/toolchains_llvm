@@ -23,6 +23,8 @@ aliased_tools = [
     "clang-apply-replacements",
     "clang-format",
     "clang-tidy",
+    "clangd",
     "llvm-cov",
     "llvm-profdata",
+    "llvm-symbolizer",
 ]
