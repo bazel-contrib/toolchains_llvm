@@ -95,7 +95,7 @@ def _ubuntu_osname(arch, version, major_llvm_version, llvm_version):
             os_name = "linux-gnu-ubuntu-22.04"
         elif llvm_version in ["16.0.1"]:
             os_name = "linux-gnu-ubuntu-20.04"
-        elif llvm_version in ["15.0.6", "15.0.5", "13.0.1"]:
+        elif llvm_version in ["18.1.4", "15.0.6", "15.0.5", "13.0.1"]:
             os_name = "linux-gnu-ubuntu-18.04"
         elif llvm_version in ["15.0.2"]:
             os_name = "unknown-linux-gnu-rhel86"
