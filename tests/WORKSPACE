@@ -188,8 +188,8 @@ go_download_sdk(
 
 http_archive(
     name = "rules_rust",
-    sha256 = "a6df4c22bb3fb43573a4c4088ef6d0fafe38a0ecd0f85ad21ffd888800337030",
-    urls = ["https://github.com/bazelbuild/rules_rust/releases/download/0.44.0/rules_rust-v0.44.0.tar.gz"],
+    sha256 = "d08a196ceedca79a1b82fd35b9cb27023ad6746a416ac9ed06eb145ed763d5a6",
+    urls = ["https://github.com/bazelbuild/rules_rust/releases/download/0.45.0/rules_rust-v0.45.0.tar.gz"],
 )
 
 load("@rules_rust//rust:repositories.bzl", "rules_rust_dependencies", "rust_register_toolchains")
