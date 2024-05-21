@@ -842,7 +842,7 @@ cc_library(
         "crypto/**/*.h",
         "crypto/include/*.h",
         "include/internal/*.h",
-    ]),
+    ], allow_empty = True),
     hdrs = HDRS + [
         # These are not independent compile units, but are included in other .c files.
         "crypto/LPdir_unix.c",

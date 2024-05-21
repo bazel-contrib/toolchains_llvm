@@ -34,10 +34,10 @@ filegroup(
 
 filegroup(
     name = "ld",
-    srcs = glob([
+    srcs = [
         "bin/ld.lld",
         "bin/ld64.lld",
-    ]),
+    ],
 )
 
 filegroup(
@@ -50,7 +50,10 @@ filegroup(
 
 filegroup(
     name = "all_includes",
-    srcs = glob(["include/**"]),
+    srcs = glob(
+        ["include/**"],
+        allow_empty = True,
+    ),
 )
 
 filegroup(
