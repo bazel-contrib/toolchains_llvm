@@ -34,7 +34,10 @@ filegroup(
 
 filegroup(
     name = "ld",
-    srcs = glob(["bin/ld.lld", "bin/ld64.lld"]),
+    srcs = glob([
+        "bin/ld.lld",
+        "bin/ld64.lld",
+    ]),
 )
 
 filegroup(
@@ -46,8 +49,8 @@ filegroup(
 )
 
 filegroup(
-  name = "all_includes",
-  srcs = glob(["include/**"]),
+    name = "all_includes",
+    srcs = glob(["include/**"]),
 )
 
 filegroup(
@@ -65,6 +68,7 @@ filegroup(
             # clang_rt.*.o supply crtbegin and crtend sections.
             "lib/**/clang_rt.*.o",
         ],
+        allow_empty = True,
         exclude = [
             "lib/libLLVM*.a",
             "lib/libclang*.a",
