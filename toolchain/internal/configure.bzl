@@ -372,6 +372,7 @@ cc_toolchain_config(
       "unfiltered_compile_flags": {unfiltered_compile_flags},
     }},
     cxx_builtin_include_directories = {cxx_builtin_include_directories},
+    major_llvm_version = {major_llvm_version},
 )
 
 toolchain(
@@ -541,6 +542,7 @@ cc_toolchain(
             if _is_hermetic_or_exists(rctx, dir, sysroot_path)
         ]),
         extra_compiler_files = ("\"%s\"," % str(toolchain_info.extra_compiler_files)) if toolchain_info.extra_compiler_files else "",
+        major_llvm_version = major_llvm_version,
     )
 
 def _convenience_targets_str(rctx, use_absolute_paths, llvm_dist_rel_path, llvm_dist_label_prefix, exec_dl_ext):
