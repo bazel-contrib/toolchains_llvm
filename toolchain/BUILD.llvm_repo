@@ -62,6 +62,10 @@ filegroup(
             "lib/**/lib*.a",
             "lib/clang/*/lib/**/*.a",
             "lib/clang/*/lib/**/*.dylib",
+            "lib/libomp.so",
+            "lib/libomptarget.so*",
+            "lib/libgomp.so",
+            "lib/libiomp5.so",
             # clang_rt.*.o supply crtbegin and crtend sections.
             "lib/**/clang_rt.*.o",
         ],
