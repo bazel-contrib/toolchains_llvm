@@ -23,6 +23,8 @@ exports_files(glob([
 
 ## LLVM toolchain files
 
+ALL_DLLS = glob(["bin/*.dll"])
+
 filegroup(
     name = "clang",
     srcs = [
@@ -30,13 +32,41 @@ filegroup(
         "bin/clang++.exe",
         "bin/clang-cpp.exe",
         "bin/clang-cl.exe",
-    ],
+    ] + ALL_DLLS,
+)
+
+filegroup(
+    name = "clang-cl",
+    srcs = [
+        "bin/clang-cl.exe",
+    ] + ALL_DLLS,
+)
+
+filegroup(
+    name = "llvm-ml",
+    srcs = [
+        "bin/llvm-ml.exe",
+    ] + ALL_DLLS,
 )
 
 filegroup(
     name = "ld",
     # a set of 4 identical binaries?
-    srcs = glob(["bin/ld.lld.exe", "bin/ld64.lld.exe", "lld-link.exe", "lld.exe"]),
+    srcs = ["bin/ld.lld.exe", "bin/ld64.lld.exe", "lld-link.exe", "lld.exe"] + ALL_DLLS,
+)
+
+filegroup(
+    name = "lld-link",
+    srcs = [
+        "bin/lld-link.exe",
+    ] + ALL_DLLS,
+)
+
+filegroup(
+    name = "llvm-lib",
+    srcs = [
+        "bin/llvm-lib.exe",
+    ] + ALL_DLLS,
 )
 
 filegroup(
@@ -72,8 +102,13 @@ filegroup(
 )
 
 filegroup(
+    name = "dll",
+    srcs = ALL_DLLS,
+)
+
+filegroup(
     name = "ar",
-    srcs = ["bin/llvm-ar.exe"],
+    srcs = ["bin/llvm-ar.exe"] + ALL_DLLS,
 )
 
 filegroup(
@@ -81,55 +116,56 @@ filegroup(
     srcs = [
         "bin/clang.exe",
         "bin/llvm-as.exe",
-    ],
+    ] + ALL_DLLS,
 )
 
 filegroup(
     name = "nm",
-    srcs = ["bin/llvm-nm.exe"],
+    srcs = ["bin/llvm-nm.exe"] + ALL_DLLS,
 )
 
 filegroup(
     name = "objcopy",
-    srcs = ["bin/llvm-objcopy.exe"],
+    srcs = ["bin/llvm-objcopy.exe"] + ALL_DLLS,
+    deps = [":dll"],
 )
 
 filegroup(
     name = "objdump",
-    srcs = ["bin/llvm-objdump.exe"],
+    srcs = ["bin/llvm-objdump.exe"] + ALL_DLLS,
 )
 
 filegroup(
     name = "profdata",
-    srcs = ["bin/llvm-profdata.exe"],
+    srcs = ["bin/llvm-profdata.exe"] + ALL_DLLS,
 )
 
 filegroup(
     name = "dwp",
-    srcs = ["bin/llvm-dwp.exe"],
+    srcs = ["bin/llvm-dwp.exe"] + ALL_DLLS,
 )
 
 filegroup(
     name = "ranlib",
-    srcs = ["bin/llvm-ranlib.exe"],
+    srcs = ["bin/llvm-ranlib.exe"] + ALL_DLLS,
 )
 
 filegroup(
     name = "readelf",
-    srcs = ["bin/llvm-readelf.exe"],
+    srcs = ["bin/llvm-readelf.exe"] + ALL_DLLS,
 )
 
 filegroup(
     name = "strip",
-    srcs = ["bin/llvm-strip.exe"],
+    srcs = ["bin/llvm-strip.exe"] + ALL_DLLS,
 )
 
 filegroup(
     name = "symbolizer",
-    srcs = ["bin/llvm-symbolizer.exe"],
+    srcs = ["bin/llvm-symbolizer.exe"] + ALL_DLLS,
 )
 
 filegroup(
     name = "clang-tidy",
-    srcs = ["bin/clang-tidy.exe"],
+    srcs = ["bin/clang-tidy.exe"] + ALL_DLLS,
 )
