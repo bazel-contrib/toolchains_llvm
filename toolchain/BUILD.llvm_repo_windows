@@ -127,7 +127,6 @@ filegroup(
 filegroup(
     name = "objcopy",
     srcs = ["bin/llvm-objcopy.exe"] + ALL_DLLS,
-    deps = [":dll"],
 )
 
 filegroup(
