@@ -336,7 +336,7 @@ def _cc_toolchain_str(
             _join(sysroot_prefix, "/System/Library/Frameworks"),
         ])
     else:
-        fail("Unreachable")
+        pass
 
     cxx_builtin_include_directories.extend(toolchain_info.additional_include_dirs_dict.get(target_pair, []))
 
