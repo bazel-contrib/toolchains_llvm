@@ -61,9 +61,6 @@ def llvm_config_impl(rctx):
     _check_os_arch_keys(rctx.attr.cxx_builtin_include_directories)
 
     os = _os(rctx)
-    if os == "windows":
-        _empty_repository(rctx)
-        return
     arch = _arch(rctx)
 
     if not rctx.attr.toolchain_roots:
@@ -311,6 +308,7 @@ def _cc_toolchain_str(
         "darwin-aarch64": "aarch64-apple-macosx",
         "linux-aarch64": "aarch64-unknown-linux-gnu",
         "linux-x86_64": "x86_64-unknown-linux-gnu",
+        "windows-x86_64": "x86_64-pc-windows-msvc",
     }[target_pair]
     cxx_builtin_include_directories = [
         toolchain_path_prefix + "include/c++/v1",
@@ -545,7 +543,13 @@ cc_toolchain(
         major_llvm_version = major_llvm_version,
     )
 
+def _extension(os):
+    if (os == "windows"):
+        return ".exe"
+    return ""
+
 def _convenience_targets_str(rctx, use_absolute_paths, llvm_dist_rel_path, llvm_dist_label_prefix, exec_dl_ext):
+    ext = _extension(_os(rctx))
     if use_absolute_paths:
         llvm_dist_label_prefix = ":"
         filenames = []
@@ -553,7 +557,7 @@ def _convenience_targets_str(rctx, use_absolute_paths, llvm_dist_rel_path, llvm_
             filename = "lib/{}.{}".format(libname, exec_dl_ext)
             filenames.append(filename)
         for toolname in _aliased_tools:
-            filename = "bin/{}".format(toolname)
+            filename = "bin/{}{}".format(toolname, ext)
             filenames.append(filename)
 
         for filename in filenames:
@@ -570,6 +574,7 @@ cc_import(
 
     tool_target_strs = []
     for name in _aliased_tools:
+        name = name+ext
         template = """
 native_binary(
     name = "{name}",
