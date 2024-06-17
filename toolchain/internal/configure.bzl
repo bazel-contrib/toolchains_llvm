@@ -544,7 +544,7 @@ cc_toolchain(
     )
 
 def _extension(os):
-    if (os == "windows"):
+    if os == "windows":
         return ".exe"
     return ""
 
@@ -574,7 +574,7 @@ cc_import(
 
     tool_target_strs = []
     for name in _aliased_tools:
-        name = name+ext
+        name = name + ext
         template = """
 native_binary(
     name = "{name}",

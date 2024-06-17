@@ -47,7 +47,7 @@ def _darwin(llvm_version, arch):
 
 def _windows(llvm_version, arch):
     major_llvm_version = _major_llvm_version(llvm_version)
-    if (major_llvm_version >= 18 and arch.endswith("64")):
+    if major_llvm_version >= 18 and arch.endswith("64"):
         arch = "x86_64"
         suffix = "pc-windows-msvc"
         return "clang+llvm-{llvm_version}-{arch}-{suffix}.tar.xz".format(

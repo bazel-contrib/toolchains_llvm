@@ -29,12 +29,14 @@ filegroup(
         "bin/clang.exe",
         "bin/clang++.exe",
         "bin/clang-cpp.exe",
+        "bin/clang-cl.exe",
     ],
 )
 
 filegroup(
     name = "ld",
-    srcs = glob(["bin/ld.lld.exe", "bin/ld64.lld.exe"]),
+    # a set of 4 identical binaries?
+    srcs = glob(["bin/ld.lld.exe", "bin/ld64.lld.exe", "lld-link.exe", "lld.exe"]),
 )
 
 filegroup(
@@ -59,21 +61,14 @@ filegroup(
     name = "lib",
     srcs = glob(
         [
-            "lib/**/lib*.a",
-            "lib/clang/*/lib/**/*.a",
-            "lib/clang/*/lib/**/*.dylib",
-            # clang_rt.*.o supply crtbegin and crtend sections.
-            "lib/**/clang_rt.*.o",
+            "lib/**/*.lib",
         ],
         exclude = [
-            "lib/libLLVM*.a",
-            "lib/libclang*.a",
-            "lib/liblld*.a",
+            "lib/LLVM*.lib",
+            "lib/clang*.lib",
+            "lib/lld*.lib",
         ],
     ),
-    # Include the .dylib files in the linker sandbox even though they will
-    # not be available at runtime to allow sanitizers to work locally.
-    # Any library linked from the toolchain to be released should be linked statically.
 )
 
 filegroup(
