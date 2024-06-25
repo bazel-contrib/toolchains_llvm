@@ -93,9 +93,14 @@ def os_version_arch(rctx):
     _os = os(rctx)
     _arch = arch(rctx)
 
-    if _os == "linux" and not rctx.attr.exec_os:
-        (distname, version) = _linux_dist(rctx)
-        return distname, version, _arch
+    if _os == "linux":
+        if (rctx.attr.exec_linux_distribution == "") != (rctx.attr.exec_linux_distribution_version == ""):
+            fail("Either both or neither of linux_distribution and linux_distribution_version must be set")
+        if rctx.attr.exec_linux_distribution and rctx.attr.exec_linux_distribution_version:
+            return rctx.attr.exec_linux_distribution, rctx.attr.exec_linux_distribution_version, _arch
+        if not rctx.attr.exec_os:
+            (distname, version) = _linux_dist(rctx)
+            return distname, version, _arch
 
     return _os, "", _arch
 
