@@ -37,7 +37,8 @@ def _root_dict(roots, cls, name, strip_target):
 def _llvm_impl_(module_ctx):
     for mod in module_ctx.modules:
         if not mod.is_root:
-            fail("Only the root module can use the 'llvm' extension")
+            # Only the root module can use the 'llvm' extension
+            return
         toolchain_names = []
         for toolchain_attr in mod.tags.toolchain:
             name = toolchain_attr.name
