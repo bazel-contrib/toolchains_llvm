@@ -209,8 +209,6 @@ def cc_toolchain_config(
             ])
             libunwind_link_flags = [
                 "-l:libunwind.a",
-                # Compiler runtime features.
-                "-rtlib=compiler-rt",
                 # To support libunwind.
                 "-lpthread",
                 "-ldl",
