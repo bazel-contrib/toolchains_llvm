@@ -203,9 +203,9 @@ rust_register_toolchains()
 
 http_archive(
     name = "rules_foreign_cc",
-    sha256 = "cc25608970409da36610542150e7c60cf8e3923c73cfc4409c08c8e264298133",
-    strip_prefix = "rules_foreign_cc-0.11.0",
-    url = "https://github.com/bazelbuild/rules_foreign_cc/archive/0.11.0.tar.gz",
+    sha256 = "4b33d62cf109bcccf286b30ed7121129cc34cf4f4ed9d8a11f38d9108f40ba74",
+    strip_prefix = "rules_foreign_cc-0.11.1",
+    url = "https://github.com/bazelbuild/rules_foreign_cc/archive/0.11.1.tar.gz",
 )
 
 load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
