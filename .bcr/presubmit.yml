@@ -1,12 +1,25 @@
+matrix:
+  bazel: [7.x]
+  platform: [ubuntu2004, macos, macos_arm64]
+tasks:
+  verify_targets:
+    name: Verify build targets
+    bazel: ${{ bazel }}
+    platform: ${{ platform }}
+    build_targets:
+      - "@toolchains_llvm//toolchain:all"
+      - "@toolchains_llvm//platforms:all"
 bcr_test_module:
-  module_path: "tests"
+  module_path: tests
   matrix:
-    platform: ["debian10", "macos", "macos_arm64", "ubuntu2004"]
-    bazel: ["6.x", "7.x"]
+    bazel: [7.x]
+    platform: [ubuntu2004, macos, macos_arm64]
   tasks:
-    run_tests:
-      name: "Run test module"
-      platform: ${{ platform }}
+    run_test_module:
+      name: Run test module
       bazel: ${{ bazel }}
+      platform: ${{ platform }}
+      build_targets:
+        - //:all
       test_targets:
-        - "//..."
+        - //:all

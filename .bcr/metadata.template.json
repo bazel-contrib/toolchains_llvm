@@ -15,7 +15,7 @@
       "email": "rrbutani@users.noreply.github.com",
       "github": "rrbutani",
       "name": "Rahul Butani"
-    },
+    }
   ],
   "repository": ["github:bazel-contrib/toolchains_llvm"],
   "versions": [],
