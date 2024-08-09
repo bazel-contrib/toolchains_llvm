@@ -271,6 +271,14 @@ llvm_config_attrs.update({
         default = False,
         doc = "Use absolute paths in the toolchain. Avoids sandbox overhead.",
     ),
+    "extra_exec_compatible_with": attr.string_dict(
+        mandatory = False,
+        doc = "Extra constraints to be added to exec_compatible_with for each target, with json encoded values to get a Dict[string, List[string]]"
+    ),
+    "extra_target_compatible_with": attr.string_dict(
+        mandatory = False,
+        doc = "Extra constraints to be added to target_compatible_with for each target, with json encoded values to get a Dict[string, List[string]]"
+    ),
     "_cc_toolchain_config_bzl": attr.label(
         default = "//toolchain:cc_toolchain_config.bzl",
     ),
