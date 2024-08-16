@@ -66,9 +66,25 @@ llvm.toolchain(
     name = "llvm_toolchain",
     llvm_versions = LLVM_VERSIONS,
 )
+llvm.extra_target_compatible_with(
+    name = "llvm_toolchain",
+    constraints = ["@//:no_test_define"],
+)
 use_repo(llvm, "llvm_toolchain", "llvm_toolchain_llvm")
-
 register_toolchains("@llvm_toolchain//:all")
+
+llvm.toolchain(
+    name = "llvm_toolchain_with_define",
+    llvm_versions = LLVM_VERSIONS,
+    cxx_flags = {"": ["-DTEST_DEFINE", "-stdlib=libc++"]},
+)
+llvm.extra_target_compatible_with(
+    name = "llvm_toolchain_with_define",
+    constraints = ["//:yes_test_define"],
+)
+use_repo(llvm, "llvm_toolchain_with_define")
+register_toolchains("@llvm_toolchain_with_define//:all")
+
 
 # Example toolchain with user provided URLs.
 # TODO(siddharthab): Add test.

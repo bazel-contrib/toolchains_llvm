@@ -96,3 +96,24 @@ dwp_file = rule(
         ),
     },
 )
+
+def _transition_to_test_define_impl(_, _attr):
+    return {"//command_line_option:platforms": "//:platform_with_test_define"}
+
+_transition_to_test_define = transition(
+    implementation = _transition_to_test_define_impl,
+    inputs = [],
+    outputs = ["//command_line_option:platforms"],
+)
+
+def _transition_library_to_test_define_impl(ctx):
+    return [
+        ctx.attr.lib[0][CcInfo],
+    ]
+
+transition_library_to_test_define = rule(
+    implementation = _transition_library_to_test_define_impl,
+    attrs = {
+        "lib": attr.label(cfg = _transition_to_test_define),
+    },
+)
