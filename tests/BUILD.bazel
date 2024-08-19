@@ -14,7 +14,7 @@
 
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
-load(":transitions.bzl", "dwp_file", "transition_library_to_test_define")
+load(":transitions.bzl", "dwp_file", "transition_library_to_platform")
 
 cc_library(
     name = "stdlib",
@@ -142,50 +142,51 @@ toolchain(
 
 # Testing extra_target_compatible_with
 constraint_setting(
-    name = "with_test_define",
-    default_constraint_value = ":no_test_define",
+    name = "cxx_standard",
+    default_constraint_value = ":cxx17",
     visibility = ["//visibility:public"],
 )
 
 constraint_value(
-    name = "no_test_define",
-    constraint_setting = ":with_test_define",
+    name = "cxx20",
+    constraint_setting = ":cxx_standard",
     visibility = ["//visibility:public"],
 )
 
 constraint_value(
-    name = "yes_test_define",
-    constraint_setting = ":with_test_define",
+    name = "cxx17",
+    constraint_setting = ":cxx_standard",
     visibility = ["//visibility:public"],
 )
 
 platform(
-    name = "platform_with_test_define",
+    name = "cxx20_platform",
     constraint_values = [
-        ":yes_test_define",
+        ":cxx20",
     ],
     parents = ["@bazel_tools//tools:host_platform"],
     visibility = ["//visibility:public"],
 )
 
 cc_library(
-    name = "test_define_lib",
-    srcs = ["test_define.cc"],
+    name = "test_cxx_standard_lib",
+    srcs = ["test_cxx_standard.cc"],
 )
 
 cc_test(
-    name = "test_define_no_define",
-    args = ["no"],
-    deps = [":test_define_lib"],
+    name = "test_cxx_standard_is_17",
+    args = ["201703"],
+    deps = [":test_cxx_standard_lib"],
 )
 
-transition_library_to_test_define(
-    name = "test_define_lib_with_define",
-    lib = ":test_define_lib",
+transition_library_to_platform(
+    name = "test_cxx_standard_lib_transitioned",
+    lib = ":test_cxx_standard_lib",
+    platform = ":cxx20_platform",
 )
 
 cc_test(
-    name = "test_define_yes_define",
-    args = ["yes"],
-    deps = [":test_define_lib_with_define"],
+    name = "test_cxx_standard_is_20",
+    args = ["202002"],
+    deps = [":test_cxx_standard_lib_transitioned"],
 )
