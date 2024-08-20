@@ -176,6 +176,7 @@ cc_library(
 cc_test(
     name = "test_cxx_standard_is_17",
     size = "small",
+    srcs = ["test_cxx_standard_main.cc"],
     args = ["201703"],
     deps = [":test_cxx_standard_lib"],
 )
@@ -189,6 +190,7 @@ transition_library_to_platform(
 cc_test(
     name = "test_cxx_standard_is_20",
     size = "small",
+    srcs = ["test_cxx_standard_main.cc"],
     args = ["202002"],
     deps = [":test_cxx_standard_lib_transitioned"],
 )
