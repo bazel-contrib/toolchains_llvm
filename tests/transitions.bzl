@@ -116,5 +116,8 @@ transition_library_to_platform = rule(
     attrs = {
         "lib": attr.label(mandatory = True, cfg = _transition_library_to_platform_transition),
         "platform": attr.label(mandatory = True),
+        "_allowlist_function_transition": attr.label(
+            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
+        ),
     },
 )
