@@ -504,7 +504,15 @@ _llvm_distributions = {
     "clang+llvm-18.1.7-aarch64-linux-gnu.tar.xz": "f0df4a38d4e205ee9dea23fdbe1b3acb0d3174d1366ef1488f1ea619cd6e6c0e",
     "clang+llvm-18.1.7-powerpc64-ibm-aix-7.2.tar.xz": "a4317fe5bfc5579093f02bc6b63de3d1fa545ebca471405b70ff213d400e8da3",
     "clang+llvm-18.1.7-powerpc64le-linux-rhel-8.8.tar.xz": "8889adb5b6a6deffeaffd8c6dc0d2388c26660cb2c357df66b27561c7932ed66",
+    "clang+llvm-18.1.7-x86_64-linux-gnu-ubuntu-18.04.tar.xz": "9aae4d652c438d8c44aaea480e52c7fd9b92f88f1c90673144165c7c8cbf9d28",
     "clang+llvm-18.1.7-x86_64-pc-windows-msvc.tar.xz": "be0e2c80de7e5c58d25ca068ddaa41abdabd6edad7ecf899552a97bcd13828ba",
+
+    # 18.1.8
+    "clang+llvm-18.1.8-aarch64-linux-gnu.tar.xz": "dcaa1bebbfbb86953fdfbdc7f938800229f75ad26c5c9375ef242edad737d999",
+    "clang+llvm-18.1.8-powerpc64-ibm-aix-7.2.tar.xz": "0bf2df8cc823e1b76b2c42f5e8ac3ef1076865eee87a7098deb227d0f66b7e7c",
+    "clang+llvm-18.1.8-powerpc64le-linux-rhel-8.8.tar.xz": "b3df0c1607bfb04fe268c2e80542aba6e63ef0766a0bc4100ccf6a1ea99a0a1b",
+    "clang+llvm-18.1.8-x86_64-linux-gnu-ubuntu-18.04.tar.xz": "54ec30358afcc9fb8aa74307db3046f5187f9fb89fb37064cdde906e062ebf36",
+    "clang+llvm-18.1.8-x86_64-pc-windows-msvc.tar.xz": "22c5907db053026cc2a8ff96d21c0f642a90d24d66c23c6d28ee7b1d572b82e8",
 }
 
 # Note: Unlike the user-specified llvm_mirror attribute, the URL prefixes in
@@ -562,6 +570,7 @@ _llvm_distributions_base_url = {
     "18.1.5": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
     "18.1.6": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
     "18.1.7": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
+    "18.1.8": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
 }
 
 def _get_auth(ctx, urls):
