@@ -20,6 +20,7 @@ exports_files(glob(
         "bin/*",
         "lib/*",
         "include/*",
+        "share/clang/*",
     ],
     allow_empty = True,
 ))
