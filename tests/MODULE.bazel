@@ -111,6 +111,11 @@ llvm.toolchain(
         "darwin-aarch64": ["https://github.com/llvm/llvm-project/releases/download/llvmorg-15.0.7/clang+llvm-15.0.7-arm64-apple-darwin22.0.tar.xz"],
         "darwin-x86_64": ["https://github.com/llvm/llvm-project/releases/download/llvmorg-15.0.7/clang+llvm-15.0.7-x86_64-apple-darwin21.0.tar.xz"],
     },
+    cxx_standard = {"": "c++17"},
+)
+llvm.extra_target_compatible_with(
+    name = "llvm_toolchain_with_urls",
+    constraints = ["@//:cxx17"],
 )
 use_repo(llvm, "llvm_toolchain_with_urls")
 
@@ -121,6 +126,11 @@ use_repo(llvm, "llvm_toolchain_with_urls")
 llvm.toolchain(
     name = "llvm_toolchain_13_0_0",
     llvm_version = "13.0.0",
+    cxx_standard = {"": "c++17"},
+)
+llvm.extra_target_compatible_with(
+    name = "llvm_toolchain_13_0_0",
+    constraints = ["@//:cxx17"],
 )
 use_repo(llvm, "llvm_toolchain_13_0_0")
 
@@ -129,6 +139,11 @@ llvm.toolchain(
     name = "llvm_toolchain_with_absolute_paths",
     absolute_paths = True,
     llvm_versions = LLVM_VERSIONS,
+    cxx_standard = {"": "c++17"},
+)
+llvm.extra_target_compatible_with(
+    name = "llvm_toolchain_with_absolute_paths",
+    constraints = ["@//:cxx17"],
 )
 # We can share the downloaded LLVM distribution with the first configuration.
 llvm.toolchain_root(
@@ -141,6 +156,11 @@ use_repo(llvm, "llvm_toolchain_with_absolute_paths")
 llvm.toolchain(
     name = "llvm_toolchain_with_system_llvm",
     llvm_versions = LLVM_VERSIONS,
+    cxx_standard = {"": "c++17"},
+)
+llvm.extra_target_compatible_with(
+    name = "llvm_toolchain_with_system_llvm",
+    constraints = ["@//:cxx17"],
 )
 # For this toolchain to work, the LLVM distribution archive would need to be unpacked here.
 llvm.toolchain_root(
@@ -153,6 +173,11 @@ use_repo(llvm, "llvm_toolchain_with_system_llvm")
 llvm.toolchain(
     name = "llvm_toolchain_with_sysroot",
     llvm_versions = LLVM_VERSIONS,
+    cxx_standard = {"": "c++17"},
+)
+llvm.extra_target_compatible_with(
+    name = "llvm_toolchain_with_sysroot",
+    constraints = ["@//:cxx17"],
 )
 # We can share the downloaded LLVM distribution with the first configuration.
 llvm.toolchain_root(
@@ -177,5 +202,10 @@ llvm.toolchain(
     # distribution = "clang+llvm-17.0.6-x86_64-linux-gnu-ubuntu-22.04.tar.xz",
     exec_os = "linux",
     exec_arch = "amd64",
+    cxx_standard = {"": "c++17"},
+)
+llvm.extra_target_compatible_with(
+    name = "llvm_toolchain_linux_exec",
+    constraints = ["@//:cxx17"],
 )
 use_repo(llvm, "llvm_toolchain_linux_exec")
