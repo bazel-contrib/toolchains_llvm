@@ -142,6 +142,7 @@ def cc_toolchain_config(
     # unused symbols are not stripped.
     link_libs = []
     libunwind_link_flags = []
+    compiler_rt_link_flags = []
 
     # Flags for ar.
     archive_flags = []
@@ -207,6 +208,7 @@ def cc_toolchain_config(
                 "-l:libc++.a",
                 "-l:libc++abi.a",
             ])
+            compiler_rt_link_flags = ["-rtlib=compiler-rt"]
             libunwind_link_flags = [
                 "-l:libunwind.a",
                 # To support libunwind.
@@ -343,7 +345,8 @@ def cc_toolchain_config(
         dbg_compile_flags = dbg_compile_flags,
         opt_compile_flags = opt_compile_flags,
         cxx_flags = cxx_flags,
-        link_flags = link_flags + select({"//conditions:default": [], str(Label("@toolchains_llvm//toolchain/config:use_libunwind")): libunwind_link_flags}),
+        link_flags = link_flags + select({"//conditions:default": [], str(Label("@toolchains_llvm//toolchain/config:use_libunwind")): libunwind_link_flags}) +
+                     select({"//conditions:default": [], str(Label("@toolchains_llvm//toolchain/config:use_compiler_rt")): compiler_rt_link_flags}),
         archive_flags = archive_flags,
         link_libs = link_libs,
         opt_link_flags = opt_link_flags,

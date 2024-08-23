@@ -20,8 +20,20 @@ bool_flag(
     visibility = ["//visibility:public"],
 )
 
+bool_flag(
+    name = "compiler-rt",
+    build_setting_default = True,
+    visibility = ["//visibility:public"],
+)
+
 config_setting(
     name = "use_libunwind",
     flag_values = {":libunwind": "True"},
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "use_compiler_rt",
+    flag_values = {":compiler-rt": "True"},
     visibility = ["//visibility:public"],
 )
