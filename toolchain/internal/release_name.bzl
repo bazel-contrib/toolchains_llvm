@@ -2,6 +2,10 @@ load(
     "//toolchain/internal:common.bzl",
     _os_version_arch = "os_version_arch",
 )
+load(
+    "//toolchain/internal:llvm_distribution_info.bzl",
+    _llvm_patch_release_names = "LLVM_PATCH_RELEASE_NAMES",
+)
 
 def _major_llvm_version(llvm_version):
     return int(llvm_version.split(".")[0])
@@ -96,20 +100,20 @@ def _ubuntu_osname(arch, version, major_llvm_version, llvm_version):
             os_name = "linux-gnu-ubuntu-16.04"
     else:
         # Availability may be sparse for patch releases.
-        if llvm_version in ["17.0.6", "17.0.5", "17.0.4", "17.0.2", "16.0.4", "16.0.3", "16.0.2"]:
-            os_name = "linux-gnu-ubuntu-22.04"
-        elif llvm_version in ["16.0.1"]:
-            os_name = "linux-gnu-ubuntu-20.04"
-        elif llvm_version in ["18.1.4", "15.0.6", "15.0.5", "13.0.1"]:
-            os_name = "linux-gnu-ubuntu-18.04"
-        elif llvm_version in ["15.0.2"]:
-            os_name = "unknown-linux-gnu-rhel86"
-        elif llvm_version in ["12.0.1", "11.1.0", "11.0.1", "10.0.1", "9.0.1", "8.0.1"]:
-            os_name = "linux-gnu-ubuntu-16.04"
-        elif llvm_version in ["7.1.0"]:
-            os_name = "linux-gnu-ubuntu-14.04"
-        else:
-            fail("LLVM patch release %s not available for Ubuntu %s" % (llvm_version, version))
+        if llvm_version in ["15.0.2"]:
+            return "unknown-linux-gnu-rhel86"
+
+        releases = [
+            release
+            for release in _llvm_patch_release_names.get(llvm_version  + "-" + arch, [])
+            if "ubuntu" in release
+        ]
+        if len(releases) > 1:
+            fail("Multiple Ubuntu releases for %s, %s. Please fix me!" % (llvm_version, arch))
+        if releases:
+            return releases[0]
+
+        fail("LLVM patch release %s not available for Ubuntu %s" % (llvm_version, version))
 
     return os_name
 
