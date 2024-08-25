@@ -509,6 +509,7 @@ _llvm_distributions = {
 
     # 18.1.8
     "clang+llvm-18.1.8-aarch64-linux-gnu.tar.xz": "dcaa1bebbfbb86953fdfbdc7f938800229f75ad26c5c9375ef242edad737d999",
+    "clang+llvm-18.1.8-arm64-apple-macos11.tar.xz": "4573b7f25f46d2a9c8882993f091c52f416c83271db6f5b213c93f0bd0346a10",
     "clang+llvm-18.1.8-powerpc64-ibm-aix-7.2.tar.xz": "0bf2df8cc823e1b76b2c42f5e8ac3ef1076865eee87a7098deb227d0f66b7e7c",
     "clang+llvm-18.1.8-powerpc64le-linux-rhel-8.8.tar.xz": "b3df0c1607bfb04fe268c2e80542aba6e63ef0766a0bc4100ccf6a1ea99a0a1b",
     "clang+llvm-18.1.8-x86_64-linux-gnu-ubuntu-18.04.tar.xz": "54ec30358afcc9fb8aa74307db3046f5187f9fb89fb37064cdde906e062ebf36",
