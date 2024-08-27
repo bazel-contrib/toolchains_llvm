@@ -74,7 +74,7 @@ function sanitize_option() {
   if [[ ${opt} == */cc_wrapper.sh ]]; then
     printf "%s" "${execroot_path}%{toolchain_path_prefix}bin/clang"
   elif [[ ${opt} == "-fuse-ld=ld64.lld" ]]; then
-    echo "-fuse-ld=${execroot_abs_path}%{toolchain_path_prefix}bin/ld64.lld"
+    echo "--ld-path=${execroot_abs_path}%{toolchain_path_prefix}bin/ld64.lld"
   elif [[ ${opt} =~ ^-fsanitize-(ignore|black)list=[^/] ]]; then
     # shellcheck disable=SC2206
     parts=(${opt/=/ }) # Split flag name and value into array.
@@ -88,6 +88,9 @@ cmd=()
 for ((i = 0; i <= $#; i++)); do
   if [[ ${!i} == @* ]]; then
     while IFS= read -r opt; do
+      if [[ ${opt} == "-fuse-ld=ld64.lld" ]]; then
+        cmd+=("-fuse-ld=lld")
+      fi
       opt="$(
         set -e
         sanitize_option "${opt}"
