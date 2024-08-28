@@ -131,8 +131,9 @@ function sanitize_option() {
   local -r opt=$1
   if [[ ${opt} == */cc_wrapper.sh ]]; then
     printf "%s" "${toolchain_path_prefix}bin/clang"
-  elif [[ ${opt} == "-fuse-ld=ld64.lld" ]]; then
-    echo "--ld-path=${toolchain_path_prefix_abs}bin/ld64.lld"
+  elif [[ ${opt} == "--ld-path=ld.lld" || ${opt} == "--ld-path=ld64.lld" ]]; then
+    local ld_name=${opt#--ld-path=}
+    echo "--ld-path=${toolchain_path_prefix_abs}bin/${ld_name}"
   elif [[ ${opt} =~ ^-fsanitize-(ignore|black)list=[^/] ]] && [[ ${script_dir} == /* ]]; then
     # shellcheck disable=SC2206
     parts=(${opt/=/ }) # Split flag name and value into array.
@@ -149,9 +150,6 @@ for ((i = 0; i <= $#; i++)); do
     tmpfile=$(mktemp)
     CLEANUP_FILES+=("${tmpfile}")
     while IFS= read -r opt; do
-      if [[ ${opt} == "-fuse-ld=ld64.lld" ]]; then
-        echo "-fuse-ld=lld" >>"${tmpfile}"
-      fi
       opt="$(
         set -e
         sanitize_option "${opt}"
@@ -168,26 +166,6 @@ for ((i = 0; i <= $#; i++)); do
     cmd+=("${opt}")
   fi
 done
-
-# On macOS, we use ld as the linker for single-platform builds (i.e., when not
-# cross-compiling). Some applications may remove /usr/bin from PATH before
-# calling this script, which would make /usr/bin/ld unreachable.  For example,
-# rules_rust does not set PATH (unless the user explicitly sets PATH in env
-# through attributes) [1] when calling rustc, and rustc does not replace an
-# unset PATH with a reasonable default either ([2], [3]), which results in CC
-# being called with PATH={sysroot}/{rust_lib}/bin. Note that rules_cc [4] and
-# rules_go [5] do ensure that /usr/bin is in PATH.
-# [1]: https://github.com/bazelbuild/rules_rust/blob/e589105b4e8181dd1d0d8ccaa0cf3267efb06e86/cargo/cargo_build_script.bzl#L66-L68
-# [2]: https://github.com/rust-lang/rust/blob/1c03f0d0ba4fee54b7aa458f4d3ad989d8bf7b34/compiler/rustc_session/src/session.rs#L804-L813
-# [3]: https://github.com/rust-lang/rust/blob/1c03f0d0ba4fee54b7aa458f4d3ad989d8bf7b34/compiler/rustc_codegen_ssa/src/back/link.rs#L640-L645
-# [4]: https://cs.opensource.google/bazel/bazel/+/master:src/main/java/com/google/devtools/build/lib/bazel/rules/BazelRuleClassProvider.java;l=529;drc=72caead7b428fd50164079956ec368fc54a9567c
-# [5]: https://github.com/bazelbuild/rules_go/blob/63dfd99403076331fef0775d52a8039d502d4115/go/private/context.bzl#L434
-# Let's restore /usr/bin to PATH in such cases. Note that /usr/bin is not a
-# writeable directory on macOS even with sudo privileges, so it should be safe
-# to add it to PATH even when the application wants to use a very strict PATH.
-if [[ ":${PATH}:" != *":/usr/bin:"* ]]; then
-  PATH="${PATH}:/usr/bin"
-fi
 
 # Call the C++ compiler.
 "${cmd[@]}"
