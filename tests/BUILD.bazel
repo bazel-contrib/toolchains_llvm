@@ -192,5 +192,11 @@ cc_test(
     size = "small",
     srcs = ["test_cxx_standard_main.cc"],
     args = ["202002"],
+
+    # Since some platforms require special toolchains (e.g. llvm 13.0.0) this
+    # target won't build on those platforms unless we create a new toolchain per
+    # platform with c++20. So instead just only run this test on platforms that
+    # can use the default toolchain
+    tags = ["manual"],
     deps = [":test_cxx_standard_lib_transitioned"],
 )
