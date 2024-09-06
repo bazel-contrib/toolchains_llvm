@@ -96,3 +96,28 @@ dwp_file = rule(
         ),
     },
 )
+
+def _transition_library_to_platform_transition_impl(_, attr):
+    return {"//command_line_option:platforms": str(attr.platform)}
+
+_transition_library_to_platform_transition = transition(
+    implementation = _transition_library_to_platform_transition_impl,
+    inputs = [],
+    outputs = ["//command_line_option:platforms"],
+)
+
+def _transition_library_to_platform_impl(ctx):
+    return [
+        ctx.attr.lib[0][CcInfo],
+    ]
+
+transition_library_to_platform = rule(
+    implementation = _transition_library_to_platform_impl,
+    attrs = {
+        "lib": attr.label(mandatory = True, cfg = _transition_library_to_platform_transition),
+        "platform": attr.label(mandatory = True),
+        "_allowlist_function_transition": attr.label(
+            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
+        ),
+    },
+)

@@ -65,10 +65,27 @@ LLVM_VERSIONS = {
 llvm.toolchain(
     name = "llvm_toolchain",
     llvm_versions = LLVM_VERSIONS,
+    cxx_standard = {"": "c++17"},
+)
+llvm.extra_target_compatible_with(
+    name = "llvm_toolchain",
+    constraints = ["@//:cxx17"],
 )
 use_repo(llvm, "llvm_toolchain", "llvm_toolchain_llvm")
-
 register_toolchains("@llvm_toolchain//:all")
+
+llvm.toolchain(
+    name = "llvm_toolchain_cxx20",
+    llvm_versions = LLVM_VERSIONS,
+    cxx_standard = {"": "c++20"},
+)
+llvm.extra_target_compatible_with(
+    name = "llvm_toolchain_cxx20",
+    constraints = ["//:cxx20"],
+)
+use_repo(llvm, "llvm_toolchain_cxx20")
+register_toolchains("@llvm_toolchain_cxx20//:all")
+
 
 # Example toolchain with user provided URLs.
 # TODO(siddharthab): Add test.

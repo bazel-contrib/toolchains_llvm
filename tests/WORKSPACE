@@ -37,6 +37,19 @@ LLVM_VERSIONS = {
 
 llvm_toolchain(
     name = "llvm_toolchain",
+    cxx_standard = {"": "c++17"},
+    extra_target_compatible_with = {
+        "": ["@//:cxx17"],
+    },
+    llvm_versions = LLVM_VERSIONS,
+)
+
+llvm_toolchain(
+    name = "llvm_toolchain_cxx20",
+    cxx_standard = {"": "c++20"},
+    extra_target_compatible_with = {
+        "": ["@//:cxx20"],
+    },
     llvm_versions = LLVM_VERSIONS,
 )
 
@@ -74,6 +87,10 @@ llvm_toolchain(
 load("@llvm_toolchain//:toolchains.bzl", "llvm_register_toolchains")
 
 llvm_register_toolchains()
+
+load("@llvm_toolchain_cxx20//:toolchains.bzl", llvm_register_toolchains_cxx20 = "llvm_register_toolchains")
+
+llvm_register_toolchains_cxx20()
 
 ## Toolchain example with absolute paths; tested in GitHub CI.
 llvm_toolchain(
@@ -230,3 +247,16 @@ http_archive(
         "https://ftp.pcre.org/pub/pcre/pcre-8.43.tar.gz",
     ],
 )
+
+http_archive(
+    name = "platforms",
+    sha256 = "218efe8ee736d26a3572663b374a253c012b716d8af0c07e842e82f238a0a7ee",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/platforms/releases/download/0.0.10/platforms-0.0.10.tar.gz",
+        "https://github.com/bazelbuild/platforms/releases/download/0.0.10/platforms-0.0.10.tar.gz",
+    ],
+)
+
+load("@platforms//host:extension.bzl", "host_platform_repo")
+
+host_platform_repo(name = "host_platform")

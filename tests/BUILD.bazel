@@ -14,7 +14,7 @@
 
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
-load(":transitions.bzl", "dwp_file")
+load(":transitions.bzl", "dwp_file", "transition_library_to_platform")
 
 cc_library(
     name = "stdlib",
@@ -138,4 +138,65 @@ toolchain(
     ],
     toolchain = "@@rules_foreign_cc~~tools~ninja_1.11.1_mac//:ninja_tool",
     toolchain_type = "@rules_foreign_cc//toolchains:ninja_toolchain",
+)
+
+# Testing extra_target_compatible_with
+constraint_setting(
+    name = "cxx_standard",
+    default_constraint_value = ":cxx17",
+    visibility = ["//visibility:public"],
+)
+
+constraint_value(
+    name = "cxx20",
+    constraint_setting = ":cxx_standard",
+    visibility = ["//visibility:public"],
+)
+
+constraint_value(
+    name = "cxx17",
+    constraint_setting = ":cxx_standard",
+    visibility = ["//visibility:public"],
+)
+
+platform(
+    name = "cxx20_platform",
+    constraint_values = [
+        ":cxx20",
+    ],
+    parents = ["@platforms//host"],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "test_cxx_standard_lib",
+    srcs = ["test_cxx_standard.cc"],
+)
+
+cc_test(
+    name = "test_cxx_standard_is_17",
+    size = "small",
+    srcs = ["test_cxx_standard_main.cc"],
+    args = ["201703"],
+    deps = [":test_cxx_standard_lib"],
+)
+
+transition_library_to_platform(
+    name = "test_cxx_standard_lib_transitioned",
+    lib = ":test_cxx_standard_lib",
+    platform = ":cxx20_platform",
+)
+
+cc_test(
+    name = "test_cxx_standard_is_20",
+    size = "small",
+    srcs = ["test_cxx_standard_main.cc"],
+    args = ["202002"],
+
+    # Since some platforms require special toolchains (e.g. llvm 13.0.0) this
+    # target won't build on those platforms unless we create a new toolchain per
+    # platform with c++20. So instead just only run this test on platforms that
+    # can use the default toolchain
+    tags = ["manual"],
+    deps = [":test_cxx_standard_lib_transitioned"],
 )

@@ -46,8 +46,18 @@ test_args=(
   "--linkopt=-Wl,-t"
 )
 
+targets=(
+  "//:all"
+)
+# :test_cxx_standard_is_20 builds with a version of the default toolchain, if
+# we're trying to build with a different toolchain then it's likely the default
+# toolchain won't work so :test_cxx_standard_is_20 won't build.
+if [[ -z ${toolchain_name} ]]; then
+  targets+=("//:test_cxx_standard_is_20")
+fi
+
 "${bazel}" ${TEST_MIGRATION:+"--strict"} --bazelrc=/dev/null test \
-  "${common_test_args[@]}" "${test_args[@]}" //:all
+  "${common_test_args[@]}" "${test_args[@]}" "${targets[@]}"
 
 # Note that the following flags are currently known to cause issues in migration tests:
 # --incompatible_disallow_struct_provider_syntax # https://github.com/bazelbuild/bazel/issues/7347
