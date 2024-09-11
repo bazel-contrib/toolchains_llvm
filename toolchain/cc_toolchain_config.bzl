@@ -139,40 +139,6 @@ def cc_toolchain_config(
     # unused symbols are not stripped.
     link_libs = []
 
-    # Flags for ar.
-    archive_flags = []
-
-
-    use_lld = True
-
-    # Linker flags:
-    if exec_os == "darwin":
-        link_flags.extend([
-            "-headerpad_max_install_names",
-            "-fobjc-link-runtime",
-        ])
-
-        # Use the bundled libtool (llvm-libtool-darwin).
-        use_libtool = True
-
-        # Pre-installed libtool on macOS has -static as default, but llvm-libtool-darwin needs it
-        # explicitly. cc_common.create_link_variables does not automatically add this either if
-        # output_file arg to it is None.
-        archive_flags.extend([
-            "-static",
-        ])
-    else:
-        # Note that for xcompiling from darwin to linux, the native ld64 is
-        # not an option because it is not a cross-linker, so lld is the
-        # only option.
-        link_flags.extend([
-            "-fuse-ld=lld",
-            "-Wl,--build-id=md5",
-            "-Wl,--hash-style=gnu",
-            "-Wl,-z,relro,-z,now",
-        ])
-        use_libtool = False
-
     # Flags related to C++ standard.
     # The linker has no way of knowing if there are C++ objects; so we
     # always link C++ libraries.
@@ -223,6 +189,40 @@ def cc_toolchain_config(
         ])
     else:
         fail("Unknown value passed for stdlib: {stdlib}".format(stdlib = stdlib))
+
+    # Flags for ar.
+    archive_flags = []
+
+
+    use_lld = True
+
+    # Linker flags:
+    if exec_os == "darwin":
+        link_flags.extend([
+            "-headerpad_max_install_names",
+            "-fobjc-link-runtime",
+        ])
+
+        # Use the bundled libtool (llvm-libtool-darwin).
+        use_libtool = True
+
+        # Pre-installed libtool on macOS has -static as default, but llvm-libtool-darwin needs it
+        # explicitly. cc_common.create_link_variables does not automatically add this either if
+        # output_file arg to it is None.
+        archive_flags.extend([
+            "-static",
+        ])
+    else:
+        # Note that for xcompiling from darwin to linux, the native ld64 is
+        # not an option because it is not a cross-linker, so lld is the
+        # only option.
+        link_flags.extend([
+            "-fuse-ld=lld",
+            "-Wl,--build-id=md5",
+            "-Wl,--hash-style=gnu",
+            "-Wl,-z,relro,-z,now",
+        ])
+        use_libtool = False
 
     opt_link_flags = ["-Wl,--gc-sections"] if target_os == "linux" else []
 
