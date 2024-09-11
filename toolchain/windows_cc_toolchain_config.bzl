@@ -305,9 +305,9 @@ def _impl(ctx):
                         flag_group(
                             flags = [
                                 "/wd4117",
-                                "-D__DATE__=\"redacted\"",
-                                "-D__TIMESTAMP__=\"redacted\"",
-                                "-D__TIME__=\"redacted\"",
+                                "-D__DATE__=0",
+                                "-D__TIMESTAMP__=0",
+                                "-D__TIME__=0",
                             ] + (["-Wno-builtin-macro-redefined"] if ctx.attr.compiler == "clang-cl" else []),
                         ),
                     ],
@@ -334,8 +334,7 @@ def _impl(ctx):
                     ],
                     flag_groups = [
                         flag_group(
-                            flags = ["--sysroot=%{sysroot}"],
-                            iterate_over = "sysroot",
+                            flags = ["/winsysroot:%{sysroot}"],
                             expand_if_available = "sysroot",
                         ),
                     ],
@@ -513,9 +512,6 @@ def _impl(ctx):
                             flags = ["/OUT:%{output_execpath}"],
                             expand_if_available = "output_execpath",
                         ),
-                        flag_group(
-                            flags = ctx.attr.archiver_flags,
-                        ),
                     ],
                 ),
             ],
@@ -671,6 +667,33 @@ def _impl(ctx):
                             ],
                         ),
                     ],
+                ),
+                flag_set(
+                    actions = [
+                        ACTION_NAMES.assemble,
+                        ACTION_NAMES.preprocess_assemble,
+                        ACTION_NAMES.linkstamp_compile,
+                        ACTION_NAMES.c_compile,
+                        ACTION_NAMES.cpp_compile,
+                        ACTION_NAMES.cpp_header_parsing,
+                        ACTION_NAMES.cpp_module_compile,
+                        ACTION_NAMES.cpp_module_codegen,
+                        ACTION_NAMES.lto_backend,
+                        ACTION_NAMES.clif_match,
+                    ],
+                    flag_groups = ([
+                        flag_group(
+                            flags = ctx.attr.default_compile_flags,
+                        ),
+                    ] if ctx.attr.default_compile_flags else []),
+                ),
+                flag_set(
+                    actions = all_cpp_compile_actions + [ACTION_NAMES.lto_backend],
+                    flag_groups = ([
+                        flag_group(
+                            flags = ctx.attr.cxx_flags,
+                        ),
+                    ] if ctx.attr.cxx_flags else []),
                 ),
             ],
         )
@@ -1429,6 +1452,7 @@ def _impl(ctx):
         abi_version = ctx.attr.abi_version,
         abi_libc_version = ctx.attr.abi_libc_version,
         tool_paths = tool_paths,
+        builtin_sysroot = ctx.attr.builtin_sysroot,
     )
 
 cc_toolchain_config = rule(
@@ -1445,6 +1469,8 @@ cc_toolchain_config = rule(
         "tool_paths": attr.string_dict(),
         "cxx_builtin_include_directories": attr.string_list(),
         "archiver_flags": attr.string_list(default = []),
+        "default_compile_flags": attr.string_list(default = []),
+        "cxx_flags": attr.string_list(default = []),
         "default_link_flags": attr.string_list(default = []),
         "msvc_env_tmp": attr.string(default = "msvc_not_found"),
         "msvc_env_path": attr.string(default = "msvc_not_found"),
@@ -1458,6 +1484,7 @@ cc_toolchain_config = rule(
         "fastbuild_mode_debug_flag": attr.string(),
         "tool_bin_path": attr.string(default = "not_found"),
         "supports_parse_showincludes": attr.bool(),
+        "builtin_sysroot": attr.string(),
     },
     provides = [CcToolchainConfigInfo],
 )
