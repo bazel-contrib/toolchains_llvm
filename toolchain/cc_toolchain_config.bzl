@@ -112,14 +112,13 @@ def cc_toolchain_config(
         "--target=" + target_system_name,
         # Security
         "-U_FORTIFY_SOURCE",  # https://github.com/google/sanitizers/issues/247
-        "-fstack-protector",
-        "-fno-omit-frame-pointer",
-        # Diagnostics
-        "-fcolor-diagnostics",
-        "-Wall",
-        "-Wthread-safety",
-        "-Wself-assign",
     ]
+
+    if target_os != "windows-msvc":
+        compile_flags.extend([
+            "-fstack-protector",
+            "-fno-omit-frame-pointer",
+        ])
 
     dbg_compile_flags = ["-g", "-fstandalone-debug"]
 
