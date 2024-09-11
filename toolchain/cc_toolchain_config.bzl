@@ -179,7 +179,7 @@ def cc_toolchain_config(
     cxx_standard = compiler_configuration["cxx_standard"]
     stdlib = compiler_configuration["stdlib"]
     sysroot_path = compiler_configuration["sysroot_path"]
-    if stdlib == "builtin-libc++":
+    if stdlib == "libc++":
         cxx_flags = [
             "-std=" + cxx_standard,
             "-stdlib=libc++",
@@ -203,16 +203,6 @@ def cc_toolchain_config(
             # To support libunwind.
                 "-lpthread",
                 "-ldl",
-        ])
-    elif stdlib == "libc++":
-        cxx_flags = [
-            "-std=" + cxx_standard,
-            "-stdlib=libc++",
-        ]
-
-        link_flags.extend([
-            "-l:c++.a",
-            "-l:c++abi.a",
         ])
     elif stdlib == "stdc++":
         cxx_flags = [
