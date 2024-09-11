@@ -219,6 +219,9 @@ def llvm_config_impl(rctx):
         cc_wrapper_tpl,
         {
             "%{toolchain_path_prefix}": llvm_dist_path_prefix,
+            "%{clang}": "clang",
+        },
+    )
         },
     )
 
