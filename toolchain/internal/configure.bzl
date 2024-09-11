@@ -222,6 +222,12 @@ def llvm_config_impl(rctx):
             "%{clang}": "clang",
         },
     )
+    rctx.template(
+        "bin/cc_wrapper_msvc.sh",
+        rctx.attr._cc_wrapper_sh_tpl,
+        {
+            "%{toolchain_path_prefix}": llvm_dist_path_prefix,
+            "%{clang}": "clang-cl",
         },
     )
 

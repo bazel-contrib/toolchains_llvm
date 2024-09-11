@@ -47,7 +47,7 @@ fi
 
 function sanitize_option() {
   local -r opt=$1
-  if [[ ${opt} == */cc_wrapper.sh ]]; then
+  if [[ ${opt} == */cc_wrapper.sh ]] || [[ ${opt} == */cc_wrapper_msvc.sh ]]; then
     printf "%s" "${execroot_path}%{toolchain_path_prefix}bin/%{clang}"
   elif [[ ${opt} =~ ^-fsanitize-(ignore|black)list=[^/] ]]; then
     # shellcheck disable=SC2206
