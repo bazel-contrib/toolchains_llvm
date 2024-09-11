@@ -105,8 +105,6 @@ def cc_toolchain_config(
         "-fdebug-prefix-map={}=__bazel_toolchain_llvm_repo__/".format(toolchain_path_prefix),
     ]
 
-    is_xcompile = not (exec_os == target_os and exec_arch == target_arch)
-
     # Default compiler flags:
     compile_flags = [
         "--target=" + target_system_name,
@@ -144,11 +142,11 @@ def cc_toolchain_config(
     # Flags for ar.
     archive_flags = []
 
+
+    use_lld = True
+
     # Linker flags:
-    if exec_os == "darwin" and not is_xcompile:
-        # lld is experimental for Mach-O, so we use the native ld64 linker.
-        # TODO: How do we cross-compile from Linux to Darwin?
-        use_lld = False
+    if exec_os == "darwin":
         link_flags.extend([
             "-headerpad_max_install_names",
             "-fobjc-link-runtime",
@@ -167,7 +165,6 @@ def cc_toolchain_config(
         # Note that for xcompiling from darwin to linux, the native ld64 is
         # not an option because it is not a cross-linker, so lld is the
         # only option.
-        use_lld = True
         link_flags.extend([
             "-fuse-ld=lld",
             "-Wl,--build-id=md5",
@@ -182,8 +179,6 @@ def cc_toolchain_config(
     cxx_standard = compiler_configuration["cxx_standard"]
     stdlib = compiler_configuration["stdlib"]
     sysroot_path = compiler_configuration["sysroot_path"]
-    if stdlib == "builtin-libc++" and is_xcompile:
-        stdlib = "stdc++"
     if stdlib == "builtin-libc++":
         cxx_flags = [
             "-std=" + cxx_standard,
@@ -198,36 +193,17 @@ def cc_toolchain_config(
             # https://github.com/llvm/llvm-project/commit/0556138624edf48621dd49a463dbe12e7101f17d
             cxx_flags.append("-Xclang")
             cxx_flags.append("-fno-cxx-modules")
-        if use_lld:
-            # For single-platform builds, we can statically link the bundled
-            # libraries.
-            link_flags.extend([
-                "-l:libc++.a",
-                "-l:libc++abi.a",
-                "-l:libunwind.a",
-                # Compiler runtime features.
-                "-rtlib=compiler-rt",
-                # To support libunwind.
+
+        link_flags.extend([
+            "-l:libc++.a",
+            "-l:libc++abi.a",
+            "-l:libunwind.a",
+            # Compiler runtime features.
+            "-rtlib=compiler-rt",
+            # To support libunwind.
                 "-lpthread",
                 "-ldl",
-            ])
-        else:
-            # Several system libraries on macOS dynamically link libc++ and
-            # libc++abi, so static linking them becomes a problem. We need to
-            # ensure that they are dynamic linked from the system sysroot and
-            # not static linked from the toolchain, so explicitly have the
-            # sysroot directory on the search path and then add the toolchain
-            # directory back after we are done.
-            link_flags.extend([
-                "-L{}/usr/lib".format(sysroot_path),
-                "-lc++",
-                "-lc++abi",
-                "-Bstatic",
-                "-lunwind",
-                "-Bdynamic",
-                "-L{}lib".format(toolchain_path_prefix),
-            ])
-
+        ])
     elif stdlib == "libc++":
         cxx_flags = [
             "-std=" + cxx_standard,
