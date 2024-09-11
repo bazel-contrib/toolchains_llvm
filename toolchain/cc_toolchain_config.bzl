@@ -214,9 +214,6 @@ def cc_toolchain_config(
             "-static",
         ])
     else:
-        # Note that for xcompiling from darwin to linux, the native ld64 is
-        # not an option because it is not a cross-linker, so lld is the
-        # only option.
         link_flags.extend([
             "-fuse-ld=lld",
             "-Wl,--build-id=md5",
