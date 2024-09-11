@@ -149,11 +149,13 @@ def cc_toolchain_config(
         print("WARNING: stdc++ is deprecated. Please use libstdc++ instead.")
         stdlib = "libstdc++"
     sysroot_path = compiler_configuration["sysroot_path"]
+
+    cxx_flags = [
+        "-std=" + cxx_standard,
+        "-stdlib=" + stdlib,
+    ]
+
     if stdlib == "libc++":
-        cxx_flags = [
-            "-std=" + cxx_standard,
-            "-stdlib=libc++",
-        ]
         if major_llvm_version >= 14:
             # With C++20, Clang defaults to using C++ rather than Clang modules,
             # which breaks Bazel's `use_module_maps` feature, which is used by
@@ -175,11 +177,6 @@ def cc_toolchain_config(
                 "-ldl",
         ])
     elif stdlib == "libstdc++":
-        cxx_flags = [
-            "-std=" + cxx_standard,
-            "-stdlib=libstdc++",
-        ]
-
         link_flags.extend([
             "-l:libstdc++.a",
         ])
