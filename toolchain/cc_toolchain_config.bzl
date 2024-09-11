@@ -144,6 +144,10 @@ def cc_toolchain_config(
     # always link C++ libraries.
     cxx_standard = compiler_configuration["cxx_standard"]
     stdlib = compiler_configuration["stdlib"]
+    # Let's be compatible with the old way of specifying the standard library.
+    if stdlib == "stdc++":
+        print("WARNING: stdc++ is deprecated. Please use libstdc++ instead.")
+        stdlib = "libstdc++"
     sysroot_path = compiler_configuration["sysroot_path"]
     if stdlib == "libc++":
         cxx_flags = [
@@ -170,7 +174,7 @@ def cc_toolchain_config(
                 "-lpthread",
                 "-ldl",
         ])
-    elif stdlib == "stdc++":
+    elif stdlib == "libstdc++":
         cxx_flags = [
             "-std=" + cxx_standard,
             "-stdlib=libstdc++",
