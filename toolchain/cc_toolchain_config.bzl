@@ -266,9 +266,6 @@ def cc_toolchain_config(
             "-no-canonical-prefixes",
             # Reproducibility
             "-Wno-builtin-macro-redefined",
-            "/D__DATE__=0",
-            "/D__TIMESTAMP__=0",
-            "/D__TIME__=0",
             "/clang:-fdebug-prefix-map={}=__bazel_toolchain_llvm_repo__/".format(toolchain_path_prefix),
         ])
 

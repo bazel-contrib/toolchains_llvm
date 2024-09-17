@@ -305,9 +305,9 @@ def _impl(ctx):
                         flag_group(
                             flags = [
                                 "/wd4117",
-                                "-D__DATE__=0",
-                                "-D__TIMESTAMP__=0",
-                                "-D__TIME__=0",
+                                "/D__DATE__=\"redacted\"",
+                                "/D__TIMESTAMP__=\"redacted\"",
+                                "/D__TIME__=\"redacted\"",
                             ] + (["-Wno-builtin-macro-redefined"] if ctx.attr.compiler == "clang-cl" else []),
                         ),
                     ],
