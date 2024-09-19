@@ -514,6 +514,12 @@ _llvm_distributions = {
     "clang+llvm-18.1.8-powerpc64le-linux-rhel-8.8.tar.xz": "b3df0c1607bfb04fe268c2e80542aba6e63ef0766a0bc4100ccf6a1ea99a0a1b",
     "clang+llvm-18.1.8-x86_64-linux-gnu-ubuntu-18.04.tar.xz": "54ec30358afcc9fb8aa74307db3046f5187f9fb89fb37064cdde906e062ebf36",
     "clang+llvm-18.1.8-x86_64-pc-windows-msvc.tar.xz": "22c5907db053026cc2a8ff96d21c0f642a90d24d66c23c6d28ee7b1d572b82e8",
+
+    # 19.1.0
+    "LLVM-19.1.0-Linux-X64.tar.xz": "cee77d641690466a193d9b88c89705de1c02bbad46bde6a3b126793c0a0f2923",
+    "LLVM-19.1.0-macOS-ARM64.tar.xz": "9da86f64a99f5ce9b679caf54e938736ca269c5e069d0c94ad08b995c5f25c16",
+    "LLVM-19.1.0-macOS-X64.tar.xz": "264f2f1e8b67f066749349ae8b4943d346cd44e099464164ef21b42a57663540",
+    "LLVM-19.1.0-Windows-X64.tar.xz": "a132377865d72bc7452343d59d05da63266ffc928b4072d63fb854fd42097dc4",
 }
 
 # Note: Unlike the user-specified llvm_mirror attribute, the URL prefixes in
@@ -572,6 +578,7 @@ _llvm_distributions_base_url = {
     "18.1.6": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
     "18.1.7": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
     "18.1.8": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
+    "19.1.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
 }
 
 def _get_auth(ctx, urls):
