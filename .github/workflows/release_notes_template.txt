@@ -5,14 +5,6 @@ If you're using `bzlmod`, add the following to `MODULE.bazel`:
 ```starlark
 bazel_dep(name = "toolchains_llvm", version = "{tag}")
 
-# To directly use a commit from GitHub, replace commit with the commit you want.
-# Otherwise, omit this block.
-git_override(
-  module_name = "toolchains_llvm",
-  commit = "{commit}",
-  remote = "https://github.com/bazel-contrib/toolchains_llvm",
-)
-
 # Configure and register the toolchain.
 llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
 llvm.toolchain(
@@ -23,6 +15,15 @@ use_repo(llvm, "llvm_toolchain")
 # use_repo(llvm, "llvm_toolchain_llvm") # if you depend on specific tools in scripts
 
 register_toolchains("@llvm_toolchain//:all")
+```
+
+To directly use a commit from GitHub, add this block and replace commit with the commit you want.
+```starlark
+git_override(
+  module_name = "toolchains_llvm",
+  commit = "{commit}",
+  remote = "https://github.com/bazel-contrib/toolchains_llvm",
+)
 ```
 
 If not using `bzlmod`, include this section in your `WORKSPACE`:
