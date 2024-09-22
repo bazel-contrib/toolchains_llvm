@@ -1,5 +1,7 @@
 load(
     "//toolchain/internal:common.bzl",
+    _arch = "arch",
+    _os = "os",
     _os_version_arch = "os_version_arch",
 )
 
@@ -205,10 +207,27 @@ def _resolve_version_for_suse(major_llvm_version, llvm_version):
     return os_name
 
 def llvm_release_name(rctx, llvm_version):
-    (os, version, arch) = _os_version_arch(rctx)
-    if os == "darwin":
-        return _darwin(llvm_version, arch)
-    elif os == "windows":
-        return _windows(llvm_version, arch)
+    major_llvm_version = _major_llvm_version(llvm_version)
+    if major_llvm_version >= 19:
+        arch = {
+            "aarch64": "ARM64",
+            "x86_64": "X64",
+        }[_arch(rctx)]
+        os = {
+            "darwin": "macOS",
+            "linux": "Linux",
+            "windows": "Windows",
+        }[_os(rctx)]
+        return "LLVM-{llvm_version}-{os}-{arch}.tar.xz".format(
+            llvm_version = llvm_version,
+            arch = arch,
+            os = os,
+        )
     else:
-        return _linux(llvm_version, os, version, arch)
+        (os, version, arch) = _os_version_arch(rctx)
+        if os == "darwin":
+            return _darwin(llvm_version, arch)
+        elif os == "windows":
+            return _windows(llvm_version, arch)
+        else:
+            return _linux(llvm_version, os, version, arch)
