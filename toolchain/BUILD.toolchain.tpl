@@ -35,6 +35,7 @@ filegroup(
     name = "internal-use-wrapped-tools",
     srcs = [
         "%{wrapper_bin_prefix}cc_wrapper.sh",
+        "%{wrapper_bin_prefix}cc_wrapper_msvc.sh",
     ],
     visibility = ["//visibility:private"],
 )

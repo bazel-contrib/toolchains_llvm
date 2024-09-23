@@ -219,6 +219,15 @@ def llvm_config_impl(rctx):
         cc_wrapper_tpl,
         {
             "%{toolchain_path_prefix}": llvm_dist_path_prefix,
+            "%{clang}": "clang",
+        },
+    )
+    rctx.template(
+        "bin/cc_wrapper_msvc.sh",
+        rctx.attr._cc_wrapper_sh_tpl,
+        {
+            "%{toolchain_path_prefix}": llvm_dist_path_prefix,
+            "%{clang}": "clang-cl",
         },
     )
 
@@ -315,6 +324,7 @@ def _cc_toolchain_str(
         "darwin-aarch64": "aarch64-apple-macosx",
         "linux-aarch64": "aarch64-unknown-linux-gnu",
         "linux-x86_64": "x86_64-unknown-linux-gnu",
+        "windows-msvc-x86_64": "x86_64-pc-windows-msvc",
     }[target_pair]
     cxx_builtin_include_directories = [
         toolchain_path_prefix + "include/c++/v1",
@@ -341,6 +351,9 @@ def _cc_toolchain_str(
             _join(sysroot_prefix, "/usr/include"),
             _join(sysroot_prefix, "/System/Library/Frameworks"),
         ])
+    elif target_os == "windows-msvc":
+        # No additional include directories for MSVC.
+        pass
     else:
         fail("Unreachable")
 

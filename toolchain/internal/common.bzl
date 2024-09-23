@@ -12,7 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-SUPPORTED_TARGETS = [("linux", "x86_64"), ("linux", "aarch64"), ("darwin", "x86_64"), ("darwin", "aarch64")]
+SUPPORTED_TARGETS = [
+    ("darwin", "aarch64"),
+    ("darwin", "x86_64"),
+    ("linux", "aarch64"),
+    ("linux", "x86_64"),
+    ("windows-msvc", "x86_64"),
+]
 
 # Map of tool name to its symlinked name in the tools directory.
 # See tool_paths in toolchain/cc_toolchain_config.bzl.
@@ -20,11 +26,15 @@ _toolchain_tools = {
     name: name
     for name in [
         "clang-cpp",
+        "clang-cl",
         "ld.lld",
+        "ld64.lld",
+        "lld-link",
         "llvm-ar",
-        "llvm-dwp",
-        "llvm-profdata",
         "llvm-cov",
+        "llvm-dwp",
+        "llvm-lib",
+        "llvm-profdata",
         "llvm-nm",
         "llvm-objcopy",
         "llvm-objdump",
@@ -120,7 +130,11 @@ def os(rctx):
 
 def os_bzl(os):
     # Return the OS string as used in bazel platform constraints.
-    return {"darwin": "osx", "linux": "linux"}[os]
+    return {
+        "darwin": "osx", 
+        "linux": "linux", 
+        "windows-msvc": "windows",
+    }[os]
 
 def arch(rctx):
     arch = rctx.attr.exec_arch
