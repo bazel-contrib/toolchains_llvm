@@ -102,7 +102,7 @@ def _ubuntu_osname(arch, version, major_llvm_version, llvm_version):
             os_name = "linux-gnu-ubuntu-22.04"
         elif llvm_version in ["16.0.1"]:
             os_name = "linux-gnu-ubuntu-20.04"
-        elif llvm_version in ["18.1.4", "15.0.6", "15.0.5", "13.0.1"]:
+        elif llvm_version in ["18.1.8", "18.1.7", "18.1.4", "15.0.6", "15.0.5", "13.0.1"]:
             os_name = "linux-gnu-ubuntu-18.04"
         elif llvm_version in ["15.0.2"]:
             os_name = "unknown-linux-gnu-rhel86"
@@ -163,7 +163,10 @@ def _linux(llvm_version, distname, version, arch):
         if version.isdigit():
             int_version = int(version)
         if int_version == 0 or int_version >= 9:
-            os_name = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version)
+            if major_llvm_version == 18:
+                os_name = _ubuntu_osname(arch, "18.04", major_llvm_version, llvm_version)
+            else:
+                os_name = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version)
         elif int_version == 8 and major_llvm_version < 7:
             os_name = "linux-gnu-debian8"
     elif ((distname == "fedora" and int(version) >= 27) or
