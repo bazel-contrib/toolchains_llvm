@@ -3,7 +3,7 @@ Minimum bazel version: **7.0.0**
 If you're using `bzlmod`, add the following to `MODULE.bazel`:
 
 ```starlark
-bazel_dep(name = "toolchains_llvm", version = "{tag}")
+bazel_dep(name = "toolchains_llvm", version = "{version}")
 
 # Configure and register the toolchain.
 llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
