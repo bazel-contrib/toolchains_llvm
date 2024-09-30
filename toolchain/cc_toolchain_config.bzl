@@ -141,6 +141,8 @@ def cc_toolchain_config(
     # Similar to link_flags, but placed later in the command line such that
     # unused symbols are not stripped.
     link_libs = []
+    libunwind_link_flags = []
+    compiler_rt_link_flags = []
 
     # Flags for ar.
     archive_flags = []
@@ -205,13 +207,14 @@ def cc_toolchain_config(
             link_flags.extend([
                 "-l:libc++.a",
                 "-l:libc++abi.a",
+            ])
+            compiler_rt_link_flags = ["-rtlib=compiler-rt"]
+            libunwind_link_flags = [
                 "-l:libunwind.a",
-                # Compiler runtime features.
-                "-rtlib=compiler-rt",
                 # To support libunwind.
                 "-lpthread",
                 "-ldl",
-            ])
+            ]
         else:
             # Several system libraries on macOS dynamically link libc++ and
             # libc++abi, so static linking them becomes a problem. We need to
@@ -223,11 +226,13 @@ def cc_toolchain_config(
                 "-L{}/usr/lib".format(sysroot_path),
                 "-lc++",
                 "-lc++abi",
-                "-Bstatic",
-                "-lunwind",
                 "-Bdynamic",
                 "-L{}lib".format(toolchain_path_prefix),
             ])
+            libunwind_link_flags = [
+                "-Bstatic",
+                "-lunwind",
+            ]
 
     elif stdlib == "libc++":
         cxx_flags = [
@@ -340,7 +345,8 @@ def cc_toolchain_config(
         dbg_compile_flags = dbg_compile_flags,
         opt_compile_flags = opt_compile_flags,
         cxx_flags = cxx_flags,
-        link_flags = link_flags,
+        link_flags = link_flags + select({str(Label("@toolchains_llvm//toolchain/config:use_libunwind")): libunwind_link_flags, "//conditions:default": []}) +
+                     select({str(Label("@toolchains_llvm//toolchain/config:use_compiler_rt")): compiler_rt_link_flags, "//conditions:default": []}),
         archive_flags = archive_flags,
         link_libs = link_libs,
         opt_link_flags = opt_link_flags,
