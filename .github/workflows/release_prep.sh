@@ -16,7 +16,9 @@ sed -i.bak "s/0.0.0/${tag}/" MODULE.bazel && git add MODULE.bazel && git commit 
 git archive --format=tar --prefix="${prefix}/" HEAD | gzip >"${archive}"
 sha=$(shasum -a 256 "${archive}" | cut -f1 -d' ')
 
+# Strip leading "v" from the tag if present to create the semver version.
 sed \
+  -e "s/{version}/${tag#v}/g" \
   -e "s/{tag}/${tag}/g" \
   -e "s/{commit}/${commit}/g" \
   -e "s/{prefix}/${prefix}/g" \
