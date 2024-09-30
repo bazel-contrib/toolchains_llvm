@@ -345,7 +345,7 @@ def cc_toolchain_config(
         dbg_compile_flags = dbg_compile_flags,
         opt_compile_flags = opt_compile_flags,
         cxx_flags = cxx_flags,
-        link_flags = link_flags + select({"//conditions:default": [], str(Label("@toolchains_llvm//toolchain/config:use_libunwind")): libunwind_link_flags}) +
+        link_flags = link_flags + select({str(Label("@toolchains_llvm//toolchain/config:use_libunwind")): libunwind_link_flags, "//conditions:default": []}) +
                      select({"//conditions:default": [], str(Label("@toolchains_llvm//toolchain/config:use_compiler_rt")): compiler_rt_link_flags}),
         archive_flags = archive_flags,
         link_libs = link_libs,
