@@ -299,14 +299,17 @@ llvm_config_attrs.update({
 def llvm_repo_impl(rctx):
     os = _os(rctx)
     if os == "windows":
-        rctx.file("BUILD.bazel", executable = False)
-        return None
-
-    rctx.file(
-        "BUILD.bazel",
-        content = rctx.read(Label("//toolchain:BUILD.llvm_repo")),
-        executable = False,
-    )
+        rctx.file(
+            "BUILD.bazel",
+            content = rctx.read(Label("//toolchain:BUILD.llvm_repo_windows")),
+            executable = False,
+        )
+    else:
+        rctx.file(
+            "BUILD.bazel",
+            content = rctx.read(Label("//toolchain:BUILD.llvm_repo")),
+            executable = False,
+        )
 
     updated_attrs = _download_llvm(rctx)
 

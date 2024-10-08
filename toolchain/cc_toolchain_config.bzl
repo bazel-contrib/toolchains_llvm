@@ -89,6 +89,14 @@ def cc_toolchain_config(
             "clang",
             "glibc_unknown",
         ),
+        "windows-x86_64": (
+            "clang-x86_64-windows",
+            "k8",
+            "msvc",
+            "clang",
+            "windows_x86_64",
+            "windows_x86_64",
+        ),
     }[target_os_arch_key]
 
     # Unfiltered compiler flags; these are placed at the end of the command
