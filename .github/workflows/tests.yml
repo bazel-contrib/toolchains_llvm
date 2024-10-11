@@ -32,10 +32,9 @@ jobs:
         bzlmod: [true, false]
     runs-on: ${{ matrix.os }}
     steps:
-      - if: startsWith(matrix.os, 'ubuntu')
-        name: Install APT packages
-        run: sudo apt-get -y install libtinfo5
       - uses: actions/checkout@v4
+      - if: startsWith(matrix.os, 'ubuntu')
+        run: tests/scripts/ubuntu_install_libtinfo.sh
       - name: Test
         env:
           USE_BAZEL_VERSION: ${{ matrix.bazel_version }}
@@ -51,10 +50,9 @@ jobs:
         bzlmod: [true, false]
     runs-on: ${{ matrix.os }}
     steps:
-      - if: startsWith(matrix.os, 'ubuntu')
-        name: Install APT packages
-        run: sudo apt-get -y install libtinfo5
       - uses: actions/checkout@v4
+      - if: startsWith(matrix.os, 'ubuntu')
+        run: tests/scripts/ubuntu_install_libtinfo.sh
       - name: Test
         env:
           USE_BAZEL_VERSION: ${{ matrix.bazel_version }}
@@ -102,9 +100,8 @@ jobs:
         bzlmod: [true, false]
     runs-on: ubuntu-latest
     steps:
-      - name: Install APT packages
-        run: sudo apt-get -y install libtinfo5
       - uses: actions/checkout@v4
+      - run: tests/scripts/ubuntu_install_libtinfo.sh
       - name: Test
         env:
           USE_BZLMOD: ${{ matrix.bzlmod }}
@@ -116,9 +113,8 @@ jobs:
         bzlmod: [true, false]
     runs-on: ubuntu-latest
     steps:
-      - name: Install APT packages
-        run: sudo apt-get -y install libtinfo5
       - uses: actions/checkout@v4
+      - run: tests/scripts/ubuntu_install_libtinfo.sh
       - name: Download and Extract LLVM distribution
         env:
           release: llvmorg-16.0.0
