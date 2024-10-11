@@ -24,6 +24,18 @@ def bazel_toolchain_dependencies():
             strip_prefix = "rules_cc-55fc267d2f16fcb5ff39bc73bd7a920a72cd25a6",
         )
 
+        # Load protobuf if the user has not defined it; this is a dep needed by
+        # `rules_cc`: https://github.com/bazelbuild/rules_cc/blob/55fc267d2f16fcb5ff39bc73bd7a920a72cd25a6/WORKSPACE#L45-L50
+        if not native.existing_rule("protobuf"):
+            http_archive(
+                name = "protobuf",
+                sha256 = "da288bf1daa6c04d03a9051781caa52aceb9163586bff9aa6cfb12f69b9395aa",
+                strip_prefix = "protobuf-27.0",
+                url = "https://github.com/protocolbuffers/protobuf/releases/download/v27.0/protobuf-27.0.tar.gz",
+            )
+
+
+
     # Load bazel_skylib if the user has not defined them.
     if not native.existing_rule("bazel_skylib"):
         http_archive(
