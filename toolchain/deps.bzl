@@ -19,10 +19,22 @@ def bazel_toolchain_dependencies():
     if not native.existing_rule("rules_cc"):
         http_archive(
             name = "rules_cc",
-            urls = ["https://github.com/bazelbuild/rules_cc/releases/download/0.0.9/rules_cc-0.0.9.tar.gz"],
-            sha256 = "2037875b9a4456dce4a79d112a8ae885bbc4aad968e6587dca6e64f3a0900cdf",
-            strip_prefix = "rules_cc-0.0.9",
+            urls = ["https://github.com/rrbutani/rules_cc/archive/55fc267d2f16fcb5ff39bc73bd7a920a72cd25a6.zip"],
+            sha256 = "9c265357201c6be302c6fb40cb22bb2f622412d2d9bc6d4293da4d5b010ce7c9",
+            strip_prefix = "rules_cc-55fc267d2f16fcb5ff39bc73bd7a920a72cd25a6",
         )
+
+        # Load protobuf if the user has not defined it; this is a dep needed by
+        # `rules_cc`: https://github.com/bazelbuild/rules_cc/blob/55fc267d2f16fcb5ff39bc73bd7a920a72cd25a6/WORKSPACE#L45-L50
+        if not native.existing_rule("protobuf"):
+            http_archive(
+                name = "protobuf",
+                sha256 = "da288bf1daa6c04d03a9051781caa52aceb9163586bff9aa6cfb12f69b9395aa",
+                strip_prefix = "protobuf-27.0",
+                url = "https://github.com/protocolbuffers/protobuf/releases/download/v27.0/protobuf-27.0.tar.gz",
+            )
+
+
 
     # Load bazel_skylib if the user has not defined them.
     if not native.existing_rule("bazel_skylib"):
