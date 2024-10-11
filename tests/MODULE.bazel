@@ -179,3 +179,9 @@ llvm.toolchain(
     exec_arch = "amd64",
 )
 use_repo(llvm, "llvm_toolchain_linux_exec")
+
+git_override(
+    module_name = "rules_cc",
+    remote = "https://github.com/rrbutani/rules_cc",
+    commit = "55fc267d2f16fcb5ff39bc73bd7a920a72cd25a6",
+)
