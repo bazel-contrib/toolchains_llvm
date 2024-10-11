@@ -268,6 +268,11 @@ def cc_toolchain_config(
             "-l:c++.a",
             "-l:c++abi.a",
         ])
+    elif stdlib == "system-stdc++":
+        cxx_flags = [
+            "-std=" + cxx_standard,
+            "-stdlib=libstdc++",
+        ]
     elif stdlib == "stdc++":
         cxx_flags = [
             "-std=" + cxx_standard,
