@@ -136,7 +136,12 @@ def cc_toolchain_config(
         "--target=" + target_system_name,
         "-lm",
         "-no-canonical-prefixes",
+        "-fuse-ld=lld",
     ]
+
+    if exec_os == "darwin":
+        # These will get expanded by osx_cc_wrapper's `sanitize_option`
+        link_flags.append("--ld-path=ld.lld" if is_xcompile else "--ld-path=ld64.lld")
 
     # Similar to link_flags, but placed later in the command line such that
     # unused symbols are not stripped.
@@ -144,14 +149,10 @@ def cc_toolchain_config(
     libunwind_link_flags = []
     compiler_rt_link_flags = []
 
-    # Flags for ar.
-    archive_flags = []
+    is_darwin_exec_and_target = exec_os == "darwin" and not is_xcompile
 
-    # Linker flags:
-    if exec_os == "darwin" and not is_xcompile:
-        # lld is experimental for Mach-O, so we use the native ld64 linker.
-        # TODO: How do we cross-compile from Linux to Darwin?
-        use_lld = False
+    # Linker and archive flags
+    if is_darwin_exec_and_target:
         link_flags.extend([
             "-headerpad_max_install_names",
             "-fobjc-link-runtime",
@@ -163,21 +164,15 @@ def cc_toolchain_config(
         # Pre-installed libtool on macOS has -static as default, but llvm-libtool-darwin needs it
         # explicitly. cc_common.create_link_variables does not automatically add this either if
         # output_file arg to it is None.
-        archive_flags.extend([
-            "-static",
-        ])
+        archive_flags = ["-static"]
     else:
-        # Note that for xcompiling from darwin to linux, the native ld64 is
-        # not an option because it is not a cross-linker, so lld is the
-        # only option.
-        use_lld = True
         link_flags.extend([
-            "-fuse-ld=lld",
             "-Wl,--build-id=md5",
             "-Wl,--hash-style=gnu",
             "-Wl,-z,relro,-z,now",
         ])
         use_libtool = False
+        archive_flags = []
 
     # Flags related to C++ standard.
     # The linker has no way of knowing if there are C++ objects; so we
@@ -201,21 +196,7 @@ def cc_toolchain_config(
             # https://github.com/llvm/llvm-project/commit/0556138624edf48621dd49a463dbe12e7101f17d
             cxx_flags.append("-Xclang")
             cxx_flags.append("-fno-cxx-modules")
-        if use_lld:
-            # For single-platform builds, we can statically link the bundled
-            # libraries.
-            link_flags.extend([
-                "-l:libc++.a",
-                "-l:libc++abi.a",
-            ])
-            compiler_rt_link_flags = ["-rtlib=compiler-rt"]
-            libunwind_link_flags = [
-                "-l:libunwind.a",
-                # To support libunwind.
-                "-lpthread",
-                "-ldl",
-            ]
-        else:
+        if is_darwin_exec_and_target:
             # Several system libraries on macOS dynamically link libc++ and
             # libc++abi, so static linking them becomes a problem. We need to
             # ensure that they are dynamic linked from the system sysroot and
@@ -233,7 +214,20 @@ def cc_toolchain_config(
                 "-Bstatic",
                 "-lunwind",
             ]
-
+        else:
+            # For single-platform builds, we can statically link the bundled
+            # libraries.
+            link_flags.extend([
+                "-l:libc++.a",
+                "-l:libc++abi.a",
+            ])
+            compiler_rt_link_flags = ["-rtlib=compiler-rt"]
+            libunwind_link_flags = [
+                "-l:libunwind.a",
+                # To support libunwind.
+                "-lpthread",
+                "-ldl",
+            ]
     elif stdlib == "libc++":
         cxx_flags = [
             "-std=" + cxx_standard,
@@ -287,7 +281,7 @@ def cc_toolchain_config(
         "dwp": tools_path_prefix + "llvm-dwp",
         "gcc": wrapper_bin_prefix + "cc_wrapper.sh",
         "gcov": tools_path_prefix + "llvm-profdata",
-        "ld": tools_path_prefix + "ld.lld" if use_lld else "/usr/bin/ld",
+        "ld": tools_path_prefix + "ld.lld",
         "llvm-cov": tools_path_prefix + "llvm-cov",
         "llvm-profdata": tools_path_prefix + "llvm-profdata",
         "nm": tools_path_prefix + "llvm-nm",
@@ -300,9 +294,8 @@ def cc_toolchain_config(
     # This was added to `lld` in this patch: http://reviews.llvm.org/D18814
     #
     # The oldest version of LLVM that we support is 6.0.0 which was released
-    # after the above patch was merged, so we just set this to `True` when
-    # `lld` is being used as the linker.
-    supports_start_end_lib = use_lld
+    # after the above patch was merged, so we just set this to `True`.
+    supports_start_end_lib = True
 
     # Replace flags with any user-provided overrides.
     if compiler_configuration["compile_flags"] != None:
