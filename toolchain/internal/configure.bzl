@@ -25,6 +25,7 @@ load(
     _check_os_arch_keys = "check_os_arch_keys",
     _exec_os_arch_dict_value = "exec_os_arch_dict_value",
     _is_absolute_path = "is_absolute_path",
+    _is_standalone_arch = "is_standalone_arch",
     _list_to_string = "list_to_string",
     _os = "os",
     _os_arch_pair = "os_arch_pair",
@@ -243,7 +244,10 @@ def _cc_toolchains_str(
     cc_toolchains_str = ""
     toolchain_names = []
     for (target_os, target_arch) in _supported_targets:
-        suffix = "{}-{}".format(target_arch, target_os)
+        if _is_standalone_arch(target_os, target_arch):
+            suffix = target_arch
+        else:
+            suffix = "{}-{}".format(target_arch, target_os)
         cc_toolchain_str = _cc_toolchain_str(
             rctx,
             suffix,
@@ -315,6 +319,8 @@ def _cc_toolchain_str(
         "darwin-aarch64": "aarch64-apple-macosx",
         "linux-aarch64": "aarch64-unknown-linux-gnu",
         "linux-x86_64": "x86_64-unknown-linux-gnu",
+        "wasm32": "wasm32-unknown-unknown",
+        "wasm64": "wasm64-unknown-unknown",
     }[target_pair]
     cxx_builtin_include_directories = [
         toolchain_path_prefix + "include/c++/v1",
@@ -341,6 +347,11 @@ def _cc_toolchain_str(
             _join(sysroot_prefix, "/usr/include"),
             _join(sysroot_prefix, "/System/Library/Frameworks"),
         ])
+    elif target_os == "none":
+        if sysroot_prefix:
+            cxx_builtin_include_directories.extend([
+                _join(sysroot_prefix, "/include"),
+            ])
     else:
         fail("Unreachable")
 

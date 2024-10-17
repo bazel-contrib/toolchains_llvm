@@ -89,6 +89,22 @@ def cc_toolchain_config(
             "clang",
             "glibc_unknown",
         ),
+        "wasm32": (
+            "clang-wasm32",
+            "wasm32",
+            "unknown",
+            "clang",
+            "unknown",
+            "unknown",
+        ),
+        "wasm64": (
+            "clang-wasm64",
+            "wasm64",
+            "unknown",
+            "clang",
+            "unknown",
+            "unknown",
+        ),
     }[target_os_arch_key]
 
     # Unfiltered compiler flags; these are placed at the end of the command
@@ -171,6 +187,10 @@ def cc_toolchain_config(
         archive_flags.extend([
             "-static",
         ])
+    elif target_arch in ["wasm32", "wasm64"]:
+        # lld is invoked as wasm-ld for WebAssembly targets.
+        use_lld = True
+        use_libtool = False
     else:
         # Note that for xcompiling from darwin to linux, the native ld64 is
         # not an option because it is not a cross-linker, so lld is the

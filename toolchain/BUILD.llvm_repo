@@ -41,6 +41,7 @@ filegroup(
     srcs = [
         "bin/ld.lld",
         "bin/ld64.lld",
+        "bin/wasm-ld",
     ],
 )
 

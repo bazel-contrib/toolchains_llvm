@@ -12,7 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-SUPPORTED_TARGETS = [("linux", "x86_64"), ("linux", "aarch64"), ("darwin", "x86_64"), ("darwin", "aarch64")]
+SUPPORTED_TARGETS = [
+    ("linux", "x86_64"),
+    ("linux", "aarch64"),
+    ("darwin", "x86_64"),
+    ("darwin", "aarch64"),
+    ("none", "wasm32"),
+    ("none", "wasm64"),
+]
 
 # Map of tool name to its symlinked name in the tools directory.
 # See tool_paths in toolchain/cc_toolchain_config.bzl.
@@ -120,7 +127,7 @@ def os(rctx):
 
 def os_bzl(os):
     # Return the OS string as used in bazel platform constraints.
-    return {"darwin": "osx", "linux": "linux"}[os]
+    return {"darwin": "osx", "linux": "linux", "none": "none"}[os]
 
 def arch(rctx):
     arch = rctx.attr.exec_arch
@@ -139,7 +146,12 @@ def arch(rctx):
         return "x86_64"
     return arch
 
+def is_standalone_arch(os, arch):
+    return os == "none" and arch in ["wasm32", "wasm64"]
+
 def os_arch_pair(os, arch):
+    if is_standalone_arch(os, arch):
+        return arch
     return "{}-{}".format(os, arch)
 
 _supported_os_arch = [os_arch_pair(os, arch) for (os, arch) in SUPPORTED_TARGETS]
