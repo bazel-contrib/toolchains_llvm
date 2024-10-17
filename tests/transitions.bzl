@@ -97,11 +97,11 @@ dwp_file = rule(
     },
 )
 
-def _transition_library_to_platform_transition_impl(_, attr):
+def _transition_to_platform_transition_impl(_, attr):
     return {"//command_line_option:platforms": str(attr.platform)}
 
-_transition_library_to_platform_transition = transition(
-    implementation = _transition_library_to_platform_transition_impl,
+_transition_to_platform_transition = transition(
+    implementation = _transition_to_platform_transition_impl,
     inputs = [],
     outputs = ["//command_line_option:platforms"],
 )
@@ -114,7 +114,27 @@ def _transition_library_to_platform_impl(ctx):
 transition_library_to_platform = rule(
     implementation = _transition_library_to_platform_impl,
     attrs = {
-        "lib": attr.label(mandatory = True, cfg = _transition_library_to_platform_transition),
+        "lib": attr.label(mandatory = True, cfg = _transition_to_platform_transition),
+        "platform": attr.label(mandatory = True),
+        "_allowlist_function_transition": attr.label(
+            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
+        ),
+    },
+)
+
+def _transition_binary_to_platform_impl(ctx):
+    out = ctx.actions.declare_file(ctx.attr.name)
+    ctx.actions.symlink(output = out, target_file = ctx.file.bin)
+    return DefaultInfo(files = depset([out]))
+
+transition_binary_to_platform = rule(
+    implementation = _transition_binary_to_platform_impl,
+    attrs = {
+        "bin": attr.label(
+            mandatory = True,
+            allow_single_file = True,
+            cfg = _transition_to_platform_transition,
+        ),
         "platform": attr.label(mandatory = True),
         "_allowlist_function_transition": attr.label(
             default = "@bazel_tools//tools/allowlists/function_transition_allowlist",

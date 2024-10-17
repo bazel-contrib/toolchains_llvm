@@ -14,7 +14,12 @@
 
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
-load(":transitions.bzl", "dwp_file", "transition_library_to_platform")
+load(
+    ":transitions.bzl",
+    "dwp_file",
+    "transition_binary_to_platform",
+    "transition_library_to_platform",
+)
 
 cc_library(
     name = "stdlib",
@@ -199,4 +204,36 @@ cc_test(
     # can use the default toolchain
     tags = ["manual"],
     deps = [":test_cxx_standard_lib_transitioned"],
+)
+
+cc_binary(
+    name = "wasm_strlen",
+    srcs = ["wasm_strlen.c"],
+    linkopts = ["-Wl,--no-entry"],
+    tags = ["manual"],
+)
+
+transition_binary_to_platform(
+    name = "wasm32_strlen",
+    bin = ":wasm_strlen",
+    platform = "@toolchains_llvm//platforms:wasm32",
+)
+
+cc_binary(
+    name = "wasm_strlen_nolibc",
+    srcs = ["wasm_strlen_nolibc.c"],
+    linkopts = ["-Wl,--no-entry"],
+    tags = ["manual"],
+)
+
+transition_binary_to_platform(
+    name = "wasm32_strlen_nolibc",
+    bin = ":wasm_strlen_nolibc",
+    platform = "@toolchains_llvm//platforms:wasm32",
+)
+
+transition_binary_to_platform(
+    name = "wasm64_strlen_nolibc",
+    bin = ":wasm_strlen_nolibc",
+    platform = "@toolchains_llvm//platforms:wasm64",
 )
