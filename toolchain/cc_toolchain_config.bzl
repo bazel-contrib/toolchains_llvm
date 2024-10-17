@@ -134,9 +134,14 @@ def cc_toolchain_config(
 
     link_flags = [
         "--target=" + target_system_name,
-        "-lm",
         "-no-canonical-prefixes",
     ]
+
+    stdlib = compiler_configuration["stdlib"]
+    if stdlib != "none":
+        link_flags.extend([
+            "-lm",
+        ])
 
     # Similar to link_flags, but placed later in the command line such that
     # unused symbols are not stripped.
@@ -183,7 +188,6 @@ def cc_toolchain_config(
     # The linker has no way of knowing if there are C++ objects; so we
     # always link C++ libraries.
     cxx_standard = compiler_configuration["cxx_standard"]
-    stdlib = compiler_configuration["stdlib"]
     sysroot_path = compiler_configuration["sysroot_path"]
     if stdlib == "builtin-libc++" and is_xcompile:
         stdlib = "stdc++"
@@ -253,11 +257,14 @@ def cc_toolchain_config(
         link_flags.extend([
             "-l:libstdc++.a",
         ])
+    elif stdlib == "libc":
+        cxx_flags = [
+            "-std=" + cxx_standard,
+        ]
     elif stdlib == "none":
         cxx_flags = [
             "-nostdlib",
         ]
-
         link_flags.extend([
             "-nostdlib",
         ])
