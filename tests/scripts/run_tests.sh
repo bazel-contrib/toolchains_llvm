@@ -69,6 +69,13 @@ fi
 #
 # Mitigate this by expunging the workspace before trying to build Wasm targets.
 if [[ -z ${toolchain_name} ]]; then
+  # Redefine `test_args` without `--linkopt=-Wl,-v`, which breaks `wasm-ld`.
+  #
+  # https://github.com/llvm/llvm-project/issues/112836
+  test_args=(
+    "--copt=-v"
+    "--linkopt=-Wl,-t"
+  )
   wasm_targets=(
     "//wasm:all"
   )
