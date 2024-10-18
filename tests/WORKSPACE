@@ -159,22 +159,22 @@ llvm_toolchain(
 # Toolchain example for WebAssembly.
 llvm_toolchain(
     name = "llvm_toolchain_wasm",
+    libclang_rt = {
+        "@libclang_rt_wasm32//:libclang_rt.builtins-wasm32.a": "wasm32-unknown-unknown/libclang_rt.builtins.a",
+    },
     # WebAssembly tests use a separate (newer) version of LLVM to exercise
     # support for experimental features such as wasm64.
     llvm_versions = {
         # The most recent LLVM as of 2024-10-17
         "": "19.1.0",
     },
-    sysroot = {
-        "wasm32": "@wasi_sdk_sysroots//wasm32-wasip2",
-        "wasm64": "@wasi_sdk_sysroots//empty",
-    },
     stdlib = {
         "wasm32": "libc",
         "wasm64": "none",
     },
-    libclang_rt = {
-        "@libclang_rt_wasm32//:libclang_rt.builtins-wasm32.a": "wasm32-unknown-unknown/libclang_rt.builtins.a",
+    sysroot = {
+        "wasm32": "@wasi_sdk_sysroots//wasm32-wasip2",
+        "wasm64": "@wasi_sdk_sysroots//empty",
     },
 )
 
@@ -182,10 +182,13 @@ load(
     "@llvm_toolchain_wasm//:toolchains.bzl",
     llvm_register_toolchains_wasm = "llvm_register_toolchains",
 )
+
 llvm_register_toolchains_wasm()
 
 load("//wasm:wasi_sdk.bzl", "libclang_rt_wasm32", "wasi_sdk_sysroots")
+
 libclang_rt_wasm32(name = "libclang_rt_wasm32")
+
 wasi_sdk_sysroots(name = "wasi_sdk_sysroots")
 
 ## Test dependencies.
