@@ -16,14 +16,18 @@
 set -euo pipefail
 
 toolchain_name=""
+disable_wasm_tests=""
 
-while getopts "t:h" opt; do
+while getopts "t:hW" opt; do
   case "${opt}" in
   "t") toolchain_name="${OPTARG}" ;;
   "h")
     echo "Usage:"
     echo "-t - Toolchain name to use for testing; default is llvm_toolchain"
     exit 2
+    ;;
+  "W")
+    disable_wasm_tests="yes"
     ;;
   *)
     echo "invalid option: -${OPTARG}"
@@ -68,7 +72,7 @@ fi
 # to run out of disk space.
 #
 # Mitigate this by expunging the workspace before trying to build Wasm targets.
-if [[ -z ${toolchain_name} ]]; then
+if [[ -z ${toolchain_name} && -z ${disable_wasm_tests} ]]; then
   # Redefine `test_args` without `--linkopt=-Wl,-v`, which breaks `wasm-ld`.
   #
   # https://github.com/llvm/llvm-project/issues/112836
