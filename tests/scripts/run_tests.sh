@@ -62,3 +62,17 @@ fi
 # Note that the following flags are currently known to cause issues in migration tests:
 # --incompatible_disallow_struct_provider_syntax # https://github.com/bazelbuild/bazel/issues/7347
 # --incompatible_no_rule_outputs_param # from rules_rust
+
+# WebAssembly tests use a separate (newer) version of LLVM to exercise support
+# for experimental features such as wasm64, which can cause the CI environment
+# to run out of disk space.
+#
+# Mitigate this by expunging the workspace before trying to build Wasm targets.
+if [[ -z ${toolchain_name} ]]; then
+  wasm_targets=(
+    "//wasm:all"
+  )
+  "${bazel}" clean --expunge
+  "${bazel}" ${TEST_MIGRATION:+"--strict"} --bazelrc=/dev/null test \
+    "${common_test_args[@]}" "${test_args[@]}" "${wasm_targets[@]}"
+fi

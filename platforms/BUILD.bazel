@@ -45,3 +45,19 @@ platform(
         "@platforms//cpu:aarch64",
     ],
 )
+
+platform(
+    name = "wasm32",
+    constraint_values = [
+        "@platforms//os:none",
+        "@platforms//cpu:wasm32",
+    ],
+)
+
+platform(
+    name = "wasm64",
+    constraint_values = [
+        "@platforms//os:none",
+        "@platforms//cpu:wasm64",
+    ],
+)

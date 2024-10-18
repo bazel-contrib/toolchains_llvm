@@ -623,6 +623,14 @@ def download_llvm(rctx):
         auth = _get_auth(rctx, urls),
     )
 
+    if rctx.attr.libclang_rt:
+        clang_versions = rctx.path("lib/clang").readdir()
+        for libclang_rt, lib_name in rctx.attr.libclang_rt.items():
+            libclang_rt_content = rctx.read(libclang_rt)
+            for clang_version in clang_versions:
+                lib_path = clang_version.get_child("lib", lib_name)
+                rctx.file(lib_path, libclang_rt_content, legacy_utf8=False)
+
     updated_attrs = _attr_dict(rctx.attr)
     if update_sha256:
         updated_attrs["sha256"].update([(key, res.sha256)])

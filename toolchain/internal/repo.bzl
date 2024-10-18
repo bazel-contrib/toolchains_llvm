@@ -102,6 +102,12 @@ llvm_repo_attrs.update({
               "As with `llvm_mirror`, these sources will take precedence over the official LLVM " +
               "release sources.",
     ),
+    "libclang_rt": attr.label_keyed_string_dict(
+        mandatory = False,
+        doc = ("Additional libclang_rt libraries to overlay into the downloaded LLVM " +
+               "distribution. The key is the label of a libclang_rt library, " +
+               "and the value is `\"{llvm_target_name}/{library_name}.a\"`."),
+    ),
     "netrc": attr.string(
         mandatory = False,
         doc = "Path to the netrc file for authenticated LLVM URL downloads.",
