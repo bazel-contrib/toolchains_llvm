@@ -40,7 +40,7 @@ docker build --platform=linux/amd64 --pull --tag=bazel-docker-sandbox - <<-EOF
 	FROM ${base_image}
 	ENV DEBIAN_FRONTEND=noninteractive
 	RUN apt-get -qq update && \
-		apt-get -qq -y install libtinfo5 zlib1g-dev libxml2
+		apt-get -qq -y install libtinfo5 libxml2 zlib1g-dev libxml2
 EOF
 
 build_args=(

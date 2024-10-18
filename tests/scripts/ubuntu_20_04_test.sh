@@ -30,12 +30,16 @@ set -exuo pipefail
 # Common setup
 export DEBIAN_FRONTEND=noninteractive
 apt-get -qq update
-apt-get -qq -y install apt-utils curl libtinfo5 pkg-config zlib1g-dev >/dev/null
+apt-get -qq -y install apt-utils curl libtinfo5 libxml2 pkg-config zlib1g-dev >/dev/null
 # The above command gives some verbose output that can not be silenced easily.
 # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=288778
 
+# The WebAssembly tests use an LLVM version that is too new for the GNU libc
+# distributed in Ubuntu 20.04.
+disable_wasm_tests='-W'
+
 # Run tests
 cd /src
-tests/scripts/run_tests.sh
+tests/scripts/run_tests.sh \${disable_wasm_tests}
 """
 done

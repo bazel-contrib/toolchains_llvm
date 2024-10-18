@@ -89,6 +89,22 @@ def cc_toolchain_config(
             "clang",
             "glibc_unknown",
         ),
+        "wasm32": (
+            "clang-wasm32",
+            "wasm32",
+            "unknown",
+            "clang",
+            "unknown",
+            "unknown",
+        ),
+        "wasm64": (
+            "clang-wasm64",
+            "wasm64",
+            "unknown",
+            "clang",
+            "unknown",
+            "unknown",
+        ),
     }[target_os_arch_key]
 
     # Unfiltered compiler flags; these are placed at the end of the command
@@ -134,9 +150,14 @@ def cc_toolchain_config(
 
     link_flags = [
         "--target=" + target_system_name,
-        "-lm",
         "-no-canonical-prefixes",
     ]
+
+    stdlib = compiler_configuration["stdlib"]
+    if stdlib != "none":
+        link_flags.extend([
+            "-lm",
+        ])
 
     # Similar to link_flags, but placed later in the command line such that
     # unused symbols are not stripped.
@@ -166,6 +187,10 @@ def cc_toolchain_config(
         archive_flags.extend([
             "-static",
         ])
+    elif target_arch in ["wasm32", "wasm64"]:
+        # lld is invoked as wasm-ld for WebAssembly targets.
+        use_lld = True
+        use_libtool = False
     else:
         # Note that for xcompiling from darwin to linux, the native ld64 is
         # not an option because it is not a cross-linker, so lld is the
@@ -183,7 +208,6 @@ def cc_toolchain_config(
     # The linker has no way of knowing if there are C++ objects; so we
     # always link C++ libraries.
     cxx_standard = compiler_configuration["cxx_standard"]
-    stdlib = compiler_configuration["stdlib"]
     sysroot_path = compiler_configuration["sysroot_path"]
     if stdlib == "builtin-libc++" and is_xcompile:
         stdlib = "stdc++"
@@ -253,11 +277,14 @@ def cc_toolchain_config(
         link_flags.extend([
             "-l:libstdc++.a",
         ])
+    elif stdlib == "libc":
+        cxx_flags = [
+            "-std=" + cxx_standard,
+        ]
     elif stdlib == "none":
         cxx_flags = [
             "-nostdlib",
         ]
-
         link_flags.extend([
             "-nostdlib",
         ])
