@@ -86,7 +86,7 @@ function sanitize_option() {
 
 cmd=()
 for ((i = 0; i <= $#; i++)); do
-  if [[ ${!i} == @* && -r "${i:1}" ]]; then
+  if [[ ${!i} == @* && -r ${i:1} ]]; then
     while IFS= read -r opt; do
       if [[ ${opt} == "-fuse-ld=ld64.lld" ]]; then
         cmd+=("-fuse-ld=lld")
