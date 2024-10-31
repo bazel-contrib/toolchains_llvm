@@ -44,6 +44,18 @@ lint:
       version_command:
         parse_regex: ${semver}
         run: buildifier --version
+    # Default shfmt config uses -s flag to simplify code but this can cause
+    # unwanted semantic changes
+    - name: shfmt
+      commands:
+        - name: format
+          output: shfmt
+          run: shfmt -w ${target}
+          success_codes: [0, 1]
+          cache_results: true
+          formatter: true
+          batch: true
+          in_place: true
   enabled:
     - actionlint@1.6.25
     - buildifier@7.1.0
