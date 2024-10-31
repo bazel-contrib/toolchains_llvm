@@ -120,7 +120,7 @@ sh_test(
     name = "file_dependency_test",
     srcs = ["file_dependency_test.sh"],
     args = [
-        "$(execpath @llvm_toolchain_llvm//:bin/clang-format)",
+        "$(rootpath @llvm_toolchain_llvm//:bin/clang-format)",
         "$(rootpaths @llvm_toolchain_llvm//:lib)",
     ],
     data = [
@@ -136,7 +136,7 @@ toolchain(
         "@platforms//cpu:arm64",
         "@platforms//os:macos",
     ],
-    toolchain = "@@rules_foreign_cc~~tools~ninja_1.11.1_mac//:ninja_tool",
+    toolchain = "@ninja_mac//:ninja_tool",
     toolchain_type = "@rules_foreign_cc//toolchains:ninja_toolchain",
 )
 

@@ -21,10 +21,10 @@ fail() {
 clang_format_path=$1
 libcpp_path=$2
 
-[[ -e ${clang_format_path} ]] || fail "bin/clang-format not found"
+[[ -e ${clang_format_path} ]] || fail "bin/clang-format not found at ${clang_format_path}"
 
 [[ -e ${libcpp_path} ]] ||
   compgen -G "${libcpp_path}" >/dev/null ||
-  fail "libc++.a not found"
+  fail "libc++.a not found at ${libcpp_path}"
 
 echo "SUCCESS!"
