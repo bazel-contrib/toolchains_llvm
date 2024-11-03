@@ -520,6 +520,22 @@ _llvm_distributions = {
     "LLVM-19.1.0-macOS-ARM64.tar.xz": "9da86f64a99f5ce9b679caf54e938736ca269c5e069d0c94ad08b995c5f25c16",
     "LLVM-19.1.0-macOS-X64.tar.xz": "264f2f1e8b67f066749349ae8b4943d346cd44e099464164ef21b42a57663540",
     "LLVM-19.1.0-Windows-X64.tar.xz": "a132377865d72bc7452343d59d05da63266ffc928b4072d63fb854fd42097dc4",
+
+    # 19.1.1
+    "LLVM-19.1.1-Linux-X64.tar.xz": "8204de000b6a6921f0572e038336601e3225898e9a253c8aaa43b0a5fae8a4ce",
+    "LLVM-19.1.1-macOS-ARM64.tar.xz": "e00def99a6b32de61fffabd4bb85290589731f3f5cb9836fd51770256cd694dd",
+    "LLVM-19.1.1-Windows-X64.tar.xz": "dafd21646d10b7a59cf755002b608a657173c22daf63d99663eb193aedde48c1",
+
+    # 19.1.2
+    "LLVM-19.1.2-Linux-X64.tar.xz": "5b7fe5b2dbbacadd0fee17ac45103c0393bc4b5a9096506a865aa2fbcba976a7",
+    "LLVM-19.1.2-macOS-ARM64.tar.xz": "62eb2d8e9f610595fc53db020e26e4576c57c5853a55981292f17730916e676d",
+    "LLVM-19.1.2-Windows-X64.tar.xz": "3aa49c72622c14caabb63f80cc156ce1d6806e12af554754ae1084bd7bc8f6ba",
+
+    # 19.1.3
+    "LLVM-19.1.3-Linux-X64.tar.xz": "052a5ee117782aab5893dba2cdf2cb97c3d873f7a50ba6b1690594161c75c519",
+    "LLVM-19.1.3-macOS-ARM64.tar.xz": "80a54a467e9e770a76ba9670e89a235224ec47578cc4d4dbd928592813732518",
+    "LLVM-19.1.3-macOS-X64.tar.xz": "52ea30f3089af4e086a98638a16167c5a20d253d43f7146c058e3e9e6d33274f",
+    "LLVM-19.1.3-Windows-X64.tar.xz": "1077267ca353a1e236055ed4b57d6a404d09c40b01bd27dc882870395cdc1aae",
 }
 
 # Note: Unlike the user-specified llvm_mirror attribute, the URL prefixes in
@@ -579,6 +595,9 @@ _llvm_distributions_base_url = {
     "18.1.7": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
     "18.1.8": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
     "19.1.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
+    "19.1.1": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
+    "19.1.2": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
+    "19.1.3": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
 }
 
 def _get_auth(ctx, urls):
