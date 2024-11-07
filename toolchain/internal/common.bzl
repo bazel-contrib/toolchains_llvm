@@ -115,7 +115,9 @@ def os(rctx):
             return name
         else:
             fail("Unsupported value for exec_os: %s" % name)
+    return os_from_rctx(rctx)
 
+def os_from_rctx(rctx):
     name = rctx.os.name
     if name == "linux":
         return "linux"
@@ -138,7 +140,9 @@ def arch(rctx):
             return "x86_64"
         else:
             fail("Unsupported value for exec_arch: %s" % arch)
+    return arch_from_rctx(rctx)
 
+def arch_from_rctx(rctx):
     arch = rctx.os.arch
     if arch == "arm64":
         return "aarch64"
