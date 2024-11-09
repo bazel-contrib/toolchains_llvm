@@ -21,6 +21,7 @@ load(
 load(
     "//toolchain/internal:common.bzl",
     _arch = "arch",
+    _arch_from_rctx = "arch_from_rctx",
     _canonical_dir_path = "canonical_dir_path",
     _check_os_arch_keys = "check_os_arch_keys",
     _exec_os_arch_dict_value = "exec_os_arch_dict_value",
@@ -30,6 +31,7 @@ load(
     _os = "os",
     _os_arch_pair = "os_arch_pair",
     _os_bzl = "os_bzl",
+    _os_from_rctx = "os_from_rctx",
     _pkg_path_from_label = "pkg_path_from_label",
     _supported_targets = "SUPPORTED_TARGETS",
     _toolchain_tools = "toolchain_tools",
@@ -518,6 +520,16 @@ cc_toolchain(
 )
 """
 
+    # Filter out non-existing directories with absolute paths as they
+    # result in a -Wincomplete-umbrella warning when mentioned in the
+    # system module map. Note that this filtering is skipped for remote
+    # execution because it is not possible to check directory existence.
+    filtered_cxx_builtin_include_directories = cxx_builtin_include_directories if _is_remote(rctx, exec_os, exec_arch) else [
+        dir
+        for dir in cxx_builtin_include_directories
+        if _is_hermetic_or_exists(rctx, dir, sysroot_path)
+    ]
+
     return template.format(
         suffix = suffix,
         target_os = target_os,
@@ -548,14 +560,7 @@ cc_toolchain(
         coverage_link_flags = _list_to_string(_dict_value(toolchain_info.coverage_link_flags_dict, target_pair)),
         unfiltered_compile_flags = _list_to_string(_dict_value(toolchain_info.unfiltered_compile_flags_dict, target_pair)),
         extra_files_str = extra_files_str,
-        cxx_builtin_include_directories = _list_to_string([
-            # Filter out non-existing directories with absolute paths as they
-            # result in a -Wincomplete-umbrella warning when mentioned in the
-            # system module map.
-            dir
-            for dir in cxx_builtin_include_directories
-            if _is_hermetic_or_exists(rctx, dir, sysroot_path)
-        ]),
+        cxx_builtin_include_directories = _list_to_string(filtered_cxx_builtin_include_directories),
         extra_compiler_files = ("\"%s\"," % str(toolchain_info.extra_compiler_files)) if toolchain_info.extra_compiler_files else "",
         major_llvm_version = major_llvm_version,
         extra_exec_compatible_with_specific = toolchain_info.extra_exec_compatible_with.get(target_pair, []),
@@ -563,6 +568,9 @@ cc_toolchain(
         extra_exec_compatible_with_all_targets = toolchain_info.extra_exec_compatible_with.get("", []),
         extra_target_compatible_with_all_targets = toolchain_info.extra_target_compatible_with.get("", []),
     )
+
+def _is_remote(rctx, exec_os, exec_arch):
+    return not (_os_from_rctx(rctx) == exec_os and _arch_from_rctx(rctx) == exec_arch)
 
 def _convenience_targets_str(rctx, use_absolute_paths, llvm_dist_rel_path, llvm_dist_label_prefix, exec_dl_ext):
     if use_absolute_paths:
