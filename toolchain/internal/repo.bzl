@@ -23,7 +23,7 @@ load(
 
 _target_pairs = ", ".join(_supported_os_arch_keys())
 
-# Atributes common to both `llvm` and `toolchain` repository rules.
+# Attributes common to both `llvm` and `toolchain` repository rules.
 common_attrs = {
     "llvm_versions": attr.string_dict(
         mandatory = False,
@@ -42,6 +42,20 @@ common_attrs = {
     "exec_arch": attr.string(
         mandatory = False,
         doc = "Execution platform architecture, if different from host arch.",
+    ),
+    "exec_linux_distribution": attr.string(
+        mandatory = False,
+        doc = ("Linux distribution the exec platform is running (or can compatibly run binaries for). " +
+               "This attribute is ignored if exec_os != 'linux', " +
+               "and if it's set so must exec_linux_distribution_verison be. " +
+               "If not set, and both the exec_os and the host platform are linux, " +
+               "an attempt will be made to discover and use the local host platform."),
+    ),
+    "exec_linux_distribution_version": attr.string(
+        mandatory = False,
+        doc = ("The version number corresponding to exec_linux_distribution, " +
+               "in whatever format the distribution uses " +
+               "(e.g. for ubuntu this may be 20.04, for rhel this may be 8.4, etc)."),
     ),
 }
 
