@@ -28,9 +28,13 @@ bazel_dep(name = "rules_rust", version = "0.54.1")
 bazel_dep(name = "rules_foreign_cc", version = "0.13.0")
 bazel_dep(name = "abseil-cpp", version = "20240722.0", repo_name = "com_google_absl")
 
+# TODO: Remove when protobuf is released with a version of rules_python that supports 8.x
+bazel_dep(name = "rules_python", version = "1.0.0")
+
 # As a workaround for https://github.com/bazelbuild/rules_foreign_cc/issues/1018.
 rules_foreign_cc_tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
 use_repo(rules_foreign_cc_tools, ninja_mac = "ninja_1.12.1_mac")
+
 register_toolchains(
     "//:ninja_mac_arm64_toolchain",
 )
@@ -66,28 +70,29 @@ LLVM_VERSIONS = {
 
 llvm.toolchain(
     name = "llvm_toolchain",
-    llvm_versions = LLVM_VERSIONS,
     cxx_standard = {"": "c++17"},
+    llvm_versions = LLVM_VERSIONS,
 )
 llvm.extra_target_compatible_with(
     name = "llvm_toolchain",
     constraints = ["@//:cxx17"],
 )
 use_repo(llvm, "llvm_toolchain", "llvm_toolchain_llvm")
+
 register_toolchains("@llvm_toolchain//:all")
 
 llvm.toolchain(
     name = "llvm_toolchain_cxx20",
-    llvm_versions = LLVM_VERSIONS,
     cxx_standard = {"": "c++20"},
+    llvm_versions = LLVM_VERSIONS,
 )
 llvm.extra_target_compatible_with(
     name = "llvm_toolchain_cxx20",
     constraints = ["//:cxx20"],
 )
 use_repo(llvm, "llvm_toolchain_cxx20")
-register_toolchains("@llvm_toolchain_cxx20//:all")
 
+register_toolchains("@llvm_toolchain_cxx20//:all")
 
 # Example toolchain with user provided URLs.
 # TODO(siddharthab): Add test.
@@ -132,6 +137,7 @@ llvm.toolchain(
     absolute_paths = True,
     llvm_versions = LLVM_VERSIONS,
 )
+
 # We can share the downloaded LLVM distribution with the first configuration.
 llvm.toolchain_root(
     name = "llvm_toolchain_with_absolute_paths",
@@ -144,6 +150,7 @@ llvm.toolchain(
     name = "llvm_toolchain_with_system_llvm",
     llvm_versions = LLVM_VERSIONS,
 )
+
 # For this toolchain to work, the LLVM distribution archive would need to be unpacked here.
 llvm.toolchain_root(
     name = "llvm_toolchain_with_system_llvm",
@@ -156,6 +163,7 @@ llvm.toolchain(
     name = "llvm_toolchain_with_sysroot",
     llvm_versions = LLVM_VERSIONS,
 )
+
 # We can share the downloaded LLVM distribution with the first configuration.
 llvm.toolchain_root(
     name = "llvm_toolchain_with_sysroot",
@@ -163,28 +171,30 @@ llvm.toolchain_root(
 )
 llvm.sysroot(
     name = "llvm_toolchain_with_sysroot",
-    targets = ["linux-x86_64"],
     label = "@org_chromium_sysroot_linux_x64//:sysroot",
+    targets = ["linux-x86_64"],
 )
 use_repo(llvm, "llvm_toolchain_with_sysroot")
-
 llvm.toolchain(
     name = "llvm_toolchain_linux_exec",
+    exec_arch = "amd64",
+    # Option 2:
+    # distribution = "clang+llvm-17.0.6-x86_64-linux-gnu-ubuntu-22.04.tar.xz",
+    exec_os = "linux",
     llvm_version = "17.0.6",
     # Option 1:
     sha256 = {"": "884ee67d647d77e58740c1e645649e29ae9e8a6fe87c1376be0f3a30f3cc9ab3"},
     strip_prefix = {"": "clang+llvm-17.0.6-x86_64-linux-gnu-ubuntu-22.04"},
     urls = {"": ["https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.6/clang+llvm-17.0.6-x86_64-linux-gnu-ubuntu-22.04.tar.xz"]},
-    # Option 2:
-    # distribution = "clang+llvm-17.0.6-x86_64-linux-gnu-ubuntu-22.04.tar.xz",
-    exec_os = "linux",
-    exec_arch = "amd64",
 )
 use_repo(llvm, "llvm_toolchain_linux_exec")
 
 # Toolchain example for WebAssembly.
 llvm.toolchain(
     name = "llvm_toolchain_wasm",
+    libclang_rt = {
+        "@libclang_rt_wasm32//:libclang_rt.builtins-wasm32.a": "wasm32-unknown-unknown/libclang_rt.builtins.a",
+    },
     # WebAssembly tests use a separate (newer) version of LLVM to exercise
     # support for experimental features such as wasm64.
     llvm_versions = {
@@ -194,9 +204,6 @@ llvm.toolchain(
     stdlib = {
         "wasm32": "libc",
         "wasm64": "none",
-    },
-    libclang_rt = {
-        "@libclang_rt_wasm32//:libclang_rt.builtins-wasm32.a": "wasm32-unknown-unknown/libclang_rt.builtins.a",
     },
 )
 llvm.sysroot(
@@ -209,17 +216,20 @@ llvm.sysroot(
     label = "@wasi_sdk_sysroots//empty",
     targets = ["wasm64"],
 )
-
 use_repo(llvm, "llvm_toolchain_wasm")
+
 register_toolchains("@llvm_toolchain_wasm//:all")
 
 wasi_sdk_sysroots = use_repo_rule("//wasm:wasi_sdk.bzl", "wasi_sdk_sysroots")
+
 wasi_sdk_sysroots(name = "wasi_sdk_sysroots")
 
 libclang_rt_wasm32 = use_repo_rule("//wasm:wasi_sdk.bzl", "libclang_rt_wasm32")
+
 libclang_rt_wasm32(name = "libclang_rt_wasm32")
 
 http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
 # This sysroot is used by github.com/vsco/bazel-toolchains.
 http_archive(
     name = "org_chromium_sysroot_linux_x64",
