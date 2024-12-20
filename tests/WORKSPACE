@@ -254,6 +254,13 @@ rust_register_toolchains()
 # See https://bazelbuild.github.io/rules_foreign_cc/0.6.0/cmake.html
 
 http_archive(
+    name = "rules_python",
+    sha256 = "4f7e2aa1eb9aa722d96498f5ef514f426c1f55161c3c9ae628c857a7128ceb07",
+    strip_prefix = "rules_python-1.0.0",
+    url = "https://github.com/bazelbuild/rules_python/releases/download/1.0.0/rules_python-1.0.0.tar.gz",
+)
+
+http_archive(
     name = "rules_foreign_cc",
     sha256 = "8e5605dc2d16a4229cb8fbe398514b10528553ed4f5f7737b663fdd92f48e1c2",
     strip_prefix = "rules_foreign_cc-0.13.0",
