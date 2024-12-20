@@ -250,8 +250,26 @@ rules_rust_dependencies()
 
 rust_register_toolchains()
 
+http_archive(
+    name = "rules_python",
+    sha256 = "4f7e2aa1eb9aa722d96498f5ef514f426c1f55161c3c9ae628c857a7128ceb07",
+    strip_prefix = "rules_python-1.0.0",
+    url = "https://github.com/bazelbuild/rules_python/releases/download/1.0.0/rules_python-1.0.0.tar.gz",
+)
+
+load("@rules_python//python:repositories.bzl", "py_repositories")
+
+py_repositories()
+
 # For testing rules_foreign_cc.
 # See https://bazelbuild.github.io/rules_foreign_cc/0.6.0/cmake.html
+
+http_archive(
+    name = "rules_foreign_cc",
+    sha256 = "8e5605dc2d16a4229cb8fbe398514b10528553ed4f5f7737b663fdd92f48e1c2",
+    strip_prefix = "rules_foreign_cc-0.13.0",
+    url = "https://github.com/bazelbuild/rules_foreign_cc/archive/0.13.0.tar.gz",
+)
 
 http_archive(
     name = "com_google_protobuf",
@@ -260,19 +278,9 @@ http_archive(
     urls = ["https://github.com/protocolbuffers/protobuf/releases/download/v29.0-rc3/protobuf-29.0-rc3.zip"],
 )
 
-http_archive(
-    name = "rules_python",
-    sha256 = "4f7e2aa1eb9aa722d96498f5ef514f426c1f55161c3c9ae628c857a7128ceb07",
-    strip_prefix = "rules_python-1.0.0",
-    url = "https://github.com/bazelbuild/rules_python/releases/download/1.0.0/rules_python-1.0.0.tar.gz",
-)
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
 
-http_archive(
-    name = "rules_foreign_cc",
-    sha256 = "8e5605dc2d16a4229cb8fbe398514b10528553ed4f5f7737b663fdd92f48e1c2",
-    strip_prefix = "rules_foreign_cc-0.13.0",
-    url = "https://github.com/bazelbuild/rules_foreign_cc/archive/0.13.0.tar.gz",
-)
+protobuf_deps()
 
 load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
 
