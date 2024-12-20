@@ -268,6 +268,15 @@ def cc_toolchain_config(
             "-l:c++.a",
             "-l:c++abi.a",
         ])
+    elif stdlib == "dynamic-stdc++":
+        cxx_flags = [
+            "-std=" + cxx_standard,
+            "-stdlib=libstdc++",
+        ]
+
+        link_flags.extend([
+            "-lstdc++",
+        ])
     elif stdlib == "stdc++":
         cxx_flags = [
             "-std=" + cxx_standard,
