@@ -254,6 +254,13 @@ rust_register_toolchains()
 # See https://bazelbuild.github.io/rules_foreign_cc/0.6.0/cmake.html
 
 http_archive(
+    name = "com_google_protobuf",
+    sha256 = "537d1c4edb6cbfa96d98a021650e3c455fffcf80dbdcea7fe46cb356e6e9732d",
+    strip_prefix = "protobuf-29.0-rc3",
+    urls = ["https://github.com/protocolbuffers/protobuf/releases/download/v29.0-rc3/protobuf-29.0-rc3.zip"],
+)
+
+http_archive(
     name = "rules_python",
     sha256 = "4f7e2aa1eb9aa722d96498f5ef514f426c1f55161c3c9ae628c857a7128ceb07",
     strip_prefix = "rules_python-1.0.0",
