@@ -38,6 +38,7 @@ readonly bazel
 
 common_args=(
   "--enable_bzlmod=${USE_BZLMOD:-true}"
+  "--enable_workspace"
 )
 
 # shellcheck disable=SC2034
