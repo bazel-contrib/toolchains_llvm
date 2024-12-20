@@ -25,8 +25,8 @@ cd "${scripts_dir}"
 "${bazel}" query "${common_args[@]}" @io_bazel_rules_go//tests/core/cgo:dylib_test >/dev/null
 if [[ ${USE_BZLMOD} == "true" ]]; then
   script="$("${bazel}" info output_base)/external/rules_go~/tests/core/cgo/generate_imported_dylib.sh"
-  if [[ -f "$script" ]]; then
-    "$script"
+  if [[ -f "${script}" ]]; then
+    "${script}"
   else
     "$("${bazel}" info output_base)/external/rules_go+/tests/core/cgo/generate_imported_dylib.sh"
   fi
