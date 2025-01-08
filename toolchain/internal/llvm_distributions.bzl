@@ -697,7 +697,12 @@ def _distribution_urls(rctx):
 
     sha256 = _llvm_distributions[basename]
 
-    strip_prefix = basename[:(len(basename) - len(".tar.xz"))]
+    if basename.endswith(".tar.xz"):
+        strip_prefix = basename[:(len(basename) - len(".tar.xz"))]
+    elif basename.endswith(".tar.zst"):
+        strip_prefix = basename[:(len(basename) - len(".tar.zst"))]
+    else:
+        fail("Unknown URL file extension {url}", url = basename)
 
     strip_prefix = strip_prefix.rstrip("-rhel86")
 
