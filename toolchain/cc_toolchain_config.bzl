@@ -208,6 +208,7 @@ def cc_toolchain_config(
     # The linker has no way of knowing if there are C++ objects; so we
     # always link C++ libraries.
     cxx_standard = compiler_configuration["cxx_standard"]
+    conly_flags = compiler_configuration["conly_flags"]
     sysroot_path = compiler_configuration["sysroot_path"]
     if stdlib == "builtin-libc++" and is_xcompile:
         stdlib = "stdc++"
@@ -380,6 +381,7 @@ def cc_toolchain_config(
         compile_flags = compile_flags,
         dbg_compile_flags = dbg_compile_flags,
         opt_compile_flags = opt_compile_flags,
+        conly_flags = conly_flags,
         cxx_flags = cxx_flags,
         link_flags = link_flags + select({str(Label("@toolchains_llvm//toolchain/config:use_libunwind")): libunwind_link_flags, "//conditions:default": []}) +
                      select({str(Label("@toolchains_llvm//toolchain/config:use_compiler_rt")): compiler_rt_link_flags, "//conditions:default": []}),
