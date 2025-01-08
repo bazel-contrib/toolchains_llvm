@@ -163,6 +163,12 @@ _compiler_configuration_attrs = {
                "target OS and arch pair you want to override " +
                "({}); empty key overrides all.".format(_target_pairs)),
     ),
+    "conly_flags": attr.string_list_dict(
+        mandatory = False,
+        doc = ("Extra flags for compiling C (not C++) files, " +
+               "for each target OS and arch pair you want to support " +
+               "({}), ".format(", ".join(_supported_os_arch_keys())) + "."),
+    ),
     "cxx_flags": attr.string_list_dict(
         mandatory = False,
         doc = ("Override for cxx_flags, replacing the default values. " +
