@@ -187,6 +187,8 @@ def _linux(llvm_version, distname, version, arch):
         os_name = "linux-gnueabihf"
     elif distname in ["rhel", "ol", "almalinux"]:
         os_name = _rhel_osname(arch, version, major_llvm_version, llvm_version)
+    elif distname == "nixos":
+        os_name = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version)
 
     if not os_name:
         fail("Unsupported linux distribution and version: %s, %s" % (distname, version))
