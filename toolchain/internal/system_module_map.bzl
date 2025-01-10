@@ -37,6 +37,8 @@ def _system_module_map(ctx):
     for include_dir in ctx.attr.cxx_builtin_include_directories:
         if ctx.attr.sysroot_path and include_dir.startswith("%sysroot%"):
             include_dir = ctx.attr.sysroot_path + include_dir[len("%sysroot%"):]
+        if include_dir.startswith("%workspace%/"):
+            include_dir = include_dir.removeprefix("%workspace%/")
         include_dir = paths.normalize(include_dir).replace("//", "/")
         if include_dir.startswith("/"):
             absolute_path_dirs.append(include_dir)
