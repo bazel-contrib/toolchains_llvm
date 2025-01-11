@@ -314,7 +314,7 @@ def _cc_toolchain_str(
     # visible via the "built_in_include_directories" attribute of CcToolchainInfo as well as to keep
     # them in sync with the directories included in the system module map generated for the stricter
     # "layering_check" feature.
-    toolchain_path_prefix = toolchain_info.llvm_dist_path_prefix
+    toolchain_path_prefix = "%workspace%/" + toolchain_info.llvm_dist_path_prefix
     llvm_version = toolchain_info.llvm_version
     major_llvm_version = int(llvm_version.split(".")[0])
     target_system_name = {
