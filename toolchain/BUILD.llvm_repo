@@ -150,3 +150,24 @@ filegroup(
     name = "clang-tidy",
     srcs = ["bin/clang-tidy"],
 )
+
+filegroup(
+    name = "clang-format",
+    srcs = ["bin/clang-format"],
+)
+
+filegroup(
+    name = "git-clang-format",
+    srcs = ["bin/git-clang-format"],
+)
+
+filegroup(
+    name = "libclang",
+    srcs = glob(
+        [
+            "lib/libclang.so",
+            "lib/libclang.dylib",
+        ],
+        allow_empty = True,
+    ),
+)
