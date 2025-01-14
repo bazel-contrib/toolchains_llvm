@@ -118,7 +118,6 @@ def cc_toolchain_config(
         "-D__DATE__=\"redacted\"",
         "-D__TIMESTAMP__=\"redacted\"",
         "-D__TIME__=\"redacted\"",
-        "-fdebug-prefix-map={}=__bazel_toolchain_llvm_repo__/".format(toolchain_path_prefix),
     ]
 
     is_xcompile = not (exec_os == target_os and exec_arch == target_arch)
