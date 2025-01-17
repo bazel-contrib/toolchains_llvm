@@ -29,7 +29,7 @@ bazel_dep(name = "rules_foreign_cc", version = "0.13.0")
 bazel_dep(name = "abseil-cpp", version = "20240722.0", repo_name = "com_google_absl")
 
 # TODO: Remove when protobuf is released with a version of rules_python that supports 8.x
-bazel_dep(name = "rules_python", version = "1.0.0")
+bazel_dep(name = "rules_python", version = "1.1.0")
 
 # As a workaround for https://github.com/bazelbuild/rules_foreign_cc/issues/1018.
 rules_foreign_cc_tools = use_extension("@rules_foreign_cc//foreign_cc:extensions.bzl", "tools")
