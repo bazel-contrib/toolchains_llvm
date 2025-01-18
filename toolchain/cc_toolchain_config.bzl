@@ -151,8 +151,6 @@ def cc_toolchain_config(
     link_flags = [
         "--target=" + target_system_name,
         "-no-canonical-prefixes",
-        # Reproducibility.
-        "-ffile-prefix-map=${{pwd}}=__bazel_toolchain_llvm_repo__",
     ]
 
     stdlib = compiler_configuration["stdlib"]
