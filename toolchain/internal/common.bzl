@@ -207,7 +207,7 @@ def is_absolute_path(val):
 
 def pkg_name_from_label(label):
     s = str(label)
-    return s[:s.rindex(":")]
+    return s[:s.index(":")]
 
 def pkg_path_from_label(label):
     if label.workspace_root:
