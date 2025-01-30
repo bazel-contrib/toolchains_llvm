@@ -265,7 +265,7 @@ llvm_config_attrs = dict(common_attrs)
 llvm_config_attrs.update(_compiler_configuration_attrs)
 llvm_config_attrs.update({
     "toolchain_roots": attr.string_dict(
-        mandatory = False,
+        mandatory = True,
         # TODO: Ideally, we should be taking a filegroup label here instead of a package path, but
         # we ultimately need to subset the files to be more selective in what we include in the
         # sandbox for which operations, and it is not straightforward to subset a filegroup.
@@ -278,6 +278,19 @@ llvm_config_attrs.update({
                "assumed to be a system path and the toolchain is configured to use absolute " +
                "paths. Else, the value will be assumed to be a bazel package containing the " +
                "filegroup targets as in BUILD.llvm_repo."),
+    ),
+    "target_toolchain_roots": attr.string_dict(
+        mandatory = True,
+        # TODO: Ideally, we should be taking a filegroup label here instead of a package path, but
+        # we ultimately need to subset the files to be more selective in what we include in the
+        # sandbox for which operations, and it is not straightforward to subset a filegroup.
+        doc = ("System or package path, keyed by target OS release name and architecture, e.g. " +
+               "darwin-x86_64, darwin-aarch64, ubuntu-20.04-x86_64, etc., or a less specific " +
+               "OS and arch pair ({}), to be used as the LLVM toolchain ".format(_target_pairs) +
+               "distributions. If the value begins with exactly one forward slash '/', then " +
+               "the value is assumed to be a system path and the toolchain is configured to use " +
+               "absolute paths. Else, the value will be assumed to be a bazel package " +
+               "containing the filegroup targets as in BUILD.llvm_repo."),
     ),
     "absolute_paths": attr.bool(
         default = False,
