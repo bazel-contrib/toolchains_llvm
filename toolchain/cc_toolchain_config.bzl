@@ -364,6 +364,29 @@ def cc_toolchain_config(
     if compiler_configuration["unfiltered_compile_flags"] != None:
         unfiltered_compile_flags = _fmt_flags(compiler_configuration["unfiltered_compile_flags"], toolchain_path_prefix)
 
+    if compiler_configuration["extra_compile_flags"] != None:
+        compile_flags.extend(_fmt_flags(compiler_configuration["extra_compile_flags"], toolchain_path_prefix))
+    if compiler_configuration["extra_cxx_flags"] != None:
+        cxx_flags.extend(_fmt_flags(compiler_configuration["extra_cxx_flags"], toolchain_path_prefix))
+    if compiler_configuration["extra_link_flags"] != None:
+        link_flags.extend(_fmt_flags(compiler_configuration["extra_link_flags"], toolchain_path_prefix))
+    if compiler_configuration["extra_archive_flags"] != None:
+        archive_flags.extend(_fmt_flags(compiler_configuration["extra_archive_flags"], toolchain_path_prefix))
+    if compiler_configuration["extra_link_libs"] != None:
+        link_libs.extend(_fmt_flags(compiler_configuration["extra_link_libs"], toolchain_path_prefix))
+    if compiler_configuration["extra_opt_compile_flags"] != None:
+        opt_compile_flags.extend(_fmt_flags(compiler_configuration["extra_opt_compile_flags"], toolchain_path_prefix))
+    if compiler_configuration["extra_opt_link_flags"] != None:
+        opt_link_flags.extend(_fmt_flags(compiler_configuration["extra_opt_link_flags"], toolchain_path_prefix))
+    if compiler_configuration["extra_dbg_compile_flags"] != None:
+        dbg_compile_flags.extend(_fmt_flags(compiler_configuration["extra_dbg_compile_flags"], toolchain_path_prefix))
+    if compiler_configuration["extra_coverage_compile_flags"] != None:
+        coverage_compile_flags.extend(_fmt_flags(compiler_configuration["extra_coverage_compile_flags"], toolchain_path_prefix))
+    if compiler_configuration["extra_coverage_link_flags"] != None:
+        coverage_link_flags.extend(_fmt_flags(compiler_configuration["extra_coverage_link_flags"], toolchain_path_prefix))
+    if compiler_configuration["extra_unfiltered_compile_flags"] != None:
+        unfiltered_compile_flags.extend(_fmt_flags(compiler_configuration["extra_unfiltered_compile_flags"], toolchain_path_prefix))
+
     # Source: https://cs.opensource.google/bazel/bazel/+/master:tools/cpp/unix_cc_toolchain_config.bzl
     unix_cc_toolchain_config(
         name = name,
