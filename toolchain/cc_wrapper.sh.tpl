@@ -60,14 +60,19 @@ function sanitize_option() {
 
 cmd=()
 for ((i = 0; i <= $#; i++)); do
-  if [[ ${!i} == @* ]]; then
+  if [[ ${!i} == @* && -r "${i:1}" ]]; then
+    # Create a temporary file that we'll spill sanitized options to since they
+    # were originally read from a response file.
+    temp_file=$(mktemp)
+
     while IFS= read -r opt; do
       opt="$(
         set -e
         sanitize_option "${opt}"
       )"
-      cmd+=("${opt}")
+      echo "${opt}" >> "${temp_file}"
     done <"${!i:1}"
+    mv "${temp_file}" "${!i:1}"
   else
     opt="$(
       set -e
