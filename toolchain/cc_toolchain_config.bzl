@@ -174,10 +174,7 @@ def cc_toolchain_config(
 
         ld = "ld64.lld"
         ld_path = toolchain_path_prefix + "/bin/" + ld
-        compile_flags.append("-mmacosx-version-min=12.0")
         link_flags.extend([
-            "-mmacosx-version-min=12.0",
-            "-Wl,-platform_version,macos,12.0,12.0",
             "--ld-path=" + ld_path,
             "-headerpad_max_install_names",
             "-fobjc-link-runtime",
