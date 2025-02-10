@@ -174,10 +174,7 @@ def cc_toolchain_config(
 
         ld = "ld64.lld"
         ld_path = toolchain_path_prefix + "/bin/" + ld
-        compile_flags.append("-mmacosx-version-min=12.0")
         link_flags.extend([
-            "-mmacosx-version-min=12.0",
-            "-Wl,-platform_version,macos,12.0,12.0",
             "--ld-path=" + ld_path,
             "-headerpad_max_install_names",
             "-fobjc-link-runtime",
@@ -236,10 +233,6 @@ def cc_toolchain_config(
         if use_lld:
             # For single-platform builds, we can statically link the bundled
             # libraries.
-            link_flags.extend([
-                "-l:libc++.a",
-                "-l:libc++abi.a",
-            ])
             compiler_rt_link_flags = ["-rtlib=compiler-rt"]
             libunwind_link_flags = [
                 "-l:libunwind.a",
@@ -291,9 +284,6 @@ def cc_toolchain_config(
             "-stdlib=libstdc++",
         ]
 
-        link_flags.extend([
-            "-l:libstdc++.a",
-        ])
     elif stdlib == "libc":
         cxx_flags = [
             "-std=" + cxx_standard,
