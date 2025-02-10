@@ -28,6 +28,7 @@ _toolchain_tools = {
     for name in [
         "clang-cpp",
         "ld.lld",
+        "ld64.lld",
         "llvm-ar",
         "llvm-dwp",
         "llvm-profdata",
