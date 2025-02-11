@@ -536,6 +536,7 @@ _llvm_distributions = {
     "LLVM-19.1.3-macOS-ARM64.tar.xz": "80a54a467e9e770a76ba9670e89a235224ec47578cc4d4dbd928592813732518",
     "LLVM-19.1.3-macOS-X64.tar.xz": "52ea30f3089af4e086a98638a16167c5a20d253d43f7146c058e3e9e6d33274f",
     "LLVM-19.1.3-Windows-X64.tar.xz": "1077267ca353a1e236055ed4b57d6a404d09c40b01bd27dc882870395cdc1aae",
+    "clang+llvm-19.1.3-aarch64-linux-gnu.tar.xz": "a730175e58233f20a99ecab0015d8cd0f1af5d92411ca1f9e3e472645d889bcd",
 }
 
 # Note: Unlike the user-specified llvm_mirror attribute, the URL prefixes in
