@@ -17,7 +17,7 @@ SUPPORTED_TARGETS = [
     ("linux", "aarch64"),
     ("darwin", "x86_64"),
     ("darwin", "aarch64"),
-    ("none", "wasm32"),
+    ("wasip1", "wasm32"),
     ("none", "wasm64"),
 ]
 
