@@ -27,6 +27,9 @@ _toolchain_tools = {
     name: name
     for name in [
         "clang-cpp",
+        "clang-format",
+        "clang-tidy",
+        "clangd",
         "ld.lld",
         "llvm-ar",
         "llvm-dwp",
