@@ -52,7 +52,7 @@ llvm_host() {
   local url_base="releases.llvm.org/${llvm_version}"
   output_dir="${tmp_dir}/${url_base}"
   wget --recursive --level 1 --directory-prefix="${tmp_dir}" \
-	  --accept-regex "(clang%2bllvm|LLVM)-.*tar.xz$" "http://${url_base}/"
+    --accept-regex "(clang%2bllvm|LLVM)-.*tar.xz$" "http://${url_base}/"
 }
 
 github_host() {
