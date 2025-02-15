@@ -537,6 +537,33 @@ _llvm_distributions = {
     "LLVM-19.1.3-macOS-X64.tar.xz": "52ea30f3089af4e086a98638a16167c5a20d253d43f7146c058e3e9e6d33274f",
     "LLVM-19.1.3-Windows-X64.tar.xz": "1077267ca353a1e236055ed4b57d6a404d09c40b01bd27dc882870395cdc1aae",
     "clang+llvm-19.1.3-aarch64-linux-gnu.tar.xz": "a730175e58233f20a99ecab0015d8cd0f1af5d92411ca1f9e3e472645d889bcd",
+
+    # 19.1.4
+    "LLVM-19.1.4-Linux-X64.tar.xz": "da7e0f571b440e5ef9ae6e061ae6afc1071179e18f86f77cf630dabbed11a5f6",
+    "LLVM-19.1.4-macOS-ARM64.tar.xz": "52245bc374fdb9f3665046fe7319b5b8165ca2732053c74f06ba1e90e142ed8e",
+    "LLVM-19.1.4-macOS-X64.tar.xz": "eedb896c193cc3bad35a9f132d91e16cf73d33723f35d63dcaae4755872674c2",
+    "clang+llvm-19.1.4-aarch64-linux-gnu.tar.xz": "c42ea92e7a4cfad96b2b0d6c7872c6e9a9960a1d8a56c1847eca45d79cd67533",
+    "clang+llvm-19.1.4-x86_64-pc-windows-msvc.tar.xz": "5e965a1281c9df1fda8eddab3752ee6a3139e36ce469537f216cd938c498e6c3",
+
+    # 19.1.5
+    "LLVM-19.1.5-Linux-X64.tar.xz": "13e9975b026d431c945927960e5f8c0a47a155a2f600f57e85f4d1482620c65f",
+    "LLVM-19.1.5-macOS-X64.tar.xz": "f593d45992807d03c2aeb4c968c5cab9e78403430caea21dca4b787cbca3b9f4",
+    "clang+llvm-19.1.5-aarch64-linux-gnu.tar.xz": "1bdc342b7d03cbcfafb2ffb8659eb0e4d5c6ddef6f56e0cad0e0c09c52577a4f",
+    "clang+llvm-19.1.5-x86_64-pc-windows-msvc.tar.xz": "467d1a73ca938f47734af3baac2e78c5e730285469096ee088bb5c9590cabd70",
+
+    # 19.1.6
+    "LLVM-19.1.6-Linux-X64.tar.xz": "d55dcbb309de7ade4e3073ec3ac3fac4d3ff236d54df3c4de04464fe68bec531",
+    "LLVM-19.1.6-macOS-ARM64.tar.xz": "2c28bcd132ce3db367354c892839a962aa01b7b850a25e61316178f2ac72ecac",
+    "LLVM-19.1.6-macOS-X64.tar.xz": "58ce29a2adb82872b6de49018091c6d844ca555a9b017faa698f6df409b25281",
+    "clang+llvm-19.1.6-aarch64-linux-gnu.tar.xz": "f6fd8cf8bb12f507c4a55609ef6a435b3c59bc658008b712b80ec1cdc1ee9325",
+    "clang+llvm-19.1.6-x86_64-pc-windows-msvc.tar.xz": "d2e64d4d6eca9199ea5b8ac018e626fe2f2814ab90247c335fc9fd7448681bb3",
+
+    # 19.1.7
+    "LLVM-19.1.7-Linux-X64.tar.xz": "4a5ec53951a584ed36f80240f6fbf8fdd46b4cf6c7ee87cc2d5018dc37caf679",
+    "LLVM-19.1.7-macOS-ARM64.tar.xz": "d93bf12952d89fe4ec7501c40475718b722407da6a8d651f05c995863468e570",
+    "LLVM-19.1.7-macOS-X64.tar.xz": "49405e75fbe7ad6f8139a33f59ec8c5112b75b3027405c7b92d19f4c6f02c78a",
+    "clang+llvm-19.1.7-aarch64-linux-gnu.tar.xz": "a73d9326e5d756e3937df6a9f621664d76403b59119f741901106b387e53a6ae",
+    "clang+llvm-19.1.7-x86_64-pc-windows-msvc.tar.xz": "b4557b4f012161f56a2f5d9e877ab9635cafd7a08f7affe14829bd60c9d357f0",
 }
 
 # Note: Unlike the user-specified llvm_mirror attribute, the URL prefixes in
@@ -599,6 +626,10 @@ _llvm_distributions_base_url = {
     "19.1.1": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
     "19.1.2": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
     "19.1.3": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
+    "19.1.4": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
+    "19.1.5": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
+    "19.1.6": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
+    "19.1.7": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
 }
 
 def _get_auth(ctx, urls):

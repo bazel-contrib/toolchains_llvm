@@ -52,7 +52,7 @@ llvm_host() {
   local url_base="releases.llvm.org/${llvm_version}"
   output_dir="${tmp_dir}/${url_base}"
   wget --recursive --level 1 --directory-prefix="${tmp_dir}" \
-    --accept-regex "clang%2bllvm.*tar.xz$" "http://${url_base}/"
+	  --accept-regex "(clang%2bllvm|LLVM)-.*tar.xz$" "http://${url_base}/"
 }
 
 github_host() {
@@ -62,7 +62,7 @@ github_host() {
     curl -s "https://api.github.com/repos/llvm/llvm-project/releases/tags/llvmorg-${llvm_version}" |
       jq .assets[].browser_download_url |
       tee ./urls.txt |
-      grep 'clang%2Bllvm.*tar.xz"$' |
+      grep -E '(clang%2Bllvm|LLVM)-.*tar.xz"$' |
       tee ./filtered_urls.txt |
       xargs -n1 curl -L -O
   )
