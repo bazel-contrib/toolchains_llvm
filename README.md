@@ -50,6 +50,25 @@ We currently offer limited customizability through attributes of the
 [llvm_toolchain\_\* rules](toolchain/rules.bzl). You can send us a PR to add
 more configuration attributes.
 
+The following shows how to add a specific version for a specific target before
+the version was added to [llvm_distributions.bzl](toolchain/internal/llvm_distributions.bzl):
+
+```starlark
+llvm_toolchain(
+    name = "llvm_toolchain",
+    llvm_version = "19.1.6",
+    sha256 = {"linux-x86_64": "d55dcbb309de7ade4e3073ec3ac3fac4d3ff236d54df3c4de04464fe68bec531"},
+    strip_prefix = {
+        "linux-x86_64": "LLVM-19.1.6-Linux-X64",
+    },
+    urls = {
+        "linux-x86_64": [
+            "https://github.com/llvm/llvm-project/releases/download/llvmorg-19.1.6/LLVM-19.1.6-Linux-X64.tar.xz",
+        ],
+    },
+)
+```
+
 A majority of the complexity of this project is to make it generic for multiple
 use cases. For one-off experiments with new architectures, cross-compilations,
 new compiler features, etc., my advice would be to look at the toolchain
