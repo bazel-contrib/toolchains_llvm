@@ -105,6 +105,22 @@ def cc_toolchain_config(
             "unknown",
             "unknown",
         ),
+        "wasip1-wasm32": (
+            "clang-wasm32",
+            "wasm32",
+            "unknown",
+            "clang",
+            "unknown",
+            "unknown",
+        ),
+        "wasip1-wasm64": (
+            "clang-wasm64",
+            "wasm64",
+            "unknown",
+            "clang",
+            "unknown",
+            "unknown",
+        ),
     }[target_os_arch_key]
 
     # Unfiltered compiler flags; these are placed at the end of the command

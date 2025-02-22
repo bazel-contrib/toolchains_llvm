@@ -19,6 +19,8 @@ SUPPORTED_TARGETS = [
     ("darwin", "aarch64"),
     ("none", "wasm32"),
     ("none", "wasm64"),
+    ("wasip1", "wasm32"),
+    ("wasip1", "wasm64"),
 ]
 
 # Map of tool name to its symlinked name in the tools directory.
@@ -132,7 +134,7 @@ def os_from_rctx(rctx):
 
 def os_bzl(os):
     # Return the OS string as used in bazel platform constraints.
-    return {"darwin": "osx", "linux": "linux", "none": "none"}[os]
+    return {"darwin": "osx", "linux": "linux", "none": "none", "wasip1": "wasi"}[os]
 
 def arch(rctx):
     arch = rctx.attr.exec_arch
