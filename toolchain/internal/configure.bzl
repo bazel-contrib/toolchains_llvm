@@ -324,6 +324,8 @@ def _cc_toolchain_str(
         "linux-x86_64": "x86_64-unknown-linux-gnu",
         "wasm32": "wasm32-unknown-unknown",
         "wasm64": "wasm64-unknown-unknown",
+        "wasip1-wasm32": "wasm32-wasip1",
+        "wasip1-wasm64": "wasm64-wasip1",
     }[target_pair]
     cxx_builtin_include_directories = [
         toolchain_path_prefix + "include/c++/v1",
@@ -350,7 +352,7 @@ def _cc_toolchain_str(
             _join(sysroot_prefix, "/usr/include"),
             _join(sysroot_prefix, "/System/Library/Frameworks"),
         ])
-    elif target_os == "none":
+    elif target_os == "none" or target_os == "wasip1":
         if sysroot_prefix:
             cxx_builtin_include_directories.extend([
                 _join(sysroot_prefix, "/include"),

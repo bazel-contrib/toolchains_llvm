@@ -61,3 +61,19 @@ platform(
         "@platforms//cpu:wasm64",
     ],
 )
+
+platform(
+    name = "wasip1-wasm32",
+    constraint_values = [
+        "@platforms//os:wasi",
+        "@platforms//cpu:wasm32",
+    ],
+)
+
+platform(
+    name = "wasip1-wasm64",
+    constraint_values = [
+        "@platforms//os:wasi",
+        "@platforms//cpu:wasm64",
+    ],
+)
