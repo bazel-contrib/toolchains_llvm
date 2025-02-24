@@ -189,7 +189,7 @@ llvm.toolchain(
 )
 use_repo(llvm, "llvm_toolchain_linux_exec")
 
-# Toolchain example for WebAssembly.
+# Toolchain example for WebAssembly wasm* targets.
 llvm.toolchain(
     name = "llvm_toolchain_wasm",
     libclang_rt = {
@@ -219,6 +219,31 @@ llvm.sysroot(
 use_repo(llvm, "llvm_toolchain_wasm")
 
 register_toolchains("@llvm_toolchain_wasm//:all")
+
+# Toolchain example for WebAssembly wasm*-wasi* targets.
+llvm.toolchain(
+    name = "llvm_toolchain_wasm_wasi",
+    libclang_rt = {
+        "@libclang_rt_wasm32//:libclang_rt.builtins-wasm32.a": "wasm32-unknown-wasip1/libclang_rt.builtins.a",
+    },
+    # WebAssembly tests use a separate (newer) version of LLVM to exercise
+    # support for experimental features such as wasm64.
+    llvm_versions = {
+        # The most recent LLVM as of 2024-10-17
+        "": "19.1.0",
+    },
+    stdlib = {
+        "wasip1-wasm32": "libc",
+    },
+)
+llvm.sysroot(
+    name = "llvm_toolchain_wasm_wasi",
+    label = "@wasi_sdk_sysroots//wasm32-wasip1",
+    targets = ["wasip1-wasm32"],
+)
+use_repo(llvm, "llvm_toolchain_wasm_wasi")
+
+register_toolchains("@llvm_toolchain_wasm_wasi//:all")
 
 wasi_sdk_sysroots = use_repo_rule("//wasm:wasi_sdk.bzl", "wasi_sdk_sysroots")
 
