@@ -223,6 +223,10 @@ def llvm_release_name(rctx, llvm_version):
             "linux": "Linux",
             "windows": "Windows",
         }[_os(rctx)]
+        if arch == "ARM64" and os == "Linux" and llvm_version in ["19.1.7", "19.1.6", "19.1.5", "19.1.4", "19.1.3"]:
+            return "clang+llvm-{llvm_version}-aarch64-linux-gnu.tar.xz".format(
+                llvm_version = llvm_version,
+            )
         return "LLVM-{llvm_version}-{os}-{arch}.tar.xz".format(
             llvm_version = llvm_version,
             arch = arch,
