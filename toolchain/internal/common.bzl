@@ -231,6 +231,9 @@ def attr_dict(attr):
     for key in dir(attr):
         if not hasattr(attr, key):
             fail("key %s not found in attributes" % key)
+        if key[0] == "_":
+            # Don't update private attrs.
+            continue
         val = getattr(attr, key)
 
         # Make mutable copies of frozen types.
