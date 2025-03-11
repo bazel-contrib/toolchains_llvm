@@ -569,6 +569,8 @@ _llvm_distributions = {
     "LLVM-20.1.0-Linux-ARM64.tar.xz": "9d1bbf3f6d4d011e3b8b4b585f686bc968474917f37d3b82b4a534f456168c67",
     "LLVM-20.1.0-Linux-X64.tar.xz": "954ac51498519f6ed9540714fb04bc401f70039b296a8160dd1559be380788d7",
     "LLVM-20.1.0-macOS-ARM64.tar.xz": "2c42ec26ec50c4bf8b95585f762b9d2f5b385d170dee772d9c1d6c9a7190dcef",
+    "clang+llvm-20.1.0-aarch64-pc-windows-msvc.tar.xz": "f52e40d68843ed6205858e817ed791295ef51e526037186352a1aeac4a59e51a",
+    "clang+llvm-20.1.0-x86_64-pc-windows-msvc.tar.xz": "91e29416f4a0c188368f0540a5538efc0d8a9f7134afba7a2160296472ce84eb",
 }
 
 # Note: Unlike the user-specified llvm_mirror attribute, the URL prefixes in
