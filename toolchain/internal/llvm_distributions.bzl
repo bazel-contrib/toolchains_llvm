@@ -733,28 +733,24 @@ def _find_llvm_basename_list(llvm_version, arch, os):
         if old_name in _llvm_distributions:
             return [old_name]
 
-    basename = ""
+    basenames = []
     for dist in _llvm_distributions:
-        found = False
         if dist.startswith(new_prefix):
-            found = True
-            basename = dist
+            basenames.append(dist)
         if dist.startswith(old_prefix):
-            found = True
-            basename = dist
-        if found and basename:
-            fail("Multiple configurations found for prefixes '{new_prefix}' and '{old_prefix}'".format(
-                new_prefix = new_prefix,
-                old_prefix = old_prefix,
-            ))
-        basename = dist
-    if not basename:
+            basenames.append(dist)
+    if len(basenames) > 1:
+        fail("Multiple configurations found for prefixes '{new_prefix}' and '{old_prefix}'.".format(
+            new_prefix = new_name,
+            old_prefix = old_prefix,
+        ))
+    if not basenames:
         fail("No matching config could be found for version {llvm_version} on {os} with arch {arch}.".format(
             llvm_version = llvm_version,
             os = os,
             arch = arch,
         ))
-    return [basename]
+    return basenames[0]
 
 def _major_llvm_version(llvm_version):
     """Return the major version given `<major>['.' <minor> [ '.' <mini> [.*]]]."""
