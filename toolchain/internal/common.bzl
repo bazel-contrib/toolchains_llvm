@@ -206,10 +206,8 @@ def is_absolute_path(val):
     return val and val[0] == "/" and (len(val) == 1 or val[1] != "/")
 
 def pkg_name_from_label(label):
-    if label.workspace_name:
-        return "@" + label.workspace_name + "//" + label.package
-    else:
-        return label.package
+    s = str(label)
+    return s[:s.index(":")]
 
 def pkg_path_from_label(label):
     if label.workspace_root:
