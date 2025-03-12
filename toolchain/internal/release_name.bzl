@@ -208,34 +208,10 @@ def _linux(llvm_version, distname, version, arch):
     )
     return name, None
 
-def _llvm_release_name_19(llvm_version, rctx_arch, rctx_os):
-    arch = {
-        "aarch64": "ARM64",
-        "x86_64": "X64",
-    }.get(rctx_arch, rctx_arch)
-    os = {
-        "darwin": "macOS",
-        "linux": "Linux",
-        "windows": "Windows",
-    }.get(rctx_os, rctx_os)
-    if arch == "ARM64" and os == "Linux" and llvm_version in ["19.1.7", "19.1.6", "19.1.5", "19.1.4", "19.1.3"]:
-        return "clang+llvm-{llvm_version}-aarch64-linux-gnu.tar.xz".format(
-            llvm_version = llvm_version,
-        )
-    return "LLVM-{llvm_version}-{os}-{arch}.tar.xz".format(
-        llvm_version = llvm_version,
-        arch = arch,
-        os = os,
-    )
-
-def llvm_release_name_host_info(llvm_version, host_info):
+def llvm_release_name_context(rctx, llvm_version):
     major_llvm_version = _major_llvm_version(llvm_version)
     if major_llvm_version >= 19:
-        return _llvm_release_name_19(llvm_version, host_info.arch, host_info.os), None
-    if host_info.os == "darwin":
-        return _darwin(llvm_version, host_info.arch), None
-    elif host_info.os == "windows":
-        return _windows(llvm_version, host_info.arch), None
+        fail("May not use 'llvm_release_name_context' for releases starting with version 19!")
     else:
         return _linux(llvm_version, host_info.dist.name, host_info.dist.version, host_info.arch)
 

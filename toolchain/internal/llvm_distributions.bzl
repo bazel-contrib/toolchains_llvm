@@ -13,17 +13,8 @@
 # limitations under the License.
 
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "read_netrc", "use_netrc")
-load(
-    "//toolchain/internal:common.bzl",
-    "attr_dict",
-    "exec_os_arch_dict_value",
-    "host_info",
-)
-load(
-    "//toolchain/internal:release_name.bzl",
-    "llvm_release_name_context",
-    "llvm_release_name_host_info",
-)
+load("//toolchain/internal:common.bzl", _arch = "arch", _attr_dict = "attr_dict", _exec_os_arch_dict_value = "exec_os_arch_dict_value", _os = "os")
+load("//toolchain/internal:release_name.bzl", _llvm_release_name_context = "llvm_release_name_context")
 
 # If a new LLVM version is missing from this list, please add the shasums here
 # and the new version in toolchain/internal/llvm_distributions.golden.txt.
@@ -741,12 +732,71 @@ def _get_llvm_version(rctx):
         )
     return llvm_version
 
-def _find_llvm_basename_list(llvm_version, host_info):
-    """Lookup (llvm_version, arch, os) in the list of basenames in `_llvm_distributions.`"""
-    name, _ = llvm_release_name_host_info(llvm_version, host_info)
-    if name in _llvm_distributions:
-        return [name]
-    return []
+def _find_llvm_basenamme(llvm_version, arch, os):
+    llvm_new_arch = {
+        "aarch64": "ARM64",
+        "x86_64": "X64",
+    }[arch]
+    llvm_new_os = {
+        "darwin": "macOS",
+        "linux": "Linux",
+        "windows": "Windows",
+    }[os]
+    llvm_old_os = {
+        "darwin": "apple-darwin22",
+        "linux": "linux-gnu",
+        "windows": "pc-windows-msvc",
+    }[os]
+    new_prefix = "LLVM-{llvm_version}-{os}-{arch}".format(
+        llvm_version = llvm_version,
+        arch = llvm_new_arch,
+        os = llvm_new_os,
+    )
+    new_name = new_prefix + ".tar.xz"
+    old_prefix = "clang+llvm-{llvm_version}-{arch}-{os}".format(
+        llvm_version = llvm_version,
+        arch = arch,
+        os = llvm_old_os,
+    )
+    old_name = old_prefix + ".tar.xz"
+
+    if new_name in _llvm_distributions:
+        return new_name
+    if old_name in _llvm_distributions:
+        return old_name
+
+    basename = ""
+    for dist in _llvm_distributions:
+        found = False
+        if dist.startswith(new_prefix):
+            found = True
+            basename = dist
+        if dist.startswith(old_prefix):
+            found = True
+            basename = dist
+        if found and basename:
+            fail("Multiple configurations found for prefixes '{new_prefix}' and '{old_prefix}'".format(
+                new_prefix = new_name,
+                old_prefix = old_prefix,
+            ))
+        basename = dist
+    if not basename:
+        fail("No matching config could be found for version {llvm_version} on {os} with arch {arch}.".format(
+            llvm_version = llvm_version,
+            os = os,
+            arch = arch,
+        ))
+    return basename
+
+def _major_llvm_version(llvm_version):
+    return int(llvm_version.split(".")[0])
+
+def _llvm_release_name(rctx, llvm_version):
+    major_llvm_version = _major_llvm_version(llvm_version)
+    if major_llvm_version >= 19:
+        return _find_llvm_basenamme(llvm_version, _arch(rctx), _os(rctx))
+    else:
+        return _llvm_release_name_context(rctx)
 
 def _distribution_urls(rctx):
     """Return LLVM `urls`, `shha256` and `strip_prefix` for the given context."""
