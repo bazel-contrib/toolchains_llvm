@@ -671,40 +671,6 @@ def _get_auth(ctx, urls):
 
     return {}
 
-def download_llvm(rctx):
-    """Download the LLVM distribution for the given context."""
-    urls = []
-    sha256 = None
-    strip_prefix = None
-    key = None
-    update_sha256 = False
-    if rctx.attr.urls:
-        urls, sha256, strip_prefix, key = _urls(rctx)
-        if not sha256:
-            update_sha256 = True
-    if not urls:
-        urls, sha256, strip_prefix = _distribution_urls(rctx)
-
-    res = rctx.download_and_extract(
-        urls,
-        sha256 = sha256,
-        stripPrefix = strip_prefix,
-        auth = _get_auth(rctx, urls),
-    )
-
-    if rctx.attr.libclang_rt:
-        clang_versions = rctx.path("lib/clang").readdir()
-        for libclang_rt, lib_name in rctx.attr.libclang_rt.items():
-            libclang_rt_content = rctx.read(libclang_rt)
-            for clang_version in clang_versions:
-                lib_path = clang_version.get_child("lib", lib_name)
-                rctx.file(lib_path, libclang_rt_content, legacy_utf8 = False)
-
-    updated_attrs = attr_dict(rctx.attr)
-    if update_sha256:
-        updated_attrs["sha256"].update([(key, res.sha256)])
-    return updated_attrs
-
 def _urls(rctx):
     (key, urls) = exec_os_arch_dict_value(rctx, "urls", debug = False)
     if not urls:
@@ -732,38 +698,40 @@ def _get_llvm_version(rctx):
         )
     return llvm_version
 
-def _find_llvm_basenamme(llvm_version, arch, os):
+def _find_llvm_basename_list(llvm_version, arch, os):
+    """Lookup (llvm_version, arch, os) in the list of basenames in `_llvm_distributions.`"""
     llvm_new_arch = {
         "aarch64": "ARM64",
         "x86_64": "X64",
-    }[arch]
+    }.get(arch, arch)
     llvm_new_os = {
         "darwin": "macOS",
         "linux": "Linux",
         "windows": "Windows",
-    }[os]
+    }.get(os, os)
     llvm_old_os = {
         "darwin": "apple-darwin22",
         "linux": "linux-gnu",
         "windows": "pc-windows-msvc",
-    }[os]
+    }.get(os, os)
     new_prefix = "LLVM-{llvm_version}-{os}-{arch}".format(
         llvm_version = llvm_version,
         arch = llvm_new_arch,
         os = llvm_new_os,
     )
-    new_name = new_prefix + ".tar.xz"
     old_prefix = "clang+llvm-{llvm_version}-{arch}-{os}".format(
         llvm_version = llvm_version,
         arch = arch,
         os = llvm_old_os,
     )
-    old_name = old_prefix + ".tar.xz"
 
-    if new_name in _llvm_distributions:
-        return new_name
-    if old_name in _llvm_distributions:
-        return old_name
+    for suffix in [".tar.gz", ".tar.xz"]:
+        new_name = new_prefix + suffix
+        if new_name in _llvm_distributions:
+            return [new_name]
+        old_name = old_prefix + suffix
+        if old_name in _llvm_distributions:
+            return [old_name]
 
     basename = ""
     for dist in _llvm_distributions:
@@ -776,7 +744,7 @@ def _find_llvm_basenamme(llvm_version, arch, os):
             basename = dist
         if found and basename:
             fail("Multiple configurations found for prefixes '{new_prefix}' and '{old_prefix}'".format(
-                new_prefix = new_name,
+                new_prefix = new_prefix,
                 old_prefix = old_prefix,
             ))
         basename = dist
@@ -786,17 +754,20 @@ def _find_llvm_basenamme(llvm_version, arch, os):
             os = os,
             arch = arch,
         ))
-    return basename
+    return [basename]
 
 def _major_llvm_version(llvm_version):
+    """Return the major version given `<major>['.' <minor> [ '.' <mini> [.*]]]."""
     return int(llvm_version.split(".")[0])
 
 def _llvm_release_name(rctx, llvm_version):
+    """For versions 19+ find base name in configured name list, otherwise predict version name by input."""
     major_llvm_version = _major_llvm_version(llvm_version)
     if major_llvm_version >= 19:
-        return _find_llvm_basenamme(llvm_version, _arch(rctx), _os(rctx))
-    else:
-        return _llvm_release_name_context(rctx, llvm_version)
+        release_names = _find_llvm_basename_list(llvm_version, _arch(rctx), _os(rctx))
+        if len(release_names) == 1:
+            return release_names[0]
+    return _llvm_release_name_context(rctx, llvm_version)
 
 def _distribution_urls(rctx):
     """Return LLVM `urls`, `shha256` and `strip_prefix` for the given context."""
@@ -833,6 +804,40 @@ def _distribution_urls(rctx):
     strip_prefix = strip_prefix.rstrip("-rhel86")
 
     return urls, sha256, strip_prefix
+
+def download_llvm(rctx):
+    """Download the LLVM for the given context."""
+    urls = []
+    sha256 = None
+    strip_prefix = None
+    key = None
+    update_sha256 = False
+    if rctx.attr.urls:
+        urls, sha256, strip_prefix, key = _urls(rctx)
+        if not sha256:
+            update_sha256 = True
+    if not urls:
+        urls, sha256, strip_prefix = _distribution_urls(rctx)
+
+    res = rctx.download_and_extract(
+        urls,
+        sha256 = sha256,
+        stripPrefix = strip_prefix,
+        auth = _get_auth(rctx, urls),
+    )
+
+    if rctx.attr.libclang_rt:
+        clang_versions = rctx.path("lib/clang").readdir()
+        for libclang_rt, lib_name in rctx.attr.libclang_rt.items():
+            libclang_rt_content = rctx.read(libclang_rt)
+            for clang_version in clang_versions:
+                lib_path = clang_version.get_child("lib", lib_name)
+                rctx.file(lib_path, libclang_rt_content, legacy_utf8 = False)
+
+    updated_attrs = _attr_dict(rctx.attr)
+    if update_sha256:
+        updated_attrs["sha256"].update([(key, res.sha256)])
+    return updated_attrs
 
 def _parse_version(v):
     return tuple([int(s) for s in v.split(".")])
