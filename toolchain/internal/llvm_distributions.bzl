@@ -571,6 +571,8 @@ _llvm_distributions = {
     "LLVM-20.1.0-macOS-ARM64.tar.xz": "2c42ec26ec50c4bf8b95585f762b9d2f5b385d170dee772d9c1d6c9a7190dcef",
     "clang+llvm-20.1.0-aarch64-pc-windows-msvc.tar.xz": "f52e40d68843ed6205858e817ed791295ef51e526037186352a1aeac4a59e51a",
     "clang+llvm-20.1.0-x86_64-pc-windows-msvc.tar.xz": "91e29416f4a0c188368f0540a5538efc0d8a9f7134afba7a2160296472ce84eb",
+
+    # Refer to variable declaration on how to update!
 }
 
 # Note: Unlike the user-specified llvm_mirror attribute, the URL prefixes in
@@ -662,39 +664,6 @@ def _get_auth(ctx, urls):
 
     return {}
 
-def download_llvm(rctx):
-    urls = []
-    sha256 = None
-    strip_prefix = None
-    key = None
-    update_sha256 = False
-    if rctx.attr.urls:
-        urls, sha256, strip_prefix, key = _urls(rctx)
-        if not sha256:
-            update_sha256 = True
-    if not urls:
-        urls, sha256, strip_prefix = _distribution_urls(rctx)
-
-    res = rctx.download_and_extract(
-        urls,
-        sha256 = sha256,
-        stripPrefix = strip_prefix,
-        auth = _get_auth(rctx, urls),
-    )
-
-    if rctx.attr.libclang_rt:
-        clang_versions = rctx.path("lib/clang").readdir()
-        for libclang_rt, lib_name in rctx.attr.libclang_rt.items():
-            libclang_rt_content = rctx.read(libclang_rt)
-            for clang_version in clang_versions:
-                lib_path = clang_version.get_child("lib", lib_name)
-                rctx.file(lib_path, libclang_rt_content, legacy_utf8 = False)
-
-    updated_attrs = _attr_dict(rctx.attr)
-    if update_sha256:
-        updated_attrs["sha256"].update([(key, res.sha256)])
-    return updated_attrs
-
 def _urls(rctx):
     (key, urls) = _exec_os_arch_dict_value(rctx, "urls", debug = False)
     if not urls:
@@ -716,6 +685,7 @@ def _get_llvm_version(rctx):
     return llvm_version
 
 def _find_llvm_basenamme(llvm_version, arch, os):
+    """Lookup (llvm_version, arch, os) in the list of basenames in `_llvm_distributions.`"""
     llvm_new_arch = {
         "aarch64": "ARM64",
         "x86_64": "X64",
@@ -772,16 +742,20 @@ def _find_llvm_basenamme(llvm_version, arch, os):
     return basename
 
 def _major_llvm_version(llvm_version):
+    """Return the major version given `<major>['.' <minor> [ '.' <mini> [.*]]]."""
     return int(llvm_version.split(".")[0])
 
 def _llvm_release_name(rctx, llvm_version):
+    """For versions 19+ find base name in configured name list, otherwise predict version name by input."""
     major_llvm_version = _major_llvm_version(llvm_version)
     if major_llvm_version >= 19:
-        return _find_llvm_basenamme(llvm_version, _arch(rctx), _os(rctx))
-    else:
-        return _llvm_release_name_context(rctx, llvm_version)
+        release_name = _find_llvm_basenamme(llvm_version, _arch(rctx), _os(rctx))
+        if release_name:
+            return release_name
+    return _llvm_release_name_context(rctx, llvm_version)
 
 def _distribution_urls(rctx):
+    """Return LLVM `urls`, `shha256` and `strip_prefix` for the given context."""
     llvm_version = _get_llvm_version(rctx)
 
     if rctx.attr.distribution == "auto":
@@ -813,3 +787,37 @@ def _distribution_urls(rctx):
     strip_prefix = strip_prefix.rstrip("-rhel86")
 
     return urls, sha256, strip_prefix
+
+def download_llvm(rctx):
+    """Download the LLVM for the given context."""
+    urls = []
+    sha256 = None
+    strip_prefix = None
+    key = None
+    update_sha256 = False
+    if rctx.attr.urls:
+        urls, sha256, strip_prefix, key = _urls(rctx)
+        if not sha256:
+            update_sha256 = True
+    if not urls:
+        urls, sha256, strip_prefix = _distribution_urls(rctx)
+
+    res = rctx.download_and_extract(
+        urls,
+        sha256 = sha256,
+        stripPrefix = strip_prefix,
+        auth = _get_auth(rctx, urls),
+    )
+
+    if rctx.attr.libclang_rt:
+        clang_versions = rctx.path("lib/clang").readdir()
+        for libclang_rt, lib_name in rctx.attr.libclang_rt.items():
+            libclang_rt_content = rctx.read(libclang_rt)
+            for clang_version in clang_versions:
+                lib_path = clang_version.get_child("lib", lib_name)
+                rctx.file(lib_path, libclang_rt_content, legacy_utf8 = False)
+
+    updated_attrs = _attr_dict(rctx.attr)
+    if update_sha256:
+        updated_attrs["sha256"].update([(key, res.sha256)])
+    return updated_attrs
