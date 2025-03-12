@@ -779,7 +779,7 @@ def _llvm_release_name(rctx, llvm_version):
     if major_llvm_version >= 19:
         return _find_llvm_basenamme(llvm_version, _arch(rctx), _os(rctx))
     else:
-        return _llvm_release_name_context(rctx)
+        return _llvm_release_name_context(rctx, llvm_version)
 
 def _distribution_urls(rctx):
     llvm_version = _get_llvm_version(rctx)
