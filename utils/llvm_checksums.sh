@@ -48,11 +48,11 @@ cleanup() {
   exit "${rc}"
 }
 
-if [ -z "${tmp_dir}" ]; then
+if [[ -z "${tmp_dir}" ]]; then
   tmp_dir="$(mktemp -d)"
   echo "Using temp dir: '${tmp_dir}'"
   trap 'cleanup' INT HUP QUIT TERM EXIT
-elif [ ! -r "${tmp_dir}" ]; then
+elif [[ ! -r "${tmp_dir}" ]]; then
   echo "Temp directory does not exist: '${tmp_dir}'."
   exit 2
 fi
