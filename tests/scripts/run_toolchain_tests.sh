@@ -33,11 +33,13 @@ source "${scripts_dir}/bazel.sh"
 "${bazel}" version
 
 set -x
-test_args=()
+test_args=(
+  "--check_direct_dependencies=off"
+)
 
 targets=(
   "//toolchain/..."
 )
 
-"${bazel}" ${TEST_MIGRATION:+"--strict"} --bazelrc=/dev/null --check_direct_dependencies=off test \
+"${bazel}" ${TEST_MIGRATION:+"--strict"} --bazelrc=/dev/null test \
   "${common_test_args[@]}" "${test_args[@]}" "${targets[@]}"
