@@ -535,7 +535,7 @@ _llvm_distributions = {
     "LLVM-19.1.0-macOS-X64.tar.xz": "264f2f1e8b67f066749349ae8b4943d346cd44e099464164ef21b42a57663540",
     "clang+llvm-19.1.0-aarch64-linux-gnu.tar.xz": "7bb54afd330fe1a1c2d4c593fa1e2dbe2abd9bf34fb3597994ff41e443cf144b",
     "clang+llvm-19.1.0-armv7a-linux-gnueabihf.tar.gz": "d2f9f7fe803b38dc2fa64a1b2d1d3356f230f9ba402c321d8615ba3598f5cb66",
-    "clang+llvm-19.1.0-x86_64-pc-windows-msvc.tar.xz": "de3199fcace428386878e5a98c2be35576459f140f405eddc8b1f8e91f5dae64",
+    #"clang+llvm-19.1.0-x86_64-pc-windows-msvc.tar.xz": "de3199fcace428386878e5a98c2be35576459f140f405eddc8b1f8e91f5dae64",
 
     # 19.1.1
     "LLVM-19.1.1-Linux-X64.tar.xz": "8204de000b6a6921f0572e038336601e3225898e9a253c8aaa43b0a5fae8a4ce",
@@ -543,7 +543,7 @@ _llvm_distributions = {
     "LLVM-19.1.1-macOS-ARM64.tar.xz": "e00def99a6b32de61fffabd4bb85290589731f3f5cb9836fd51770256cd694dd",
     "clang+llvm-19.1.1-aarch64-linux-gnu.tar.xz": "414d2ebef10c5035e9df10a224e81b484dbe17d319373050d0c1b3b1467040d2",
     "clang+llvm-19.1.1-armv7a-linux-gnueabihf.tar.gz": "bf63f9092d1cd4c63d1858182ffa2a1713d4f00bc637d4169717bd5c9c905be3",
-    "clang+llvm-19.1.1-x86_64-pc-windows-msvc.tar.xz": "621fc299fceb1bbdae927e355d1073034c9a1bbdda5a46a27e217c56af72f72a",
+    #"clang+llvm-19.1.1-x86_64-pc-windows-msvc.tar.xz": "621fc299fceb1bbdae927e355d1073034c9a1bbdda5a46a27e217c56af72f72a",
 
     # 19.1.2
     "LLVM-19.1.2-Linux-X64.tar.xz": "5b7fe5b2dbbacadd0fee17ac45103c0393bc4b5a9096506a865aa2fbcba976a7",
@@ -551,7 +551,7 @@ _llvm_distributions = {
     "LLVM-19.1.2-macOS-ARM64.tar.xz": "62eb2d8e9f610595fc53db020e26e4576c57c5853a55981292f17730916e676d",
     "clang+llvm-19.1.2-aarch64-linux-gnu.tar.xz": "eb9ab2b24f4b75f8010feed4a43d5a4ebf3c7e1ccff881e1cdf12a122748e7c4",
     "clang+llvm-19.1.2-armv7a-linux-gnueabihf.tar.gz": "5a86ae82efca724882af265e3a8d7a37f09cf217483604882365b6ecb4195f00",
-    "clang+llvm-19.1.2-x86_64-pc-windows-msvc.tar.xz": "14e764eb79e4ed58da1b88320e33e5eb6c6064103446b47c4439b14292b99d12",
+    #"clang+llvm-19.1.2-x86_64-pc-windows-msvc.tar.xz": "14e764eb79e4ed58da1b88320e33e5eb6c6064103446b47c4439b14292b99d12",
 
     # 19.1.3
     "LLVM-19.1.3-Linux-X64.tar.xz": "052a5ee117782aab5893dba2cdf2cb97c3d873f7a50ba6b1690594161c75c519",
@@ -560,7 +560,7 @@ _llvm_distributions = {
     "LLVM-19.1.3-macOS-X64.tar.xz": "52ea30f3089af4e086a98638a16167c5a20d253d43f7146c058e3e9e6d33274f",
     "clang+llvm-19.1.3-aarch64-linux-gnu.tar.xz": "a730175e58233f20a99ecab0015d8cd0f1af5d92411ca1f9e3e472645d889bcd",
     "clang+llvm-19.1.3-armv7a-linux-gnueabihf.tar.gz": "b602416a0ea588da73d535050a7efc2b89bc58c69556cd2d828d413c258ba215",
-    "clang+llvm-19.1.3-x86_64-pc-windows-msvc.tar.xz": "84789dc852e67f8507861a5dea9ed41f11ad7a6c9d3db6d52f04d72b3e4e29d3",
+    #"clang+llvm-19.1.3-x86_64-pc-windows-msvc.tar.xz": "84789dc852e67f8507861a5dea9ed41f11ad7a6c9d3db6d52f04d72b3e4e29d3",
 
     # 19.1.4
     "LLVM-19.1.4-Linux-X64.tar.xz": "da7e0f571b440e5ef9ae6e061ae6afc1071179e18f86f77cf630dabbed11a5f6",
@@ -714,16 +714,19 @@ def _find_llvm_basename_list(llvm_version, arch, os):
         "linux": "linux-gnu",
         "windows": "pc-windows-msvc",
     }.get(os, os)
-    new_prefix = "LLVM-{llvm_version}-{os}-{arch}".format(
+
+    prefixes = []
+    prefixes.append("LLVM-{llvm_version}-{os}-{arch}".format(
         llvm_version = llvm_version,
         arch = llvm_new_arch,
         os = llvm_new_os,
-    )
-    old_prefix = "clang+llvm-{llvm_version}-{arch}-{os}".format(
+    ))
+    prefixes.append("clang+llvm-{llvm_version}-{arch}-{os}".format(
         llvm_version = llvm_version,
         arch = arch,
         os = llvm_old_os,
-    )
+    ))
+    suffixes = [".tar.gz", ".tar.xz"]
 
     for suffix in [".tar.gz", ".tar.xz"]:
         new_name = new_prefix + suffix
@@ -735,14 +738,12 @@ def _find_llvm_basename_list(llvm_version, arch, os):
 
     basenames = []
     for dist in _llvm_distributions:
-        if dist.startswith(new_prefix):
-            basenames.append(dist)
-        if dist.startswith(old_prefix):
-            basenames.append(dist)
+        for prefix in prefixes:
+            if dist.startswith(prefix):
+                basenames.append(dist)
     if len(basenames) > 1:
-        fail("Multiple configurations found for prefixes '{new_prefix}' and '{old_prefix}'.".format(
-            new_prefix = new_name,
-            old_prefix = old_prefix,
+        fail("Multiple configurations found for prefixes [{prefixes}].".format(
+            prefixes = ", ".join(prefixes),
         ))
     if not basenames:
         fail("No matching config could be found for version {llvm_version} on {os} with arch {arch}.".format(
