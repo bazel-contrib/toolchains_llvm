@@ -38,7 +38,7 @@ set -x
 test_args=()
 
 targets=(
-  "//platforms/..."
+  "//toolchain/..."
 )
 
 "${bazel}" ${TEST_MIGRATION:+"--strict"} --bazelrc=/dev/null test \
