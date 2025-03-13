@@ -728,30 +728,17 @@ def _find_llvm_basename_list(llvm_version, arch, os):
     ))
     suffixes = [".tar.gz", ".tar.xz"]
 
-    for suffix in [".tar.gz", ".tar.xz"]:
-        new_name = new_prefix + suffix
-        if new_name in _llvm_distributions:
-            return [new_name]
-        old_name = old_prefix + suffix
-        if old_name in _llvm_distributions:
-            return [old_name]
+    for prefix in prefixes:
+        for suffix in suffixes:
+            if prefix + suffix in _llvm_distributions:
+                return [prefix + suffix]
 
     basenames = []
     for dist in _llvm_distributions:
         for prefix in prefixes:
             if dist.startswith(prefix):
                 basenames.append(dist)
-    if len(basenames) > 1:
-        fail("Multiple configurations found for prefixes [{prefixes}].".format(
-            prefixes = ", ".join(prefixes),
-        ))
-    if not basenames:
-        fail("No matching config could be found for version {llvm_version} on {os} with arch {arch}.".format(
-            llvm_version = llvm_version,
-            os = os,
-            arch = arch,
-        ))
-    return basenames[0]
+    return basenames
 
 def _major_llvm_version(llvm_version):
     """Return the major version given `<major>['.' <minor> [ '.' <mini> [.*]]]."""
@@ -761,9 +748,23 @@ def _llvm_release_name(rctx, llvm_version):
     """For versions 19+ find base name in configured name list, otherwise predict version name by input."""
     major_llvm_version = _major_llvm_version(llvm_version)
     if major_llvm_version >= 19:
-        release_names = _find_llvm_basename_list(llvm_version, _arch(rctx), _os(rctx))
-        if len(release_names) == 1:
-            return release_names[0]
+        arch = _arch(rctx)
+        os = _os(rctx)
+        basenames = _find_llvm_basenamme(llvm_version, arch, os)
+        if len(basenames) > 1:
+            fail("Multiple configurations found [{basenames}].".format(
+                basenames = ", ".join(basenames),
+            ))
+        if not basenames:
+            fail("No matching config could be found for version {llvm_version} on {os} with arch {arch}.".format(
+                llvm_version = llvm_version,
+                os = os,
+                arch = arch,
+            ))
+
+        # Use the following for debugging:
+        # print("Found LLVM: " + basenames[0])  # buildifier: disable=print
+        return basenames[0]
     return _llvm_release_name_context(rctx, llvm_version)
 
 def _distribution_urls(rctx):
