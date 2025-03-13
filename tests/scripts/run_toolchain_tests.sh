@@ -32,8 +32,6 @@ scripts_dir="$(dirname "${BASH_SOURCE[0]}")"
 source "${scripts_dir}/bazel.sh"
 "${bazel}" version
 
-cd "${scripts_dir}"
-
 set -x
 test_args=()
 
@@ -41,5 +39,5 @@ targets=(
   "//toolchain/..."
 )
 
-"${bazel}" ${TEST_MIGRATION:+"--strict"} --bazelrc=/dev/null test \
+"${bazel}" ${TEST_MIGRATION:+"--strict"} --bazelrc=/dev/null --check_direct_dependencies=off test \
   "${common_test_args[@]}" "${test_args[@]}" "${targets[@]}"
