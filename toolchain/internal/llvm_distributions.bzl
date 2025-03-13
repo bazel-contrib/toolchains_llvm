@@ -696,7 +696,7 @@ def _find_llvm_basenamme(llvm_version, arch, os):
         "windows": "Windows",
     }[os]
     llvm_old_os = {
-        "darwin": "apple-darwin22",
+        "darwin": "apple-darwin",
         "linux": "linux-gnu",
         "windows": "pc-windows-msvc",
     }[os]
