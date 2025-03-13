@@ -41,5 +41,5 @@ targets=(
   "//toolchain/..."
 )
 
-"${bazel}" ${TEST_MIGRATION:+"--strict"} --bazelrc=/dev/null test \
+"${bazel}" ${TEST_MIGRATION:+"--strict"} --bazelrc=/dev/null --check_direct_dependencies=off test \
   "${common_test_args[@]}" "${test_args[@]}" "${targets[@]}"
