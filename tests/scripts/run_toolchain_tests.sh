@@ -18,8 +18,7 @@ set -euo pipefail
 while getopts "h" opt; do
   case "${opt}" in
   "h")
-    echo "Usage:"
-    echo "-t - Toolchain name to use for testing; default is llvm_toolchain"
+    echo "Usage: No options"
     exit 2
     ;;
   *)
