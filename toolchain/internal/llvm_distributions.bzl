@@ -510,6 +510,7 @@ _llvm_distributions = {
     # 18.1.8
     "clang+llvm-18.1.8-aarch64-linux-gnu.tar.xz": "dcaa1bebbfbb86953fdfbdc7f938800229f75ad26c5c9375ef242edad737d999",
     "clang+llvm-18.1.8-arm64-apple-macos11.tar.xz": "4573b7f25f46d2a9c8882993f091c52f416c83271db6f5b213c93f0bd0346a10",
+    "clang+llvm-18.1.8-armv7a-linux-gnueabihf.tar.gz": "a4fc669dd54030f27e422fa67751509fa14bb90fbef32c2bd24c7f395c93c47c",
     "clang+llvm-18.1.8-powerpc64-ibm-aix-7.2.tar.xz": "0bf2df8cc823e1b76b2c42f5e8ac3ef1076865eee87a7098deb227d0f66b7e7c",
     "clang+llvm-18.1.8-powerpc64le-linux-rhel-8.8.tar.xz": "b3df0c1607bfb04fe268c2e80542aba6e63ef0766a0bc4100ccf6a1ea99a0a1b",
     "clang+llvm-18.1.8-x86_64-linux-gnu-ubuntu-18.04.tar.xz": "54ec30358afcc9fb8aa74307db3046f5187f9fb89fb37064cdde906e062ebf36",
@@ -517,19 +518,28 @@ _llvm_distributions = {
 
     # 19.1.0
     "LLVM-19.1.0-Linux-X64.tar.xz": "cee77d641690466a193d9b88c89705de1c02bbad46bde6a3b126793c0a0f2923",
+    "LLVM-19.1.0-Windows-X64.tar.xz": "a132377865d72bc7452343d59d05da63266ffc928b4072d63fb854fd42097dc4",
     "LLVM-19.1.0-macOS-ARM64.tar.xz": "9da86f64a99f5ce9b679caf54e938736ca269c5e069d0c94ad08b995c5f25c16",
     "LLVM-19.1.0-macOS-X64.tar.xz": "264f2f1e8b67f066749349ae8b4943d346cd44e099464164ef21b42a57663540",
-    "LLVM-19.1.0-Windows-X64.tar.xz": "a132377865d72bc7452343d59d05da63266ffc928b4072d63fb854fd42097dc4",
+    "clang+llvm-19.1.0-aarch64-linux-gnu.tar.xz": "7bb54afd330fe1a1c2d4c593fa1e2dbe2abd9bf34fb3597994ff41e443cf144b",
+    "clang+llvm-19.1.0-armv7a-linux-gnueabihf.tar.gz": "d2f9f7fe803b38dc2fa64a1b2d1d3356f230f9ba402c321d8615ba3598f5cb66",
+    # "clang+llvm-19.1.0-x86_64-pc-windows-msvc.tar.xz": "de3199fcace428386878e5a98c2be35576459f140f405eddc8b1f8e91f5dae64",
 
     # 19.1.1
     "LLVM-19.1.1-Linux-X64.tar.xz": "8204de000b6a6921f0572e038336601e3225898e9a253c8aaa43b0a5fae8a4ce",
     "LLVM-19.1.1-macOS-ARM64.tar.xz": "e00def99a6b32de61fffabd4bb85290589731f3f5cb9836fd51770256cd694dd",
     "LLVM-19.1.1-Windows-X64.tar.xz": "dafd21646d10b7a59cf755002b608a657173c22daf63d99663eb193aedde48c1",
+    "clang+llvm-19.1.1-aarch64-linux-gnu.tar.xz": "414d2ebef10c5035e9df10a224e81b484dbe17d319373050d0c1b3b1467040d2",
+    "clang+llvm-19.1.1-armv7a-linux-gnueabihf.tar.gz": "bf63f9092d1cd4c63d1858182ffa2a1713d4f00bc637d4169717bd5c9c905be3",
+    #"clang+llvm-19.1.1-x86_64-pc-windows-msvc.tar.xz": "621fc299fceb1bbdae927e355d1073034c9a1bbdda5a46a27e217c56af72f72a",
 
     # 19.1.2
     "LLVM-19.1.2-Linux-X64.tar.xz": "5b7fe5b2dbbacadd0fee17ac45103c0393bc4b5a9096506a865aa2fbcba976a7",
     "LLVM-19.1.2-macOS-ARM64.tar.xz": "62eb2d8e9f610595fc53db020e26e4576c57c5853a55981292f17730916e676d",
     "LLVM-19.1.2-Windows-X64.tar.xz": "3aa49c72622c14caabb63f80cc156ce1d6806e12af554754ae1084bd7bc8f6ba",
+    "clang+llvm-19.1.2-aarch64-linux-gnu.tar.xz": "eb9ab2b24f4b75f8010feed4a43d5a4ebf3c7e1ccff881e1cdf12a122748e7c4",
+    "clang+llvm-19.1.2-armv7a-linux-gnueabihf.tar.gz": "5a86ae82efca724882af265e3a8d7a37f09cf217483604882365b6ecb4195f00",
+    # "clang+llvm-19.1.2-x86_64-pc-windows-msvc.tar.xz": "14e764eb79e4ed58da1b88320e33e5eb6c6064103446b47c4439b14292b99d12",
 
     # 19.1.3
     "LLVM-19.1.3-Linux-X64.tar.xz": "052a5ee117782aab5893dba2cdf2cb97c3d873f7a50ba6b1690594161c75c519",
@@ -537,18 +547,22 @@ _llvm_distributions = {
     "LLVM-19.1.3-macOS-X64.tar.xz": "52ea30f3089af4e086a98638a16167c5a20d253d43f7146c058e3e9e6d33274f",
     "LLVM-19.1.3-Windows-X64.tar.xz": "1077267ca353a1e236055ed4b57d6a404d09c40b01bd27dc882870395cdc1aae",
     "clang+llvm-19.1.3-aarch64-linux-gnu.tar.xz": "a730175e58233f20a99ecab0015d8cd0f1af5d92411ca1f9e3e472645d889bcd",
+    "clang+llvm-19.1.3-armv7a-linux-gnueabihf.tar.gz": "b602416a0ea588da73d535050a7efc2b89bc58c69556cd2d828d413c258ba215",
+    # "clang+llvm-19.1.3-x86_64-pc-windows-msvc.tar.xz": "84789dc852e67f8507861a5dea9ed41f11ad7a6c9d3db6d52f04d72b3e4e29d3",
 
     # 19.1.4
     "LLVM-19.1.4-Linux-X64.tar.xz": "da7e0f571b440e5ef9ae6e061ae6afc1071179e18f86f77cf630dabbed11a5f6",
     "LLVM-19.1.4-macOS-ARM64.tar.xz": "52245bc374fdb9f3665046fe7319b5b8165ca2732053c74f06ba1e90e142ed8e",
     "LLVM-19.1.4-macOS-X64.tar.xz": "eedb896c193cc3bad35a9f132d91e16cf73d33723f35d63dcaae4755872674c2",
     "clang+llvm-19.1.4-aarch64-linux-gnu.tar.xz": "c42ea92e7a4cfad96b2b0d6c7872c6e9a9960a1d8a56c1847eca45d79cd67533",
+    "clang+llvm-19.1.4-armv7a-linux-gnueabihf.tar.gz": "1725f51a2be83feb9e7d2c393e179fa646f85eb80d17dca8b1c65bcee43455a4",
     "clang+llvm-19.1.4-x86_64-pc-windows-msvc.tar.xz": "5e965a1281c9df1fda8eddab3752ee6a3139e36ce469537f216cd938c498e6c3",
 
     # 19.1.5
     "LLVM-19.1.5-Linux-X64.tar.xz": "13e9975b026d431c945927960e5f8c0a47a155a2f600f57e85f4d1482620c65f",
     "LLVM-19.1.5-macOS-X64.tar.xz": "f593d45992807d03c2aeb4c968c5cab9e78403430caea21dca4b787cbca3b9f4",
     "clang+llvm-19.1.5-aarch64-linux-gnu.tar.xz": "1bdc342b7d03cbcfafb2ffb8659eb0e4d5c6ddef6f56e0cad0e0c09c52577a4f",
+    "clang+llvm-19.1.5-armv7a-linux-gnueabihf.tar.gz": "f0058f9fc80dd939609a1ac2cbf791bbaf3e66ee56eb320b93f1494f3478cb57",
     "clang+llvm-19.1.5-x86_64-pc-windows-msvc.tar.xz": "467d1a73ca938f47734af3baac2e78c5e730285469096ee088bb5c9590cabd70",
 
     # 19.1.6
@@ -556,6 +570,7 @@ _llvm_distributions = {
     "LLVM-19.1.6-macOS-ARM64.tar.xz": "2c28bcd132ce3db367354c892839a962aa01b7b850a25e61316178f2ac72ecac",
     "LLVM-19.1.6-macOS-X64.tar.xz": "58ce29a2adb82872b6de49018091c6d844ca555a9b017faa698f6df409b25281",
     "clang+llvm-19.1.6-aarch64-linux-gnu.tar.xz": "f6fd8cf8bb12f507c4a55609ef6a435b3c59bc658008b712b80ec1cdc1ee9325",
+    "clang+llvm-19.1.6-armv7a-linux-gnueabihf.tar.gz": "3ce188e3394c2bf2d2f2ec1c63f4e450e10092d642953d1b73940cfe9213f9ba",
     "clang+llvm-19.1.6-x86_64-pc-windows-msvc.tar.xz": "d2e64d4d6eca9199ea5b8ac018e626fe2f2814ab90247c335fc9fd7448681bb3",
 
     # 19.1.7
@@ -563,6 +578,7 @@ _llvm_distributions = {
     "LLVM-19.1.7-macOS-ARM64.tar.xz": "d93bf12952d89fe4ec7501c40475718b722407da6a8d651f05c995863468e570",
     "LLVM-19.1.7-macOS-X64.tar.xz": "49405e75fbe7ad6f8139a33f59ec8c5112b75b3027405c7b92d19f4c6f02c78a",
     "clang+llvm-19.1.7-aarch64-linux-gnu.tar.xz": "a73d9326e5d756e3937df6a9f621664d76403b59119f741901106b387e53a6ae",
+    "clang+llvm-19.1.7-armv7a-linux-gnueabihf.tar.gz": "dedde2acbc164649b77d6f6635e8551218c9aed5a6df4c09b2614aaccc0c05b2",
     "clang+llvm-19.1.7-x86_64-pc-windows-msvc.tar.xz": "b4557b4f012161f56a2f5d9e877ab9635cafd7a08f7affe14829bd60c9d357f0",
 
     # 20.1.0
@@ -570,6 +586,7 @@ _llvm_distributions = {
     "LLVM-20.1.0-Linux-X64.tar.xz": "954ac51498519f6ed9540714fb04bc401f70039b296a8160dd1559be380788d7",
     "LLVM-20.1.0-macOS-ARM64.tar.xz": "2c42ec26ec50c4bf8b95585f762b9d2f5b385d170dee772d9c1d6c9a7190dcef",
     "clang+llvm-20.1.0-aarch64-pc-windows-msvc.tar.xz": "f52e40d68843ed6205858e817ed791295ef51e526037186352a1aeac4a59e51a",
+    "clang+llvm-20.1.0-armv7a-linux-gnueabihf.tar.gz": "487d38a49bd64ef03b46ce1dc6f32645052ded09f96ada847e4f46e69c799d01",
     "clang+llvm-20.1.0-x86_64-pc-windows-msvc.tar.xz": "91e29416f4a0c188368f0540a5538efc0d8a9f7134afba7a2160296472ce84eb",
 
     # 20.1.1
@@ -715,34 +732,33 @@ def _find_llvm_basenamme(llvm_version, arch, os):
         "linux": "linux-gnu",
         "windows": "pc-windows-msvc",
     }[os]
-    new_prefix = "LLVM-{llvm_version}-{os}-{arch}".format(
+
+    prefixes = []
+    prefixes.append("LLVM-{llvm_version}-{os}-{arch}".format(
         llvm_version = llvm_version,
         arch = llvm_new_arch,
         os = llvm_new_os,
-    )
-    new_name = new_prefix + ".tar.xz"
-    old_prefix = "clang+llvm-{llvm_version}-{arch}-{os}".format(
+    ))
+    prefixes.append("clang+llvm-{llvm_version}-{arch}-{os}".format(
         llvm_version = llvm_version,
         arch = arch,
         os = llvm_old_os,
-    )
-    old_name = old_prefix + ".tar.xz"
+    ))
+    suffixes = [".tar.gz", ".tar.xz"]
 
-    if new_name in _llvm_distributions:
-        return new_name
-    if old_name in _llvm_distributions:
-        return old_name
+    for prefix in prefixes:
+        for suffix in suffixes:
+            if prefix + suffix in _llvm_distributions:
+                return prefix + suffix
 
     basenames = []
     for dist in _llvm_distributions:
-        if dist.startswith(new_prefix):
-            basenames.append(dist)
-        if dist.startswith(old_prefix):
-            basenames.append(dist)
+        for prefix in prefixes:
+            if dist.startswith(prefix):
+                basenames.append(dist)
     if len(basenames) > 1:
-        fail("Multiple configurations found for prefixes '{new_prefix}' and '{old_prefix}'.".format(
-            new_prefix = new_name,
-            old_prefix = old_prefix,
+        fail("Multiple configurations found for prefixes [{prefixes}].".format(
+            prefixes = ", ".join(prefixes),
         ))
     if not basenames:
         fail("No matching config could be found for version {llvm_version} on {os} with arch {arch}.".format(
