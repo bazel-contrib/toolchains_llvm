@@ -13,6 +13,7 @@
 # limitations under the License.
 
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "read_netrc", "use_netrc")
+load("@helly25_bzl//bzl/versions:versions.bzl", _versions = "versions")
 load("//toolchain/internal:common.bzl", _arch = "arch", _attr_dict = "attr_dict", _exec_os_arch_dict_value = "exec_os_arch_dict_value", _os = "os")
 load("//toolchain/internal:release_name.bzl", _llvm_release_name_context = "llvm_release_name_context")
 
@@ -805,28 +806,59 @@ def _find_llvm_basename_or_fail(llvm_version, arch, os):
     # print("Found LLVM: " + basenames[0])  # buildifier: disable=print
     return basenames[0]
 
-def _major_llvm_version(llvm_version):
-    """Return the major version given `<major>['.' <minor> [ '.' <mini> [.*]]]."""
-    return int(llvm_version.split(".")[0])
+def _parse_version_requirements(version_requirements):
+    if version_requirements == "latest":
+        return []
+    if version_requirements.startswith("latest:"):
+        return _versions.parse_requirements(version_requirements.removeprefix("latest:"))
+    fail("Invalid version requirements: '{version_requirements}'.".format(
+        version_requirements = version_requirements,
+    ))
 
-def _llvm_release_name(rctx, llvm_version):
+def latest_llvm_release_name_or_fail(rctx, version_requirements):
+    """Find the latest distribution given `arch` and `os` from `rctx`.
+
+    The function respects version requirements similar to Python package requirements.
+    The requirements string can be prefixed with "latest:".
+    The requirements are a sequence of operators and versions separated by commas:
+        ("<", "<=", ">", ">=", "!=", "==") <digit>+ ("." <digit>+)+
+    """
+    arch = _arch(rctx)
+    os = _os(rctx)
+    requires = _parse_version_requirements(version_requirements)
+    for llvm_version in reversed(_llvm_distributions_base_url.keys()):
+        if not _versions.check_all_requirements(llvm_version, requires):
+            continue
+        basenames = _find_llvm_basename_list(llvm_version, arch, os)
+        if len(basenames) == 1:
+            return (llvm_version, basenames[0])
+    fail("Could not find any LLVM distribution for {os} on {arch}.".format(
+        arch = arch,
+        os = os,
+    ))
+
+def _llvm_release_name_or_fail(rctx, llvm_version):
     """For versions 19+ find base name in configured name list, otherwise predict version name by input."""
-    major_llvm_version = _major_llvm_version(llvm_version)
-    if major_llvm_version >= 19:
-        return _find_llvm_basename_or_fail(llvm_version, _arch(rctx), _os(rctx))
-    return _llvm_release_name_context(rctx, llvm_version)
+    if llvm_version.startswith("latest"):
+        return latest_llvm_release_name_or_fail(rctx, llvm_version)
+    if _versions.ge(llvm_version, 19):
+        return (llvm_version, _find_llvm_basename_or_fail(llvm_version, _arch(rctx), _os(rctx)))
+    return (llvm_version, _llvm_release_name_context(rctx, llvm_version))
 
 def _distribution_urls(rctx):
     """Return LLVM `urls`, `shha256` and `strip_prefix` for the given context."""
     llvm_version = _get_llvm_version(rctx)
 
     if rctx.attr.distribution == "auto":
-        basename = _llvm_release_name(rctx, llvm_version)
+        llvm_version, basename = _llvm_release_name_or_fail(rctx, llvm_version)
     else:
         basename = rctx.attr.distribution
 
     if basename not in _llvm_distributions:
-        fail("Unknown LLVM release: %s\nPlease ensure file name is correct." % basename)
+        fail("Unknown LLVM release {version}: {basename}\nPlease ensure file name is correct.".format(
+            basename = basename,
+            version = llvm_version,
+        ))
 
     urls = []
     url_suffix = "{0}/{1}".format(llvm_version, basename).replace("+", "%2B")
