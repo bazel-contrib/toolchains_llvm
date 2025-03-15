@@ -1069,7 +1069,7 @@ def _parse_version(v):
 def _version_string(version):
     return ".".join([str(v) for v in version])
 
-def _write_distributions_impl(ctx):
+def _distributions_test_writer_impl(ctx):
     """Analyze the configured versions and write to a file for test consumption.
 
     The test generated file '<rule_name>.out' contains the following lines:

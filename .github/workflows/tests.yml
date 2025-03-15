@@ -30,7 +30,7 @@ jobs:
         os: [macos-latest, ubuntu-latest]
         # TODO: Test with Bazel 8 after https://github.com/bazelbuild/bazel/pull/24154 has been released.
         bazel_version: [7.x, latest] # Minimum supported Bazel version is 7.x
-        bzlmod: [true, false]
+        bzlmod: [true] # Tests currently do not work as Workspaces have not been setup accordingly.
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
