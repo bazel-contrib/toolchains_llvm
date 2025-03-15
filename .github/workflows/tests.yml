@@ -30,7 +30,7 @@ jobs:
         os: [macos-latest, ubuntu-latest]
         # TODO: Test with Bazel 8 after https://github.com/bazelbuild/bazel/pull/24154 has been released.
         bazel_version: [7.x, latest] # Minimum supported Bazel version is 7.x
-        bzlmod: [true] # Tests currently do not work as Workspaces have not been setup accordingly.
+        bzlmod: [true, false]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -42,13 +42,20 @@ jobs:
           USE_BZLMOD: ${{ matrix.bzlmod }}
         run: tests/scripts/run_tests.sh
   toolchain_test:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+        # TODO: Test with Bazel 8 after https://github.com/bazelbuild/bazel/pull/24154 has been released.
+        bazel_version: [7.x, latest] # Minimum supported Bazel version is 7.x
+        bzlmod: [true, false]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - name: Test
         env:
-          USE_BAZEL_VERSION: latest
-          USE_BZLMOD: true
+          USE_BAZEL_VERSION: ${{ matrix.bazel_version }}
+          USE_BZLMOD: ${{ matrix.bzlmod }}
         run: tests/scripts/run_toolchain_tests.sh
   external_test:
     strategy:
