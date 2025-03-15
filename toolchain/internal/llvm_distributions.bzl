@@ -830,6 +830,16 @@ def _parse_version_requirements(version_requirements):
         version_requirements = version_requirements,
     ))
 
+def _latest_llvm_release_name(arch, os, version_requirements):
+    requires = _parse_version_requirements(version_requirements)
+    for llvm_version in reversed(_llvm_distributions_base_url.keys()):
+        if not _versions.check_all_requirements(llvm_version, requires):
+            continue
+        basenames = _find_llvm_basename_list(llvm_version, arch, os)
+        if len(basenames) == 1:
+            return (llvm_version, basenames[0])
+    return (None, None)
+
 def latest_llvm_release_name_or_fail(rctx, version_requirements):
     """Find the latest distribution given `arch` and `os` from `rctx`.
 
@@ -840,13 +850,9 @@ def latest_llvm_release_name_or_fail(rctx, version_requirements):
     """
     arch = _arch(rctx)
     os = _os(rctx)
-    requires = _parse_version_requirements(version_requirements)
-    for llvm_version in reversed(_llvm_distributions_base_url.keys()):
-        if not _versions.check_all_requirements(llvm_version, requires):
-            continue
-        basenames = _find_llvm_basename_list(llvm_version, arch, os)
-        if len(basenames) == 1:
-            return (llvm_version, basenames[0])
+    llvm_version, basename = _latest_llvm_release_name(arch, os, version_requirements)
+    if llvm_version and basename:
+        return llvm_version, basename
     fail("Could not find any LLVM distribution for {os} on {arch}.".format(
         arch = arch,
         os = os,
@@ -934,16 +940,16 @@ def download_llvm(rctx):
     return updated_attrs
 
 DistrubutionsInfo = provider(
-    "The output info for the `write_distributions` rule.",
+    "The output info for the `distributions_test_writer` rule.",
     fields = {
         "out": "output File",
     },
 )
 
-def _write_distributions_impl(ctx):
+def _distributions_test_writer_impl(ctx):
     """Analyze the configured versions and write to a file for test consumption.
 
-    The test generated file '<rule_name>.out' contains the following lines:
+    The test generated file '<rule_name>.txt' contains the following lines:
     - a 'miss:' line denotes a llvm distribution basename that was not found.
     - a 'add:' line denotes a version that was predicted but does not exist.
 
@@ -978,15 +984,70 @@ def _write_distributions_impl(ctx):
     for dist in not_found:
         result[dist] = False
     output = [("add: " if found else "del: ") + dist for dist, found in result.items()]
-    out = ctx.actions.declare_file(ctx.label.name + ".out")
+    out = ctx.actions.declare_file(ctx.label.name + ".txt")
     ctx.actions.write(out, "\n".join(output) + "\n")
     return [
         DefaultInfo(files = depset([out])),
         DistrubutionsInfo(out = out),
     ]
 
-write_distributions = rule(
-    implementation = _write_distributions_impl,
+distributions_test_writer = rule(
+    implementation = _distributions_test_writer_impl,
+    output_to_genfiles = True,
+    provides = [DefaultInfo, DistrubutionsInfo],
+)
+
+def _requirements_test_writer_impl(ctx):
+    """Analyze the configured versions and write to a file for test consumption.
+
+    The test generated file '<rule_name>.out' contains the following lines:
+    [<arch>,<os>,<requirement>]: <llvm_distribution_basename>
+    """
+    requirement_list = [
+        "latest:<=20.1.0",
+        "latest:<=20.1.0,>17.0.4,!=19.1.7",
+        "latest:<20.1.0,>17.0.4,!=19.1.7",
+        "latest:<20.1.0,>17.0.4",
+    ]
+    arch_list = ["aarch64", "powerpc64", "powerpc64le", "sparcv9", "x86_64"]
+    os_list = [
+        "darwin",
+        "linux",
+        "raspbian",
+        "pc-solaris2.11",  # TODO: No clue how this one works
+        "windows",
+    ]
+    result = []
+    for arch in arch_list:
+        for os in os_list:
+            for requirement in requirement_list:
+                llvm_version, basename = _latest_llvm_release_name(arch, os, requirement)
+                if llvm_version and basename:
+                    result.append("[{arch},{os},\"{requirement}\"]: {llvm_version} = {basename}".format(
+                        arch = arch,
+                        os = os,
+                        requirement = requirement,
+                        llvm_version = llvm_version,
+                        basename = basename,
+                    ))
+                else:
+                    result.append("[{arch},{os},\"{requirement}\"]: N/A".format(
+                        arch = arch,
+                        os = os,
+                        requirement = requirement,
+                        llvm_version = llvm_version,
+                        basename = basename,
+                    ))
+
+    out = ctx.actions.declare_file(ctx.label.name + ".txt")
+    ctx.actions.write(out, "\n".join(result) + "\n")
+    return [
+        DefaultInfo(files = depset([out])),
+        DistrubutionsInfo(out = out),
+    ]
+
+requirements_test_writer = rule(
+    implementation = _requirements_test_writer_impl,
     output_to_genfiles = True,
     provides = [DefaultInfo, DistrubutionsInfo],
 )
