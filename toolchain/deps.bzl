@@ -35,11 +35,4 @@ def bazel_toolchain_dependencies():
             sha256 = "bc283cdfcd526a52c3201279cda4bc298652efa898b10b4db0837dc51652756f",
         )
 
-        # Skip bazel_skylib_workspace because we are not using lib/unittest.bzl
-
-    if not native.existing_rule("helly25_bzl"):
-        http_archive(
-            name = "helly25_bzl",
-            url = "https://github.com/helly25/bzl/releases/download/0.1.1/bzl-0.1.1.tar.gz",
-            sha256 = "340c6f93dd11d274756b856a85d1dcdfe39b9c81986fb1a95ee36b6c7b680e3c",
-        )
+    # Skip bazel_skylib_workspace because we are not using lib/unittest.bzl
