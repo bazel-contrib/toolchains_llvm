@@ -50,7 +50,9 @@ llvm_repo_attrs.update({
     "llvm_version": attr.string(
         doc = ("One of the supported versions of LLVM, e.g. 12.0.0; used with the " +
                "`auto` value for the `distribution` attribute, and as a default value " +
-               "for the `llvm_versions` attribute."),
+               "for the `llvm_versions` attribute. This value can be set to `latest` " +
+               "in order to find the latest LLVM version supported on the OS/arch. " +
+               "Further, requirements can be provided, e.g. `latest:>=17.0.4,!=19.0.7`."),
     ),
     "extra_llvm_distributions": attr.string_dict(
         mandatory = False,
