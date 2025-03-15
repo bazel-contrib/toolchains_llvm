@@ -686,6 +686,9 @@ _llvm_distributions_base_url = {
     "20.1.2": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
 }
 
+# Complete list of file suffixes used accross all distributions.
+_DIST_SUFFIXES = [".tar.xz", ".tar.gz", ".tar.zst"]
+
 def _get_auth(ctx, urls):
     """
     Given the list of URLs obtain the correct auth dict.
@@ -729,18 +732,16 @@ def _get_llvm_version(rctx):
     return llvm_version
 
 def _find_llvm_basename_list(llvm_version, arch, os):
-    """Lookup (llvm_version, arch, os) in the list of basenames in `_llvm_distributions.`"""
+    """Lookup (llvm_version, arch, os) in the list of basenames in `_llvm_distributions`."""
     prefixes = []
 
     if os == "raspbian":
-        # TODO: Check the reported `arch` and return [] if unsupported
         prefixes.append("clang+llvm-{llvm_version}-{arch}-{os}".format(
             llvm_version = llvm_version,
             arch = "armv7a",
             os = "linux-gnueabihf",
         ))
     elif arch == "x86_64" and os == "pc-solaris2.11":
-        # TODO: Check the reported `arch` and return [] if unsupported
         prefixes.append("clang+llvm-{llvm_version}-{arch}-{os}".format(
             llvm_version = llvm_version,
             arch = "amd64",
@@ -790,9 +791,8 @@ def _find_llvm_basename_list(llvm_version, arch, os):
                 os = llvm_old_os,
             ))
 
-    suffixes = [".tar.gz", ".tar.xz"]
     for prefix in prefixes:
-        for suffix in suffixes:
+        for suffix in _DIST_SUFFIXES:
             basename = prefix + suffix
             if basename in _llvm_distributions:
                 return [basename]
@@ -843,7 +843,7 @@ def _latest_llvm_release_name(arch, os, version_requirements):
 def latest_llvm_release_name_or_fail(rctx, version_requirements):
     """Find the latest distribution given `arch` and `os` from `rctx`.
 
-    The function respects version requirements similar to Python package requirements.
+    The function respects `version_requirements` similar to Python package requirements.
     The requirements string can be prefixed with "latest:".
     The requirements are a sequence of operators and versions separated by commas:
         ("<", "<=", ">", ">=", "!=", "==") <digit>+ ("." <digit>+)+
@@ -892,13 +892,12 @@ def _distribution_urls(rctx):
 
     sha256 = _llvm_distributions[basename]
 
-    if basename.endswith(".tar.xz"):
-        strip_prefix = basename[:(len(basename) - len(".tar.xz"))]
-    elif basename.endswith(".tar.gz"):
-        strip_prefix = basename[:(len(basename) - len(".tar.gz"))]
-    elif basename.endswith(".tar.zst"):
-        strip_prefix = basename[:(len(basename) - len(".tar.zst"))]
-    else:
+    strip_prefix = None
+    for suffix in _DIST_SUFFIXES:
+        if basename.endswith(suffix):
+            strip_prefix = basename[:(len(basename) - len(suffix))]
+            break
+    if not strip_prefix:
         fail("Unknown URL file extension {url}", url = basename)
 
     strip_prefix = strip_prefix.rstrip("-rhel86")
@@ -968,8 +967,6 @@ def _distributions_test_writer_impl(ctx):
     not_found = {k: v for k, v in _llvm_distributions.items()}
     result = {}
     for llvm_version in _llvm_distributions_base_url.keys():
-        #if not _version_ge(llvm_version, 18, 1, 1):
-        #    continue
         for arch in arch_list:
             for os in os_list:
                 basenames = _find_llvm_basename_list(llvm_version, arch, os)
