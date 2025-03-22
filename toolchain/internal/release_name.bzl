@@ -1,7 +1,5 @@
 load(
     "//toolchain/internal:common.bzl",
-    _arch = "arch",
-    _os = "os",
     _os_version_arch = "os_version_arch",
 )
 
@@ -211,27 +209,10 @@ def _resolve_version_for_suse(major_llvm_version, llvm_version):
         os_name = _ubuntu_osname("x86_64", "20.04", major_llvm_version, llvm_version)
     return os_name
 
-def llvm_release_name(rctx, llvm_version):
+def llvm_release_name_context(rctx, llvm_version):
     major_llvm_version = _major_llvm_version(llvm_version)
     if major_llvm_version >= 19:
-        arch = {
-            "aarch64": "ARM64",
-            "x86_64": "X64",
-        }[_arch(rctx)]
-        os = {
-            "darwin": "macOS",
-            "linux": "Linux",
-            "windows": "Windows",
-        }[_os(rctx)]
-        if arch == "ARM64" and os == "Linux" and llvm_version in ["19.1.7", "19.1.6", "19.1.5", "19.1.4", "19.1.3"]:
-            return "clang+llvm-{llvm_version}-aarch64-linux-gnu.tar.xz".format(
-                llvm_version = llvm_version,
-            )
-        return "LLVM-{llvm_version}-{os}-{arch}.tar.xz".format(
-            llvm_version = llvm_version,
-            arch = arch,
-            os = os,
-        )
+        fail("May not use 'llvm_release_name_context' for releases starting with version 19!")
     else:
         (os, version, arch) = _os_version_arch(rctx)
         if os == "darwin":
