@@ -79,6 +79,9 @@ function sanitize_option() {
     # shellcheck disable=SC2206
     parts=(${opt/=/ }) # Split flag name and value into array.
     printf "%s" "${parts[0]}=${execroot_path}${parts[1]}"
+  elif [[ ${opt} == *"\${{pwd}}"* ]]; then
+    # Replace the literal string '${{pwd}}' with the execroot.
+    printf "%s" "${opt//\$\{\{pwd\}\}/${execroot_abs_path%/}}"
   else
     printf "%s" "${opt}"
   fi
