@@ -81,6 +81,14 @@ def cc_toolchain_config(
             "clang",
             "glibc_unknown",
         ),
+        "linux-armv7": (
+            "clang-armv7-linux",
+            "armv7",
+            "glibc_unknown",
+            "clang",
+            "clang",
+            "glibc_unknown",
+        ),
         "linux-x86_64": (
             "clang-x86_64-linux",
             "k8",

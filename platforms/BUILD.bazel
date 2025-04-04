@@ -31,6 +31,14 @@ platform(
 )
 
 platform(
+    name = "linux-armv7",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:armv7",
+    ],
+)
+
+platform(
     name = "darwin-x86_64",
     constraint_values = [
         "@platforms//os:osx",
