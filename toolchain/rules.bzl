@@ -47,10 +47,16 @@ def llvm_toolchain(name, **kwargs):
             for k, v in kwargs.items()
             if (k not in _llvm_config_attrs.keys()) or (k in _common_attrs.keys())
         }
-        llvm(name = name + "_llvm", **llvm_args)
+        llvm_name = name + "_llvm"
+        llvm(name = llvm_name, **llvm_args)
+        toolchain_roots = {"": "@" + llvm_name + "//"}
+        kwargs["toolchain_roots"] = toolchain_roots
 
     if not kwargs.get("llvm_versions"):
         kwargs.update(llvm_versions = {"": kwargs.get("llvm_version")})
+
+    if not kwargs.get("target_toolchain_roots"):
+        kwargs["target_toolchain_roots"] = kwargs["toolchain_roots"]
 
     toolchain_args = {
         k: v
