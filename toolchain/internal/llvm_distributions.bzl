@@ -576,6 +576,14 @@ _llvm_distributions = {
     "LLVM-20.1.1-Linux-ARM64.tar.xz": "09f5a08ef6c96a7c6c11258b3053ae5ed11a6717ffd9fd01bbebd75d8038a0fc",
     "LLVM-20.1.1-Linux-X64.tar.xz": "b1f40360adbf31934d5d3d999c5f91f7e52e089ae984d237565cc4c23bbfa283",
     "LLVM-20.1.1-macOS-ARM64.tar.xz": "ae52012b28bb43e1aa698aa347e37d06edb4643895b8bb189ed275025cd349ed",
+    "clang+llvm-20.1.1-aarch64-pc-windows-msvc.tar.xz": "6ee4c1a8c51cf081e19a7225d802d160cc888cdc3a8da07dcbdb5768e3160244",
+    "clang+llvm-20.1.1-x86_64-pc-windows-msvc.tar.xz": "f8114cb674317e8a303731b1f9d22bf37b8c571b64f600abe528e92275ed4ace",
+
+    # 20.1.2
+    "LLVM-20.1.2-Linux-ARM64.tar.xz": "41a6a2892cf66cd7c275753f2d1afe0e33b26c9674eff7d114fb36a52253436a",
+    "LLVM-20.1.2-Linux-X64.tar.xz": "3a392f151375eeed4fd50c6b6f7c7203da37b373a57f220ae58ef62b8aade3cc",
+    "LLVM-20.1.2-macOS-ARM64.tar.xz": "e502de0ccaa12dec9b7499c9e15e896006feda438078aba8b97894ae3218d4e3",
+    "clang+llvm-20.1.2-x86_64-pc-windows-msvc.tar.xz": "8e771a685cd718303ea0d632a8a95ad7b3cb17068f3952fbefa64a77290324d8",
 }
 
 # Note: Unlike the user-specified llvm_mirror attribute, the URL prefixes in
@@ -644,6 +652,7 @@ _llvm_distributions_base_url = {
     "19.1.7": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
     "20.1.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
     "20.1.1": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
+    "20.1.2": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
 }
 
 def _get_auth(ctx, urls):
