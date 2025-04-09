@@ -86,17 +86,23 @@ function sanitize_option() {
 
 cmd=()
 for ((i = 0; i <= $#; i++)); do
+  # If the arg starts with a `@` it is a path to a response file containing args.
   if [[ ${!i} == @* && -r "${i:1}" ]]; then
-    while IFS= read -r opt; do
-      if [[ ${opt} == "-fuse-ld=ld64.lld" ]]; then
-        cmd+=("-fuse-ld=lld")
-      fi
-      opt="$(
-        set -e
-        sanitize_option "${opt}"
-      )"
-      parse_option "${opt}"
-      cmd+=("${opt}")
+    while IFS= read -r line; do
+      # Process every arg on the line individually.
+      # Note that a single line can contain multiple args.
+      declare -a 'opts=('"$line"')'
+      for opt in "${opts[@]}"; do
+        if [[ ${opt} == "-fuse-ld=ld64.lld" ]]; then
+          cmd+=("-fuse-ld=lld")
+        fi
+        opt="$(
+          set -e
+          sanitize_option "${opt}"
+        )"
+        parse_option "${opt}"
+        cmd+=("${opt}")
+      done
     done <"${!i:1}"
   else
     opt="$(
