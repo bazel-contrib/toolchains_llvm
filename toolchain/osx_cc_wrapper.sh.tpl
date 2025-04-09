@@ -35,6 +35,15 @@ LIBS=
 LIB_DIRS=
 RPATHS=
 OUTPUT=
+CLEANUP_FILES=()
+
+function cleanup() {
+  if [[ ${#CLEANUP_FILES[@]} -gt 0 ]]; then
+    rm -f "${CLEANUP_FILES[@]}"
+  fi
+}
+
+trap cleanup EXIT
 
 function parse_option() {
   local -r opt="$1"
@@ -87,17 +96,18 @@ function sanitize_option() {
 cmd=()
 for ((i = 0; i <= $#; i++)); do
   if [[ ${!i} == @* && -r "${i:1}" ]]; then
+    tmpfile=$(mktemp)
+    CLEANUP_FILES+=("${tmpfile}")
     while IFS= read -r opt; do
       if [[ ${opt} == "-fuse-ld=ld64.lld" ]]; then
-        cmd+=("-fuse-ld=lld")
+        echo "-fuse-ld=lld" >> ${tmpfile}
       fi
-      opt="$(
+      parse_option "$(
         set -e
         sanitize_option "${opt}"
-      )"
-      parse_option "${opt}"
-      cmd+=("${opt}")
+      )" >> ${tmpfile}
     done <"${!i:1}"
+    cmd+=("@${tmpfile}")
   else
     opt="$(
       set -e

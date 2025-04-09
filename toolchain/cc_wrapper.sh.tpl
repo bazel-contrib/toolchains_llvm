@@ -29,6 +29,16 @@
 
 set -euo pipefail
 
+CLEANUP_FILES=()
+
+function cleanup() {
+  if [[ ${#CLEANUP_FILES[@]} -gt 0 ]]; then
+    rm -f "${CLEANUP_FILES[@]}"
+  fi
+}
+
+trap cleanup EXIT
+
 # See note in toolchain/internal/configure.bzl where we define
 # `wrapper_bin_prefix` for why this wrapper is needed.
 
@@ -59,15 +69,19 @@ function sanitize_option() {
 }
 
 cmd=()
+tmpfiles=()
 for ((i = 0; i <= $#; i++)); do
-  if [[ ${!i} == @* ]]; then
+  if [[ ${!i} == @* && -r "${i:1}" ]]; then
+    # Create a new, sanitized file.
+    tmpfile=$(mktemp)
+    CLEANUP_FILES+=("${tmpfile}")
     while IFS= read -r opt; do
-      opt="$(
+      echo "$(
         set -e
         sanitize_option "${opt}"
-      )"
-      cmd+=("${opt}")
-    done <"${!i:1}"
+      )" >> "${tmpfile}"
+    done  <"${!i:1}"
+    cmd+=("@${tmpfile}")
   else
     opt="$(
       set -e
@@ -78,4 +92,4 @@ for ((i = 0; i <= $#; i++)); do
 done
 
 # Call the C++ compiler.
-exec "${cmd[@]}"
+"${cmd[@]}"
