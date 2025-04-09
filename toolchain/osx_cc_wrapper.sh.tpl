@@ -100,12 +100,12 @@ for ((i = 0; i <= $#; i++)); do
     CLEANUP_FILES+=("${tmpfile}")
     while IFS= read -r opt; do
       if [[ ${opt} == "-fuse-ld=ld64.lld" ]]; then
-        echo "-fuse-ld=lld" >> ${tmpfile}
+        echo "-fuse-ld=lld" >>${tmpfile}
       fi
       parse_option "$(
         set -e
         sanitize_option "${opt}"
-      )" >> ${tmpfile}
+      )" >>${tmpfile}
     done <"${!i:1}"
     cmd+=("@${tmpfile}")
   else

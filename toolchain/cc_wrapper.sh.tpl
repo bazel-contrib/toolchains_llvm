@@ -69,7 +69,6 @@ function sanitize_option() {
 }
 
 cmd=()
-tmpfiles=()
 for ((i = 0; i <= $#; i++)); do
   if [[ ${!i} == @* && -r "${i:1}" ]]; then
     # Create a new, sanitized file.
@@ -79,8 +78,8 @@ for ((i = 0; i <= $#; i++)); do
       echo "$(
         set -e
         sanitize_option "${opt}"
-      )" >> "${tmpfile}"
-    done  <"${!i:1}"
+      )" >>"${tmpfile}"
+    done <"${!i:1}"
     cmd+=("@${tmpfile}")
   else
     opt="$(
