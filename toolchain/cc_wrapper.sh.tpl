@@ -65,7 +65,9 @@ for ((i = 0; i <= $#; i++)); do
     while IFS= read -r line; do
       # Process every arg on the line individually.
       # Note that a single line can contain multiple args.
-      declare -a 'opts=('"$line"')'
+      # We also need to ensure args starting with $ are not expanded but passed as-is.
+      declare -a opts
+      mapfile -t opts < <(printf '%s' "$line" | xargs -n1)
       for opt in "${opts[@]}"; do
         opt="$(
           set -e
