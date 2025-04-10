@@ -75,10 +75,11 @@ for ((i = 0; i <= $#; i++)); do
     tmpfile=$(mktemp)
     CLEANUP_FILES+=("${tmpfile}")
     while IFS= read -r opt; do
-      echo "$(
+      opt="$(
         set -e
         sanitize_option "${opt}"
-      )" >>"${tmpfile}"
+      )"
+      echo "${opt}" >>"${tmpfile}"
     done <"${!i:1}"
     cmd+=("@${tmpfile}")
   else
