@@ -34,6 +34,7 @@ _toolchain_tools = {
         "clang-tidy",
         "clangd",
         "ld.lld",
+        "ld64.lld",
         "llvm-ar",
         "llvm-dwp",
         "llvm-profdata",
