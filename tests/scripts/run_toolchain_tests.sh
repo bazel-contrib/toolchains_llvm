@@ -1,3 +1,4 @@
+#!/bin/bash
 # Copyright 2018 The Bazel Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,15 +13,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-workspace(
-    name = "toolchains_llvm",
+set -euo pipefail
+
+while getopts "h" opt; do
+  case "${opt}" in
+  "h")
+    echo "Usage: No options"
+    exit 2
+    ;;
+  *)
+    echo "invalid option: -${OPTARG}"
+    exit 1
+    ;;
+  esac
+done
+
+scripts_dir="$(dirname "${BASH_SOURCE[0]}")"
+source "${scripts_dir}/bazel.sh"
+"${bazel}" version
+
+set -x
+test_args=(
+  "--check_direct_dependencies=off"
 )
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-
-http_archive(
-    name = "helly25_bzl",
-    sha256 = "404f8473bcaad2e370752e57d274d2093eb87ca94cb9a597c1a3553b76743206",
-    strip_prefix = "bzl-0.1.2",
-    url = "https://github.com/helly25/bzl/releases/download/0.1.2/bzl-0.1.2.tar.gz",
+targets=(
+  "//toolchain/..."
 )
+
+"${bazel}" ${TEST_MIGRATION:+"--strict"} --bazelrc=/dev/null test \
+  "${common_test_args[@]}" "${test_args[@]}" "${targets[@]}"
