@@ -949,7 +949,7 @@ def _distributions_test_writer_impl(ctx):
     """Analyze the configured versions and write to a file for test consumption.
 
     The test generated file '<rule_name>.txt' contains the following lines:
-    - a 'miss:' line denotes a llvm distribution basename that was not found.
+    - a 'del:' line denotes a llvm distribution basename that was not found.
     - a 'add:' line denotes a version that was predicted but does not exist.
 
     Lines of type `add:` should never occur as the algorithm is supposed to
