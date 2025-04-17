@@ -584,6 +584,13 @@ _llvm_distributions = {
     "LLVM-20.1.2-Linux-X64.tar.xz": "3a392f151375eeed4fd50c6b6f7c7203da37b373a57f220ae58ef62b8aade3cc",
     "LLVM-20.1.2-macOS-ARM64.tar.xz": "e502de0ccaa12dec9b7499c9e15e896006feda438078aba8b97894ae3218d4e3",
     "clang+llvm-20.1.2-x86_64-pc-windows-msvc.tar.xz": "8e771a685cd718303ea0d632a8a95ad7b3cb17068f3952fbefa64a77290324d8",
+
+    # 20.1.3
+    "LLVM-20.1.3-Linux-ARM64.tar.xz": "a9030b70bd8e1d8fe1e48d7b32c8328f2861f00e8474b22105037235a5774bcf",
+    "LLVM-20.1.3-Linux-X64.tar.xz": "c75103f520626cd2137a7e907998f12fff64136514ade1bb0a259995ae2de80e",
+    "LLVM-20.1.3-macOS-ARM64.tar.xz": "70cd48fcd6b838690149bd00a85270d054c1c410d430f7c51f6d6e9019790d62",
+    "LLVM-20.1.3-macOS-X64.tar.xz": "c3043862e4715ed3dc9f2c83e2a600e75ffecc005b977a391af50664a63fed2b",
+    "clang+llvm-20.1.3-x86_64-pc-windows-msvc.tar.xz": "3831e10ca8409e2288d70491c2fd925f5d5f9b644abf4553552887ff9ce32798",
 }
 
 # Note: Unlike the user-specified llvm_mirror attribute, the URL prefixes in
