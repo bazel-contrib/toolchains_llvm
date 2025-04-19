@@ -700,7 +700,7 @@ def _distribution_urls(rctx):
         for pattern in rctx.attr.alternative_llvm_sources:
             urls.append(pattern.format(llvm_version = llvm_version, basename = basename))
     url_base = _llvm_distributions_base_url.get(llvm_version, _llvm_distributions_base_url_default)
-    urls.append("{0}{1}".format(url_base, url_suffix))
+    urls.append(url_base + url_suffix)
 
     sha256 = _llvm_distributions[basename]
 
