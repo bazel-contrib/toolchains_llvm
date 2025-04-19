@@ -596,6 +596,7 @@ _llvm_distributions = {
 # Note: Unlike the user-specified llvm_mirror attribute, the URL prefixes in
 # this map are not immediately appended with "/". This is because LLVM prebuilt
 # URLs changed when they switched to hosting the files on GitHub as of 10.0.0.
+_llvm_distributions_base_url_default = "https://github.com/llvm/llvm-project/releases/download/llvmorg-"
 _llvm_distributions_base_url = {
     "6.0.0": "https://releases.llvm.org/",
     "6.0.1": "https://releases.llvm.org/",
@@ -603,63 +604,6 @@ _llvm_distributions_base_url = {
     "8.0.0": "https://releases.llvm.org/",
     "8.0.1": "https://releases.llvm.org/",
     "9.0.0": "https://releases.llvm.org/",
-    "10.0.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "10.0.1": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "11.0.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "11.0.1": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "11.1.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "12.0.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "12.0.1": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "13.0.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "13.0.1": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "14.0.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "14.0.1": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "14.0.2": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "14.0.3": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "14.0.4": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "14.0.5": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "14.0.6": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "15.0.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "15.0.1": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "15.0.2": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "15.0.3": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "15.0.4": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "15.0.5": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "15.0.6": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "15.0.7": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "16.0.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "16.0.1": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "16.0.2": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "16.0.3": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "16.0.4": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "16.0.5": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "16.0.6": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "17.0.1": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "17.0.2": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "17.0.3": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "17.0.4": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "17.0.5": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "17.0.6": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "18.1.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "18.1.1": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "18.1.2": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "18.1.3": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "18.1.4": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "18.1.5": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "18.1.6": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "18.1.7": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "18.1.8": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "19.1.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "19.1.1": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "19.1.2": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "19.1.3": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "19.1.4": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "19.1.5": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "19.1.6": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "19.1.7": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "20.1.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "20.1.1": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "20.1.2": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
 }
 
 def _get_auth(ctx, urls):
@@ -755,7 +699,8 @@ def _distribution_urls(rctx):
     if rctx.attr.alternative_llvm_sources:
         for pattern in rctx.attr.alternative_llvm_sources:
             urls.append(pattern.format(llvm_version = llvm_version, basename = basename))
-    urls.append("{0}{1}".format(_llvm_distributions_base_url[llvm_version], url_suffix))
+    url_base = _llvm_distributions_base_url.get(llvm_version, _llvm_distributions_base_url_default)
+    urls.append("{0}{1}".format(url_base, url_suffix))
 
     sha256 = _llvm_distributions[basename]
 
