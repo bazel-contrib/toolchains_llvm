@@ -792,6 +792,7 @@ def _write_distributions_impl(ctx):
         "windows",
     ]
 
+    # Compute all unique version strings starting with `MIN_VERSION`.
     MIN_VERSION = "19.0.0"
     version_list = []
     for name in _llvm_distributions.keys():
@@ -807,19 +808,24 @@ def _write_distributions_impl(ctx):
         version_list.append(version)
     versions = set(version_list)
 
+    # Write versions to output to check which versions we take into account.
     output = []
     for version in versions:
         output.append("version: " + version)
 
+    # We keep track of versions in `not_found` and remove the ones we found.
+    # So at the end all version that were not found remain, hence the name.
     not_found = {
         k: v for k, v in _llvm_distributions.items()
         if _version_ge(k.split("-")[1], MIN_VERSION)
     }
+
+    # While computing we add predicted versions that are not configured as True.
+    # At the end we add the not-found versions as False.
     result = {}
-        
+
+    # For all versions X arch X os check if we can compute the distribution.
     for version in versions:
-        if not _version_ge(version, MIN_VERSION):
-            continue
         for arch in arch_list:
             for os in os_list:
                 basenames = _find_llvm_basename_list(version, arch, os)
@@ -831,6 +837,8 @@ def _write_distributions_impl(ctx):
                         not_found.pop(basename)
                 else:
                     result[basename] = True
+
+    # Build result
     for dist in not_found:
         result[dist] = False
     output += [("add: " if found else "del: ") + dist for dist, found in result.items()]
