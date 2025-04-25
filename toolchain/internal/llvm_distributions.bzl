@@ -806,7 +806,7 @@ def _write_distributions_impl(ctx):
         if not _version_ge(version, MIN_VERSION):
             continue
         version_list.append(version)
-    versions = set(version_list)
+    versions = {v: v for v in version_list}
 
     # Write versions to output to check which versions we take into account.
     output = []
@@ -826,7 +826,7 @@ def _write_distributions_impl(ctx):
     result = {}
 
     # For all versions X arch X os check if we can compute the distribution.
-    for version in versions:
+    for version in versions.keys():
         for arch in arch_list:
             for os in os_list:
                 basenames = _find_llvm_basename_list(version, arch, os)
