@@ -816,7 +816,8 @@ def _write_distributions_impl(ctx):
     # We keep track of versions in `not_found` and remove the ones we found.
     # So at the end all version that were not found remain, hence the name.
     not_found = {
-        k: v for k, v in _llvm_distributions.items()
+        k: v
+        for k, v in _llvm_distributions.items()
         if _version_ge(k.split("-")[1], MIN_VERSION)
     }
 
