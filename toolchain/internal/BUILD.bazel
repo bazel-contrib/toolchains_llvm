@@ -12,4 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+load("llvm_distributions.bzl", "write_distributions")
+
 exports_files(["template.modulemap"])
+
+write_distributions(
+    name = "llvm_distributions",
+    testonly = True,
+    visibility = ["//visibility:private"],
+)
+
+diff_test(
+    name = "llvm_distributions_test",
+    file1 = "llvm_distributions.golden.txt",
+    file2 = "llvm_distributions",
+)
