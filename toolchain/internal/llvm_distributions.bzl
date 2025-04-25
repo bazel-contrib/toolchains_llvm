@@ -14,7 +14,7 @@
 
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "read_netrc", "use_netrc")
 load("//toolchain/internal:common.bzl", _arch = "arch", _attr_dict = "attr_dict", _exec_os_arch_dict_value = "exec_os_arch_dict_value", _os = "os")
-load("//toolchain/internal:release_name.bzl", _llvm_release_name = "llvm_release_name")
+load("//toolchain/internal:release_name.bzl", _llvm_release_name = "llvm_release_name", _llvm_release_name_19 = "llvm_release_name_19")
 
 # If a new LLVM version is missing from this list, please add the shasums here
 # and send a PR on github. To compute the shasum block, you can run (for example):
@@ -719,79 +719,10 @@ def _get_llvm_version(rctx):
 
 def _find_llvm_basename_list(llvm_version, arch, os):
     """Lookup (llvm_version, arch, os) in the list of basenames in `_llvm_distributions.`"""
-    prefixes = []
-
-    if os == "raspbian":
-        # TODO: Check the reported `arch` and return [] if unsupported
-        prefixes.append("clang+llvm-{llvm_version}-{arch}-{os}".format(
-            llvm_version = llvm_version,
-            arch = "armv7a",
-            os = "linux-gnueabihf",
-        ))
-    elif arch == "x86_64" and os == "pc-solaris2.11":
-        # TODO: Check the reported `arch` and return [] if unsupported
-        prefixes.append("clang+llvm-{llvm_version}-{arch}-{os}".format(
-            llvm_version = llvm_version,
-            arch = "amd64",
-            os = os,
-        ))
-    else:
-        llvm_new_arch = {
-            "aarch64": "ARM64",
-            "x86_64": "X64",
-        }.get(arch, arch)
-        llvm_new_os = {
-            "darwin": "macOS",
-            "linux": "Linux",
-            "windows": "Windows",
-        }.get(os, os)
-        llvm_old_os = {
-            "darwin": "apple-darwin",
-            "linux": "linux-gnu",
-            "windows": "pc-windows-msvc",
-        }.get(os, os)
-
-        prefixes.append("LLVM-{llvm_version}-{os}-{arch}".format(
-            llvm_version = llvm_version,
-            arch = llvm_new_arch,
-            os = llvm_new_os,
-        ))
-        if arch in ["powerpc64", "powerpc64le", "sparcv9"]:
-            prefixes.append("clang+llvm-{llvm_version}-{arch}-".format(
-                llvm_version = llvm_version,
-                arch = arch,
-            ))
-        elif arch in ["aarch64"] and os in ["darwin"]:
-            prefixes.append("clang+llvm-{llvm_version}-{arch}-{os}".format(
-                llvm_version = llvm_version,
-                arch = "arm64",
-                os = "apple-darwin",
-            ))
-            prefixes.append("clang+llvm-{llvm_version}-{arch}-{os}".format(
-                llvm_version = llvm_version,
-                arch = "arm64",
-                os = "apple-macos",
-            ))
-        else:
-            prefixes.append("clang+llvm-{llvm_version}-{arch}-{os}".format(
-                llvm_version = llvm_version,
-                arch = arch,
-                os = llvm_old_os,
-            ))
-
-    suffixes = [".tar.gz", ".tar.xz"]
-    for prefix in prefixes:
-        for suffix in suffixes:
-            basename = prefix + suffix
-            if basename in _llvm_distributions:
-                return [basename]
-
-    basenames = []
-    for dist in _llvm_distributions:
-        for prefix in prefixes:
-            if dist.startswith(prefix):
-                basenames.append(dist)
-    return basenames
+    name = _llvm_release_name_19(llvm_version, arch, os)
+    if name in _llvm_distributions:
+        return [name]
+    return []
 
 def _distribution_urls(rctx):
     llvm_version = _get_llvm_version(rctx)
@@ -853,16 +784,15 @@ def _write_distributions_impl(ctx):
     verify that predicted distributions have been configured. Otherwise the
     algorithm could not know the hash value.
     """
-    arch_list = ["aarch64", "powerpc64", "powerpc64le", "sparcv9", "x86_64"]
+    arch_list = ["aarch64", "x86_64"]
     os_list = [
         "darwin",
         "linux",
         "raspbian",
-        "pc-solaris2.11",  # TODO: No clue how this one works
         "windows",
     ]
 
-    MIN_VERSION = "18.0.0"
+    MIN_VERSION = "19.0.0"
     version_list = []
     for name in _llvm_distributions.keys():
         for prefix in ["LLVM-", "clang+llvm-"]:
