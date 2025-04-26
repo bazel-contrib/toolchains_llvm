@@ -982,14 +982,14 @@ def _write_distributions_impl(ctx):
     for name in _llvm_distributions.keys():
         for prefix in ["LLVM-", "clang+llvm-"]:
             if name.startswith(prefix):
-                version = _parse_version(name.split("-", 2)[1])
-                if version >= MIN_VERSION:
+                version = name.split("-", 2)[1]
+                if _version_ge(version, MIN_VERSION):
                     version_list.append(version)
                 break
-    for v in _llvm_distributions_base_url.keys():
-        version = _parse_version(v)
-        if version >= MIN_VERSION:
-            version_list.append(version)
+    for version in _llvm_distributions_base_url.keys():
+        if not _version_ge(version, MIN_VERSION):
+            continue
+        version_list.append(version)
     versions = {v: None for v in version_list}
 
     # Write versions to output to check which versions we take into account.
