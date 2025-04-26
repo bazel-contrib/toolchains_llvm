@@ -86,8 +86,9 @@ fi
 echo ""
 echo "===="
 echo "Checksums for clang+llvm distributions are (${output_dir}):"
+echo "    # ${llvm_version}"
 find "${output_dir}" -type f \( -name 'clang%2?llvm-*.tar.*' -o -name 'LLVM-*.tar.*' \) \( -name '*.gz' -o -name '*.xz' \) -exec shasum -a 256 {} \; |
   sed -e "s@${output_dir}/@@" |
-  awk '{ printf "\"%s\": \"%s\",\n", $2, $1 }' |
+  awk '{ printf "    \"%s\": \"%s\",\n", $2, $1 }' |
   sed -e 's/%2[Bb]/+/' |
   sort
