@@ -802,7 +802,7 @@ def _write_distributions_impl(ctx):
 
     # Write versions to output to check which versions we take into account.
     output = []
-    for version in versions:
+    for version in versions.keys():
         output.append("version: " + version)
 
     # We keep track of versions in `not_found` and remove the ones we found.
