@@ -787,6 +787,17 @@ def _find_llvm_basename_list(llvm_version, arch, os):
                 arch = "arm64",
                 os = "apple-macos",
             ))
+        elif arch in ["x86_64"] and os in ["darwin"]:
+            prefixes.append("clang+llvm-{llvm_version}-{arch}-{os}".format(
+                llvm_version = llvm_version,
+                arch = "x86_64",
+                os = "apple-darwin",
+            ))
+            prefixes.append("clang+llvm-{llvm_version}-{arch}-{os}".format(
+                llvm_version = llvm_version,
+                arch = "x86_64",
+                os = "darwin-apple",  # Only 9.0.0 :-)
+            ))
         else:
             prefixes.append("clang+llvm-{llvm_version}-{arch}-{os}".format(
                 llvm_version = llvm_version,
@@ -845,9 +856,11 @@ def _major_llvm_version(llvm_version):
 def _llvm_release_name(rctx, llvm_version):
     """Try to find the distribution in the configured list. Otherwise predict version name by input.
 
-    For versions 19+ we fail if the distribution cannot be found automatically."""
+    For versions 19+ or we os==darwin fail if the distribution cannot be found automatically."""
     major_llvm_version = _major_llvm_version(llvm_version)
-    basename = _find_llvm_basename_maybe_fail(llvm_version, _arch(rctx), _os(rctx), major_llvm_version >= 19)
+    os = _os(rctx)
+    fail = major_llvm_version >= 19 or os == "darwin"
+    basename = _find_llvm_basename_maybe_fail(llvm_version, _arch(rctx), os, fail)
     if basename:
         return basename
     return _llvm_release_name_context(rctx, llvm_version)
@@ -964,8 +977,7 @@ def _write_distributions_impl(ctx):
     }
 
     # Compute all unique version strings starting with `MIN_VERSION`.
-    MIN_VERSION = _parse_version("6.0.0")
-    MAX_VERSION = _parse_version("20.1.3")
+    MIN_VERSION = "6.0.0"
     version_list = []
     for name in _llvm_distributions.keys():
         for prefix in ["LLVM-", "clang+llvm-"]:

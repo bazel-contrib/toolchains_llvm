@@ -9,44 +9,6 @@ def _minor_llvm_version(llvm_version):
 def _patch_llvm_version(llvm_version):
     return int(llvm_version.split(".")[2])
 
-def _darwin_apple_suffix(llvm_version, arch):
-    major_llvm_version = _major_llvm_version(llvm_version)
-    patch_llvm_version = _patch_llvm_version(llvm_version)
-    if major_llvm_version == 9:
-        return "darwin-apple"
-    elif major_llvm_version == 14:
-        if arch == "arm64":
-            return "apple-darwin22.3.0"
-        else:
-            return "apple-darwin"
-    elif major_llvm_version == 15 and patch_llvm_version <= 6:
-        if arch == "arm64":
-            return "apple-darwin21.0"
-        else:
-            return "apple-darwin"
-    elif major_llvm_version >= 15 and major_llvm_version < 18:
-        if arch == "arm64":
-            return "apple-darwin22.0"
-        else:
-            return "apple-darwin21.0"
-    elif major_llvm_version >= 18:
-        if arch == "arm64":
-            return "apple-macos11"
-        else:
-            return "apple-darwin21.0"
-    else:
-        return "apple-darwin"
-
-def _darwin(llvm_version, arch):
-    if arch == "aarch64":
-        arch = "arm64"
-    suffix = _darwin_apple_suffix(llvm_version, arch)
-    return "clang+llvm-{llvm_version}-{arch}-{suffix}.tar.xz".format(
-        llvm_version = llvm_version,
-        arch = arch,
-        suffix = suffix,
-    )
-
 def _windows(llvm_version, arch):
     if arch.endswith("64"):
         win_arch = "win64"
@@ -212,6 +174,9 @@ def llvm_release_name_context(rctx, llvm_version):
     major_llvm_version = _major_llvm_version(llvm_version)
     if major_llvm_version >= 19:
         fail("May not use 'llvm_release_name_context' for releases starting with version 19!")
+    os = _os(rctx)
+    if os == "darwin":
+        fail("May not use 'llvm_release_name_context' for os == 'darwin'!")
     else:
         return _linux(llvm_version, host_info.dist.name, host_info.dist.version, host_info.arch)
 
