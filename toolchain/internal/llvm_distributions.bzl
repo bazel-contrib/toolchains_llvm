@@ -17,7 +17,8 @@ load("//toolchain/internal:common.bzl", _arch = "arch", _attr_dict = "attr_dict"
 load("//toolchain/internal:release_name.bzl", _llvm_release_name = "llvm_release_name", _llvm_release_name_19 = "llvm_release_name_19")
 
 # If a new LLVM version is missing from this list, please add the shasums here
-# and send a PR on github. To compute the shasum block, you can run (for example):
+# and the new version in toolchain/internal/llvm_distributions.golden.txt.
+# Then send a PR on github. To compute the shasum block, you can run (for example):
 #   utils/llvm_checksums.sh -g -v 15.0.6
 #
 # To find all available release versions, search for "tag_name" in
@@ -758,20 +759,11 @@ def _distribution_urls(rctx):
 
     return urls, sha256, strip_prefix
 
-DistrubutionsInfo = provider(
-    "The output info for the `write_distributions` rule.",
-    fields = {
-        "out": "output File",
-    },
-)
+def _parse_version(v):
+    return tuple([int(s) for s in v.split(".")])
 
 def _version_ge(lhs, rhs):
-    _lhs = lhs.split(".")
-    _rhs = rhs.split(".")
-    for p in range(3):
-        if int(_lhs[p]) < int(_rhs[p]):
-            return False
-    return len(_lhs) >= len(_rhs)
+    return _parse_version(lhs) >= _parse_version(rhs)
 
 def _write_distributions_impl(ctx):
     """Analyze the configured versions and write to a file for test consumption.
@@ -845,13 +837,8 @@ def _write_distributions_impl(ctx):
     output += [("add: " if found else "del: ") + dist for dist, found in result.items()]
     out = ctx.actions.declare_file(ctx.label.name + ".out")
     ctx.actions.write(out, "\n".join(output) + "\n")
-    return [
-        DefaultInfo(files = depset([out])),
-        DistrubutionsInfo(out = out),
-    ]
+    return [DefaultInfo(files = depset([out]))]
 
 write_distributions = rule(
     implementation = _write_distributions_impl,
-    output_to_genfiles = True,
-    provides = [DefaultInfo, DistrubutionsInfo],
 )
