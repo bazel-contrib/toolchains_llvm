@@ -212,6 +212,15 @@ def _linux(llvm_version, distname, version, arch):
     )
 
 def llvm_release_name_19(llvm_version, rctx_arch, rctx_os):
+    if rctx_os == "windows":
+        if rctx_arch == "x86_32":
+            return "LLVM-{llvm_version}-win32.exe".format(llvm_version = llvm_version)
+        if rctx_arch == "aarch64":
+            return "LLVM-{llvm_version}-woa64.exe".format(llvm_version = llvm_version)
+        # For Win64 we prefer `LLVM-<version>-Windows-X64.tar.xz` over the other two options:
+        # `LLVM-<version>-win64.exe`
+        # `clang+llvm-<version>-x86_64-pc-windows-msvc.tar.xz`
+        # TODO(helly25): Automatically find the correct one.
     arch = {
         "aarch64": "ARM64",
         "x86_64": "X64",

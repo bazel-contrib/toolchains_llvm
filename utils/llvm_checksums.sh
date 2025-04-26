@@ -61,7 +61,7 @@ llvm_host() {
   local url_base="releases.llvm.org/${llvm_version}"
   output_dir="${tmp_dir}/${url_base}"
   wget --recursive --level 1 --directory-prefix="${tmp_dir}" \
-    --accept-regex "(clang%2bllvm|LLVM)-.*tar.(xz|gz)$" "http://${url_base}/"
+    --accept-regex "(clang%2bllvm|LLVM)-.*(.exe|.tar.gz|.tar.xz)$" "http://${url_base}/"
 }
 
 github_host() {
@@ -71,7 +71,7 @@ github_host() {
     cd "${output_dir}"
     curl -s "https://api.github.com/repos/llvm/llvm-project/releases/tags/llvmorg-${llvm_version}" |
       tee ./releases.json |
-      jq '.assets[]|select(any(.name; test("^(clang[+]llvm|LLVM)-.*tar.(xz|gz)$")))|.browser_download_url' |
+      jq '.assets[]|select(any(.name; test("^(clang[+]llvm|LLVM)-.*(.exe|.tar.gz|.tar.xz)$")))|.browser_download_url' |
       tee ./filtered_urls.txt |
       xargs -n1 curl -L -O -C -
   )
@@ -87,7 +87,7 @@ echo ""
 echo "===="
 echo "Checksums for clang+llvm distributions are (${output_dir}):"
 echo "    # ${llvm_version}"
-find "${output_dir}" -type f \( -name 'clang%2?llvm-*.tar.*' -o -name 'LLVM-*.tar.*' \) \( -name '*.gz' -o -name '*.xz' \) -exec shasum -a 256 {} \; |
+find "${output_dir}" -type f \( -name 'clang%2?llvm-*' -o -name 'LLVM-*' \) \( -name '*.exe' -o -name '*.tar.gz' -o -name '*.tar.xz' \) -exec shasum -a 256 {} \; |
   sed -e "s@${output_dir}/@@" |
   awk '{ printf "    \"%s\": \"%s\",\n", $2, $1 }' |
   sed -e 's/%2[Bb]/+/' |
