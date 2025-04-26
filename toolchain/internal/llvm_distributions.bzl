@@ -751,7 +751,7 @@ def _distribution_urls(rctx):
     strip_prefix = ""
     for suffix in [".exe", ".tar.gz", ".tar.xz", ".tar.zst"]:
         if basename.endswith(suffix):
-            strip_prefix = basename.rstrip(suffix)
+            strip_prefix = basename.removesuffix(suffix)
             break
     if not strip_prefix:
         fail("Unknown URL file extension {url}", url = basename)
