@@ -714,12 +714,29 @@ def download_llvm(rctx):
     if not urls:
         urls, sha256, strip_prefix = _distribution_urls(rctx)
 
-    res = rctx.download_and_extract(
-        urls,
-        sha256 = sha256,
-        stripPrefix = strip_prefix,
-        auth = _get_auth(rctx, urls),
-    )
+    filename = urls[0].split("?")[0]
+    basename = filename.split("/")[-1]
+    if urls[0].endswith(".exe"):
+        res = rctx.download(
+            urls,
+            sha256 = sha256,
+            auth = _get_auth(rctx, urls),
+            output = basename,
+        )
+        rctx.execute(
+            arguments = [
+                "C:/Program Files/7-Zip7z.exe",
+                "x",
+                basename,
+            ],
+        )
+    else:
+        res = rctx.download_and_extract(
+            urls,
+            sha256 = sha256,
+            stripPrefix = strip_prefix,
+            auth = _get_auth(rctx, urls),
+        )
 
     if rctx.attr.libclang_rt:
         clang_versions = rctx.path("lib/clang").readdir()
@@ -832,9 +849,9 @@ def _write_distributions_impl(ctx):
         for prefix in ["LLVM-", "clang+llvm-"]:
             if name.startswith(prefix):
                 version = name.split("-", 2)[1]
-                if not _version_ge(version, MIN_VERSION):
-                    continue
-                version_list.append(version)
+                if _version_ge(version, MIN_VERSION):
+                    version_list.append(version)
+                break
     for version in _llvm_distributions_base_url.keys():
         if not _version_ge(version, MIN_VERSION):
             continue
