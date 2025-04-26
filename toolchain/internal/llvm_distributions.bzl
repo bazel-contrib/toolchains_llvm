@@ -671,6 +671,40 @@ def _get_auth(ctx, urls):
 
     return {}
 
+def download_llvm(rctx):
+    """Download the LLVM for the given context."""
+    urls = []
+    sha256 = None
+    strip_prefix = None
+    key = None
+    update_sha256 = False
+    if rctx.attr.urls:
+        urls, sha256, strip_prefix, key = _urls(rctx)
+        if not sha256:
+            update_sha256 = True
+    if not urls:
+        urls, sha256, strip_prefix = _distribution_urls(rctx)
+
+    res = rctx.download_and_extract(
+        urls,
+        sha256 = sha256,
+        stripPrefix = strip_prefix,
+        auth = _get_auth(rctx, urls),
+    )
+
+    if rctx.attr.libclang_rt:
+        clang_versions = rctx.path("lib/clang").readdir()
+        for libclang_rt, lib_name in rctx.attr.libclang_rt.items():
+            libclang_rt_content = rctx.read(libclang_rt)
+            for clang_version in clang_versions:
+                lib_path = clang_version.get_child("lib", lib_name)
+                rctx.file(lib_path, libclang_rt_content, legacy_utf8 = False)
+
+    updated_attrs = _attr_dict(rctx.attr)
+    if update_sha256:
+        updated_attrs["sha256"].update([(key, res.sha256)])
+    return updated_attrs
+
 def _urls(rctx):
     (key, urls) = exec_os_arch_dict_value(rctx, "urls", debug = False)
     if not urls:
@@ -853,40 +887,6 @@ def _distribution_urls(rctx):
     strip_prefix = strip_prefix.rstrip("-rhel86")
 
     return urls, sha256, strip_prefix
-
-def download_llvm(rctx):
-    """Download the LLVM for the given context."""
-    urls = []
-    sha256 = None
-    strip_prefix = None
-    key = None
-    update_sha256 = False
-    if rctx.attr.urls:
-        urls, sha256, strip_prefix, key = _urls(rctx)
-        if not sha256:
-            update_sha256 = True
-    if not urls:
-        urls, sha256, strip_prefix = _distribution_urls(rctx)
-
-    res = rctx.download_and_extract(
-        urls,
-        sha256 = sha256,
-        stripPrefix = strip_prefix,
-        auth = _get_auth(rctx, urls),
-    )
-
-    if rctx.attr.libclang_rt:
-        clang_versions = rctx.path("lib/clang").readdir()
-        for libclang_rt, lib_name in rctx.attr.libclang_rt.items():
-            libclang_rt_content = rctx.read(libclang_rt)
-            for clang_version in clang_versions:
-                lib_path = clang_version.get_child("lib", lib_name)
-                rctx.file(lib_path, libclang_rt_content, legacy_utf8 = False)
-
-    updated_attrs = _attr_dict(rctx.attr)
-    if update_sha256:
-        updated_attrs["sha256"].update([(key, res.sha256)])
-    return updated_attrs
 
 def _parse_version(v):
     return tuple([int(s) for s in v.split(".")])
