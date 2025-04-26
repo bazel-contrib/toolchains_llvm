@@ -2,7 +2,7 @@ load(
     "//toolchain/internal:common.bzl",
     _arch = "arch",
     _os = "os",
-    _os_version_arch = "os_version_arch",
+    _dist_version_arch = "dist_version_arch",
 )
 
 def _major_llvm_version(llvm_version):
@@ -140,6 +140,18 @@ def _rhel_osname(arch, version, major_llvm_version, llvm_version):
 
     return None
 
+def _resolve_version_for_suse(major_llvm_version, llvm_version):
+    minor_llvm_version = _minor_llvm_version(llvm_version)
+    if major_llvm_version < 10:
+        os_name = "linux-sles11.3"
+    elif major_llvm_version == 10 and minor_llvm_version == 0:
+        os_name = "linux-sles11.3"
+    elif major_llvm_version < 13 or (major_llvm_version == 14 and minor_llvm_version == 0):
+        os_name = "linux-sles12.4"
+    else:
+        os_name = _ubuntu_osname("x86_64", "20.04", major_llvm_version, llvm_version)
+    return os_name
+
 def _linux(llvm_version, distname, version, arch):
     major_llvm_version = _major_llvm_version(llvm_version)
 
@@ -199,18 +211,6 @@ def _linux(llvm_version, distname, version, arch):
         os_name = os_name,
     )
 
-def _resolve_version_for_suse(major_llvm_version, llvm_version):
-    minor_llvm_version = _minor_llvm_version(llvm_version)
-    if major_llvm_version < 10:
-        os_name = "linux-sles11.3"
-    elif major_llvm_version == 10 and minor_llvm_version == 0:
-        os_name = "linux-sles11.3"
-    elif major_llvm_version < 13 or (major_llvm_version == 14 and minor_llvm_version == 0):
-        os_name = "linux-sles12.4"
-    else:
-        os_name = _ubuntu_osname("x86_64", "20.04", major_llvm_version, llvm_version)
-    return os_name
-
 def llvm_release_name_19(llvm_version, rctx_arch, rctx_os):
     arch = {
         "aarch64": "ARM64",
@@ -236,7 +236,7 @@ def llvm_release_name(rctx, llvm_version):
     if major_llvm_version >= 19:
         return llvm_release_name_19(llvm_version, _arch(rctx), _os(rctx))
     else:
-        (os, version, arch) = _os_version_arch(rctx)
+        (os, version, arch) = _dist_version_arch(rctx)
         if os == "darwin":
             return _darwin(llvm_version, arch)
         elif os == "windows":

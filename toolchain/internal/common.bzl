@@ -55,27 +55,27 @@ _toolchain_tools_darwin = {
 }
 
 def exec_os_key(rctx):
-    (os, version, arch) = os_version_arch(rctx)
+    (os, version, arch) = dist_version_arch(rctx)
     if version == "":
         return "%s-%s" % (os, arch)
     else:
         return "%s-%s-%s" % (os, version, arch)
 
 _known_distros = [
-    "freebsd",
-    "suse",
-    "ubuntu",
+    "almalinux",
+    "amzn",
     "arch",
-    "manjaro",
+    "centos",
     "debian",
     "fedora",
-    "centos",
-    "amzn",
-    "raspbian",
-    "pop",
-    "rhel",
+    "freebsd",
+    "manjaro",
     "ol",
-    "almalinux",
+    "pop",
+    "raspbian",
+    "rhel",
+    "suse",
+    "ubuntu",
 ]
 
 def _linux_dist(rctx):
@@ -102,7 +102,7 @@ def _linux_dist(rctx):
 
     return distname, version
 
-def os_version_arch(rctx):
+def dist_version_arch(rctx):
     _os = os(rctx)
     _arch = arch(rctx)
 

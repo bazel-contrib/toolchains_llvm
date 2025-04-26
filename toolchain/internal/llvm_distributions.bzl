@@ -748,11 +748,12 @@ def _distribution_urls(rctx):
 
     sha256 = _llvm_distributions[basename]
 
-    if basename.endswith(".tar.xz"):
-        strip_prefix = basename[:(len(basename) - len(".tar.xz"))]
-    elif basename.endswith(".tar.zst"):
-        strip_prefix = basename[:(len(basename) - len(".tar.zst"))]
-    else:
+    strip_prefix = ""
+    for suffix in [".exe", ".tar.gz", ".tar.xz", ".tar.zst"]:
+        if basename.endswith(suffix):
+            strip_prefix = basename.rstrip(suffix)
+            break
+    if not strip_prefix:
         fail("Unknown URL file extension {url}", url = basename)
 
     strip_prefix = strip_prefix.rstrip("-rhel86")
@@ -776,7 +777,10 @@ def _write_distributions_impl(ctx):
     verify that predicted distributions have been configured. Otherwise the
     algorithm could not know the hash value.
     """
-    arch_list = ["aarch64", "x86_64"]
+    arch_list = [
+        "aarch64",
+        "x86_64",
+    ]
     os_list = [
         "darwin",
         "linux",
@@ -789,11 +793,11 @@ def _write_distributions_impl(ctx):
     version_list = []
     for name in _llvm_distributions.keys():
         for prefix in ["LLVM-", "clang+llvm-"]:
-            name = name.removeprefix(prefix)
-        version = name.split("-", 1)[0]
-        if not _version_ge(version, MIN_VERSION):
-            continue
-        version_list.append(version)
+            if name.startswith(prefix):
+                version = name.split("-", 2)[1]
+                if not _version_ge(version, MIN_VERSION):
+                    continue
+                version_list.append(version)
     for version in _llvm_distributions_base_url.keys():
         if not _version_ge(version, MIN_VERSION):
             continue
