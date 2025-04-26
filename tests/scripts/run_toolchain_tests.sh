@@ -1,3 +1,4 @@
+#!/bin/bash
 # Copyright 2018 The Bazel Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,19 +13,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
-load("llvm_distributions.bzl", "write_distributions")
+set -euo pipefail
 
-exports_files(["template.modulemap"])
+while getopts "h" opt; do
+  case "${opt}" in
+  "h")
+    echo "Usage: No options"
+    exit 2
+    ;;
+  *)
+    echo "invalid option: -${OPTARG}"
+    exit 1
+    ;;
+  esac
+done
 
-write_distributions(
-    name = "llvm_distributions",
-    testonly = True,
-    visibility = ["//visibility:private"],
+scripts_dir="$(dirname "${BASH_SOURCE[0]}")"
+source "${scripts_dir}/bazel.sh"
+"${bazel}" version
+
+set -x
+test_args=(
+  "--check_direct_dependencies=off"
 )
 
-diff_test(
-    name = "llvm_distributions_test",
-    file1 = "llvm_distributions.golden.txt",
-    file2 = "llvm_distributions",
+targets=(
+  "//toolchain/..."
 )
+
+"${bazel}" ${TEST_MIGRATION:+"--strict"} --bazelrc=/dev/null test \
+  "${common_test_args[@]}" "${test_args[@]}" "${targets[@]}"
