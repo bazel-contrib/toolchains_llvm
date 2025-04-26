@@ -407,7 +407,6 @@ _llvm_distributions = {
     "clang+llvm-17.0.1-amd64-pc-solaris2.11.tar.xz": "153b8b650705390cc3b4ff739b061f5bff87542531c002c039d52c00781559f7",
     "clang+llvm-17.0.1-arm64-apple-darwin22.0.tar.xz": "d5678bc475c42c3ab7c0ee35ebd95534d81b6816507cfc9e42d86136d8315ebc",
     "clang+llvm-17.0.1-armv7a-linux-gnueabihf.tar.gz": "1ca3b7adeee14c656e0689c76cea962a644fb6dba9ecda894505506f837f9d69",
-    "clang+llvm-17.0.1-armv7a-linux-gnueabihf.tar.gz": "1ca3b7adeee14c656e0689c76cea962a644fb6dba9ecda894505506f837f9d69",
     "clang+llvm-17.0.1-final_powerpc64-ibm-aix-7.2.tar.xz": "f5d9bf5822a775d4b10e7af035076e1779983dee1b05b3f57af2674231bcf678",
     "clang+llvm-17.0.1-powerpc64le-linux-rhel-8.8.tar.xz": "937394cd44c5eb81aae8d1c66b6d3b930ebd2b013ac6493d17f33f5083281d37",
     "clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz": "0ab5f6a9b19ec968628d987d9430a033801c78bee65fbf40c72da660ff401f4d",
@@ -417,7 +416,6 @@ _llvm_distributions = {
     "clang+llvm-17.0.2-aarch64-linux-gnu.tar.xz": "b08480f2a77167556907869065b0e0e30f4d6cb64ecc625d523b61c22ff0200f",
     "clang+llvm-17.0.2-amd64-pc-solaris2.11.tar.xz": "8e98c6015202575407f5580bed9a9b58d3bdc3e5d64e39289189b491949b957f",
     "clang+llvm-17.0.2-arm64-apple-darwin22.0.tar.xz": "dfb3226b3e16f5b8d3882f3ff0e8ebf40b26dd1e97d879197430b930d773ea84",
-    "clang+llvm-17.0.2-armv7a-linux-gnueabihf.tar.gz": "2204da50c85db65def57b11bd0d96abdc96808cf410403daf7aa9c86f2b9e732",
     "clang+llvm-17.0.2-armv7a-linux-gnueabihf.tar.gz": "2204da50c85db65def57b11bd0d96abdc96808cf410403daf7aa9c86f2b9e732",
     "clang+llvm-17.0.2-powerpc64-ibm-aix-7.2.tar.xz": "c0175b48bf72c621316f3fc7ec4662163d4e17718b179f967d75149d7cfeee80",
     "clang+llvm-17.0.2-powerpc64le-linux-rhel-8.8.tar.xz": "ef19116996a1966a4fa6e261c86eef7b807e5f39a963dc914b5547976336ab1b",
@@ -429,14 +427,12 @@ _llvm_distributions = {
     "clang+llvm-17.0.3-aarch64-linux-gnu.tar.xz": "289da98e4cbc157153e987ff24ce835717a36cfab03ecd03bf359378ee4ae9d7",
     "clang+llvm-17.0.3-arm64-apple-darwin22.0.tar.xz": "da452a1aa33954c123d5264bd849ebc572a28e8511b868b43e82d6960fda60d7",
     "clang+llvm-17.0.3-armv7a-linux-gnueabihf.tar.gz": "5da6f3a350a34f8401125d31aeef85bc2deda04601b9b703f62356e81516e73c",
-    "clang+llvm-17.0.3-armv7a-linux-gnueabihf.tar.gz": "5da6f3a350a34f8401125d31aeef85bc2deda04601b9b703f62356e81516e73c",
     "clang+llvm-17.0.3-powerpc64-ibm-aix-7.2.tar.xz": "86b05883c17ddb4b7e9ad6a6a88e78311c117fdc03415fa47293e12e6e2810ff",
     "clang+llvm-17.0.3-powerpc64le-linux-rhel-8.8.tar.xz": "fcba4ac2a717762ff1b5fe482a811648837d7dc7bf7b654702c80f2fa044d07d",
 
     # 17.0.4
     "clang+llvm-17.0.4-aarch64-linux-gnu.tar.xz": "18b326b3e17168fc423726b5059b4d55b6070d49408e51440ad3fca2ebb37779",
     "clang+llvm-17.0.4-arm64-apple-darwin22.0.tar.xz": "5d514fa64a290dca53288ce859e6ec59a0b48198b3a5b27ca53b6fe80a977b8d",
-    "clang+llvm-17.0.4-armv7a-linux-gnueabihf.tar.gz": "6da0b41a942bd5020966511722e8917260349628b6a77aab916ca2c244cecafd",
     "clang+llvm-17.0.4-armv7a-linux-gnueabihf.tar.gz": "6da0b41a942bd5020966511722e8917260349628b6a77aab916ca2c244cecafd",
     "clang+llvm-17.0.4-powerpc64-ibm-aix-7.2.tar.xz": "54d4d6b91624597e0c0b15264c4c8e57092f521247b87ba6f1297db339ac6e2b",
     "clang+llvm-17.0.4-powerpc64le-linux-rhel-8.8.tar.xz": "2e3ac8b7288ed5d5c3549e457332bbf3c913022fdd7cfbe13fde46448f76d136",
@@ -445,7 +441,6 @@ _llvm_distributions = {
     # 17.0.5
     "clang+llvm-17.0.5-aarch64-linux-gnu.tar.xz": "ee12126c404d42a0723ff3a4449470b5570fe5ce610be9d9baee88a6d27701d2",
     "clang+llvm-17.0.5-arm64-apple-darwin22.0.tar.xz": "6c9aa227800d30d39c28dadbd72c15442e0d9b6813efb2aaa66a478630b7f0c6",
-    "clang+llvm-17.0.5-armv7a-linux-gnueabihf.tar.gz": "b7978d073e250ed66d5e8a5136026460200db1951ce75d402976fde4c2f0c3d8",
     "clang+llvm-17.0.5-armv7a-linux-gnueabihf.tar.gz": "b7978d073e250ed66d5e8a5136026460200db1951ce75d402976fde4c2f0c3d8",
     "clang+llvm-17.0.5-powerpc64-ibm-aix-7.2.tar.xz": "b5da095901fe604f562363cf9611d6ca73e13d81831a96518823d690babc608f",
     "clang+llvm-17.0.5-powerpc64le-linux-rhel-8.8.tar.xz": "11aace89d7881b694a05d1e93de3c78a31e141d0df1401491d67f73020bc3df2",
@@ -456,7 +451,6 @@ _llvm_distributions = {
     "clang+llvm-17.0.6-amd64-pc-solaris2.11.tar.xz": "8feb660750a4d24b18d8e894fbccf26bd0dfbc92581d202ec9057f00f3fbf232",
     "clang+llvm-17.0.6-arm64-apple-darwin22.0.tar.xz": "1264eb3c2a4a6d5e9354c3e5dc5cb6c6481e678f6456f36d2e0e566e9400fcad",
     "clang+llvm-17.0.6-armv7a-linux-gnueabihf.tar.gz": "7a51ea063f74fb1b7c0389455916cec52c98d1b51da44d6ebc8232014d7af3d1",
-    "clang+llvm-17.0.6-armv7a-linux-gnueabihf.tar.gz": "7a51ea063f74fb1b7c0389455916cec52c98d1b51da44d6ebc8232014d7af3d1",
     "clang+llvm-17.0.6-powerpc64-ibm-aix-7.2.tar.xz": "3aeda4bb5808db2e47bde60cc49b15b869114e3681092413f7b297345d2e13ce",
     "clang+llvm-17.0.6-powerpc64le-linux-rhel-8.8.tar.xz": "04e18072797920c2b5e9bdf0c3ee9e5a61adf76bd5ffeb438fafd9e32fc48b62",
     "clang+llvm-17.0.6-sparcv9-sun-solaris2.11.tar.xz": "b7df7b383679af98640640f88114f461f38a6efdfe7c369692b0675751ac2773",
@@ -465,7 +459,6 @@ _llvm_distributions = {
     # 18.1.0
     "clang+llvm-18.1.0-aarch64-linux-gnu.tar.xz": "32faaad5b6e072d763a603f7c51e4ee63e2d82c16e945524a539df84e3f2b058",
     "clang+llvm-18.1.0-amd64-pc-solaris2.11.tar.xz": "c352b81dd6add029e3def54a7b90387bb1df15f76497adac0b9f305694eb2d8c",
-    "clang+llvm-18.1.0-armv7a-linux-gnueabihf.tar.gz": "bfbd3bb71f4a1aaf8f1e13cf681e16a54f1029e7f5c85492812bf93a1d893dc8",
     "clang+llvm-18.1.0-armv7a-linux-gnueabihf.tar.gz": "bfbd3bb71f4a1aaf8f1e13cf681e16a54f1029e7f5c85492812bf93a1d893dc8",
     "clang+llvm-18.1.0-powerpc64-ibm-aix-7.2.tar.xz": "cc9bcf2b2132c158a71f7f3971d105454131701c25767f97e977c568418aff89",
     "clang+llvm-18.1.0-powerpc64le-linux-rhel-8.8.tar.xz": "730c40a0c79d89ca8875c2004fd49180e9b65585b24f68728232b06b3d8bda32",
@@ -476,7 +469,6 @@ _llvm_distributions = {
     # 18.1.1
     "clang+llvm-18.1.1-aarch64-linux-gnu.tar.xz": "6815ef3c314566605f90cff7922ff3ef5a6eaaf854604e4add6a170e6e98389f",
     "clang+llvm-18.1.1-armv7a-linux-gnueabihf.tar.gz": "c87928c9d9d9c4c0eedfed1fb49216b9c52c377ccdd0242f7145401b9aea51f7",
-    "clang+llvm-18.1.1-armv7a-linux-gnueabihf.tar.gz": "c87928c9d9d9c4c0eedfed1fb49216b9c52c377ccdd0242f7145401b9aea51f7",
     "clang+llvm-18.1.1-powerpc64-ibm-aix-7.2.tar.xz": "c900418e781d0de1f316fcce50ffeca903fa15d97df0dd90f6ac4bd2b43105d4",
     "clang+llvm-18.1.1-powerpc64le-linux-rhel-8.8.tar.xz": "7415429a0c0eceeacedc00b3f99f9a869909682fab130c2e514f240379539741",
     "clang+llvm-18.1.1-x86_64-pc-windows-msvc.tar.xz": "79ea242c0fbd66c632ed3aaebf6f821c1e4c03140497c67ea750443eb36bfc5d",
@@ -484,7 +476,6 @@ _llvm_distributions = {
     # 18.1.2
     "clang+llvm-18.1.2-aarch64-linux-gnu.tar.xz": "aa9d6c6e70cbe2344be1f4b780525a9a4feb70a6e4fa46ea67822f0e7f839c21",
     "clang+llvm-18.1.2-amd64-pc-solaris2.11.tar.xz": "83ca7644b5eebf5ac55014e628d0bbe685a79416d70a0d80d24ece0ddfc05c6d",
-    "clang+llvm-18.1.2-armv7a-linux-gnueabihf.tar.gz": "5260702615952f25bc715c4aaa286c85d44c20a9a662357a7774841539560fe3",
     "clang+llvm-18.1.2-armv7a-linux-gnueabihf.tar.gz": "5260702615952f25bc715c4aaa286c85d44c20a9a662357a7774841539560fe3",
     "clang+llvm-18.1.2-powerpc64-ibm-aix-7.2.tar.xz": "ad7351206905f61933be5937017fc454995d287346f7f0325c48c4552803af87",
     "clang+llvm-18.1.2-powerpc64le-linux-rhel-8.8.tar.xz": "0dc4831dab74f47691dab934a52a055ea8fae6bfeec2ed5261991146b38f1cf3",
@@ -516,14 +507,12 @@ _llvm_distributions = {
     "clang+llvm-18.1.6-aarch64-linux-gnu.tar.xz": "bcb3d53d3bd1027bc7f26544dff8cdc5ff74776add6eb994047326b284147a90",
     "clang+llvm-18.1.6-amd64-pc-solaris2.11.tar.xz": "abdf9e930c0069b97cff69156c62e97056f8f9ec24d15cdea743ac555887436e",
     "clang+llvm-18.1.6-armv7a-linux-gnueabihf.tar.gz": "30264de61eaed2f860217a71e701d2ce3d1821acea0e0239bc6a8457ff4586f2",
-    "clang+llvm-18.1.6-armv7a-linux-gnueabihf.tar.gz": "30264de61eaed2f860217a71e701d2ce3d1821acea0e0239bc6a8457ff4586f2",
     "clang+llvm-18.1.6-powerpc64le-linux-rhel-8.8.tar.xz": "201c8d784acf9e3553a00078bd2e4007134957bd4541706fafe9c7c0583c3cd6",
     "clang+llvm-18.1.6-sparcv9-sun-solaris2.11.tar.xz": "da65c1abea553c17fd22ae3de51c70f4ff0789e95019fb4d95f05371b830e090",
     "clang+llvm-18.1.6-x86_64-pc-windows-msvc.tar.xz": "479e9e77b9d114721a7168718c894343ac01c397db3499e8a3002ee7a3903d54",
 
     # 18.1.7
     "clang+llvm-18.1.7-aarch64-linux-gnu.tar.xz": "f0df4a38d4e205ee9dea23fdbe1b3acb0d3174d1366ef1488f1ea619cd6e6c0e",
-    "clang+llvm-18.1.7-armv7a-linux-gnueabihf.tar.gz": "ed5fb7aa5b66696e4a11a44531c94c2274cbfd92584dac50cbbbc4ed386594c4",
     "clang+llvm-18.1.7-armv7a-linux-gnueabihf.tar.gz": "ed5fb7aa5b66696e4a11a44531c94c2274cbfd92584dac50cbbbc4ed386594c4",
     "clang+llvm-18.1.7-powerpc64-ibm-aix-7.2.tar.xz": "a4317fe5bfc5579093f02bc6b63de3d1fa545ebca471405b70ff213d400e8da3",
     "clang+llvm-18.1.7-powerpc64le-linux-rhel-8.8.tar.xz": "8889adb5b6a6deffeaffd8c6dc0d2388c26660cb2c357df66b27561c7932ed66",
@@ -546,35 +535,32 @@ _llvm_distributions = {
     "LLVM-19.1.0-macOS-X64.tar.xz": "264f2f1e8b67f066749349ae8b4943d346cd44e099464164ef21b42a57663540",
     "clang+llvm-19.1.0-aarch64-linux-gnu.tar.xz": "7bb54afd330fe1a1c2d4c593fa1e2dbe2abd9bf34fb3597994ff41e443cf144b",
     "clang+llvm-19.1.0-armv7a-linux-gnueabihf.tar.gz": "d2f9f7fe803b38dc2fa64a1b2d1d3356f230f9ba402c321d8615ba3598f5cb66",
-    #"clang+llvm-19.1.0-x86_64-pc-windows-msvc.tar.xz": "de3199fcace428386878e5a98c2be35576459f140f405eddc8b1f8e91f5dae64",
+    "clang+llvm-19.1.0-x86_64-pc-windows-msvc.tar.xz": "de3199fcace428386878e5a98c2be35576459f140f405eddc8b1f8e91f5dae64",
 
     # 19.1.1
     "LLVM-19.1.1-Linux-X64.tar.xz": "8204de000b6a6921f0572e038336601e3225898e9a253c8aaa43b0a5fae8a4ce",
     "LLVM-19.1.1-Windows-X64.tar.xz": "dafd21646d10b7a59cf755002b608a657173c22daf63d99663eb193aedde48c1",
     "LLVM-19.1.1-macOS-ARM64.tar.xz": "e00def99a6b32de61fffabd4bb85290589731f3f5cb9836fd51770256cd694dd",
-    "LLVM-19.1.1-macOS-ARM64.tar.xz": "e00def99a6b32de61fffabd4bb85290589731f3f5cb9836fd51770256cd694dd",
     "clang+llvm-19.1.1-aarch64-linux-gnu.tar.xz": "414d2ebef10c5035e9df10a224e81b484dbe17d319373050d0c1b3b1467040d2",
     "clang+llvm-19.1.1-armv7a-linux-gnueabihf.tar.gz": "bf63f9092d1cd4c63d1858182ffa2a1713d4f00bc637d4169717bd5c9c905be3",
-    #"clang+llvm-19.1.1-x86_64-pc-windows-msvc.tar.xz": "621fc299fceb1bbdae927e355d1073034c9a1bbdda5a46a27e217c56af72f72a",
+    "clang+llvm-19.1.1-x86_64-pc-windows-msvc.tar.xz": "621fc299fceb1bbdae927e355d1073034c9a1bbdda5a46a27e217c56af72f72a",
 
     # 19.1.2
     "LLVM-19.1.2-Linux-X64.tar.xz": "5b7fe5b2dbbacadd0fee17ac45103c0393bc4b5a9096506a865aa2fbcba976a7",
     "LLVM-19.1.2-Windows-X64.tar.xz": "3aa49c72622c14caabb63f80cc156ce1d6806e12af554754ae1084bd7bc8f6ba",
     "LLVM-19.1.2-macOS-ARM64.tar.xz": "62eb2d8e9f610595fc53db020e26e4576c57c5853a55981292f17730916e676d",
-    "LLVM-19.1.2-macOS-ARM64.tar.xz": "62eb2d8e9f610595fc53db020e26e4576c57c5853a55981292f17730916e676d",
     "clang+llvm-19.1.2-aarch64-linux-gnu.tar.xz": "eb9ab2b24f4b75f8010feed4a43d5a4ebf3c7e1ccff881e1cdf12a122748e7c4",
     "clang+llvm-19.1.2-armv7a-linux-gnueabihf.tar.gz": "5a86ae82efca724882af265e3a8d7a37f09cf217483604882365b6ecb4195f00",
-    #"clang+llvm-19.1.2-x86_64-pc-windows-msvc.tar.xz": "14e764eb79e4ed58da1b88320e33e5eb6c6064103446b47c4439b14292b99d12",
+    "clang+llvm-19.1.2-x86_64-pc-windows-msvc.tar.xz": "14e764eb79e4ed58da1b88320e33e5eb6c6064103446b47c4439b14292b99d12",
 
     # 19.1.3
     "LLVM-19.1.3-Linux-X64.tar.xz": "052a5ee117782aab5893dba2cdf2cb97c3d873f7a50ba6b1690594161c75c519",
-    "LLVM-19.1.3-Windows-X64.tar.xz": "1077267ca353a1e236055ed4b57d6a404d09c40b01bd27dc882870395cdc1aae",
     "LLVM-19.1.3-Windows-X64.tar.xz": "1077267ca353a1e236055ed4b57d6a404d09c40b01bd27dc882870395cdc1aae",
     "LLVM-19.1.3-macOS-ARM64.tar.xz": "80a54a467e9e770a76ba9670e89a235224ec47578cc4d4dbd928592813732518",
     "LLVM-19.1.3-macOS-X64.tar.xz": "52ea30f3089af4e086a98638a16167c5a20d253d43f7146c058e3e9e6d33274f",
     "clang+llvm-19.1.3-aarch64-linux-gnu.tar.xz": "a730175e58233f20a99ecab0015d8cd0f1af5d92411ca1f9e3e472645d889bcd",
     "clang+llvm-19.1.3-armv7a-linux-gnueabihf.tar.gz": "b602416a0ea588da73d535050a7efc2b89bc58c69556cd2d828d413c258ba215",
-    #"clang+llvm-19.1.3-x86_64-pc-windows-msvc.tar.xz": "84789dc852e67f8507861a5dea9ed41f11ad7a6c9d3db6d52f04d72b3e4e29d3",
+    "clang+llvm-19.1.3-x86_64-pc-windows-msvc.tar.xz": "84789dc852e67f8507861a5dea9ed41f11ad7a6c9d3db6d52f04d72b3e4e29d3",
 
     # 19.1.4
     "LLVM-19.1.4-Linux-X64.tar.xz": "da7e0f571b440e5ef9ae6e061ae6afc1071179e18f86f77cf630dabbed11a5f6",
@@ -713,7 +699,6 @@ def _get_llvm_version(rctx):
     return llvm_version
 
 def _find_llvm_basename_list(llvm_version, arch, os):
-def _find_llvm_basename_list(llvm_version, arch, os):
     """Lookup (llvm_version, arch, os) in the list of basenames in `_llvm_distributions.`"""
     prefixes = []
 
@@ -789,18 +774,31 @@ def _find_llvm_basename_list(llvm_version, arch, os):
                 basenames.append(dist)
     return basenames
 
-def _find_llvm_basename_or_fail(llvm_version, arch, os):
+def _find_llvm_basenames_deduplicate(llvm_version, arch, os):
     basenames = _find_llvm_basename_list(llvm_version, arch, os)
+    if len(basenames) == 2 and os == "windows":
+        if basenames[0].startswith("LLVM-"):
+            return [basenames[0]]
+        else:
+            return [basenames[1]]
+    return basenames
+
+def _find_llvm_basename_maybe_fail(llvm_version, arch, os, fail):
+    basenames = _find_llvm_basenames_deduplicate(llvm_version, arch, os)
     if len(basenames) > 1:
-        fail("Multiple configurations found [{basenames}].".format(
-            basenames = ", ".join(basenames),
-        ))
+        if fail:
+            fail("Multiple configurations found [{basenames}].".format(
+                basenames = ", ".join(basenames),
+            ))
+        return None
     if not basenames:
-        fail("No matching config could be found for version {llvm_version} on {os} with arch {arch}.".format(
-            llvm_version = llvm_version,
-            os = os,
-            arch = arch,
-        ))
+        if fail:
+            fail("No matching config could be found for version {llvm_version} on {os} with arch {arch}.".format(
+                llvm_version = llvm_version,
+                os = os,
+                arch = arch,
+            ))
+        return None
 
     # Use the following for debugging:
     # print("Found LLVM: " + basenames[0])  # buildifier: disable=print
@@ -811,10 +809,13 @@ def _major_llvm_version(llvm_version):
     return int(llvm_version.split(".")[0])
 
 def _llvm_release_name(rctx, llvm_version):
-    """For versions 19+ find base name in configured name list, otherwise predict version name by input."""
+    """Try to find the distribution in the configured list. Otherwise predict version name by input.
+
+    For versions 19+ we fail if the distribution cannot be found automatically."""
     major_llvm_version = _major_llvm_version(llvm_version)
-    if major_llvm_version >= 19:
-        return _find_llvm_basename_or_fail(llvm_version, _arch(rctx), _os(rctx))
+    basename = _find_llvm_basename_maybe_fail(llvm_version, _arch(rctx), _os(rctx), major_llvm_version >= 19)
+    if basename:
+        return basename
     return _llvm_release_name_context(rctx, llvm_version)
 
 def _distribution_urls(rctx):
@@ -887,12 +888,11 @@ def download_llvm(rctx):
         updated_attrs["sha256"].update([(key, res.sha256)])
     return updated_attrs
 
-DistrubutionsInfo = provider(
-    "The output info for the `write_distributions` rule.",
-    fields = {
-        "out": "output File",
-    },
-)
+def _parse_version(v):
+    return tuple([int(s) for s in v.split(".")])
+
+def _version_ge(lhs, rhs):
+    return _parse_version(lhs) >= _parse_version(rhs)
 
 def _write_distributions_impl(ctx):
     """Analyze the configured versions and write to a file for test consumption.
@@ -905,7 +905,13 @@ def _write_distributions_impl(ctx):
     verify that predicted distributions have been configured. Otherwise the
     algorithm could not know the hash value.
     """
-    arch_list = ["aarch64", "powerpc64", "powerpc64le", "sparcv9", "x86_64"]
+    arch_list = [
+        "aarch64",
+        "powerpc64",
+        "powerpc64le",
+        "sparcv9",
+        "x86_64",
+    ]
     os_list = [
         "darwin",
         "linux",
@@ -991,12 +997,12 @@ def _write_distributions_impl(ctx):
     # While computing we add predicted versions that are not configured as True.
     # At the end we add the not-found versions as False.
     result = {}
-    for llvm_version in _llvm_distributions_base_url.keys():
-        #if not _version_ge(llvm_version, 18, 1, 1):
-        #    continue
+
+    # For all versions X arch X os check if we can compute the distribution.
+    for version in versions.keys():
         for arch in arch_list:
             for os in os_list:
-                basenames = _find_llvm_basename_list(llvm_version, arch, os)
+                basenames = _find_llvm_basename_list(version, arch, os)
                 if len(basenames) != 1:
                     continue
                 basename = basenames[0]
@@ -1005,18 +1011,15 @@ def _write_distributions_impl(ctx):
                         not_found.pop(basename)
                 else:
                     result[basename] = True
+
+    # Build result
     for dist in not_found:
         result[dist] = False
-    output = [("add: " if found else "del: ") + dist for dist, found in result.items()]
+    output += [("add: " if found else "del: ") + dist for dist, found in result.items()]
     out = ctx.actions.declare_file(ctx.label.name + ".out")
     ctx.actions.write(out, "\n".join(output) + "\n")
-    return [
-        DefaultInfo(files = depset([out])),
-        DistrubutionsInfo(out = out),
-    ]
+    return [DefaultInfo(files = depset([out]))]
 
 write_distributions = rule(
     implementation = _write_distributions_impl,
-    output_to_genfiles = True,
-    provides = [DefaultInfo, DistrubutionsInfo],
 )
