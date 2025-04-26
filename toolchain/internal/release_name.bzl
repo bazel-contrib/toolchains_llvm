@@ -176,6 +176,6 @@ def llvm_release_name_context(rctx, llvm_version):
     if major_llvm_version >= 19:
         fail("May not use 'llvm_release_name_context' for releases starting with version 19!")
     if _os(rctx) in ["darwin", "windows"]:
-        fail("May not use 'llvm_release_name_context' for os in 'darwin', 'windows'!")
-    (os, version, arch) = _os_version_arch(rctx)
-    return _linux(llvm_version, os, version, arch)
+        fail("May not use 'llvm_release_name_context' for os in ('darwin', 'windows')!")
+    (dist, version, arch) = _dist_version_arch(rctx)
+    return _linux(llvm_version, dist, version, arch)
