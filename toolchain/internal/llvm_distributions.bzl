@@ -798,7 +798,7 @@ def _write_distributions_impl(ctx):
         if not _version_ge(version, MIN_VERSION):
             continue
         version_list.append(version)
-    versions = {v: v for v in version_list}
+    versions = {v: None for v in version_list}
 
     # Write versions to output to check which versions we take into account.
     output = []
