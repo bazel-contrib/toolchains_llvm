@@ -62,7 +62,7 @@ def exec_os_key(rctx):
         return "%s-%s-%s" % (os, version, arch)
 
 _known_distros = [
-    # keep sorted 
+    # keep sorted
     "almalinux",
     "amzn",
     "arch",
