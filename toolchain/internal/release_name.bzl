@@ -9,17 +9,6 @@ def _minor_llvm_version(llvm_version):
 def _patch_llvm_version(llvm_version):
     return int(llvm_version.split(".")[2])
 
-def _windows(llvm_version, arch):
-    if arch.endswith("64"):
-        win_arch = "win64"
-    else:
-        win_arch = "win32"
-
-    return "LLVM-{llvm_version}-{win_arch}.exe".format(
-        llvm_version = llvm_version,
-        win_arch = win_arch,
-    )
-
 def _ubuntu_osname(arch, version, major_llvm_version, llvm_version):
     patch_llvm_version = _patch_llvm_version(llvm_version)
 
@@ -109,6 +98,18 @@ def _resolve_version_for_suse(major_llvm_version, llvm_version):
         return _ubuntu_osname("x86_64", "20.04", major_llvm_version, llvm_version)
     return os_name, None
 
+def _resolve_version_for_suse(major_llvm_version, llvm_version):
+    minor_llvm_version = _minor_llvm_version(llvm_version)
+    if major_llvm_version < 10:
+        os_name = "linux-sles11.3"
+    elif major_llvm_version == 10 and minor_llvm_version == 0:
+        os_name = "linux-sles11.3"
+    elif major_llvm_version < 13 or (major_llvm_version == 14 and minor_llvm_version == 0):
+        os_name = "linux-sles12.4"
+    else:
+        os_name = _ubuntu_osname("x86_64", "20.04", major_llvm_version, llvm_version)
+    return os_name
+
 def _linux(llvm_version, distname, version, arch):
     major_llvm_version = _major_llvm_version(llvm_version)
 
@@ -174,14 +175,7 @@ def llvm_release_name_context(rctx, llvm_version):
     major_llvm_version = _major_llvm_version(llvm_version)
     if major_llvm_version >= 19:
         fail("May not use 'llvm_release_name_context' for releases starting with version 19!")
-    os = _os(rctx)
-    if os == "darwin":
-        fail("May not use 'llvm_release_name_context' for os == 'darwin'!")
-    else:
-        return _linux(llvm_version, host_info.dist.name, host_info.dist.version, host_info.arch)
-
-def llvm_release_name_context(rctx, llvm_version):
-    name, error = llvm_release_name_host_info(llvm_version, host_info(rctx))
-    if error:
-        fail(error)
-    return name
+    if _os(rctx) in ["darwin", "windows"]:
+        fail("May not use 'llvm_release_name_context' for os in 'darwin', 'windows'!")
+    (os, version, arch) = _os_version_arch(rctx)
+    return _linux(llvm_version, os, version, arch)

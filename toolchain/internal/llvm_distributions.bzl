@@ -859,7 +859,7 @@ def _llvm_release_name(rctx, llvm_version):
     For versions 19+ or we os==darwin fail if the distribution cannot be found automatically."""
     major_llvm_version = _major_llvm_version(llvm_version)
     os = _os(rctx)
-    fail = major_llvm_version >= 19 or os == "darwin"
+    fail = major_llvm_version >= 19 or os in ["darwin", "windows"]
     basename = _find_llvm_basename_maybe_fail(llvm_version, _arch(rctx), os, fail)
     if basename:
         return basename
