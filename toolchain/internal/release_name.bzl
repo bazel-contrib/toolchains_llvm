@@ -1,4 +1,8 @@
-load("//toolchain/internal:common.bzl", "host_info")
+load(
+    "//toolchain/internal:common.bzl",
+    _dist_version_arch = "dist_version_arch",
+    _os = "os",
+)
 
 def _major_llvm_version(llvm_version):
     return int(llvm_version.split(".")[0])
