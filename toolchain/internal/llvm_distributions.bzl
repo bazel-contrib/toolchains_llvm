@@ -13,7 +13,12 @@
 # limitations under the License.
 
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "read_netrc", "use_netrc")
-load("//toolchain/internal:common.bzl", _arch = "arch", _attr_dict = "attr_dict", _exec_os_arch_dict_value = "exec_os_arch_dict_value", _os = "os")
+load(
+    "//toolchain/internal:common.bzl",
+    _attr_dict = "attr_dict",
+    _exec_os_arch_dict_value = "exec_os_arch_dict_value",
+    _host_info = "host_info",
+)
 load("//toolchain/internal:release_name.bzl", _llvm_release_name_context = "llvm_release_name_context")
 
 # If a new LLVM version is missing from this list, please add the shasums here
@@ -720,9 +725,9 @@ def _get_llvm_version(rctx):
         return rctx.attr.llvm_version
     if not rctx.attr.llvm_versions:
         fail("Neither 'llvm_version' nor 'llvm_versions' given.")
-    (_, llvm_version) = exec_os_arch_dict_value(rctx, "llvm_versions")
+    (_, llvm_version) = _exec_os_arch_dict_value(rctx, "llvm_versions")
+    info = _host_info(rctx)
     if not llvm_version:
-        info = host_info(rctx)
         fail(
             "LLVM version string missing for ({os}/{dist_name}/{dist_verison}, {arch})",
             os = info.os,
@@ -732,95 +737,126 @@ def _get_llvm_version(rctx):
         )
     return llvm_version
 
-def _find_llvm_basename_list(llvm_version, arch, os):
-    """Lookup (llvm_version, arch, os) in the list of basenames in `_llvm_distributions.`"""
-    prefixes = []
+def _distname_os_names(dist_name, default_os_names = []):
+    if dist_name == "freebsd":
+        return ["unknown-freebsd", "unknown-freebsd-"]
+    if dist_name in ["rhel", "ol", "almalinux"]:
+        return ["linux-rhel-", "linux-gnu-rhel-"]
+    if dist_name == "suse":
+        return ["linux-sles"]
+    if dist_name == "ubuntu":
+        return ["linux-gnu-ubuntu-", "linux-ubuntu-"]
+    return default_os_names
 
-    if os == "raspbian":
-        # TODO: Check the reported `arch` and return [] if unsupported
-        prefixes.append("clang+llvm-{llvm_version}-{arch}-{os}".format(
-            llvm_version = llvm_version,
-            arch = "armv7a",
-            os = "linux-gnueabihf",
-        ))
-    elif arch == "x86_64" and os == "pc-solaris2.11":
-        # TODO: Check the reported `arch` and return [] if unsupported
-        prefixes.append("clang+llvm-{llvm_version}-{arch}-{os}".format(
-            llvm_version = llvm_version,
-            arch = "amd64",
-            os = os,
-        ))
-    else:
-        llvm_new_arch = {
-            "aarch64": "ARM64",
-            "x86_64": "X64",
-        }.get(arch, arch)
-        llvm_new_os = {
-            "darwin": "macOS",
-            "linux": "Linux",
-            "windows": "Windows",
-        }.get(os, os)
-        llvm_old_os = {
-            "darwin": "apple-darwin",
-            "linux": "linux-gnu",
-            "windows": "pc-windows-msvc",
-        }.get(os, os)
-
-        prefixes.append("LLVM-{llvm_version}-{os}-{arch}".format(
-            llvm_version = llvm_version,
-            arch = llvm_new_arch,
-            os = llvm_new_os,
-        ))
-        if arch in ["powerpc64", "powerpc64le", "sparcv9"]:
-            prefixes.append("clang+llvm-{llvm_version}-{arch}-".format(
-                llvm_version = llvm_version,
-                arch = arch,
-            ))
-        elif arch in ["aarch64"] and os in ["darwin"]:
-            prefixes.append("clang+llvm-{llvm_version}-{arch}-{os}".format(
-                llvm_version = llvm_version,
-                arch = "arm64",
-                os = "apple-darwin",
-            ))
-            prefixes.append("clang+llvm-{llvm_version}-{arch}-{os}".format(
-                llvm_version = llvm_version,
-                arch = "arm64",
-                os = "apple-macos",
-            ))
-        elif arch in ["x86_64"] and os in ["darwin"]:
-            prefixes.append("clang+llvm-{llvm_version}-{arch}-{os}".format(
-                llvm_version = llvm_version,
-                arch = "x86_64",
-                os = "apple-darwin",
-            ))
-            prefixes.append("clang+llvm-{llvm_version}-{arch}-{os}".format(
-                llvm_version = llvm_version,
-                arch = "x86_64",
-                os = "darwin-apple",  # Only 9.0.0 :-)
-            ))
-        else:
-            prefixes.append("clang+llvm-{llvm_version}-{arch}-{os}".format(
-                llvm_version = llvm_version,
-                arch = arch,
-                os = llvm_old_os,
-            ))
-
-    suffixes = [".tar.gz", ".tar.xz"]
+def _find_llvm_basenames_by_stem(prefixes, is_prefix = False):
+    basenames = []
     for prefix in prefixes:
-        for suffix in suffixes:
+        for suffix in [".tar.gz", ".tar.xz"]:
             basename = prefix + suffix
             if basename in _llvm_distributions:
                 return [basename]
-
-    basenames = []
-    for dist in _llvm_distributions:
-        for prefix in prefixes:
-            if dist.startswith(prefix):
-                basenames.append(dist)
+            if is_prefix:
+                for llvm_dist in _llvm_distributions:
+                    if llvm_dist.startswith(prefix) and llvm_dist.endswith(suffix):
+                        if llvm_dist not in basenames:
+                            basenames.append(llvm_dist)
     return basenames
 
-def _find_llvm_basenames_deduplicate(llvm_version, arch, os):
-    basenames = _find_llvm_basename_list(llvm_version, arch, os)
+def _find_llvm_basename_list(llvm_version, arch, os, dist):
+    """Lookup (llvm_version, arch, os) in the list of basenames in `_llvm_distributions.`"""
+
+    # Prefer new LLVM- distributions is available
+    basenames = _find_llvm_basenames_by_stem([
+        "LLVM-{llvm_version}-{os}-{arch}".format(
+            llvm_version = llvm_version,
+            arch = {
+                "aarch64": "ARM64",
+                "x86_64": "X64",
+            }.get(arch, arch),
+            os = {
+                "darwin": "macOS",
+                "linux": "Linux",
+                "windows": "Windows",
+            }.get(os, os),
+        ),
+    ])
+    if basenames:
+        return basenames
+
+    # By os...
+    if os == "raspbian":
+        return _find_llvm_basenames_by_stem(["clang+llvm-{llvm_version}-{arch}-{os}".format(
+            llvm_version = llvm_version,
+            arch = "armv7a",
+            os = "linux-gnueabihf",
+        )])
+    elif os == "darwin":
+        return _find_llvm_basenames_by_stem([
+            "clang+llvm-{llvm_version}-{arch}-{os}".format(
+                llvm_version = llvm_version,
+                arch = {
+                    "aarch64": "arm64",
+                }.get(arch, arch),
+                os = apple_os,
+            )
+            for apple_os in ["apple-darwin", "apple-macos", "darwin-apple"]
+        ], True)
+    elif os == "windows":
+        return _find_llvm_basenames_by_stem([
+            "clang+llvm-{llvm_version}-{arch}-{os}".format(
+                llvm_version = llvm_version,
+                arch = arch,
+                os = "pc-windows-msvc",
+            ),
+        ])
+    elif os == "linux":
+        if arch in ["aarch64", "armv7a", "mips", "mipsel"]:
+            return _find_llvm_basenames_by_stem(["clang+llvm-{llvm_version}-{arch}-{os}".format(
+                llvm_version = llvm_version,
+                arch = arch,
+                os = "linux-gnu",
+            )])
+        elif arch in ["sparc64", "sparcv9"]:
+            return _find_llvm_basenames_by_stem([
+                "clang+llvm-{llvm_version}-{arch}-{os}".format(
+                    llvm_version = llvm_version,
+                    arch = arch_alias,
+                    os = "unknown-linux-gnu",
+                )
+                for arch_alias in ["sparc64", "sparcv9"]
+            ])
+
+        arch_alias_list = {
+            "x86_32": ["x86_32", "i386"],
+            "x86_64": ["x86_64", "amd64", "i686"],
+            "powerpc64": ["powerpc64", "final_powerpc64"],
+        }.get(arch, [arch])
+
+        prefixes = []
+        for dist_name in _distname_os_names(dist.name, [dist.name]):
+            for arch_alias in arch_alias_list:
+                basenames = _find_llvm_basenames_by_stem([
+                    "clang+llvm-{llvm_version}-{arch}-{dist_name}{dist_version}".format(
+                        llvm_version = llvm_version,
+                        arch = arch_alias,
+                        dist_name = dist_name,
+                        dist_version = dist.version,
+                    ),
+                ])
+                if basenames:
+                    return basenames
+                if dist.name not in ["freebsd", "suse", "ubuntu"]:
+                    prefixes.append("clang+llvm-{llvm_version}-{arch}-{dist_name}".format(
+                        llvm_version = llvm_version,
+                        arch = arch_alias,
+                        dist_name = dist_name,
+                    ))
+        return _find_llvm_basenames_by_stem(prefixes, True)
+    else:
+        fail("Unknown OS: {os}".format(os = os))
+
+def _find_llvm_basenames_deduplicate(llvm_version, arch, os, dist):
+    basenames = _find_llvm_basename_list(llvm_version, arch, os, dist)
     if len(basenames) == 2 and os == "windows":
         if basenames[0].startswith("LLVM-"):
             return [basenames[0]]
@@ -828,8 +864,8 @@ def _find_llvm_basenames_deduplicate(llvm_version, arch, os):
             return [basenames[1]]
     return basenames
 
-def _find_llvm_basename_maybe_fail(llvm_version, arch, os, fail):
-    basenames = _find_llvm_basenames_deduplicate(llvm_version, arch, os)
+def _find_llvm_basename_maybe_fail(llvm_version, arch, os, dist, fail):
+    basenames = _find_llvm_basenames_deduplicate(llvm_version, arch, os, dist)
     if len(basenames) > 1:
         if fail:
             fail("Multiple configurations found [{basenames}].".format(
@@ -838,9 +874,11 @@ def _find_llvm_basename_maybe_fail(llvm_version, arch, os, fail):
         return None
     if not basenames:
         if fail:
-            fail("No matching config could be found for version {llvm_version} on {os} with arch {arch}.".format(
+            fail("No matching config could be found for version {llvm_version} on {os}/{dist_name}/{dist_version} with arch {arch}.".format(
                 llvm_version = llvm_version,
                 os = os,
+                dist_name = dist.name,
+                dist_version = dist.version,
                 arch = arch,
             ))
         return None
@@ -853,14 +891,27 @@ def _major_llvm_version(llvm_version):
     """Return the major version given `<major>['.' <minor> [ '.' <mini> [.*]]]."""
     return int(llvm_version.split(".")[0])
 
+def _host_can_be_found(major_llvm_version, host_info):
+    """Return whether the basename can be found or needs to be predicted.""" 
+    if major_llvm_version >= 19:
+        return True
+    if host_info.os in ["darwin", "raspbian", "windows"]:
+        return True
+    if _distname_os_names(host_info.dist.name):
+        return True
+    if host_info.arch in ["aarch64", "armv7a", "mips", "mipsel"]:
+        return True
+
+    return False
+
 def _llvm_release_name(rctx, llvm_version):
     """Try to find the distribution in the configured list. Otherwise predict version name by input.
 
     For versions 19+ or we os==darwin fail if the distribution cannot be found automatically."""
     major_llvm_version = _major_llvm_version(llvm_version)
-    os = _os(rctx)
-    fail = major_llvm_version >= 19 or os in ["darwin", "windows"]
-    basename = _find_llvm_basename_maybe_fail(llvm_version, _arch(rctx), os, fail)
+    host_info = _host_info(rctx)
+    fail = _host_can_be_found(major_llvm_version, host_info)
+    basename = _find_llvm_basename_maybe_fail(llvm_version, host_info.arch, host_info.os, host_info.dist, fail)
     if basename:
         return basename
     return _llvm_release_name_context(rctx, llvm_version)
@@ -920,59 +971,47 @@ def _write_distributions_impl(ctx):
     """
     arch_list = [
         "aarch64",
+        "armv7",
+        "mips",
+        "mipsel",
         "powerpc64",
         "powerpc64le",
         "sparcv9",
+        "x86_32",
         "x86_64",
     ]
     os_list = [
         "darwin",
         "linux",
         "raspbian",
-        "pc-solaris2.11",  # TODO: No clue how this one works
         "windows",
     ]
-    ANY_VERSION = "0"  # Version does not matter, but must be a valid integer
     dist_dict_list = {
         "linux": [
-            # struct(name = "ibm-aix", version = "7.2"),        unreachable
-            # keep sorted
-            struct(name = "amzn", version = ANY_VERSION),
-            struct(name = "arch", version = ANY_VERSION),
-            struct(name = "centos", version = "6"),
-            struct(name = "centos", version = "7"),
-            struct(name = "debian", version = "0"),
-            struct(name = "debian", version = "8"),
-            struct(name = "debian", version = "9"),
-            struct(name = "fedora", version = "26"),
-            struct(name = "fedora", version = "27"),
-            struct(name = "fedora", version = "42"),
-            struct(name = "freebsd", version = "10"),
-            struct(name = "freebsd", version = "11"),
-            struct(name = "freebsd", version = "12"),
-            struct(name = "freebsd", version = "13"),
-            struct(name = "linuxmint", version = "18"),
-            struct(name = "linuxmint", version = "19"),
-            struct(name = "pc-solaris", version = "2.11"),
-            struct(name = "raspbian", version = ANY_VERSION),
-            struct(name = "rhel", version = ANY_VERSION),
-            struct(name = "sun-solaris", version = "2.11"),
-            struct(name = "suse", version = "11.3"),
-            struct(name = "suse", version = "12.2"),
-            struct(name = "suse", version = "12.3"),
-            struct(name = "suse", version = "12.4"),
-            struct(name = "suse", version = "15.5"),
-            struct(name = "suse", version = "16.0"),
-            struct(name = "suse", version = "17.0"),
+            struct(name = "ibm-aix", version = "7.2"),
+            struct(name = "linux-gnu-debian", version = "8"),
+            struct(name = "linux-gnu-rhel", version = "8.4"),
             struct(name = "ubuntu", version = "14.04"),
             struct(name = "ubuntu", version = "16.04"),
+            struct(name = "ubuntu", version = "18.04"),
             struct(name = "ubuntu", version = "18.04.5"),
             struct(name = "ubuntu", version = "18.04.6"),
-            struct(name = "ubuntu", version = "18.04"),
             struct(name = "ubuntu", version = "20.04"),
             struct(name = "ubuntu", version = "20.10"),
             struct(name = "ubuntu", version = "22.04"),
-            struct(name = "ubuntu", version = "24.04"),
+            struct(name = "rhel", version = "IGNORE"),  # ok
+            struct(name = "suse", version = "11.3"),  # ok
+            struct(name = "suse", version = "12.2"),
+            struct(name = "suse", version = "12.3"),
+            struct(name = "suse", version = "12.4"),
+            struct(name = "linux-gnu-Fedora", version = "27"),
+            struct(name = "pc-solaris", version = "2.11"),
+            struct(name = "sun-solaris", version = "2.11"),
+            struct(name = "freebsd", version = "10"),  # ok
+            struct(name = "freebsd", version = "11"),
+            struct(name = "freebsd", version = "12"),
+            struct(name = "freebsd", version = "13"),
+            #struct(name = "unknown-linux-gnu-sles", version = "15"),
         ],
     }
 
@@ -1010,24 +1049,39 @@ def _write_distributions_impl(ctx):
     # At the end we add the not-found versions as False.
     result = {}
 
+    dupes = []
+
     # For all versions X arch X os check if we can compute the distribution.
     for version in versions.keys():
         for arch in arch_list:
             for os in os_list:
-                basenames = _find_llvm_basename_list(version, arch, os)
-                if len(basenames) != 1:
-                    continue
-                basename = basenames[0]
-                if basename in _llvm_distributions:
-                    if basename in not_found:
-                        not_found.pop(basename)
-                else:
-                    result[basename] = True
+                dist_list = dist_dict_list.get(os, [struct(name = os, version = "")])
+                for dist in dist_list:
+                    basenames = _find_llvm_basename_list(version, arch, os, dist)
+                    if len(basenames) != 1:
+                        if basenames:
+                            dupes.append("dup: {version}-{arch}-{os}-{dist_name}-{dist_version} -> {count}".format(
+                                version = version,
+                                arch = arch,
+                                os = os,
+                                dist_name = dist.name,
+                                dist_version = dist.version,
+                                count = len(basenames),
+                            ))
+                            dupes.extend(["   : " + basename for basename in basenames])
+                        continue
+                    basename = basenames[0]
+                    if basename in _llvm_distributions:
+                        if basename in not_found:
+                            not_found.pop(basename)
+                    else:
+                        result[basename] = True
 
     # Build result
     for dist in not_found:
         result[dist] = False
     output += [("add: " if found else "del: ") + dist for dist, found in result.items()]
+    output += dupes
     out = ctx.actions.declare_file(ctx.label.name + ".out")
     ctx.actions.write(out, "\n".join(output) + "\n")
     return [DefaultInfo(files = depset([out]))]
