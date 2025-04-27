@@ -21,10 +21,18 @@ write_distributions(
     name = "llvm_distributions",
     testonly = True,
     visibility = ["//visibility:private"],
+    output = "llvm_distributions.out.txt",
+    select = "llvm_distributions.sel.txt",
 )
 
 diff_test(
-    name = "llvm_distributions_test",
-    file1 = "llvm_distributions.golden.txt",
-    file2 = "llvm_distributions",
+    name = "llvm_distributions_output_test",
+    file1 = "llvm_distributions.golden.out.txt",
+    file2 = "llvm_distributions.out.txt",
+)
+
+diff_test(
+    name = "llvm_distributions_select_test",
+    file1 = "llvm_distributions.golden.sel.txt",
+    file2 = "llvm_distributions.sel.txt",
 )

@@ -55,11 +55,11 @@ _toolchain_tools_darwin = {
 }
 
 def exec_os_key(rctx):
-    (os, version, arch) = dist_version_arch(rctx)
-    if version == "":
-        return "%s-%s" % (os, arch)
+    info = host_info(rctx)
+    if info.dist.version == "":
+        return "%s-%s" % (info.os, info.arch)
     else:
-        return "%s-%s-%s" % (os, version, arch)
+        return "%s-%s-%s" % (info.dist.name, info.dist.version, info.arch)
 
 _known_distros = [
     # keep sorted
@@ -103,15 +103,23 @@ def _linux_dist(rctx):
 
     return distname, version
 
-def dist_version_arch(rctx):
+def host_info(rctx):
     _os = os(rctx)
     _arch = arch(rctx)
 
     if _os == "linux" and not rctx.attr.exec_os:
-        (distname, version) = _linux_dist(rctx)
-        return distname, version, _arch
-
-    return _os, "", _arch
+        (dist_name, dist_version) = _linux_dist(rctx)
+    else:
+        dist_name = os
+        dist_version = ""
+    return struct(
+        arch = _arch,
+        dist = struct(
+            name = dist_name,
+            version = dist_version,
+        ),
+        os = _os,
+    )
 
 def os(rctx):
     # Less granular host OS name, e.g. linux.

@@ -1,9 +1,4 @@
-load(
-    "//toolchain/internal:common.bzl",
-    _arch = "arch",
-    _dist_version_arch = "dist_version_arch",
-    _os = "os",
-)
+load("//toolchain/internal:common.bzl", _host_info = "host_info")
 
 def _major_llvm_version(llvm_version):
     return int(llvm_version.split(".")[0])
@@ -63,7 +58,7 @@ def _windows(llvm_version, arch):
         win_arch = win_arch,
     )
 
-def _ubuntu_osname(arch, version, major_llvm_version, llvm_version):
+def _ubuntu_osname(arch, version, major_llvm_version, llvm_version, should_fail):
     patch_llvm_version = _patch_llvm_version(llvm_version)
 
     if arch == "powerpc64le":
@@ -111,11 +106,14 @@ def _ubuntu_osname(arch, version, major_llvm_version, llvm_version):
         elif llvm_version in ["7.1.0"]:
             os_name = "linux-gnu-ubuntu-14.04"
         else:
-            fail("LLVM patch release %s not available for Ubuntu %s" % (llvm_version, version))
+            error = "ERROR: LLVM patch release %s not available for Ubuntu %s" % (llvm_version, version)
+            if should_fail:
+                fail(error)
+            return error
 
     return os_name
 
-def _rhel_osname(arch, version, major_llvm_version, llvm_version):
+def _rhel_osname(arch, version, major_llvm_version, llvm_version, should_fail):
     if arch == "powerpc64le":
         patch_llvm_version = _patch_llvm_version(llvm_version)
 
@@ -134,13 +132,13 @@ def _rhel_osname(arch, version, major_llvm_version, llvm_version):
         if llvm_version in ["15.0.0", "14.0.6"]:
             return "x86_64-linux-gnu-rhel-8.4"
 
-        return _ubuntu_osname(arch, "18.04", major_llvm_version, llvm_version)
+        return _ubuntu_osname(arch, "18.04", major_llvm_version, llvm_version, should_fail)
     elif float(version) >= 9:
-        return _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version)
+        return _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version, should_fail)
 
     return None
 
-def _resolve_version_for_suse(major_llvm_version, llvm_version):
+def _resolve_version_for_suse(major_llvm_version, llvm_version, should_fail):
     minor_llvm_version = _minor_llvm_version(llvm_version)
     if major_llvm_version < 10:
         os_name = "linux-sles11.3"
@@ -149,10 +147,10 @@ def _resolve_version_for_suse(major_llvm_version, llvm_version):
     elif major_llvm_version < 13 or (major_llvm_version == 14 and minor_llvm_version == 0):
         os_name = "linux-sles12.4"
     else:
-        os_name = _ubuntu_osname("x86_64", "20.04", major_llvm_version, llvm_version)
+        os_name = _ubuntu_osname("x86_64", "20.04", major_llvm_version, llvm_version, should_fail)
     return os_name
 
-def _linux(llvm_version, distname, version, arch):
+def _linux(llvm_version, distname, version, arch, should_fail):
     major_llvm_version = _major_llvm_version(llvm_version)
 
     # NOTE: Many of these systems are untested because I do not have access to them.
@@ -163,11 +161,11 @@ def _linux(llvm_version, distname, version, arch):
     elif distname == "freebsd":
         os_name = "unknown-freebsd-%s" % version
     elif distname == "suse":
-        os_name = _resolve_version_for_suse(major_llvm_version, llvm_version)
+        os_name = _resolve_version_for_suse(major_llvm_version, llvm_version, should_fail)
     elif distname in ["ubuntu", "pop"]:
-        os_name = _ubuntu_osname(arch, version, major_llvm_version, llvm_version)
+        os_name = _ubuntu_osname(arch, version, major_llvm_version, llvm_version, should_fail)
     elif ((distname in ["linuxmint"]) and (version.startswith("21") or version.startswith("20") or version.startswith("19"))):
-        os_name = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version)
+        os_name = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version, should_fail)
     elif distname == "linuxmint" and version.startswith("18"):
         os_name = "linux-gnu-ubuntu-16.04"
     elif distname == "debian":
@@ -176,34 +174,39 @@ def _linux(llvm_version, distname, version, arch):
             int_version = int(version)
         if int_version == 0 or int_version >= 9:
             if major_llvm_version == 18:
-                os_name = _ubuntu_osname(arch, "18.04", major_llvm_version, llvm_version)
+                os_name = _ubuntu_osname(arch, "18.04", major_llvm_version, llvm_version, should_fail)
             else:
-                os_name = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version)
+                os_name = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version, should_fail)
         elif int_version == 8 and major_llvm_version < 7:
             os_name = "linux-gnu-debian8"
     elif ((distname == "fedora" and int(version) >= 27) or
           (distname == "centos" and int(version) >= 7)) and major_llvm_version < 7:
         os_name = "linux-gnu-Fedora27"
     elif distname == "centos" and major_llvm_version >= 7:
-        os_name = _resolve_version_for_suse(major_llvm_version, llvm_version)
+        os_name = _resolve_version_for_suse(major_llvm_version, llvm_version, should_fail)
     elif distname == "fedora" and major_llvm_version >= 7:
-        os_name = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version)
+        os_name = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version, should_fail)
     elif distname in ["arch", "manjaro"]:
-        os_name = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version)
+        os_name = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version, should_fail)
     elif distname == "amzn":
         # Based on the ID_LIKE field, sles seems like the closest available
         # distro for which LLVM releases are widely available.
-        os_name = _resolve_version_for_suse(major_llvm_version, llvm_version)
+        os_name = _resolve_version_for_suse(major_llvm_version, llvm_version, should_fail)
     elif distname == "raspbian":
         arch = "armv7a"
         os_name = "linux-gnueabihf"
     elif distname in ["rhel", "ol", "almalinux"]:
-        os_name = _rhel_osname(arch, version, major_llvm_version, llvm_version)
+        os_name = _rhel_osname(arch, version, major_llvm_version, llvm_version, should_fail)
     elif distname == "nixos":
-        os_name = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version)
+        os_name = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version, should_fail)
 
     if not os_name:
-        fail("Unsupported linux distribution and version: %s, %s" % (distname, version))
+        error = "ERROR: Unsupported linux distribution and version: %s, %s" % (distname, version)
+        if should_fail:
+            fail(error)
+        return error
+    if not should_fail and os_name.startswith("ERROR:"):
+        return os_name
 
     return "clang+llvm-{llvm_version}-{arch}-{os_name}.tar.xz".format(
         llvm_version = llvm_version,
@@ -231,15 +234,17 @@ def llvm_release_name_19(llvm_version, rctx_arch, rctx_os):
         os = os,
     )
 
-def llvm_release_name(rctx, llvm_version):
-    major_llvm_version = _major_llvm_version(llvm_version)
-    if major_llvm_version >= 19:
-        return llvm_release_name_19(llvm_version, _arch(rctx), _os(rctx))
+def llvm_release_name_host_info(llvm_version, host_info, should_fail):
+    if host_info.os == "darwin":
+        return _darwin(llvm_version, host_info.arch)
+    elif host_info.os == "windows":
+        return _windows(llvm_version, host_info.arch)
     else:
-        (os, version, arch) = _dist_version_arch(rctx)
-        if os == "darwin":
-            return _darwin(llvm_version, arch)
-        elif os == "windows":
-            return _windows(llvm_version, arch)
-        else:
-            return _linux(llvm_version, os, version, arch)
+        return _linux(llvm_version, host_info.dist.name, host_info.dist.version, host_info.arch, should_fail)
+
+def llvm_release_name_context(rctx, llvm_version):
+    major_llvm_version = _major_llvm_version(llvm_version)
+    host_info = _host_info(rctx)
+    if major_llvm_version >= 19:
+        return llvm_release_name_19(llvm_version, host_info.arch, host_info.os)
+    return llvm_release_name_host_info(llvm_version, host_info, True)
