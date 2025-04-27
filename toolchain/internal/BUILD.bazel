@@ -20,9 +20,9 @@ exports_files(["template.modulemap"])
 write_distributions(
     name = "llvm_distributions",
     testonly = True,
-    visibility = ["//visibility:private"],
     output = "llvm_distributions.out.txt",
     select = "llvm_distributions.sel.txt",
+    visibility = ["//visibility:private"],
 )
 
 diff_test(
