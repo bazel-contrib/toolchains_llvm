@@ -864,7 +864,7 @@ def _find_llvm_basenames_deduplicate(llvm_version, arch, os, dist):
             return [basenames[1]]
     return basenames
 
-def _find_llvm_basename_maybe_fail(llvm_version, arch, os, dist, fail):
+def _find_llvm_basename_maybe_fail(llvm_version, arch, os, dist, should_fail):
     basenames = _find_llvm_basenames_deduplicate(llvm_version, arch, os, dist)
     if len(basenames) > 1:
         if fail:
@@ -873,7 +873,7 @@ def _find_llvm_basename_maybe_fail(llvm_version, arch, os, dist, fail):
             ))
         return None
     if not basenames:
-        if fail:
+        if should_fail:
             fail("No matching config could be found for version {llvm_version} on {os}/{dist_name}/{dist_version} with arch {arch}.".format(
                 llvm_version = llvm_version,
                 os = os,

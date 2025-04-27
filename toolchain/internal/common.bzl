@@ -121,10 +121,6 @@ def host_info(rctx):
         os = _os,
     )
 
-def dist_version_arch(rctx):
-    info = host_info(rctx)
-    return info.dist.name, info.dist.version, info.arch
-
 def os(rctx):
     # Less granular host OS name, e.g. linux.
 

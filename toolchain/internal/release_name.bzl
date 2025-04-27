@@ -1,6 +1,6 @@
 load(
     "//toolchain/internal:common.bzl",
-    _dist_version_arch = "dist_version_arch",
+    _host_info = "host_info",
     _os = "os",
 )
 
@@ -132,7 +132,7 @@ def llvm_release_name_context(rctx, llvm_version):
     major_llvm_version = _major_llvm_version(llvm_version)
     if major_llvm_version >= 19:
         fail("May not use 'llvm_release_name_context' for releases starting with version 19!")
-    if _os(rctx) != "linux":
+    host_info = _host_info(rctx)
+    if host_info.os != "linux":
         fail("May not use 'llvm_release_name_context' for os other than Linux!")
-    (dist, version, arch) = _dist_version_arch(rctx)
-    return _linux(llvm_version, dist, version, arch)
+    return _linux(llvm_version, host_info.dist.name, host_info.dist.version, host_info.arch)
