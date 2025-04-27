@@ -102,18 +102,6 @@ def _resolve_version_for_suse(major_llvm_version, llvm_version):
         return _ubuntu_osname("x86_64", "20.04", major_llvm_version, llvm_version)
     return os_name, None
 
-def _resolve_version_for_suse(major_llvm_version, llvm_version):
-    minor_llvm_version = _minor_llvm_version(llvm_version)
-    if major_llvm_version < 10:
-        os_name = "linux-sles11.3"
-    elif major_llvm_version == 10 and minor_llvm_version == 0:
-        os_name = "linux-sles11.3"
-    elif major_llvm_version < 13 or (major_llvm_version == 14 and minor_llvm_version == 0):
-        os_name = "linux-sles12.4"
-    else:
-        os_name = _ubuntu_osname("x86_64", "20.04", major_llvm_version, llvm_version)
-    return os_name
-
 def _linux(llvm_version, distname, version, arch):
     major_llvm_version = _major_llvm_version(llvm_version)
 
