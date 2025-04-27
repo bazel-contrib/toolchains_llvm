@@ -845,27 +845,21 @@ def _find_llvm_basename_list(llvm_version, arch, os, dist):
                 ])
                 if basenames:
                     return basenames
-                if dist.name not in ["freebsd", "suse", "ubuntu"]:
+                if dist.name not in ["freebsd", "suse"]:
                     prefixes.append("clang+llvm-{llvm_version}-{arch}-{dist_name}".format(
                         llvm_version = llvm_version,
                         arch = arch_alias,
                         dist_name = dist_name,
                     ))
-        return _find_llvm_basenames_by_stem(prefixes, True)
+        names = _find_llvm_basenames_by_stem(prefixes, True)
+        if names and dist.name == "ubuntu":
+            return [names[-1]]
+        return names
     else:
         fail("Unknown OS: {os}".format(os = os))
 
-def _find_llvm_basenames_deduplicate(llvm_version, arch, os, dist):
-    basenames = _find_llvm_basename_list(llvm_version, arch, os, dist)
-    if len(basenames) == 2 and os == "windows":
-        if basenames[0].startswith("LLVM-"):
-            return [basenames[0]]
-        else:
-            return [basenames[1]]
-    return basenames
-
 def _find_llvm_basename_maybe_fail(llvm_version, arch, os, dist, should_fail):
-    basenames = _find_llvm_basenames_deduplicate(llvm_version, arch, os, dist)
+    basenames = _find_llvm_basename_list(llvm_version, arch, os, dist)
     if len(basenames) > 1:
         if fail:
             fail("Multiple configurations found [{basenames}].".format(
@@ -958,6 +952,9 @@ def _parse_version(v):
 def _version_ge(lhs, rhs):
     return _parse_version(lhs) >= _parse_version(rhs)
 
+def _version_lt(lhs, rhs):
+    return _parse_version(lhs) < _parse_version(rhs)
+
 def _write_distributions_impl(ctx):
     """Analyze the configured versions and write to a file for test consumption.
 
@@ -999,19 +996,19 @@ def _write_distributions_impl(ctx):
             struct(name = "ubuntu", version = "20.04"),
             struct(name = "ubuntu", version = "20.10"),
             struct(name = "ubuntu", version = "22.04"),
-            struct(name = "rhel", version = "IGNORE"),  # ok
-            struct(name = "suse", version = "11.3"),  # ok
+            struct(name = "ubuntu", version = "24.04"),
+            struct(name = "rhel", version = "IGNORE"),
+            struct(name = "suse", version = "11.3"),
             struct(name = "suse", version = "12.2"),
             struct(name = "suse", version = "12.3"),
             struct(name = "suse", version = "12.4"),
             struct(name = "linux-gnu-Fedora", version = "27"),
             struct(name = "pc-solaris", version = "2.11"),
             struct(name = "sun-solaris", version = "2.11"),
-            struct(name = "freebsd", version = "10"),  # ok
+            struct(name = "freebsd", version = "10"),
             struct(name = "freebsd", version = "11"),
             struct(name = "freebsd", version = "12"),
             struct(name = "freebsd", version = "13"),
-            #struct(name = "unknown-linux-gnu-sles", version = "15"),
         ],
     }
 
@@ -1071,6 +1068,14 @@ def _write_distributions_impl(ctx):
                             dupes.extend(["   : " + basename for basename in basenames])
                         continue
                     basename = basenames[0]
+                    select.append("{version}-{arch}-{os}/{dist_name}/{dist_version} -> {basename}".format(
+                        version = version,
+                        arch = arch,
+                        os = os,
+                        dist_name = dist.name,
+                        dist_version = dist.version,
+                        basename = basename,
+                    ))
                     if basename in _llvm_distributions:
                         if basename in not_found:
                             not_found.pop(basename)
@@ -1082,10 +1087,13 @@ def _write_distributions_impl(ctx):
         result[dist] = False
     output += [("add: " if found else "del: ") + dist for dist, found in result.items()]
     output += dupes
-    out = ctx.actions.declare_file(ctx.label.name + ".out")
-    ctx.actions.write(out, "\n".join(output) + "\n")
-    return [DefaultInfo(files = depset([out]))]
+    ctx.actions.write(ctx.outputs.output, "\n".join(output) + "\n")
+    ctx.actions.write(ctx.outputs.select, "\n".join(select) + "\n")
 
 write_distributions = rule(
     implementation = _write_distributions_impl,
+    attrs = {
+        "output": attr.output(mandatory = True),
+        "select": attr.output(mandatory = True),
+    },
 )
