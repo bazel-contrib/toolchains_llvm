@@ -1,5 +1,5 @@
 6.0.0-aarch64-darwin/darwin/ -> ERROR: Unavailable prediction: clang+llvm-6.0.0-arm64-apple-darwin.tar.xz
-6.0.0-aarch64-linux/amzn/0 -> clang+llvm-6.0.0-aarch64-linux-gnu.tar.xzX
+6.0.0-aarch64-linux/amzn/0 -> clang+llvm-6.0.0-aarch64-linux-gnu.tar.xz
 6.0.0-aarch64-linux/arch/0 -> clang+llvm-6.0.0-aarch64-linux-gnu.tar.xz
 6.0.0-aarch64-linux/centos/6 -> clang+llvm-6.0.0-aarch64-linux-gnu.tar.xz
 6.0.0-aarch64-linux/centos/7 -> clang+llvm-6.0.0-aarch64-linux-gnu.tar.xz
