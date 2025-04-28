@@ -87,10 +87,6 @@ def _linux(llvm_version, distname, version, arch):
                 os_name, error = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version)
         elif int_version == 8 and major_llvm_version < 7:
             os_name = "linux-gnu-debian8"
-    elif distname == "fedora" and int(version) >= 27 and major_llvm_version < 7:
-        os_name = "linux-gnu-Fedora27"
-    elif distname == "fedora" and major_llvm_version >= 7:
-        os_name = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version)
     elif distname in ["arch", "manjaro", "nixos"]:
         os_name = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version)
 

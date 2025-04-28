@@ -310,8 +310,8 @@
 6.0.0-x86_64-linux/debian/0 -> ERROR: No version selected
 6.0.0-x86_64-linux/debian/8 -> ERROR: No version selected
 6.0.0-x86_64-linux/debian/9 -> ERROR: No version selected
-6.0.0-x86_64-linux/fedora/26 -> ERROR: No version selected
-6.0.0-x86_64-linux/fedora/27 -> ERROR: No version selected
+6.0.0-x86_64-linux/fedora/26 -> clang+llvm-6.0.0-x86_64-linux-gnu-Fedora27.tar.xz
+6.0.0-x86_64-linux/fedora/27 -> clang+llvm-6.0.0-x86_64-linux-gnu-Fedora27.tar.xz
 6.0.0-x86_64-linux/freebsd/10 -> clang+llvm-6.0.0-amd64-unknown-freebsd-10.tar.xz
 6.0.0-x86_64-linux/freebsd/11 -> ERROR: No version selected
 6.0.0-x86_64-linux/freebsd/12 -> ERROR: No version selected
@@ -3046,8 +3046,8 @@
 11.0.0-x86_64-linux/debian/0 -> ERROR: No version selected
 11.0.0-x86_64-linux/debian/8 -> ERROR: No version selected
 11.0.0-x86_64-linux/debian/9 -> ERROR: No version selected
-11.0.0-x86_64-linux/fedora/26 -> ERROR: No version selected
-11.0.0-x86_64-linux/fedora/27 -> ERROR: No version selected
+11.0.0-x86_64-linux/fedora/26 -> clang+llvm-11.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz
+11.0.0-x86_64-linux/fedora/27 -> clang+llvm-11.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz
 11.0.0-x86_64-linux/freebsd/10 -> ERROR: No version selected
 11.0.0-x86_64-linux/freebsd/11 -> ERROR: No version selected
 11.0.0-x86_64-linux/freebsd/12 -> ERROR: No version selected
@@ -4072,8 +4072,8 @@
 12.0.0-x86_64-linux/debian/0 -> ERROR: No version selected
 12.0.0-x86_64-linux/debian/8 -> ERROR: No version selected
 12.0.0-x86_64-linux/debian/9 -> ERROR: No version selected
-12.0.0-x86_64-linux/fedora/26 -> ERROR: No version selected
-12.0.0-x86_64-linux/fedora/27 -> ERROR: No version selected
+12.0.0-x86_64-linux/fedora/26 -> clang+llvm-12.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz
+12.0.0-x86_64-linux/fedora/27 -> clang+llvm-12.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz
 12.0.0-x86_64-linux/freebsd/10 -> ERROR: No version selected
 12.0.0-x86_64-linux/freebsd/11 -> clang+llvm-12.0.0-amd64-unknown-freebsd11.tar.xz
 12.0.0-x86_64-linux/freebsd/12 -> clang+llvm-12.0.0-amd64-unknown-freebsd12.tar.xz
@@ -4756,8 +4756,8 @@
 13.0.0-x86_64-linux/debian/0 -> ERROR: No version selected
 13.0.0-x86_64-linux/debian/8 -> ERROR: No version selected
 13.0.0-x86_64-linux/debian/9 -> ERROR: No version selected
-13.0.0-x86_64-linux/fedora/26 -> ERROR: No version selected
-13.0.0-x86_64-linux/fedora/27 -> ERROR: No version selected
+13.0.0-x86_64-linux/fedora/26 -> clang+llvm-13.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz
+13.0.0-x86_64-linux/fedora/27 -> clang+llvm-13.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz
 13.0.0-x86_64-linux/freebsd/10 -> ERROR: No version selected
 13.0.0-x86_64-linux/freebsd/11 -> ERROR: No version selected
 13.0.0-x86_64-linux/freebsd/12 -> clang+llvm-13.0.0-amd64-unknown-freebsd12.tar.xz

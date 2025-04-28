@@ -738,12 +738,6 @@ def _get_llvm_version(rctx):
     return llvm_version
 
 def _dist_to_os_names(dist, default_os_names = []):
-    if dist.name == "centos":
-        return ["linux-gnu", "unknown-linux-gnu"]
-    if dist.name == "freebsd":
-        return ["unknown-freebsd", "unknown-freebsd-"]
-    if dist.name in ["rhel", "ol", "almalinux"]:
-        return ["linux-rhel-", "linux-gnu-rhel-"]
     if dist.name in ["amzn", "suse"]:
         # For "amzn" based on the ID_LIKE field, sles seems like the closest
         # available distro for which LLVM releases are widely available.
@@ -764,6 +758,21 @@ def _dist_to_os_names(dist, default_os_names = []):
             "linux-gnu-ubuntu-16.04",
             "linux-gnu-ubuntu-",
         ]
+    if dist.name == "centos":
+        return ["linux-gnu", "unknown-linux-gnu"]
+    if dist.name == "fedora":
+        return [
+            "linux-gnu-Fedora27",
+            "linux-gnu",
+            "unknown-linux-gnu",
+            "linux-gnu-ubuntu-20.04",
+        ]
+    if dist.name == "freebsd":
+        return ["unknown-freebsd", "unknown-freebsd-"]
+    if dist.name == "raspbian":
+        return ["linux-gnueabihf", "linux-gnu"]
+    if dist.name in ["rhel", "ol", "almalinux"]:
+        return ["linux-rhel-", "linux-gnu-rhel-"]
     if dist.name == "ubuntu":
         return ["linux-gnu-ubuntu-", "linux-ubuntu-"]
     return default_os_names
@@ -806,21 +815,8 @@ def _find_llvm_basename_list(llvm_version, arch, os, dist):
     if basenames:
         return basenames
 
-    # By os...
-    if dist.name == "raspbian":
-        return _find_llvm_basenames_by_stem([
-            "clang+llvm-{llvm_version}-{arch}-{os}".format(
-                llvm_version = llvm_version,
-                arch = arch,
-                os = "linux-gnueabihf",
-            ),
-            "clang+llvm-{llvm_version}-{arch}-{os}".format(
-                llvm_version = llvm_version,
-                arch = arch,
-                os = "linux-gnu",
-            ),
-        ])
-    elif dist.name in ["amzn", "suse"] and arch == "x86_64":
+    # First by dist, then by os...
+    if dist.name in ["amzn", "suse"] and arch == "x86_64":
         names = _find_llvm_basenames_by_stem([
             "clang+llvm-{llvm_version}-{arch}-{os}".format(
                 llvm_version = llvm_version,
@@ -832,6 +828,24 @@ def _find_llvm_basename_list(llvm_version, arch, os, dist):
         if names:
             return [names[0]]
         return []
+    elif dist.name == "fedora" and arch not in ["sparc64", "sparcv9"]:
+        return _find_llvm_basenames_by_stem([
+            "clang+llvm-{llvm_version}-{arch}-{os}".format(
+                llvm_version = llvm_version,
+                arch = arch,
+                os = select_os,
+            )
+            for select_os in _dist_to_os_names(dist)
+        ])
+    elif dist.name == "raspbian":
+        return _find_llvm_basenames_by_stem([
+            "clang+llvm-{llvm_version}-{arch}-{os}".format(
+                llvm_version = llvm_version,
+                arch = arch,
+                os = select_os,
+            )
+            for select_os in ["linux-gnueabihf", "linux-gnu"]
+        ])
     elif os == "darwin":
         return _find_llvm_basenames_by_stem([
             "clang+llvm-{llvm_version}-{arch}-{os}".format(
@@ -839,9 +853,9 @@ def _find_llvm_basename_list(llvm_version, arch, os, dist):
                 arch = {
                     "aarch64": "arm64",
                 }.get(arch, arch),
-                os = apple_os,
+                os = select_os,
             )
-            for apple_os in ["apple-darwin", "apple-macos", "darwin-apple"]
+            for select_os in ["apple-darwin", "apple-macos", "darwin-apple"]
         ], True)
     elif os == "windows":
         return _find_llvm_basenames_by_stem([
