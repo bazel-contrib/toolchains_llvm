@@ -737,7 +737,7 @@ def _get_llvm_version(rctx):
         )
     return llvm_version
 
-_UBUNTU_NAMES = ["arch", "manjaro", "nixos", "pop", "ubuntu"]
+_UBUNTU_NAMES = ["arch", "linuxmint", "manjaro", "nixos", "pop", "ubuntu"]
 
 _UBUNTU_VERSIONS = [
     "linux-ubuntu-20.04",

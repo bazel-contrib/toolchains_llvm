@@ -70,11 +70,7 @@ def _linux(llvm_version, distname, version, arch):
     # NOTE: Many of these systems are untested because I do not have access to them.
     # If you find this mapping wrong, please send a Pull Request on GitHub.
     os_name = None
-    if ((distname in ["linuxmint"]) and (version.startswith("21") or version.startswith("20") or version.startswith("19"))):
-        os_name = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version)
-    elif distname == "linuxmint" and version.startswith("18"):
-        os_name = "linux-gnu-ubuntu-16.04"
-    elif distname == "debian":
+    if distname == "debian":
         int_version = 0
         if version.isdigit():
             int_version = int(version)
