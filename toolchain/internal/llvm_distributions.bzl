@@ -821,7 +821,7 @@ def _write_distributions_impl(ctx):
         "linux",
         "windows",
     ]
-    ANY_VER = "0" # Version does not matter, but must be valie integer
+    ANY_VER = "0"  # Version does not matter, but must be valie integer
     dist_dict_list = {
         "linux": [
             # struct(name = "ibm-aix", version = "7.2"),        unreachable
@@ -898,14 +898,14 @@ def _write_distributions_impl(ctx):
                     basenames = _find_llvm_basename_list(version, arch, os)
                     if _version_le(version, "20.1.3"):
                         predicted = _llvm_release_name_host_info(
-                                version,
-                                struct(
-                                    arch = arch,
-                                    os = os,
-                                    dist = dist,
-                                ),
-                                False,
-                            )
+                            version,
+                            struct(
+                                arch = arch,
+                                os = os,
+                                dist = dist,
+                            ),
+                            False,
+                        )
                         if not predicted.startswith("ERROR:"):
                             if predicted.endswith(".exe"):
                                 predicted = "ERROR: Windows .exe is not supported: " + predicted

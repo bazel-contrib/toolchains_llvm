@@ -36,3 +36,18 @@ diff_test(
     file1 = "llvm_distributions.golden.sel.txt",
     file2 = "llvm_distributions.sel.txt",
 )
+
+sh_test(
+    name = "llvm_distributions_select_no_error_test",
+    srcs = ["llvm_distributions_select_no_error_test.sh"],
+    data = [
+        "llvm_distributions.golden.sel.txt",
+        "llvm_distributions.sel.txt",
+    ],
+    # Restrict to Linux. While this would also work for MacOS the restriction
+    # only works for one platform. To select two platforms we would need to use
+    # `select`. That can be made work with `tag = select...manual`.
+    target_compatible_with = [
+        "@platforms//os:linux",
+    ],
+)
