@@ -926,7 +926,7 @@ def _host_can_be_found(major_llvm_version, host_info):
         return True
     if host_info.dist.name in ["raspbian"]:
         return True
-    if _dist_to_os_names(host_info.dist.name):
+    if _dist_to_os_names(host_info.dist):
         return True
     if host_info.arch in ["aarch64", "armv7a", "mips", "mipsel"]:
         return True
