@@ -752,8 +752,10 @@ def _dist_to_os_names(dist, default_os_names = []):
             "linux-sles12.2",
             "linux-sles11.3",
             "linux-sles",
+            "unknown-linux-gnu-rhel86",
             "linux-gnu-ubuntu-24.04",
             "linux-gnu-ubuntu-22.04",
+            "linux-gnu-ubuntu-20.04",
             "linux-gnu-ubuntu-18.04",
             "linux-gnu-ubuntu-16.04",
             "linux-gnu-ubuntu-",
@@ -769,11 +771,14 @@ def _find_llvm_basenames_by_stem(prefixes, is_prefix = False):
             basename = prefix + suffix
             if basename in _llvm_distributions:
                 return [basename]
-            if is_prefix:
-                for llvm_dist in _llvm_distributions:
-                    if llvm_dist.startswith(prefix) and llvm_dist.endswith(suffix):
-                        if llvm_dist not in basenames:
-                            basenames.append(llvm_dist)
+        if not is_prefix:
+            continue
+        for llvm_dist in _llvm_distributions:
+            if not llvm_dist.startswith(prefix):
+                continue
+            for suffix in [".tar.gz", ".tar.xz"]:
+                if llvm_dist.endswith(suffix) and llvm_dist not in basenames:
+                    basenames.append(llvm_dist)
     return basenames
 
 def _find_llvm_basename_list(llvm_version, arch, os, dist):
@@ -1048,6 +1053,9 @@ def _write_distributions_impl(ctx):
             struct(name = "suse", version = "12.2"),
             struct(name = "suse", version = "12.3"),
             struct(name = "suse", version = "12.4"),
+            struct(name = "suse", version = "15.5"),
+            struct(name = "suse", version = "16.0"),
+            struct(name = "suse", version = "17.0"),
             struct(name = "ubuntu", version = "14.04"),
             struct(name = "ubuntu", version = "16.04"),
             struct(name = "ubuntu", version = "18.04.5"),
