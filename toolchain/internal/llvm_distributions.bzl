@@ -738,6 +738,8 @@ def _get_llvm_version(rctx):
     return llvm_version
 
 def _dist_to_os_names(dist, default_os_names = []):
+    if dist.name == "centos":
+        return ["linux-gnu", "unknown-linux-gnu"]
     if dist.name == "freebsd":
         return ["unknown-freebsd", "unknown-freebsd-"]
     if dist.name in ["rhel", "ol", "almalinux"]:
@@ -885,7 +887,7 @@ def _find_llvm_basename_list(llvm_version, arch, os, dist):
                 ])
                 if basenames:
                     return basenames
-                if dist.name not in ["freebsd"]:
+                if dist.name not in ["centos", "freebsd"]:
                     prefixes.append("clang+llvm-{llvm_version}-{arch}-{dist_name}".format(
                         llvm_version = llvm_version,
                         arch = arch_alias,

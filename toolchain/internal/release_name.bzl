@@ -64,18 +64,6 @@ def _ubuntu_osname(arch, version, major_llvm_version, llvm_version):
 
     return os_name, None
 
-def _resolve_version_for_suse(major_llvm_version, llvm_version):
-    minor_llvm_version = _minor_llvm_version(llvm_version)
-    if major_llvm_version < 10:
-        os_name = "linux-sles11.3"
-    elif major_llvm_version == 10 and minor_llvm_version == 0:
-        os_name = "linux-sles11.3"
-    elif major_llvm_version < 13 or (major_llvm_version == 14 and minor_llvm_version == 0):
-        os_name = "linux-sles12.4"
-    else:
-        return _ubuntu_osname("x86_64", "20.04", major_llvm_version, llvm_version)
-    return os_name, None
-
 def _linux(llvm_version, distname, version, arch):
     major_llvm_version = _major_llvm_version(llvm_version)
 
@@ -99,11 +87,8 @@ def _linux(llvm_version, distname, version, arch):
                 os_name, error = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version)
         elif int_version == 8 and major_llvm_version < 7:
             os_name = "linux-gnu-debian8"
-    elif ((distname == "fedora" and int(version) >= 27) or
-          (distname == "centos" and int(version) >= 7)) and major_llvm_version < 7:
+    elif distname == "fedora" and int(version) >= 27 and major_llvm_version < 7:
         os_name = "linux-gnu-Fedora27"
-    elif distname == "centos" and major_llvm_version >= 7:
-        os_name, error = _resolve_version_for_suse(major_llvm_version, llvm_version)
     elif distname == "fedora" and major_llvm_version >= 7:
         os_name = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version)
     elif distname in ["arch", "manjaro", "nixos"]:
