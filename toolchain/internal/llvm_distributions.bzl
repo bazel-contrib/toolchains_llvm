@@ -825,8 +825,6 @@ def _write_distributions_impl(ctx):
     dist_dict_list = {
         "linux": [
             # struct(name = "ibm-aix", version = "7.2"),        unreachable
-            # struct(name = "linux-gnu-debian", version = "8"), unreachable
-            # struct(name = "linux-gnu-rhel", version = "8.4"), unreachable
             # keep sorted
             struct(name = "amzn", version = ANY_VER),
             struct(name = "arch", version = ANY_VER),
@@ -837,11 +835,11 @@ def _write_distributions_impl(ctx):
             struct(name = "debian", version = "9"),
             struct(name = "fedora", version = "26"),
             struct(name = "fedora", version = "27"),
+            struct(name = "fedora", version = "42"),
             struct(name = "freebsd", version = "10"),
             struct(name = "freebsd", version = "11"),
             struct(name = "freebsd", version = "12"),
             struct(name = "freebsd", version = "13"),
-            struct(name = "linux-gnu-Fedora", version = "27"),
             struct(name = "linuxmint", version = "18"),
             struct(name = "linuxmint", version = "19"),
             struct(name = "pc-solaris", version = "2.11"),
