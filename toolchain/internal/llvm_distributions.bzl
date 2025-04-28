@@ -783,6 +783,8 @@ def _dist_to_os_names(dist, default_os_names = []):
             "linux-gnu-Fedora27",
             "linux-gnu",
             "unknown-linux-gnu",
+            # The ubuntu list could be replaced with _UBUNTU_VERSIONS which
+            # spawns more selections and changes a few to neer ubuntu versions.
             "linux-gnu-ubuntu-22.04",
             "linux-gnu-ubuntu-20.04",
             "linux-gnu-ubuntu-18.04",
@@ -801,7 +803,7 @@ def _dist_to_os_names(dist, default_os_names = []):
         ] + _UBUNTU_VERSIONS
     return default_os_names
 
-def _find_llvm_basenames_by_stem(prefixes, is_prefix = False):
+def _find_llvm_basenames_by_stem(prefixes, *, is_prefix = False, return_first_match = False):
     basenames = []
     for prefix in prefixes:
         for suffix in [".tar.gz", ".tar.xz"]:
@@ -815,6 +817,8 @@ def _find_llvm_basenames_by_stem(prefixes, is_prefix = False):
                 continue
             for suffix in [".tar.gz", ".tar.xz"]:
                 if llvm_dist.endswith(suffix) and llvm_dist not in basenames:
+                    if return_first_match:
+                        return [llvm_dist]
                     basenames.append(llvm_dist)
     return basenames
 
@@ -850,7 +854,7 @@ def _find_llvm_basename_list(llvm_version, arch, os, dist):
                 os = select_os,
             )
             for select_os in ["apple-darwin", "apple-macos", "darwin-apple"]
-        ], True)
+        ], is_prefix = True)
     elif os == "windows":
         return _find_llvm_basenames_by_stem([
             "clang+llvm-{llvm_version}-{arch}-{os}".format(
@@ -860,22 +864,19 @@ def _find_llvm_basename_list(llvm_version, arch, os, dist):
             ),
         ])
     elif dist.name in ["amzn", "suse"] and arch == "x86_64":
-        names = _find_llvm_basenames_by_stem([
+        return _find_llvm_basenames_by_stem([
             "clang+llvm-{llvm_version}-{arch}-{os}".format(
                 llvm_version = llvm_version,
                 arch = arch,
                 os = suse_os,
             )
             for suse_os in _dist_to_os_names(dist)
-        ], True)
-        if names:
-            return [names[0]]
-        return []
+        ], is_prefix = True, return_first_match = True)
     elif dist.name in _UBUNTU_NAMES:
         arch_list = {
             "sparcv9": ["sparc64", "sparcv9"],
         }.get(arch, [arch])
-        names = _find_llvm_basenames_by_stem([
+        return _find_llvm_basenames_by_stem([
             "clang+llvm-{llvm_version}-{arch}-{os}".format(
                 llvm_version = llvm_version,
                 arch = select_arch,
@@ -883,10 +884,7 @@ def _find_llvm_basename_list(llvm_version, arch, os, dist):
             )
             for select_os in _dist_to_os_names(dist)
             for select_arch in arch_list
-        ])
-        if names:
-            return [names[0]]
-        return []
+        ], return_first_match = True)
     elif dist.name == "fedora" and arch not in ["sparc64", "sparcv9"]:
         return _find_llvm_basenames_by_stem([
             "clang+llvm-{llvm_version}-{arch}-{os}".format(
@@ -947,7 +945,7 @@ def _find_llvm_basename_list(llvm_version, arch, os, dist):
                         arch = arch_alias,
                         dist_name = dist_name,
                     ))
-        names = _find_llvm_basenames_by_stem(prefixes, True)
+        names = _find_llvm_basenames_by_stem(prefixes, is_prefix = True)
         if names and dist.name == "ubuntu":
             return [names[-1]]
         return names
