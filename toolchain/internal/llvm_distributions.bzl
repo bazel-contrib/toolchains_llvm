@@ -783,7 +783,10 @@ def _dist_to_os_names(dist, default_os_names = []):
             "linux-gnu-Fedora27",
             "linux-gnu",
             "unknown-linux-gnu",
+            "linux-gnu-ubuntu-22.04",
             "linux-gnu-ubuntu-20.04",
+            "linux-gnu-ubuntu-18.04",
+            "linux-gnu-ubuntu-16.04",
         ]
     if dist.name == "freebsd":
         return ["unknown-freebsd", "unknown-freebsd-"]
@@ -1091,11 +1094,11 @@ def _write_distributions_impl(ctx):
             struct(name = "debian", version = "9"),
             struct(name = "fedora", version = "26"),
             struct(name = "fedora", version = "27"),
+            struct(name = "fedora", version = "42"),
             struct(name = "freebsd", version = "10"),
             struct(name = "freebsd", version = "11"),
             struct(name = "freebsd", version = "12"),
             struct(name = "freebsd", version = "13"),
-            struct(name = "linux-gnu-Fedora", version = "27"),
             struct(name = "linuxmint", version = "18"),
             struct(name = "linuxmint", version = "19"),
             struct(name = "pc-solaris", version = "2.11"),
