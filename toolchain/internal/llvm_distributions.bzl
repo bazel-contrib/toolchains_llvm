@@ -742,7 +742,9 @@ def _dist_to_os_names(dist, default_os_names = []):
         return ["unknown-freebsd", "unknown-freebsd-"]
     if dist.name in ["rhel", "ol", "almalinux"]:
         return ["linux-rhel-", "linux-gnu-rhel-"]
-    if dist.name == "suse":
+    if dist.name in ["amzn", "suse"]:
+        # For "amzn" based on the ID_LIKE field, sles seems like the closest
+        # available distro for which LLVM releases are widely available.
         return [
             # The order is important here as we want to find the best match
             # without implmenting complex version comparisons.
@@ -816,7 +818,7 @@ def _find_llvm_basename_list(llvm_version, arch, os, dist):
                 os = "linux-gnu",
             ),
         ])
-    elif dist.name == "suse" and arch == "x86_64":
+    elif dist.name in ["amzn", "suse"] and arch == "x86_64":
         names = _find_llvm_basenames_by_stem([
             "clang+llvm-{llvm_version}-{arch}-{os}".format(
                 llvm_version = llvm_version,

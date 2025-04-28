@@ -105,14 +105,8 @@ def _linux(llvm_version, distname, version, arch):
     elif distname == "centos" and major_llvm_version >= 7:
         os_name, error = _resolve_version_for_suse(major_llvm_version, llvm_version)
     elif distname == "fedora" and major_llvm_version >= 7:
-        os_name, error = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version)
+        os_name = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version)
     elif distname in ["arch", "manjaro", "nixos"]:
-        os_name, error = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version)
-    elif distname == "amzn":
-        # Based on the ID_LIKE field, sles seems like the closest available
-        # distro for which LLVM releases are widely available.
-        os_name = _resolve_version_for_suse(major_llvm_version, llvm_version)
-    elif distname == "nixos":
         os_name = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version)
 
     if not os_name and not error:
