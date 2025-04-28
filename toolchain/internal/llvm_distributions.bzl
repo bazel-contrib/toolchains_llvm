@@ -737,14 +737,28 @@ def _get_llvm_version(rctx):
         )
     return llvm_version
 
-def _distname_os_names(dist_name, default_os_names = []):
-    if dist_name == "freebsd":
+def _dist_to_os_names(dist, default_os_names = []):
+    if dist.name == "freebsd":
         return ["unknown-freebsd", "unknown-freebsd-"]
-    if dist_name in ["rhel", "ol", "almalinux"]:
+    if dist.name in ["rhel", "ol", "almalinux"]:
         return ["linux-rhel-", "linux-gnu-rhel-"]
-    if dist_name == "suse":
-        return ["linux-sles", "linux-gnu-ubuntu-"]
-    if dist_name == "ubuntu":
+    if dist.name == "suse":
+        return [
+            # The order is important here as we want to find the best match
+            # without implmenting complex version comparisons.
+            "linux-sles" + dist.version,
+            "linux-sles12.4",
+            "linux-sles12.3",
+            "linux-sles12.2",
+            "linux-sles11.3",
+            "linux-sles",
+            "linux-gnu-ubuntu-24.04",
+            "linux-gnu-ubuntu-22.04",
+            "linux-gnu-ubuntu-18.04",
+            "linux-gnu-ubuntu-16.04",
+            "linux-gnu-ubuntu-",
+        ]
+    if dist.name == "ubuntu":
         return ["linux-gnu-ubuntu-", "linux-ubuntu-"]
     return default_os_names
 
@@ -797,6 +811,18 @@ def _find_llvm_basename_list(llvm_version, arch, os, dist):
                 os = "linux-gnu",
             ),
         ])
+    elif dist.name == "suse" and arch == "x86_64":
+        names = _find_llvm_basenames_by_stem([
+            "clang+llvm-{llvm_version}-{arch}-{os}".format(
+                llvm_version = llvm_version,
+                arch = arch,
+                os = suse_os,
+            )
+            for suse_os in _dist_to_os_names(dist)
+        ], True)
+        if names:
+            return [names[0]]
+        return []
     elif os == "darwin":
         return _find_llvm_basenames_by_stem([
             "clang+llvm-{llvm_version}-{arch}-{os}".format(
@@ -840,7 +866,7 @@ def _find_llvm_basename_list(llvm_version, arch, os, dist):
         }.get(arch, [arch])
 
         prefixes = []
-        for dist_name in _distname_os_names(dist.name, [dist.name]):
+        for dist_name in _dist_to_os_names(dist, [dist.name]):
             for arch_alias in arch_alias_list:
                 basenames = _find_llvm_basenames_by_stem([
                     "clang+llvm-{llvm_version}-{arch}-{dist_name}{dist_version}".format(
@@ -900,7 +926,7 @@ def _host_can_be_found(major_llvm_version, host_info):
         return True
     if host_info.dist.name in ["raspbian"]:
         return True
-    if _distname_os_names(host_info.dist.name):
+    if _dist_to_os_names(host_info.dist.name):
         return True
     if host_info.arch in ["aarch64", "armv7a", "mips", "mipsel"]:
         return True

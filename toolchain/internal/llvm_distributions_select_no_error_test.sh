@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -euxo pipefail
+set -euo pipefail
 
 grep -v "ERROR:" \
   "${TEST_SRCDIR}/_main/toolchain/internal/llvm_distributions.golden.sel.txt" \
