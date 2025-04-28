@@ -235,6 +235,9 @@ def llvm_release_name_19(llvm_version, rctx_arch, rctx_os):
     )
 
 def llvm_release_name_host_info(llvm_version, host_info, should_fail):
+    major_llvm_version = _major_llvm_version(llvm_version)
+    if major_llvm_version >= 19:
+        return llvm_release_name_19(llvm_version, host_info.arch, host_info.os)
     if host_info.os == "darwin":
         return _darwin(llvm_version, host_info.arch)
     elif host_info.os == "windows":
@@ -243,8 +246,4 @@ def llvm_release_name_host_info(llvm_version, host_info, should_fail):
         return _linux(llvm_version, host_info.dist.name, host_info.dist.version, host_info.arch, should_fail)
 
 def llvm_release_name_context(rctx, llvm_version):
-    major_llvm_version = _major_llvm_version(llvm_version)
-    host_info = _host_info(rctx)
-    if major_llvm_version >= 19:
-        return llvm_release_name_19(llvm_version, host_info.arch, host_info.os)
-    return llvm_release_name_host_info(llvm_version, host_info, True)
+    return llvm_release_name_host_info(llvm_version, _host_info(rctx), True)
