@@ -186,7 +186,7 @@ def _linux(llvm_version, distname, version, arch, should_fail):
         os_name = _resolve_version_for_suse(major_llvm_version, llvm_version, should_fail)
     elif distname == "fedora" and major_llvm_version >= 7:
         os_name = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version, should_fail)
-    elif distname in ["arch", "manjaro"]:
+    elif distname in ["arch", "manjaro", "nixos"]:
         os_name = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version, should_fail)
     elif distname == "amzn":
         # Based on the ID_LIKE field, sles seems like the closest available
@@ -197,8 +197,6 @@ def _linux(llvm_version, distname, version, arch, should_fail):
         os_name = "linux-gnueabihf"
     elif distname in ["rhel", "ol", "almalinux"]:
         os_name = _rhel_osname(arch, version, major_llvm_version, llvm_version, should_fail)
-    elif distname == "nixos":
-        os_name = _ubuntu_osname(arch, "20.04", major_llvm_version, llvm_version, should_fail)
 
     if not os_name:
         error = "ERROR: Unsupported linux distribution and version: %s, %s" % (distname, version)

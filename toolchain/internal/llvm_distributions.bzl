@@ -824,15 +824,26 @@ def _write_distributions_impl(ctx):
     ANY_VER = "0"  # Version does not matter, but must be valie integer
     dist_dict_list = {
         "linux": [
-            # keep sorted
             # struct(name = "ibm-aix", version = "7.2"),        unreachable
             # struct(name = "linux-gnu-debian", version = "8"), unreachable
             # struct(name = "linux-gnu-rhel", version = "8.4"), unreachable
+            # keep sorted
+            struct(name = "amzn", version = ANY_VER),
+            struct(name = "arch", version = ANY_VER),
+            struct(name = "centos", version = "6"),
+            struct(name = "centos", version = "7"),
+            struct(name = "debian", version = "0"),
+            struct(name = "debian", version = "8"),
+            struct(name = "debian", version = "9"),
+            struct(name = "fedora", version = "26"),
+            struct(name = "fedora", version = "27"),
             struct(name = "freebsd", version = "10"),
             struct(name = "freebsd", version = "11"),
             struct(name = "freebsd", version = "12"),
             struct(name = "freebsd", version = "13"),
             struct(name = "linux-gnu-Fedora", version = "27"),
+            struct(name = "linuxmint", version = "18"),
+            struct(name = "linuxmint", version = "19"),
             struct(name = "pc-solaris", version = "2.11"),
             struct(name = "raspbian", version = ANY_VER),
             struct(name = "rhel", version = ANY_VER),
@@ -912,6 +923,10 @@ def _write_distributions_impl(ctx):
                                 predicted = "ERROR: Windows .exe is not supported: " + predicted
                             elif predicted not in _llvm_distributions:
                                 predicted = "ERROR: Unavailable prediction: " + predicted
+                            else:
+                                arch_found = [arch for arch in arch_list if arch in predicted]
+                                if len(arch_found) == 1 and arch_found[0] != arch:
+                                    predicted = "ERROR: Bad arch selection: " + predicted
                         select.append("{version}-{arch}-{os}/{dist_name}/{dist_version} -> {basename}".format(
                             version = version,
                             arch = arch,
