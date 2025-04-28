@@ -807,7 +807,7 @@ def _write_distributions_impl(ctx):
     """
     arch_list = [
         "aarch64",
-        "armv7",
+        "armv7a",
         "mips",
         "mipsel",
         "powerpc64",
@@ -824,31 +824,32 @@ def _write_distributions_impl(ctx):
     ANY_VER = "0"  # Version does not matter, but must be valie integer
     dist_dict_list = {
         "linux": [
+            # keep sorted
             # struct(name = "ibm-aix", version = "7.2"),        unreachable
             # struct(name = "linux-gnu-debian", version = "8"), unreachable
             # struct(name = "linux-gnu-rhel", version = "8.4"), unreachable
-            struct(name = "ubuntu", version = "14.04"),
-            struct(name = "ubuntu", version = "16.04"),
-            struct(name = "ubuntu", version = "18.04"),
-            struct(name = "ubuntu", version = "18.04.5"),
-            struct(name = "ubuntu", version = "18.04.6"),
-            struct(name = "ubuntu", version = "20.04"),
-            struct(name = "ubuntu", version = "20.10"),
-            struct(name = "ubuntu", version = "22.04"),
-            struct(name = "ubuntu", version = "24.04"),
-            struct(name = "raspbian", version = ANY_VER),
-            struct(name = "rhel", version = ANY_VER),
-            struct(name = "suse", version = "11.3"),
-            struct(name = "suse", version = "12.2"),
-            struct(name = "suse", version = "12.3"),
-            struct(name = "suse", version = "12.4"),
-            struct(name = "linux-gnu-Fedora", version = "27"),
-            struct(name = "pc-solaris", version = "2.11"),
-            struct(name = "sun-solaris", version = "2.11"),
             struct(name = "freebsd", version = "10"),
             struct(name = "freebsd", version = "11"),
             struct(name = "freebsd", version = "12"),
             struct(name = "freebsd", version = "13"),
+            struct(name = "linux-gnu-Fedora", version = "27"),
+            struct(name = "pc-solaris", version = "2.11"),
+            struct(name = "raspbian", version = ANY_VER),
+            struct(name = "rhel", version = ANY_VER),
+            struct(name = "sun-solaris", version = "2.11"),
+            struct(name = "suse", version = "11.3"),
+            struct(name = "suse", version = "12.2"),
+            struct(name = "suse", version = "12.3"),
+            struct(name = "suse", version = "12.4"),
+            struct(name = "ubuntu", version = "14.04"),
+            struct(name = "ubuntu", version = "16.04"),
+            struct(name = "ubuntu", version = "18.04.5"),
+            struct(name = "ubuntu", version = "18.04.6"),
+            struct(name = "ubuntu", version = "18.04"),
+            struct(name = "ubuntu", version = "20.04"),
+            struct(name = "ubuntu", version = "20.10"),
+            struct(name = "ubuntu", version = "22.04"),
+            struct(name = "ubuntu", version = "24.04"),
         ],
     }
 
