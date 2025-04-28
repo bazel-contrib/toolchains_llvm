@@ -743,7 +743,7 @@ def _distname_os_names(dist_name, default_os_names = []):
     if dist_name in ["rhel", "ol", "almalinux"]:
         return ["linux-rhel-", "linux-gnu-rhel-"]
     if dist_name == "suse":
-        return ["linux-sles"]
+        return ["linux-sles", "linux-gnu-ubuntu-"]
     if dist_name == "ubuntu":
         return ["linux-gnu-ubuntu-", "linux-ubuntu-"]
     return default_os_names
@@ -785,11 +785,18 @@ def _find_llvm_basename_list(llvm_version, arch, os, dist):
 
     # By os...
     if dist.name == "raspbian":
-        return _find_llvm_basenames_by_stem(["clang+llvm-{llvm_version}-{arch}-{os}".format(
-            llvm_version = llvm_version,
-            arch = "armv7a",
-            os = "linux-gnueabihf",
-        )])
+        return _find_llvm_basenames_by_stem([
+            "clang+llvm-{llvm_version}-{arch}-{os}".format(
+                llvm_version = llvm_version,
+                arch = arch,
+                os = "linux-gnueabihf",
+            ),
+            "clang+llvm-{llvm_version}-{arch}-{os}".format(
+                llvm_version = llvm_version,
+                arch = arch,
+                os = "linux-gnu",
+            ),
+        ])
     elif os == "darwin":
         return _find_llvm_basenames_by_stem([
             "clang+llvm-{llvm_version}-{arch}-{os}".format(
@@ -845,7 +852,7 @@ def _find_llvm_basename_list(llvm_version, arch, os, dist):
                 ])
                 if basenames:
                     return basenames
-                if dist.name not in ["freebsd", "suse"]:
+                if dist.name not in ["freebsd"]:
                     prefixes.append("clang+llvm-{llvm_version}-{arch}-{dist_name}".format(
                         llvm_version = llvm_version,
                         arch = arch_alias,
@@ -856,19 +863,19 @@ def _find_llvm_basename_list(llvm_version, arch, os, dist):
             return [names[-1]]
         return names
     else:
-        fail("Unknown OS: {os}".format(os = os))
+        fail("ERROR: Unknown OS: {os}".format(os = os))
 
 def _find_llvm_basename_maybe_fail(llvm_version, arch, os, dist, should_fail):
     basenames = _find_llvm_basename_list(llvm_version, arch, os, dist)
     if len(basenames) > 1:
         if fail:
-            fail("Multiple configurations found [{basenames}].".format(
+            fail("ERROR: Multiple configurations found [{basenames}].".format(
                 basenames = ", ".join(basenames),
             ))
         return None
     if not basenames:
         if should_fail:
-            fail("No matching config could be found for version {llvm_version} on {os}/{dist_name}/{dist_version} with arch {arch}.".format(
+            fail("ERROR: No matching config could be found for version {llvm_version} on {os}/{dist_name}/{dist_version} with arch {arch}.".format(
                 llvm_version = llvm_version,
                 os = os,
                 dist_name = dist.name,
@@ -886,10 +893,12 @@ def _major_llvm_version(llvm_version):
     return int(llvm_version.split(".")[0])
 
 def _host_can_be_found(major_llvm_version, host_info):
-    """Return whether the basename can be found or needs to be predicted.""" 
+    """Return whether the basename can be found or needs to be predicted."""
     if major_llvm_version >= 19:
         return True
-    if host_info.os in ["darwin", "raspbian", "windows"]:
+    if host_info.os in ["darwin", "windows"]:
+        return True
+    if host_info.dist.name in ["raspbian"]:
         return True
     if _distname_os_names(host_info.dist.name):
         return True
@@ -968,7 +977,7 @@ def _write_distributions_impl(ctx):
     """
     arch_list = [
         "aarch64",
-        "armv7",
+        "armv7a",
         "mips",
         "mipsel",
         "powerpc64",
@@ -982,7 +991,7 @@ def _write_distributions_impl(ctx):
         "linux",
         "windows",
     ]
-    ANY_VER = "0" # Version does not matter, but must be valie integer
+    ANY_VER = "0"  # Version does not matter, but must be valie integer
     dist_dict_list = {
         "linux": [
             # struct(name = "ibm-aix", version = "7.2"),        unreachable

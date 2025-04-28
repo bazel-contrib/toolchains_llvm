@@ -1,7 +1,6 @@
 load(
     "//toolchain/internal:common.bzl",
     _host_info = "host_info",
-    _os = "os",
 )
 
 def _major_llvm_version(llvm_version):
