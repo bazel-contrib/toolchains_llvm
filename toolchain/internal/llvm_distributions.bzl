@@ -737,6 +737,24 @@ def _get_llvm_version(rctx):
         )
     return llvm_version
 
+_UBUNTU_NAMES = ["arch", "manjaro", "nixos", "pop", "ubuntu"]
+
+_UBUNTU_VERSIONS = [
+    "linux-ubuntu-20.04",
+    "linux-ubuntu-18.04",
+    "linux-ubuntu-18.04.6",
+    "linux-ubuntu-18.04.5",
+    "linux-ubuntu-16.04",
+    "linux-gnu-ubuntu-22.04",
+    "linux-gnu-ubuntu-20.10",
+    "linux-gnu-ubuntu-20.04",
+    "linux-gnu-ubuntu-18.04",
+    "linux-gnu-ubuntu-16.04",
+    "linux-gnu-ubuntu-14.04",
+    "linux-gnu",
+    "unknown-linux-gnu",
+]
+
 def _dist_to_os_names(dist, default_os_names = []):
     if dist.name in ["amzn", "suse"]:
         # For "amzn" based on the ID_LIKE field, sles seems like the closest
@@ -773,8 +791,11 @@ def _dist_to_os_names(dist, default_os_names = []):
         return ["linux-gnueabihf", "linux-gnu"]
     if dist.name in ["rhel", "ol", "almalinux"]:
         return ["linux-rhel-", "linux-gnu-rhel-"]
-    if dist.name == "ubuntu":
-        return ["linux-gnu-ubuntu-", "linux-ubuntu-"]
+    if dist.name in _UBUNTU_NAMES:
+        return [
+            "linux-gnu-ubuntu-" + dist.version,
+            "linux-ubuntu-" + dist.version,
+        ] + _UBUNTU_VERSIONS
     return default_os_names
 
 def _find_llvm_basenames_by_stem(prefixes, is_prefix = False):
@@ -815,8 +836,27 @@ def _find_llvm_basename_list(llvm_version, arch, os, dist):
     if basenames:
         return basenames
 
-    # First by dist, then by os...
-    if dist.name in ["amzn", "suse"] and arch == "x86_64":
+    # First by 'os'', then by 'dist', then the remaining Linux variants'...
+    if os == "darwin":
+        return _find_llvm_basenames_by_stem([
+            "clang+llvm-{llvm_version}-{arch}-{os}".format(
+                llvm_version = llvm_version,
+                arch = {
+                    "aarch64": "arm64",
+                }.get(arch, arch),
+                os = select_os,
+            )
+            for select_os in ["apple-darwin", "apple-macos", "darwin-apple"]
+        ], True)
+    elif os == "windows":
+        return _find_llvm_basenames_by_stem([
+            "clang+llvm-{llvm_version}-{arch}-{os}".format(
+                llvm_version = llvm_version,
+                arch = arch,
+                os = "pc-windows-msvc",
+            ),
+        ])
+    elif dist.name in ["amzn", "suse"] and arch == "x86_64":
         names = _find_llvm_basenames_by_stem([
             "clang+llvm-{llvm_version}-{arch}-{os}".format(
                 llvm_version = llvm_version,
@@ -825,6 +865,22 @@ def _find_llvm_basename_list(llvm_version, arch, os, dist):
             )
             for suse_os in _dist_to_os_names(dist)
         ], True)
+        if names:
+            return [names[0]]
+        return []
+    elif dist.name in _UBUNTU_NAMES:
+        arch_list = {
+            "sparcv9": ["sparc64", "sparcv9"],
+        }.get(arch, [arch])
+        names = _find_llvm_basenames_by_stem([
+            "clang+llvm-{llvm_version}-{arch}-{os}".format(
+                llvm_version = llvm_version,
+                arch = select_arch,
+                os = select_os,
+            )
+            for select_os in _dist_to_os_names(dist)
+            for select_arch in arch_list
+        ])
         if names:
             return [names[0]]
         return []
@@ -844,26 +900,7 @@ def _find_llvm_basename_list(llvm_version, arch, os, dist):
                 arch = arch,
                 os = select_os,
             )
-            for select_os in ["linux-gnueabihf", "linux-gnu"]
-        ])
-    elif os == "darwin":
-        return _find_llvm_basenames_by_stem([
-            "clang+llvm-{llvm_version}-{arch}-{os}".format(
-                llvm_version = llvm_version,
-                arch = {
-                    "aarch64": "arm64",
-                }.get(arch, arch),
-                os = select_os,
-            )
-            for select_os in ["apple-darwin", "apple-macos", "darwin-apple"]
-        ], True)
-    elif os == "windows":
-        return _find_llvm_basenames_by_stem([
-            "clang+llvm-{llvm_version}-{arch}-{os}".format(
-                llvm_version = llvm_version,
-                arch = arch,
-                os = "pc-windows-msvc",
-            ),
+            for select_os in _dist_to_os_names(dist)
         ])
     elif os == "linux":
         if arch in ["aarch64", "armv7a", "mips", "mipsel"]:
@@ -947,9 +984,7 @@ def _host_can_be_found(major_llvm_version, host_info):
         return True
     if host_info.os in ["darwin", "windows"]:
         return True
-    if host_info.dist.name in ["raspbian"]:
-        return True
-    if _dist_to_os_names(host_info.dist):
+    if _dist_to_os_names(host_info.dist, []):
         return True
     if host_info.arch in ["aarch64", "armv7a", "mips", "mipsel"]:
         return True
@@ -962,8 +997,8 @@ def _llvm_release_name(rctx, llvm_version):
     For versions 19+ or we os==darwin fail if the distribution cannot be found automatically."""
     major_llvm_version = _major_llvm_version(llvm_version)
     host_info = _host_info(rctx)
-    fail = _host_can_be_found(major_llvm_version, host_info)
-    basename = _find_llvm_basename_maybe_fail(llvm_version, host_info.arch, host_info.os, host_info.dist, fail)
+    should_fail = _host_can_be_found(major_llvm_version, host_info)
+    basename = _find_llvm_basename_maybe_fail(llvm_version, host_info.arch, host_info.os, host_info.dist, should_fail)
     if basename:
         return basename
     return _llvm_release_name_context(rctx, llvm_version)
