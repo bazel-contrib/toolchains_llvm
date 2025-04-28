@@ -819,9 +819,9 @@ def _write_distributions_impl(ctx):
     os_list = [
         "darwin",
         "linux",
-        "raspbian",
         "windows",
     ]
+    ANY_VER = "0" # Version does not matter, but must be valie integer
     dist_dict_list = {
         "linux": [
             # struct(name = "ibm-aix", version = "7.2"),        unreachable
@@ -836,7 +836,8 @@ def _write_distributions_impl(ctx):
             struct(name = "ubuntu", version = "20.10"),
             struct(name = "ubuntu", version = "22.04"),
             struct(name = "ubuntu", version = "24.04"),
-            struct(name = "rhel", version = "0"),  # Version does not matter, but must be valie integer
+            struct(name = "raspbian", version = ANY_VER),
+            struct(name = "rhel", version = ANY_VER),
             struct(name = "suse", version = "11.3"),
             struct(name = "suse", version = "12.2"),
             struct(name = "suse", version = "12.3"),
@@ -895,6 +896,29 @@ def _write_distributions_impl(ctx):
                 dist_list = dist_dict_list.get(os, [struct(name = os, version = "")])
                 for dist in dist_list:
                     basenames = _find_llvm_basename_list(version, arch, os)
+                    if _version_le(version, "20.1.3"):
+                        predicted = _llvm_release_name_host_info(
+                                version,
+                                struct(
+                                    arch = arch,
+                                    os = os,
+                                    dist = dist,
+                                ),
+                                False,
+                            )
+                        if not predicted.startswith("ERROR:"):
+                            if predicted.endswith(".exe"):
+                                predicted = "ERROR: Windows .exe is not supported: " + predicted
+                            elif predicted not in _llvm_distributions:
+                                predicted = "ERROR: Unavailable prediction: " + predicted
+                        select.append("{version}-{arch}-{os}/{dist_name}/{dist_version} -> {basename}".format(
+                            version = version,
+                            arch = arch,
+                            os = os,
+                            dist_name = dist.name,
+                            dist_version = dist.version,
+                            basename = predicted,
+                        ))
                     if len(basenames) != 1:
                         if basenames:
                             dupes.append("dup: {version}-{arch}-{os}-{dist_name}-{dist_version} -> {count}".format(
@@ -907,23 +931,6 @@ def _write_distributions_impl(ctx):
                             ))
                             dupes.extend(["   : " + basename for basename in basenames])
                         continue
-                    if _version_le(version, "20.1.3"):
-                        select.append("{version}-{arch}-{os}/{dist_name}/{dist_version} -> {basename}".format(
-                            version = version,
-                            arch = arch,
-                            os = os,
-                            dist_name = dist.name,
-                            dist_version = dist.version,
-                            basename = _llvm_release_name_host_info(
-                                version,
-                                struct(
-                                    arch = arch,
-                                    os = os,
-                                    dist = dist,
-                                ),
-                                False,
-                            ),
-                        ))
                     basename = basenames[0]
                     if basename in _llvm_distributions:
                         if basename in not_found:
