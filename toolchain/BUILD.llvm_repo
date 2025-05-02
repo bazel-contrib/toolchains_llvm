@@ -18,8 +18,8 @@ package(default_visibility = ["//visibility:public"])
 exports_files(glob(
     [
         "bin/*",
-        "lib/*",
-        "include/*",
+        "lib/**",
+        "include/**",
         "share/clang/*",
     ],
     allow_empty = True,
