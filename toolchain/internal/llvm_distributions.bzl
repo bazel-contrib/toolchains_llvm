@@ -908,31 +908,30 @@ def _write_distributions_impl(ctx):
                 for dist in dist_list:
                     basenames = _find_llvm_basename_list(_version_string(version), arch, os)
                     if version <= MAX_VERSION:
-                        predicted = llvm_release_name_host_info(
+                        predicted, error = llvm_release_name_host_info(
                             _version_string(version),
                             struct(
                                 arch = arch,
                                 os = os,
                                 dist = dist,
                             ),
-                            False,
                         )
-                        if not predicted.startswith("ERROR:"):
+                        if not error:
                             if predicted.endswith(".exe"):
-                                predicted = "ERROR: Windows .exe is not supported: " + predicted
+                                error = "ERROR: Windows .exe is not supported: " + predicted
                             elif predicted not in _llvm_distributions:
-                                predicted = "ERROR: Unavailable prediction: " + predicted
+                                error = "ERROR: Unavailable prediction: " + predicted
                             else:
                                 arch_found = [arch for arch in arch_list if arch in predicted]
                                 if len(arch_found) == 1 and arch_found[0] != arch:
-                                    predicted = "ERROR: Bad arch selection: " + predicted
+                                    error = "ERROR: Bad arch selection: " + predicted
                         select.append("{version}-{arch}-{os}/{dist_name}/{dist_version} -> {basename}".format(
                             version = _version_string(version),
                             arch = arch,
                             os = os,
                             dist_name = dist.name,
                             dist_version = dist.version,
-                            basename = predicted,
+                            basename = error or predicted,
                         ))
                     if len(basenames) != 1:
                         if basenames:
