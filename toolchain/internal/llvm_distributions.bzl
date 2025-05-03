@@ -818,7 +818,7 @@ def _write_distributions_impl(ctx):
         "linux",
         "windows",
     ]
-    ANY_VERSION = "0"  # Version does not matter, but must be valid integer
+    ANY_VERSION = "0"  # Version does not matter, but must be a valid integer
     dist_dict_list = {
         "linux": [
             # struct(name = "ibm-aix", version = "7.2"),        unreachable
