@@ -208,7 +208,7 @@ def _linux(llvm_version, distname, version, arch):
     )
     return name, None
 
-def llvm_release_name_19(llvm_version, rctx_arch, rctx_os):
+def _llvm_release_name_19(llvm_version, rctx_arch, rctx_os):
     arch = {
         "aarch64": "ARM64",
         "x86_64": "X64",
@@ -231,7 +231,7 @@ def llvm_release_name_19(llvm_version, rctx_arch, rctx_os):
 def llvm_release_name_host_info(llvm_version, host_info):
     major_llvm_version = _major_llvm_version(llvm_version)
     if major_llvm_version >= 19:
-        return llvm_release_name_19(llvm_version, host_info.arch, host_info.os), None
+        return _llvm_release_name_19(llvm_version, host_info.arch, host_info.os), None
     if host_info.os == "darwin":
         return _darwin(llvm_version, host_info.arch), None
     elif host_info.os == "windows":

@@ -21,7 +21,6 @@ load(
 )
 load(
     "//toolchain/internal:release_name.bzl",
-    "llvm_release_name_19",
     "llvm_release_name_context",
     "llvm_release_name_host_info",
 )
@@ -742,9 +741,9 @@ def _get_llvm_version(rctx):
         )
     return llvm_version
 
-def _find_llvm_basename_list(llvm_version, arch, os):
+def _find_llvm_basename_list(llvm_version, host_info):
     """Lookup (llvm_version, arch, os) in the list of basenames in `_llvm_distributions.`"""
-    name = llvm_release_name_19(llvm_version, arch, os)
+    name, _ = llvm_release_name_host_info(llvm_version, host_info)
     if name in _llvm_distributions:
         return [name]
     return []
@@ -906,15 +905,16 @@ def _write_distributions_impl(ctx):
             for os in os_list:
                 dist_list = dist_dict_list.get(os, [struct(name = os, version = "")])
                 for dist in dist_list:
-                    basenames = _find_llvm_basename_list(_version_string(version), arch, os)
+                    host_info = struct(
+                        arch = arch,
+                        os = os,
+                        dist = dist,
+                    )
+                    basenames = _find_llvm_basename_list(_version_string(version), host_info)
                     if version <= MAX_VERSION:
                         predicted, error = llvm_release_name_host_info(
                             _version_string(version),
-                            struct(
-                                arch = arch,
-                                os = os,
-                                dist = dist,
-                            ),
+                            host_info,
                         )
                         if not error:
                             if predicted.endswith(".exe"):
