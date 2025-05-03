@@ -1,4 +1,4 @@
-load("//toolchain/internal:common.bzl", _host_info = "host_info")
+load("//toolchain/internal:common.bzl", "host_info")
 
 def _major_llvm_version(llvm_version):
     return int(llvm_version.split(".")[0])
@@ -244,4 +244,4 @@ def llvm_release_name_host_info(llvm_version, host_info, should_fail):
         return _linux(llvm_version, host_info.dist.name, host_info.dist.version, host_info.arch, should_fail)
 
 def llvm_release_name_context(rctx, llvm_version):
-    return llvm_release_name_host_info(llvm_version, _host_info(rctx), True)
+    return llvm_release_name_host_info(llvm_version, host_info(rctx), True)

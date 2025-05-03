@@ -15,15 +15,15 @@
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "read_netrc", "use_netrc")
 load(
     "//toolchain/internal:common.bzl",
-    _attr_dict = "attr_dict",
-    _exec_os_arch_dict_value = "exec_os_arch_dict_value",
-    _host_info = "host_info",
+    "attr_dict",
+    "exec_os_arch_dict_value",
+    "host_info",
 )
 load(
     "//toolchain/internal:release_name.bzl",
-    _llvm_release_name_19 = "llvm_release_name_19",
-    _llvm_release_name_context = "llvm_release_name_context",
-    _llvm_release_name_host_info = "llvm_release_name_host_info",
+    "llvm_release_name_19",
+    "llvm_release_name_context",
+    "llvm_release_name_host_info",
 )
 
 # If a new LLVM version is missing from this list, please add the shasums here
@@ -710,13 +710,13 @@ def download_llvm(rctx):
                 lib_path = clang_version.get_child("lib", lib_name)
                 rctx.file(lib_path, libclang_rt_content, legacy_utf8 = False)
 
-    updated_attrs = _attr_dict(rctx.attr)
+    updated_attrs = attr_dict(rctx.attr)
     if update_sha256:
         updated_attrs["sha256"].update([(key, res.sha256)])
     return updated_attrs
 
 def _urls(rctx):
-    (key, urls) = _exec_os_arch_dict_value(rctx, "urls", debug = False)
+    (key, urls) = exec_os_arch_dict_value(rctx, "urls", debug = False)
     if not urls:
         print("LLVM archive URLs missing and no default fallback provided; will try 'distribution' attribute")  # buildifier: disable=print
 
@@ -730,9 +730,9 @@ def _get_llvm_version(rctx):
         return rctx.attr.llvm_version
     if not rctx.attr.llvm_versions:
         fail("Neither 'llvm_version' nor 'llvm_versions' given.")
-    (_, llvm_version) = _exec_os_arch_dict_value(rctx, "llvm_versions")
+    (_, llvm_version) = exec_os_arch_dict_value(rctx, "llvm_versions")
     if not llvm_version:
-        info = _host_info(rctx)
+        info = host_info(rctx)
         fail(
             "LLVM version string missing for ({os}/{dist_name}/{dist_verison}, {arch})",
             os = info.os,
@@ -744,7 +744,7 @@ def _get_llvm_version(rctx):
 
 def _find_llvm_basename_list(llvm_version, arch, os):
     """Lookup (llvm_version, arch, os) in the list of basenames in `_llvm_distributions.`"""
-    name = _llvm_release_name_19(llvm_version, arch, os)
+    name = llvm_release_name_19(llvm_version, arch, os)
     if name in _llvm_distributions:
         return [name]
     return []
@@ -754,7 +754,7 @@ def _distribution_urls(rctx):
     llvm_version = _get_llvm_version(rctx)
 
     if rctx.attr.distribution == "auto":
-        basename = _llvm_release_name_context(rctx, llvm_version)
+        basename = llvm_release_name_context(rctx, llvm_version)
     else:
         basename = rctx.attr.distribution
 
@@ -788,11 +788,8 @@ def _distribution_urls(rctx):
 def _parse_version(v):
     return tuple([int(s) for s in v.split(".")])
 
-def _version_ge(lhs, rhs):
-    return _parse_version(lhs) >= _parse_version(rhs)
-
-def _version_le(lhs, rhs):
-    return _parse_version(lhs) <= _parse_version(rhs)
+def _version_string(version):
+    return ".".join([str(v) for v in version])
 
 def _write_distributions_impl(ctx):
     """Analyze the configured versions and write to a file for test consumption.
@@ -821,13 +818,13 @@ def _write_distributions_impl(ctx):
         "linux",
         "windows",
     ]
-    ANY_VER = "0"  # Version does not matter, but must be valie integer
+    ANY_VERSION = "0"  # Version does not matter, but must be valid integer
     dist_dict_list = {
         "linux": [
             # struct(name = "ibm-aix", version = "7.2"),        unreachable
             # keep sorted
-            struct(name = "amzn", version = ANY_VER),
-            struct(name = "arch", version = ANY_VER),
+            struct(name = "amzn", version = ANY_VERSION),
+            struct(name = "arch", version = ANY_VERSION),
             struct(name = "centos", version = "6"),
             struct(name = "centos", version = "7"),
             struct(name = "debian", version = "0"),
@@ -843,8 +840,8 @@ def _write_distributions_impl(ctx):
             struct(name = "linuxmint", version = "18"),
             struct(name = "linuxmint", version = "19"),
             struct(name = "pc-solaris", version = "2.11"),
-            struct(name = "raspbian", version = ANY_VER),
-            struct(name = "rhel", version = ANY_VER),
+            struct(name = "raspbian", version = ANY_VERSION),
+            struct(name = "rhel", version = ANY_VERSION),
             struct(name = "sun-solaris", version = "2.11"),
             struct(name = "suse", version = "11.3"),
             struct(name = "suse", version = "12.2"),
@@ -866,33 +863,34 @@ def _write_distributions_impl(ctx):
     }
 
     # Compute all unique version strings starting with `MIN_VERSION`.
-    MIN_VERSION = "6.0.0"
+    MIN_VERSION = _parse_version("6.0.0")
+    MAX_VERSION = _parse_version("20.1.3")
     version_list = []
     for name in _llvm_distributions.keys():
         for prefix in ["LLVM-", "clang+llvm-"]:
             if name.startswith(prefix):
-                version = name.split("-", 2)[1]
-                if _version_ge(version, MIN_VERSION):
+                version = _parse_version(name.split("-", 2)[1])
+                if version >= MIN_VERSION:
                     version_list.append(version)
                 break
-    for version in _llvm_distributions_base_url.keys():
-        if not _version_ge(version, MIN_VERSION):
-            continue
-        version_list.append(version)
+    for v in _llvm_distributions_base_url.keys():
+        version = _parse_version(v)
+        if version >= MIN_VERSION:
+            version_list.append(version)
     versions = {v: None for v in version_list}
 
     # Write versions to output to check which versions we take into account.
     output = []
     select = []
     for version in versions.keys():
-        output.append("version: " + version)
+        output.append("version: " + _version_string(version))
 
     # We keep track of versions in `not_found` and remove the ones we found.
     # So at the end all version that were not found remain, hence the name.
     not_found = {
         k: v
         for k, v in _llvm_distributions.items()
-        if _version_ge(k.split("-")[1], MIN_VERSION)
+        if _parse_version(k.split("-")[1]) >= MIN_VERSION
     }
 
     # While computing we add predicted versions that are not configured as True.
@@ -908,10 +906,10 @@ def _write_distributions_impl(ctx):
             for os in os_list:
                 dist_list = dist_dict_list.get(os, [struct(name = os, version = "")])
                 for dist in dist_list:
-                    basenames = _find_llvm_basename_list(version, arch, os)
-                    if _version_le(version, "20.1.3"):
-                        predicted = _llvm_release_name_host_info(
-                            version,
+                    basenames = _find_llvm_basename_list(_version_string(version), arch, os)
+                    if version <= MAX_VERSION:
+                        predicted = llvm_release_name_host_info(
+                            _version_string(version),
                             struct(
                                 arch = arch,
                                 os = os,
@@ -929,7 +927,7 @@ def _write_distributions_impl(ctx):
                                 if len(arch_found) == 1 and arch_found[0] != arch:
                                     predicted = "ERROR: Bad arch selection: " + predicted
                         select.append("{version}-{arch}-{os}/{dist_name}/{dist_version} -> {basename}".format(
-                            version = version,
+                            version = _version_string(version),
                             arch = arch,
                             os = os,
                             dist_name = dist.name,
@@ -939,7 +937,7 @@ def _write_distributions_impl(ctx):
                     if len(basenames) != 1:
                         if basenames:
                             dupes.append("dup: {version}-{arch}-{os}-{dist_name}-{dist_version} -> {count}".format(
-                                version = version,
+                                version = _version_string(version),
                                 arch = arch,
                                 os = os,
                                 dist_name = dist.name,
