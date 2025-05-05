@@ -44,7 +44,7 @@ trap cleanup EXIT
 
 if [[ -f %{toolchain_path_prefix}bin/clang ]]; then
   execroot_path=""
-elif [[ ${BASH_SOURCE[0]} == "/"* ]]; then
+elif [[ ${BASH_SOURCE[0]} == "/"* ]] || [[ ${BASH_SOURCE[0]} == "../"* ]]; then
   # Some consumers of `CcToolchainConfigInfo` (e.g. `cmake` from rules_foreign_cc)
   # change CWD and call $CC (this script) with its absolute path.
   # For cases like this, we'll try to find `clang` through an absolute path.
