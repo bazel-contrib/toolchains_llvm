@@ -987,7 +987,7 @@ def _distribution_urls(rctx):
     llvm_version = _get_llvm_version(rctx)
 
     if rctx.attr.distribution == "auto":
-        basename, error = _find_llvm_basename_or_error(rctx, llvm_version)
+        basename, error = _find_llvm_basename_or_error(llvm_version, host_info(rctx))
         if error:
             fail(error)
     else:
