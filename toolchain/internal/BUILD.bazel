@@ -44,10 +44,9 @@ sh_test(
         "llvm_distributions.golden.sel.txt",
         "llvm_distributions.sel.txt",
     ],
-    # Restrict to Linux. While this would also work for MacOS the restriction
-    # only works for one platform. To select two platforms we would need to use
-    # `select`. That can be made work with `tag = select...manual`.
-    target_compatible_with = [
-        "@platforms//os:linux",
-    ],
+    target_compatible_with = select({
+        "@platforms//os:osx": [],
+        "@platforms//os:linux": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
 )

@@ -108,7 +108,7 @@ def host_info(rctx):
     _arch = arch(rctx)
 
     if _os == "linux" and not rctx.attr.exec_os:
-        (dist_name, dist_version) = _linux_dist(rctx)
+        dist_name, dist_version = _linux_dist(rctx)
     else:
         dist_name = os
         dist_version = ""
