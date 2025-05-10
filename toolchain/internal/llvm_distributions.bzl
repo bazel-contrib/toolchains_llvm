@@ -854,7 +854,7 @@ def _find_llvm_basename_list(llvm_version, host_info):
     os = host_info.os
     dist = host_info.dist
 
-    # Prefer new LLVM- distributions is available
+    # Prefer new LLVM distributions if available
     basenames = _find_llvm_basenames_by_stem([
         "LLVM-{llvm_version}-{os}-{arch}".format(
             llvm_version = llvm_version,
