@@ -759,6 +759,7 @@ _UBUNTU_VERSIONS = [
     "linux-gnu-ubuntu-14.04",
     "linux-gnu",
     "unknown-linux-gnu",
+    "unknown-linux-gnu-rhel86",
 ]
 
 def _dist_to_os_names(dist, default_os_names = []):
@@ -913,15 +914,6 @@ def _find_llvm_basename_list(llvm_version, host_info):
             for select_os in _dist_to_os_names(dist)
             for select_arch in arch_list
         ], return_first_match = True)
-        #elif dist.name == "fedora" and arch not in ["powerpc64le", "sparc64", "sparcv9"]:
-        #    return _find_llvm_basenames_by_stem([
-        #        "clang+llvm-{llvm_version}-{arch}-{os}".format(
-        #            llvm_version = llvm_version,
-        #            arch = arch,
-        #            os = select_os,
-        #        )
-        #        for select_os in _dist_to_os_names(dist)
-        #    ])
 
     elif dist.name == "raspbian":
         return _find_llvm_basenames_by_stem([
