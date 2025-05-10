@@ -20,11 +20,33 @@ exports_files(["template.modulemap"])
 write_distributions(
     name = "llvm_distributions",
     testonly = True,
+    output = "llvm_distributions.out.txt",
+    select = "llvm_distributions.sel.txt",
     visibility = ["//visibility:private"],
 )
 
 diff_test(
-    name = "llvm_distributions_test",
-    file1 = "llvm_distributions.golden.txt",
-    file2 = "llvm_distributions",
+    name = "llvm_distributions_output_test",
+    file1 = "llvm_distributions.golden.out.txt",
+    file2 = "llvm_distributions.out.txt",
+)
+
+diff_test(
+    name = "llvm_distributions_select_test",
+    file1 = "llvm_distributions.golden.sel.txt",
+    file2 = "llvm_distributions.sel.txt",
+)
+
+sh_test(
+    name = "llvm_distributions_select_no_error_test",
+    srcs = ["llvm_distributions_select_no_error_test.sh"],
+    data = [
+        "llvm_distributions.golden.sel.txt",
+        "llvm_distributions.sel.txt",
+    ],
+    target_compatible_with = select({
+        "@platforms//os:osx": [],
+        "@platforms//os:linux": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
 )
