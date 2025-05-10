@@ -783,10 +783,7 @@ def _dist_to_os_names(dist, default_os_names = []):
             "linux-gnu-ubuntu-",
         ]
     if dist.name == "centos":
-        return ["linux-gnu", "unknown-linux-gnu"]
-    if dist.name == "fedora":
         return [
-            "linux-gnu-Fedora27",
             "linux-gnu",
             "unknown-linux-gnu",
             # The Ubuntu list could be replaced with _UBUNTU_VERSIONS which
@@ -795,6 +792,24 @@ def _dist_to_os_names(dist, default_os_names = []):
             "linux-gnu-ubuntu-20.04",
             "linux-gnu-ubuntu-18.04",
             "linux-gnu-ubuntu-16.04",
+        ]
+    if dist.name == "fedora":
+        return [
+            "linux-gnu-Fedora27",
+            "unknown-linux-gnu-rhel86",
+            "linux-gnu",
+            "unknown-linux-gnu",
+            # The Ubuntu list could be replaced with _UBUNTU_VERSIONS which
+            # Spawns more selections and changes a few to near Ubuntu versions.
+            "linux-gnu-ubuntu-22.04",
+            "linux-gnu-ubuntu-20.04",
+            "linux-gnu-ubuntu-18.04",
+            "linux-gnu-ubuntu-16.04",
+            "linux-ubuntu-20.04",
+            "linux-ubuntu-18.04",
+            "linux-ubuntu-18.04.6",
+            "linux-ubuntu-18.04.5",
+            "linux-ubuntu-16.04",
         ]
     if dist.name == "freebsd":
         return ["unknown-freebsd", "unknown-freebsd-"]
@@ -898,15 +913,16 @@ def _find_llvm_basename_list(llvm_version, host_info):
             for select_os in _dist_to_os_names(dist)
             for select_arch in arch_list
         ], return_first_match = True)
-    elif dist.name == "fedora" and arch not in ["sparc64", "sparcv9"]:
-        return _find_llvm_basenames_by_stem([
-            "clang+llvm-{llvm_version}-{arch}-{os}".format(
-                llvm_version = llvm_version,
-                arch = arch,
-                os = select_os,
-            )
-            for select_os in _dist_to_os_names(dist)
-        ])
+        #elif dist.name == "fedora" and arch not in ["powerpc64le", "sparc64", "sparcv9"]:
+        #    return _find_llvm_basenames_by_stem([
+        #        "clang+llvm-{llvm_version}-{arch}-{os}".format(
+        #            llvm_version = llvm_version,
+        #            arch = arch,
+        #            os = select_os,
+        #        )
+        #        for select_os in _dist_to_os_names(dist)
+        #    ])
+
     elif dist.name == "raspbian":
         return _find_llvm_basenames_by_stem([
             "clang+llvm-{llvm_version}-{arch}-{os}".format(
@@ -952,7 +968,7 @@ def _find_llvm_basename_list(llvm_version, host_info):
                 ])
                 if basenames:
                     return basenames
-                if dist.name not in ["centos", "freebsd"]:
+                if dist.name not in ["freebsd"]:
                     prefixes.append("clang+llvm-{llvm_version}-{arch}-{dist_name}".format(
                         llvm_version = llvm_version,
                         arch = arch_alias,
