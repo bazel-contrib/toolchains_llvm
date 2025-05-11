@@ -127,11 +127,11 @@ for how CC toolchains work in general.
 
 Version attributes can be requirements of the form `latest:<condition>` or `first:<condition>`.
 
-In case of `latest`, the latest distribution matching the `condition` will be selected.
+In case of `latest:`, the latest distribution matching the `condition` will be selected.
 
-In case of `first`, the first distribution matching the `condition` will be selected.
+In case of `first:`, the first distribution matching the `condition` will be selected.
 
-The condition consists of a commpara separated list of semver version comparisons supporting `<`, `<=`, `>`, `>=`, `==`, `!=`. Examples:
+The condition consists of a comma separated list of semver version comparisons supporting `<`, `<=`, `>`, `>=`, `==`, `!=`. Examples:
 
 - `latest:>=20.1.0`
 - `latest:>17.0.4,!=19.1.7,<=20.1.0`
