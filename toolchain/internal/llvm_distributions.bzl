@@ -19,11 +19,6 @@ load(
     "exec_os_arch_dict_value",
     "host_info",
 )
-load(
-    "//toolchain/internal:release_name.bzl",
-    "llvm_release_name_context",
-    "llvm_release_name_host_info",
-)
 
 # If a new LLVM version is missing from this list, please add the shasums here
 # and the new version in toolchain/internal/llvm_distributions.golden.txt.
@@ -741,19 +736,268 @@ def _get_llvm_version(rctx):
         )
     return llvm_version
 
+_UBUNTU_NAMES = [
+    "arch",
+    "linuxmint",
+    "manjaro",
+    "nixos",
+    "pop",
+    "ubuntu",
+]
+
+_UBUNTU_VERSIONS = [
+    "linux-ubuntu-20.04",
+    "linux-ubuntu-18.04",
+    "linux-ubuntu-18.04.6",
+    "linux-ubuntu-18.04.5",
+    "linux-ubuntu-16.04",
+    "linux-gnu-ubuntu-22.04",
+    "linux-gnu-ubuntu-20.10",
+    "linux-gnu-ubuntu-20.04",
+    "linux-gnu-ubuntu-18.04",
+    "linux-gnu-ubuntu-16.04",
+    "linux-gnu-ubuntu-14.04",
+    "linux-gnu",
+    "unknown-linux-gnu",
+    "unknown-linux-gnu-rhel86",
+]
+
+def _dist_to_os_names(dist, default_os_names = []):
+    if dist.name in ["amzn", "suse"]:
+        # For "amzn" based on the ID_LIKE field, sles seems like the closest
+        # available distro for which LLVM releases are widely available.
+        return [
+            # The order is important here as we want to find the best match
+            # without implmenting complex version comparisons.
+            "linux-sles" + dist.version,
+            "linux-sles12.4",
+            "linux-sles12.3",
+            "linux-sles12.2",
+            "linux-sles11.3",
+            "linux-sles",
+            "unknown-linux-gnu-rhel86",
+            "linux-gnu-ubuntu-24.04",
+            "linux-gnu-ubuntu-22.04",
+            "linux-gnu-ubuntu-20.04",
+            "linux-gnu-ubuntu-18.04",
+            "linux-gnu-ubuntu-16.04",
+            "linux-gnu-ubuntu-",
+        ]
+    if dist.name == "centos":
+        return [
+            "linux-gnu",
+            "unknown-linux-gnu",
+            # The Ubuntu list could be replaced with _UBUNTU_VERSIONS which
+            # Spawns more selections and changes a few to near Ubuntu versions.
+            "linux-gnu-ubuntu-22.04",
+            "linux-gnu-ubuntu-20.04",
+            "linux-gnu-ubuntu-18.04",
+            "linux-gnu-ubuntu-16.04",
+        ]
+    if dist.name == "fedora":
+        return [
+            "linux-gnu-Fedora27",
+            "unknown-linux-gnu-rhel86",
+            "linux-gnu",
+            "unknown-linux-gnu",
+            # The Ubuntu list could be replaced with _UBUNTU_VERSIONS which
+            # Spawns more selections and changes a few to near Ubuntu versions.
+            "linux-gnu-ubuntu-22.04",
+            "linux-gnu-ubuntu-20.04",
+            "linux-gnu-ubuntu-18.04",
+            "linux-gnu-ubuntu-16.04",
+            "linux-ubuntu-20.04",
+            "linux-ubuntu-18.04",
+            "linux-ubuntu-18.04.6",
+            "linux-ubuntu-18.04.5",
+            "linux-ubuntu-16.04",
+        ]
+    if dist.name == "freebsd":
+        return ["unknown-freebsd", "unknown-freebsd-"]
+    if dist.name == "raspbian":
+        return ["linux-gnueabihf", "linux-gnu"]
+    if dist.name in ["rhel", "ol", "almalinux"]:
+        return ["linux-rhel-", "linux-gnu-rhel-"]
+    if dist.name == "debian":
+        return [
+            "linux-gnu-debian8",
+        ] + _UBUNTU_VERSIONS
+    if dist.name in _UBUNTU_NAMES:
+        return [
+            "linux-gnu-ubuntu-" + dist.version,
+            "linux-ubuntu-" + dist.version,
+        ] + _UBUNTU_VERSIONS
+    return default_os_names
+
+def _find_llvm_basenames_by_stem(prefixes, *, is_prefix = False, return_first_match = False):
+    basenames = []
+    for prefix in prefixes:
+        for suffix in [".tar.gz", ".tar.xz"]:
+            basename = prefix + suffix
+            if basename in _llvm_distributions:
+                return [basename]
+        if not is_prefix:
+            continue
+        for llvm_dist in _llvm_distributions:
+            if not llvm_dist.startswith(prefix):
+                continue
+            for suffix in [".tar.gz", ".tar.xz"]:
+                if llvm_dist.endswith(suffix) and llvm_dist not in basenames:
+                    if return_first_match:
+                        return [llvm_dist]
+                    basenames.append(llvm_dist)
+    return basenames
+
 def _find_llvm_basename_list(llvm_version, host_info):
     """Lookup (llvm_version, arch, os) in the list of basenames in `_llvm_distributions.`"""
-    name, _ = llvm_release_name_host_info(llvm_version, host_info)
-    if name in _llvm_distributions:
-        return [name]
+    arch = host_info.arch
+    os = host_info.os
+    dist = host_info.dist
+
+    # Prefer new LLVM distributions if available
+    basenames = _find_llvm_basenames_by_stem([
+        "LLVM-{llvm_version}-{os}-{arch}".format(
+            llvm_version = llvm_version,
+            arch = {
+                "aarch64": "ARM64",
+                "x86_64": "X64",
+            }.get(arch, arch),
+            os = {
+                "darwin": "macOS",
+                "linux": "Linux",
+                "windows": "Windows",
+            }.get(os, os),
+        ),
+    ])
+    if basenames:
+        return basenames
+
+    # First by 'os'', then by 'dist', then the remaining Linux variants'...
+    if os == "darwin":
+        return _find_llvm_basenames_by_stem([
+            "clang+llvm-{llvm_version}-{arch}-{os}".format(
+                llvm_version = llvm_version,
+                arch = {
+                    "aarch64": "arm64",
+                }.get(arch, arch),
+                os = select_os,
+            )
+            for select_os in ["apple-darwin", "apple-macos", "darwin-apple"]
+        ], is_prefix = True)
+    elif os == "windows":
+        return _find_llvm_basenames_by_stem([
+            "clang+llvm-{llvm_version}-{arch}-{os}".format(
+                llvm_version = llvm_version,
+                arch = arch,
+                os = "pc-windows-msvc",
+            ),
+        ])
+    elif dist.name in ["amzn", "suse"] and arch == "x86_64":
+        return _find_llvm_basenames_by_stem([
+            "clang+llvm-{llvm_version}-{arch}-{os}".format(
+                llvm_version = llvm_version,
+                arch = arch,
+                os = suse_os,
+            )
+            for suse_os in _dist_to_os_names(dist)
+        ], is_prefix = True, return_first_match = True)
+    elif dist.name in _UBUNTU_NAMES:
+        arch_list = {
+            "sparcv9": ["sparc64", "sparcv9"],
+        }.get(arch, [arch])
+        return _find_llvm_basenames_by_stem([
+            "clang+llvm-{llvm_version}-{arch}-{os}".format(
+                llvm_version = llvm_version,
+                arch = select_arch,
+                os = select_os,
+            )
+            for select_os in _dist_to_os_names(dist)
+            for select_arch in arch_list
+        ], return_first_match = True)
+
+    elif dist.name == "raspbian":
+        return _find_llvm_basenames_by_stem([
+            "clang+llvm-{llvm_version}-{arch}-{os}".format(
+                llvm_version = llvm_version,
+                arch = arch,
+                os = select_os,
+            )
+            for select_os in _dist_to_os_names(dist)
+        ])
+    elif os == "linux":
+        if arch in ["aarch64", "armv7a", "mips", "mipsel"]:
+            return _find_llvm_basenames_by_stem(["clang+llvm-{llvm_version}-{arch}-{os}".format(
+                llvm_version = llvm_version,
+                arch = arch,
+                os = "linux-gnu",
+            )])
+        elif arch in ["sparc64", "sparcv9"]:
+            return _find_llvm_basenames_by_stem([
+                "clang+llvm-{llvm_version}-{arch}-{os}".format(
+                    llvm_version = llvm_version,
+                    arch = arch_alias,
+                    os = "unknown-linux-gnu",
+                )
+                for arch_alias in ["sparc64", "sparcv9"]
+            ])
+
+        arch_alias_list = {
+            "x86_32": ["x86_32", "i386"],
+            "x86_64": ["x86_64", "amd64", "i686"],
+            "powerpc64": ["powerpc64", "final_powerpc64"],
+        }.get(arch, [arch])
+
+        prefixes = []
+        for dist_name in _dist_to_os_names(dist, [dist.name]):
+            for arch_alias in arch_alias_list:
+                basenames = _find_llvm_basenames_by_stem([
+                    "clang+llvm-{llvm_version}-{arch}-{dist_name}{dist_version}".format(
+                        llvm_version = llvm_version,
+                        arch = arch_alias,
+                        dist_name = dist_name,
+                        dist_version = dist.version,
+                    ),
+                ])
+                if basenames:
+                    return basenames
+                if dist.name not in ["freebsd"]:
+                    prefixes.append("clang+llvm-{llvm_version}-{arch}-{dist_name}".format(
+                        llvm_version = llvm_version,
+                        arch = arch_alias,
+                        dist_name = dist_name,
+                    ))
+        return _find_llvm_basenames_by_stem(prefixes, is_prefix = True, return_first_match = True)
     return []
+
+def _find_llvm_basename_or_error(llvm_version, host_info):
+    basenames = _find_llvm_basename_list(llvm_version, host_info)
+    if len(basenames) > 1:
+        return None, "ERROR: Multiple configurations found [{basenames}].".format(
+            basenames = ", ".join(basenames),
+        )
+    if not basenames:
+        return None, "ERROR: No version selected"
+        # TODO(helly25): Enable better error message:
+        #"ERROR: No matching config could be found for version {llvm_version} on {os}/{dist_name}/{dist_version} with arch {arch}.".format(
+        #    llvm_version = llvm_version,
+        #    os = host_info.os,
+        #    dist_name = host_info.dist.name,
+        #    dist_version = host_info.dist.version,
+        #    arch = host_info.arch,
+        #)
+
+    # Use the following for debugging:
+    # print("Found LLVM: " + basenames[0])  # buildifier: disable=print
+    return basenames[0], None
 
 def _distribution_urls(rctx):
     """Return LLVM `urls`, `shha256` and `strip_prefix` for the given context."""
     llvm_version = _get_llvm_version(rctx)
 
     if rctx.attr.distribution == "auto":
-        basename = llvm_release_name_context(rctx, llvm_version)
+        basename, error = _find_llvm_basename_or_error(llvm_version, host_info(rctx))
+        if error:
+            fail(error)
     else:
         basename = rctx.attr.distribution
 
@@ -912,7 +1156,7 @@ def _write_distributions_impl(ctx):
                     )
                     basenames = _find_llvm_basename_list(_version_string(version), host_info)
                     if version <= MAX_VERSION:
-                        predicted, error = llvm_release_name_host_info(
+                        predicted, error = _find_llvm_basename_or_error(
                             _version_string(version),
                             host_info,
                         )
@@ -921,7 +1165,13 @@ def _write_distributions_impl(ctx):
                                 error = "ERROR: Windows .exe is not supported: " + predicted
                             elif predicted not in _llvm_distributions:
                                 error = "ERROR: Unavailable prediction: " + predicted
+                            elif len(basenames) == 0:
+                                predicted = "ERROR: No version selected"
+                            elif len(basenames) == 1:
+                                predicted = basenames[0]
                             else:
+                                predicted = "ERROR: Multiple selections"
+                            if not error:
                                 arch_found = [arch for arch in arch_list if arch in predicted]
                                 if len(arch_found) == 1 and arch_found[0] != arch:
                                     error = "ERROR: Bad arch selection: " + predicted
