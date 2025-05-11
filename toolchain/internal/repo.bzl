@@ -52,6 +52,13 @@ llvm_repo_attrs.update({
                "`auto` value for the `distribution` attribute, and as a default value " +
                "for the `llvm_versions` attribute."),
     ),
+    "llvm_distributions": attr.string_dict(
+        mandatory = False,
+        doc = ("A dictionary that maps distributions to their SHA256 values. " +
+               "It allows for simple additon of llvm distributiosn using the " +
+               "'utils/lvm_checksums.sh' tool. This also allows to use the " +
+               "distributions lists of future toolchain versions."),
+    ),
     "urls": attr.string_list_dict(
         mandatory = False,
         doc = ("URLs to LLVM pre-built binary distribution archives, keyed by host OS " +

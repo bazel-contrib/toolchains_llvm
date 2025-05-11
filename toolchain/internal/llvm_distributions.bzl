@@ -709,14 +709,16 @@ def download_llvm(rctx):
         updated_attrs["sha256"].update([(key, res.sha256)])
     return updated_attrs
 
-def _urls(rctx):
-    (key, urls) = exec_os_arch_dict_value(rctx, "urls", debug = False)
-    if not urls:
-        print("LLVM archive URLs missing and no default fallback provided; will try 'distribution' attribute")  # buildifier: disable=print
-
+def _key_attrs(rctx):
+    key, urls = exec_os_arch_dict_value(rctx, "urls", debug = False)
     sha256 = rctx.attr.sha256.get(key, default = "")
     strip_prefix = rctx.attr.strip_prefix.get(key, default = "")
+    return urls, sha256, strip_prefix, key
 
+def _urls(rctx):
+    urls, sha256, strip_prefix, key = _key_attrs(rctx)
+    if not urls:
+        print("LLVM archive URLs missing and no default fallback provided; will try 'distribution' attribute")  # buildifier: disable=print
     return urls, sha256, strip_prefix, key
 
 def _get_llvm_version(rctx):
@@ -735,6 +737,11 @@ def _get_llvm_version(rctx):
             arch = info.arch,
         )
     return llvm_version
+
+def _get_all_llvm_distributions(rctx):
+    if rctx.attr.llvm_distributions:
+        return _llvm_distributions | rctx.attr.llvm_distributions
+    return _llvm_distributions
 
 _UBUNTU_NAMES = [
     "arch",
@@ -827,16 +834,16 @@ def _dist_to_os_names(dist, default_os_names = []):
         ] + _UBUNTU_VERSIONS
     return default_os_names
 
-def _find_llvm_basenames_by_stem(prefixes, *, is_prefix = False, return_first_match = False):
+def _find_llvm_basenames_by_stem(prefixes, *, all_llvm_distributions, is_prefix = False, return_first_match = False):
     basenames = []
     for prefix in prefixes:
         for suffix in [".tar.gz", ".tar.xz"]:
             basename = prefix + suffix
-            if basename in _llvm_distributions:
+            if basename in all_llvm_distributions:
                 return [basename]
         if not is_prefix:
             continue
-        for llvm_dist in _llvm_distributions:
+        for llvm_dist in all_llvm_distributions:
             if not llvm_dist.startswith(prefix):
                 continue
             for suffix in [".tar.gz", ".tar.xz"]:
@@ -846,8 +853,8 @@ def _find_llvm_basenames_by_stem(prefixes, *, is_prefix = False, return_first_ma
                     basenames.append(llvm_dist)
     return basenames
 
-def _find_llvm_basename_list(llvm_version, host_info):
-    """Lookup (llvm_version, arch, os) in the list of basenames in `_llvm_distributions.`"""
+def _find_llvm_basename_list(llvm_version, all_llvm_distributions, host_info):
+    """Lookup (llvm_version, host_info) in the list of basenames in `all_llvm_distributions.`"""
     arch = host_info.arch
     os = host_info.os
     dist = host_info.dist
@@ -866,7 +873,7 @@ def _find_llvm_basename_list(llvm_version, host_info):
                 "windows": "Windows",
             }.get(os, os),
         ),
-    ])
+    ], all_llvm_distributions = all_llvm_distributions)
     if basenames:
         return basenames
 
@@ -881,7 +888,7 @@ def _find_llvm_basename_list(llvm_version, host_info):
                 os = select_os,
             )
             for select_os in ["apple-darwin", "apple-macos", "darwin-apple"]
-        ], is_prefix = True)
+        ], all_llvm_distributions = all_llvm_distributions, is_prefix = True)
     elif os == "windows":
         return _find_llvm_basenames_by_stem([
             "clang+llvm-{llvm_version}-{arch}-{os}".format(
@@ -889,7 +896,7 @@ def _find_llvm_basename_list(llvm_version, host_info):
                 arch = arch,
                 os = "pc-windows-msvc",
             ),
-        ])
+        ], all_llvm_distributions = all_llvm_distributions)
     elif dist.name == "raspbian":
         return _find_llvm_basenames_by_stem([
             "clang+llvm-{llvm_version}-{arch}-{os}".format(
@@ -898,7 +905,7 @@ def _find_llvm_basename_list(llvm_version, host_info):
                 os = select_os,
             )
             for select_os in _dist_to_os_names(dist)
-        ])
+        ], all_llvm_distributions = all_llvm_distributions)
     elif os == "linux":
         if arch in ["aarch64", "armv7a", "mips", "mipsel", "sparc64", "sparcv9"]:
             arch_alias_list = {
@@ -914,7 +921,7 @@ def _find_llvm_basename_list(llvm_version, host_info):
                 )
                 for arch_alias in arch_alias_list
                 for os_name in ["linux-gnu", "unknown-linux-gnu"] + _dist_to_os_names(dist)
-            ])
+            ], all_llvm_distributions = all_llvm_distributions)
 
         arch_alias_list = {
             "x86_32": ["x86_32", "i386"],
@@ -932,7 +939,7 @@ def _find_llvm_basename_list(llvm_version, host_info):
                         dist_name = dist_name,
                         dist_version = dist.version,
                     ),
-                ])
+                ], all_llvm_distributions = all_llvm_distributions)
                 if basenames:
                     return basenames
                 if dist.name not in ["freebsd"]:
@@ -941,11 +948,11 @@ def _find_llvm_basename_list(llvm_version, host_info):
                         arch = arch_alias,
                         dist_name = dist_name,
                     ))
-        return _find_llvm_basenames_by_stem(prefixes, is_prefix = True, return_first_match = True)
+        return _find_llvm_basenames_by_stem(prefixes, all_llvm_distributions = all_llvm_distributions, is_prefix = True, return_first_match = True)
     return []
 
-def _find_llvm_basename_or_error(llvm_version, host_info):
-    basenames = _find_llvm_basename_list(llvm_version, host_info)
+def _find_llvm_basename_or_error(llvm_version, all_llvm_distributions, host_info):
+    basenames = _find_llvm_basename_list(llvm_version, all_llvm_distributions, host_info)
     if len(basenames) > 1:
         return None, "ERROR: Multiple configurations found for version {llvm_version} on {os}/{dist_name}/{dist_version} with arch {arch}: [{basenames}].".format(
             llvm_version = llvm_version,
@@ -966,21 +973,36 @@ def _find_llvm_basename_or_error(llvm_version, host_info):
 
     # Use the following for debugging:
     # print("Found LLVM: " + basenames[0])  # buildifier: disable=print
+    if basenames[0] not in all_llvm_distributions:
+        return None, "ERROR: Unknown LLVM release: %s\nPlease ensure file name is correct." % basenames[0]
+
     return basenames[0], None
 
 def _distribution_urls(rctx):
     """Return LLVM `urls`, `shha256` and `strip_prefix` for the given context."""
     llvm_version = _get_llvm_version(rctx)
+    all_llvm_distributions = _get_all_llvm_distributions(rctx)
+    _, sha256, strip_prefix, _ = _key_attrs(rctx)
 
     if rctx.attr.distribution == "auto":
-        basename, error = _find_llvm_basename_or_error(llvm_version, host_info(rctx))
+        basename, error = _find_llvm_basename_or_error(llvm_version, all_llvm_distributions, host_info(rctx))
         if error:
             fail(error)
+        if sha256 and sha256 != all_llvm_distributions[basename]:
+            fail("ERROR: Attribute sha256 provided a different SHA than the stored one.")
+        sha256 = all_llvm_distributions[basename]
     else:
         basename = rctx.attr.distribution
+        if sha256:
+            if basename in all_llvm_distributions and sha256 != all_llvm_distributions[basename]:
+                fail("ERROR: Attribute sha256 provided a different SHA than the stored one.")
+        elif basename in all_llvm_distributions:
+            sha256 = all_llvm_distributions[basename]
+        else:
+            fail("ERROR: Unknown LLVM release: %s\nPlease ensure file name is correct." % basename)
 
-    if basename not in _llvm_distributions:
-        fail("ERROR: Unknown LLVM release: %s\nPlease ensure file name is correct." % basename)
+    if basename.startswith("http"):
+        return [basename], sha256, strip_prefix
 
     urls = []
     url_suffix = "{0}/{1}".format(llvm_version, basename).replace("+", "%2B")
@@ -991,8 +1013,6 @@ def _distribution_urls(rctx):
             urls.append(pattern.format(llvm_version = llvm_version, basename = basename))
     url_base = _llvm_distributions_base_url.get(llvm_version, _llvm_distributions_base_url_default)
     urls.append(url_base + url_suffix)
-
-    sha256 = _llvm_distributions[basename]
 
     strip_prefix = ""
     for suffix in [".exe", ".tar.gz", ".tar.xz", ".tar.zst"]:
@@ -1023,6 +1043,7 @@ def _write_distributions_impl(ctx):
     verify that predicted distributions have been configured. Otherwise the
     algorithm could not know the hash value.
     """
+    all_llvm_distributions = _llvm_distributions
     arch_list = [
         "aarch64",
         "armv7a",
@@ -1087,7 +1108,7 @@ def _write_distributions_impl(ctx):
     MIN_VERSION = _parse_version("6.0.0")
     MAX_VERSION = _parse_version("20.1.3")
     version_list = []
-    for name in _llvm_distributions.keys():
+    for name in all_llvm_distributions.keys():
         for prefix in ["LLVM-", "clang+llvm-"]:
             if name.startswith(prefix):
                 version = _parse_version(name.split("-", 2)[1])
@@ -1110,7 +1131,7 @@ def _write_distributions_impl(ctx):
     # So at the end all version that were not found remain, hence the name.
     not_found = {
         k: v
-        for k, v in _llvm_distributions.items()
+        for k, v in all_llvm_distributions.items()
         if _parse_version(k.split("-")[1]) >= MIN_VERSION
     }
 
@@ -1132,10 +1153,11 @@ def _write_distributions_impl(ctx):
                         os = os,
                         dist = dist,
                     )
-                    basenames = _find_llvm_basename_list(_version_string(version), host_info)
+                    basenames = _find_llvm_basename_list(_version_string(version), all_llvm_distributions, host_info)
                     if version <= MAX_VERSION:
                         predicted, error = _find_llvm_basename_or_error(
                             _version_string(version),
+                            all_llvm_distributions,
                             host_info,
                         )
                         if error:
@@ -1145,7 +1167,7 @@ def _write_distributions_impl(ctx):
                         else:
                             if predicted.endswith(".exe"):
                                 error = "ERROR: Windows .exe is not supported: " + predicted
-                            elif predicted not in _llvm_distributions:
+                            elif predicted not in all_llvm_distributions:
                                 error = "ERROR: Unavailable prediction: " + predicted
                             elif len(basenames) == 0:
                                 error = "ERROR: No version selected"
@@ -1178,7 +1200,7 @@ def _write_distributions_impl(ctx):
                             dupes.extend(["   : " + basename for basename in basenames])
                         continue
                     basename = basenames[0]
-                    if basename in _llvm_distributions:
+                    if basename in all_llvm_distributions:
                         if basename in not_found:
                             not_found.pop(basename)
                     else:
