@@ -41,5 +41,9 @@ targets=(
   "//toolchain/..."
 )
 
+if [[ -z "${common_test_args:-}" ]]; then
+  common_test_args=()
+fi
+
 "${bazel}" ${TEST_MIGRATION:+"--strict"} --bazelrc=/dev/null test \
   "${common_test_args[@]}" "${test_args[@]}" "${targets[@]}"
