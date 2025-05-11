@@ -45,5 +45,9 @@ if [[ -z "${common_test_args:-}" ]]; then
   common_test_args=()
 fi
 
+if [[ "${USE_BAZEL_VERSION}" == "7.x" ]] || [[ "${USE_BZLMOD}" == "false" ]]; then
+  targets+=("-//toolchain/internal:llvm_distributions_select_no_error_test")
+fi
+
 "${bazel}" ${TEST_MIGRATION:+"--strict"} --bazelrc=/dev/null test \
-  "${common_test_args[@]}" "${test_args[@]}" "${targets[@]}"
+  "${common_test_args[@]}" "${test_args[@]}" -- "${targets[@]}"
