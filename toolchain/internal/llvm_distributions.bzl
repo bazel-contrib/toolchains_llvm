@@ -947,19 +947,22 @@ def _find_llvm_basename_list(llvm_version, host_info):
 def _find_llvm_basename_or_error(llvm_version, host_info):
     basenames = _find_llvm_basename_list(llvm_version, host_info)
     if len(basenames) > 1:
-        return None, "ERROR: Multiple configurations found [{basenames}].".format(
+        return None, "ERROR: Multiple configurations found for version {llvm_version} on {os}/{dist_name}/{dist_version} with arch {arch}: [{basenames}].".format(
+            llvm_version = llvm_version,
+            os = host_info.os,
+            dist_name = host_info.dist.name,
+            dist_version = host_info.dist.version,
+            arch = host_info.arch,
             basenames = ", ".join(basenames),
         )
     if not basenames:
-        return None, "ERROR: No version selected"
-        # TODO(helly25): Enable better error message:
-        #"ERROR: No matching config could be found for version {llvm_version} on {os}/{dist_name}/{dist_version} with arch {arch}.".format(
-        #    llvm_version = llvm_version,
-        #    os = host_info.os,
-        #    dist_name = host_info.dist.name,
-        #    dist_version = host_info.dist.version,
-        #    arch = host_info.arch,
-        #)
+        return None, "ERROR: No matching config could be found for version {llvm_version} on {os}/{dist_name}/{dist_version} with arch {arch}.".format(
+            llvm_version = llvm_version,
+            os = host_info.os,
+            dist_name = host_info.dist.name,
+            dist_version = host_info.dist.version,
+            arch = host_info.arch,
+        )
 
     # Use the following for debugging:
     # print("Found LLVM: " + basenames[0])  # buildifier: disable=print
@@ -977,7 +980,7 @@ def _distribution_urls(rctx):
         basename = rctx.attr.distribution
 
     if basename not in _llvm_distributions:
-        fail("Unknown LLVM release: %s\nPlease ensure file name is correct." % basename)
+        fail("ERROR: Unknown LLVM release: %s\nPlease ensure file name is correct." % basename)
 
     urls = []
     url_suffix = "{0}/{1}".format(llvm_version, basename).replace("+", "%2B")
@@ -1135,17 +1138,21 @@ def _write_distributions_impl(ctx):
                             _version_string(version),
                             host_info,
                         )
-                        if not error:
+                        if error:
+                            if error.startswith("ERROR: No matching config could be found for version"):
+                                # Simplify test output:
+                                error = "ERROR: No version selected"
+                        else:
                             if predicted.endswith(".exe"):
                                 error = "ERROR: Windows .exe is not supported: " + predicted
                             elif predicted not in _llvm_distributions:
                                 error = "ERROR: Unavailable prediction: " + predicted
                             elif len(basenames) == 0:
-                                predicted = "ERROR: No version selected"
+                                error = "ERROR: No version selected"
                             elif len(basenames) == 1:
                                 predicted = basenames[0]
                             else:
-                                predicted = "ERROR: Multiple selections"
+                                error = "ERROR: Multiple selections"
                             if not error:
                                 arch_found = [arch for arch in arch_list if arch in predicted]
                                 if len(arch_found) == 1 and arch_found[0] != arch:
