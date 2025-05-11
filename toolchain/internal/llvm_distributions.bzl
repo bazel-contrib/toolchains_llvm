@@ -1148,11 +1148,11 @@ def _write_distributions_impl(ctx):
                             elif predicted not in _llvm_distributions:
                                 error = "ERROR: Unavailable prediction: " + predicted
                             elif len(basenames) == 0:
-                                predicted = "ERROR: No version selected"
+                                error = "ERROR: No version selected"
                             elif len(basenames) == 1:
                                 predicted = basenames[0]
                             else:
-                                predicted = "ERROR: Multiple selections"
+                                error = "ERROR: Multiple selections"
                             if not error:
                                 arch_found = [arch for arch in arch_list if arch in predicted]
                                 if len(arch_found) == 1 and arch_found[0] != arch:
