@@ -1135,9 +1135,9 @@ def required_llvm_release_name_rctx(rctx, llvm_version):
         host_info = host_info(rctx),
     )
 
-def _contains_any(str, chars):
-    for c in chars:
-        if c in str:
+def _is_requirement(str):
+    for prefix in ["first", "latest"]:
+        if str == prefix or str.startswith(prefix + ":"):
             return True
     return False
 
@@ -1153,7 +1153,7 @@ def _distribution_urls(rctx):
 
     if rctx.attr.distribution == "auto":
         rctx_host_info = host_info(rctx)
-        if _contains_any(llvm_version, ",:<>!="):
+        if _is_requirement(llvm_version):
             llvm_version, basename, error = _required_llvm_release_name(
                 version_requirements = _parse_version_requirements(llvm_version),
                 all_llvm_distributions = all_llvm_distributions,
