@@ -13,6 +13,7 @@
 # limitations under the License.
 
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "read_netrc", "use_netrc")
+load("@helly25_bzl//bzl/versions:versions.bzl", "versions")
 load(
     "//toolchain/internal:common.bzl",
     "attr_dict",
@@ -1095,6 +1096,43 @@ def _find_llvm_basename_or_error(llvm_version, all_llvm_distributions, host_info
 
     return basenames[0], None
 
+def _parse_version_requirements(version_requirements):
+    if version_requirements in ["latest", "first"]:
+        return []
+    for prefix in ["latest:", "first:"]:
+        if version_requirements.startswith(prefix):
+            return versions.parse_requirements(version_requirements.removeprefix(prefix))
+    fail("ERROR: Invalid version requirements: '{version_requirements}'.".format(
+        version_requirements = version_requirements,
+    ))
+
+def _get_llvm_versions(*, version_requirements, all_llvm_distributions):
+    llvm_versions = {}
+    for distribution in all_llvm_distributions.keys():
+        version = distribution.split("-")[1]
+        llvm_versions[version] = None
+    if version_requirements.startswith("latest:"):
+        return reversed(llvm_versions.keys())
+    else:
+        return llvm_versions.keys()
+
+def _required_llvm_release_name(*, version_requirements, all_llvm_distributions, host_info):
+    llvm_versions = _get_llvm_versions(version_requirements = version_requirements, all_llvm_distributions = all_llvm_distributions)
+    requires = _parse_version_requirements(version_requirements)
+    for llvm_version in llvm_versions:
+        if not versions.check_all_requirements(llvm_version, requires):
+            continue
+        basenames = _find_llvm_basename_list(llvm_version, all_llvm_distributions, host_info)
+        if len(basenames) == 1:
+            return llvm_version, basenames[0], None
+    return None, None, "ERROR: No matching distribution found."
+
+def _contains_any(str, chars):
+    for c in chars:
+        if c in str:
+            return True
+    return False
+
 def _distribution_urls(rctx):
     """Return LLVM `urls`, `shha256` and `strip_prefix` for the given context."""
     llvm_version = _get_llvm_version(rctx)
@@ -1106,7 +1144,15 @@ def _distribution_urls(rctx):
     _, sha256, strip_prefix, _ = _key_attrs(rctx)
 
     if rctx.attr.distribution == "auto":
-        basename, error = _find_llvm_basename_or_error(llvm_version, all_llvm_distributions, host_info(rctx))
+        rctx_host_info = host_info(rctx)
+        if _contains_any(llvm_version, ",:<>!="):
+            llvm_version, basename, error = _required_llvm_release_name(
+                version_requirements = _parse_version_requirements(llvm_version),
+                all_llvm_distributions = all_llvm_distributions,
+                host_info = rctx_host_info,
+            )
+        else:
+            basename, error = _find_llvm_basename_or_error(llvm_version, all_llvm_distributions, rctx_host_info)
         if error:
             fail(error)
         dist_info = all_llvm_distributions[basename]
@@ -1143,7 +1189,7 @@ def _distribution_urls(rctx):
 
     return urls, sha256, strip_prefix
 
-def _write_distributions_impl(ctx):
+def _distributions_test_writer_impl(ctx):
     """Analyze the configured versions and write to a file for test consumption.
 
     The test generated file '<rule_name>.out' contains the following lines:
@@ -1358,5 +1404,82 @@ write_distributions = rule(
     attrs = {
         "output": attr.output(mandatory = True),
         "select": attr.output(mandatory = True),
+    },
+)
+
+def _requirements_test_writer_impl(ctx):
+    """Analyze the configured versions and write to a file for test consumption.
+    The test generated file '<rule_name>.out' contains the following lines:
+    [<arch>,<os>,<requirement>]: <llvm_distribution_basename>
+    """
+    all_llvm_distributions = _llvm_distributions
+    requirement_list = [
+        "latest:<=20.1.0",
+        "latest:<=20.1.0,>17.0.4,!=19.1.7",
+        "latest:<20.1.0,>17.0.4,!=19.1.7",
+        "latest:<20.1.0,>17.0.4",
+        "latest:>=15.0.6,<16",
+        "first:>=15.0.6,<16",
+    ]
+    arch_list = [
+        "aarch64",
+        "armv7a",
+        "x86_64",
+    ]
+    os_list = [
+        "darwin",
+        "linux",
+        "windows",
+    ]
+    ANY_VERSION = "0"  # Version does not matter, but must be a valid integer
+    dist_dict_list = {
+        "linux": [
+            # keep sorted
+            struct(name = "ubuntu", version = ANY_VERSION),
+            struct(name = "raspbian", version = ANY_VERSION),
+            struct(name = "rhel", version = ANY_VERSION),
+        ],
+    }
+    result = []
+    for arch in arch_list:
+        for os in os_list:
+            dist_list = dist_dict_list.get(os, [struct(name = os, version = "")])
+            for dist in dist_list:
+                for requirement in requirement_list:
+                    host_info = struct(
+                        arch = arch,
+                        os = os,
+                        dist = dist,
+                    )
+                    llvm_version, basename, error = _required_llvm_release_name(
+                        version_requirements = requirement,
+                        all_llvm_distributions = all_llvm_distributions,
+                        host_info = host_info,
+                    )
+                    if llvm_version and basename:
+                        result.append("[{arch},{os}{dist_name}{dist_version},'{requirement}']: {llvm_version} = {basename}".format(
+                            arch = arch,
+                            os = os,
+                            dist_name = "," + dist.name if os == "linux" else "",
+                            dist_version = "," + dist.version if os == "linux" else "",
+                            requirement = requirement,
+                            llvm_version = llvm_version,
+                            basename = basename,
+                        ))
+                    else:
+                        result.append("[{arch},{os},\"{requirement}\"]: {error}".format(
+                            arch = arch,
+                            os = os,
+                            requirement = requirement,
+                            llvm_version = llvm_version,
+                            basename = basename,
+                            error = error or "ERROR: N/A",
+                        ))
+    ctx.actions.write(ctx.outputs.result, "\n".join(result) + "\n")
+
+requirements_test_writer = rule(
+    implementation = _requirements_test_writer_impl,
+    attrs = {
+        "result": attr.output(mandatory = True),
     },
 )
