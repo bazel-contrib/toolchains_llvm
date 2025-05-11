@@ -739,8 +739,8 @@ def _get_llvm_version(rctx):
     return llvm_version
 
 def _get_all_llvm_distributions(rctx):
-    if rctx.attr.llvm_distributions:
-        return _llvm_distributions | rctx.attr.llvm_distributions
+    if rctx.attr.extra_llvm_distributions:
+        return _llvm_distributions | rctx.attr.extra_llvm_distributions
     return _llvm_distributions
 
 _UBUNTU_NAMES = [
