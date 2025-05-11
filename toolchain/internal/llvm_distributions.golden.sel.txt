@@ -321,7 +321,7 @@
 6.0.0-x86_64-linux/linuxmint/19 -> clang+llvm-6.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz
 6.0.0-x86_64-linux/pc-solaris/2.11 -> ERROR: No version selected
 6.0.0-x86_64-linux/raspbian/0 -> ERROR: No version selected
-6.0.0-x86_64-linux/rhel/0 -> ERROR: No version selected
+6.0.0-x86_64-linux/rhel/0 -> clang+llvm-6.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz
 6.0.0-x86_64-linux/sun-solaris/2.11 -> ERROR: No version selected
 6.0.0-x86_64-linux/suse/11.3 -> clang+llvm-6.0.0-x86_64-linux-sles11.3.tar.xz
 6.0.0-x86_64-linux/suse/12.2 -> clang+llvm-6.0.0-x86_64-linux-sles12.2.tar.xz
@@ -663,7 +663,7 @@
 6.0.1-x86_64-linux/linuxmint/19 -> clang+llvm-6.0.1-x86_64-linux-gnu-ubuntu-16.04.tar.xz
 6.0.1-x86_64-linux/pc-solaris/2.11 -> ERROR: No version selected
 6.0.1-x86_64-linux/raspbian/0 -> ERROR: No version selected
-6.0.1-x86_64-linux/rhel/0 -> ERROR: No version selected
+6.0.1-x86_64-linux/rhel/0 -> clang+llvm-6.0.1-x86_64-linux-gnu-ubuntu-16.04.tar.xz
 6.0.1-x86_64-linux/sun-solaris/2.11 -> ERROR: No version selected
 6.0.1-x86_64-linux/suse/11.3 -> clang+llvm-6.0.1-x86_64-linux-sles11.3.tar.xz
 6.0.1-x86_64-linux/suse/12.2 -> clang+llvm-6.0.1-x86_64-linux-sles12.3.tar.xz
@@ -1005,7 +1005,7 @@
 7.0.0-x86_64-linux/linuxmint/19 -> clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz
 7.0.0-x86_64-linux/pc-solaris/2.11 -> ERROR: No version selected
 7.0.0-x86_64-linux/raspbian/0 -> ERROR: No version selected
-7.0.0-x86_64-linux/rhel/0 -> ERROR: No version selected
+7.0.0-x86_64-linux/rhel/0 -> clang+llvm-7.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz
 7.0.0-x86_64-linux/sun-solaris/2.11 -> ERROR: No version selected
 7.0.0-x86_64-linux/suse/11.3 -> clang+llvm-7.0.0-x86_64-linux-sles11.3.tar.xz
 7.0.0-x86_64-linux/suse/12.2 -> clang+llvm-7.0.0-x86_64-linux-sles12.3.tar.xz
@@ -1347,7 +1347,7 @@
 8.0.0-x86_64-linux/linuxmint/19 -> clang+llvm-8.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz
 8.0.0-x86_64-linux/pc-solaris/2.11 -> ERROR: No version selected
 8.0.0-x86_64-linux/raspbian/0 -> ERROR: No version selected
-8.0.0-x86_64-linux/rhel/0 -> ERROR: No version selected
+8.0.0-x86_64-linux/rhel/0 -> clang+llvm-8.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz
 8.0.0-x86_64-linux/sun-solaris/2.11 -> ERROR: No version selected
 8.0.0-x86_64-linux/suse/11.3 -> clang+llvm-8.0.0-x86_64-linux-sles11.3.tar.xz
 8.0.0-x86_64-linux/suse/12.2 -> clang+llvm-8.0.0-x86_64-linux-sles11.3.tar.xz
@@ -1689,7 +1689,7 @@
 8.0.1-x86_64-linux/linuxmint/19 -> clang+llvm-8.0.1-x86_64-linux-gnu-ubuntu-14.04.tar.xz
 8.0.1-x86_64-linux/pc-solaris/2.11 -> ERROR: No version selected
 8.0.1-x86_64-linux/raspbian/0 -> ERROR: No version selected
-8.0.1-x86_64-linux/rhel/0 -> ERROR: No version selected
+8.0.1-x86_64-linux/rhel/0 -> clang+llvm-8.0.1-x86_64-linux-gnu-ubuntu-14.04.tar.xz
 8.0.1-x86_64-linux/sun-solaris/2.11 -> ERROR: No version selected
 8.0.1-x86_64-linux/suse/11.3 -> clang+llvm-8.0.1-x86_64-linux-sles11.3.tar.xz
 8.0.1-x86_64-linux/suse/12.2 -> clang+llvm-8.0.1-x86_64-linux-sles11.3.tar.xz
@@ -2031,7 +2031,7 @@
 9.0.0-x86_64-linux/linuxmint/19 -> clang+llvm-9.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz
 9.0.0-x86_64-linux/pc-solaris/2.11 -> clang+llvm-9.0.0-amd64-pc-solaris2.11.tar.xz
 9.0.0-x86_64-linux/raspbian/0 -> ERROR: No version selected
-9.0.0-x86_64-linux/rhel/0 -> ERROR: No version selected
+9.0.0-x86_64-linux/rhel/0 -> clang+llvm-9.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz
 9.0.0-x86_64-linux/sun-solaris/2.11 -> ERROR: No version selected
 9.0.0-x86_64-linux/suse/11.3 -> clang+llvm-9.0.0-x86_64-linux-sles11.3.tar.xz
 9.0.0-x86_64-linux/suse/12.2 -> clang+llvm-9.0.0-x86_64-linux-sles11.3.tar.xz
@@ -2373,7 +2373,7 @@
 10.0.0-x86_64-linux/linuxmint/19 -> clang+llvm-10.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz
 10.0.0-x86_64-linux/pc-solaris/2.11 -> clang+llvm-10.0.0-amd64-pc-solaris2.11.tar.xz
 10.0.0-x86_64-linux/raspbian/0 -> ERROR: No version selected
-10.0.0-x86_64-linux/rhel/0 -> ERROR: No version selected
+10.0.0-x86_64-linux/rhel/0 -> clang+llvm-10.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz
 10.0.0-x86_64-linux/sun-solaris/2.11 -> ERROR: No version selected
 10.0.0-x86_64-linux/suse/11.3 -> clang+llvm-10.0.0-x86_64-linux-sles11.3.tar.xz
 10.0.0-x86_64-linux/suse/12.2 -> clang+llvm-10.0.0-x86_64-linux-sles11.3.tar.xz
@@ -2715,7 +2715,7 @@
 10.0.1-x86_64-linux/linuxmint/19 -> clang+llvm-10.0.1-x86_64-linux-gnu-ubuntu-16.04.tar.xz
 10.0.1-x86_64-linux/pc-solaris/2.11 -> ERROR: No version selected
 10.0.1-x86_64-linux/raspbian/0 -> ERROR: No version selected
-10.0.1-x86_64-linux/rhel/0 -> ERROR: No version selected
+10.0.1-x86_64-linux/rhel/0 -> clang+llvm-10.0.1-x86_64-linux-gnu-ubuntu-16.04.tar.xz
 10.0.1-x86_64-linux/sun-solaris/2.11 -> ERROR: No version selected
 10.0.1-x86_64-linux/suse/11.3 -> clang+llvm-10.0.1-x86_64-linux-sles12.4.tar.xz
 10.0.1-x86_64-linux/suse/12.2 -> clang+llvm-10.0.1-x86_64-linux-sles12.4.tar.xz
@@ -3057,7 +3057,7 @@
 11.0.0-x86_64-linux/linuxmint/19 -> clang+llvm-11.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz
 11.0.0-x86_64-linux/pc-solaris/2.11 -> clang+llvm-11.0.0-amd64-pc-solaris2.11.tar.xz
 11.0.0-x86_64-linux/raspbian/0 -> ERROR: No version selected
-11.0.0-x86_64-linux/rhel/0 -> ERROR: No version selected
+11.0.0-x86_64-linux/rhel/0 -> clang+llvm-11.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz
 11.0.0-x86_64-linux/sun-solaris/2.11 -> ERROR: No version selected
 11.0.0-x86_64-linux/suse/11.3 -> clang+llvm-11.0.0-x86_64-linux-sles12.4.tar.xz
 11.0.0-x86_64-linux/suse/12.2 -> clang+llvm-11.0.0-x86_64-linux-sles12.4.tar.xz
@@ -3399,7 +3399,7 @@
 11.0.1-x86_64-linux/linuxmint/19 -> clang+llvm-11.0.1-x86_64-linux-gnu-ubuntu-20.10.tar.xz
 11.0.1-x86_64-linux/pc-solaris/2.11 -> ERROR: No version selected
 11.0.1-x86_64-linux/raspbian/0 -> ERROR: No version selected
-11.0.1-x86_64-linux/rhel/0 -> ERROR: No version selected
+11.0.1-x86_64-linux/rhel/0 -> clang+llvm-11.0.1-x86_64-linux-gnu-ubuntu-20.10.tar.xz
 11.0.1-x86_64-linux/sun-solaris/2.11 -> ERROR: No version selected
 11.0.1-x86_64-linux/suse/11.3 -> clang+llvm-11.0.1-x86_64-linux-sles12.4.tar.xz
 11.0.1-x86_64-linux/suse/12.2 -> clang+llvm-11.0.1-x86_64-linux-sles12.4.tar.xz
@@ -3741,7 +3741,7 @@
 11.1.0-x86_64-linux/linuxmint/19 -> clang+llvm-11.1.0-x86_64-linux-gnu-ubuntu-20.10.tar.xz
 11.1.0-x86_64-linux/pc-solaris/2.11 -> ERROR: No version selected
 11.1.0-x86_64-linux/raspbian/0 -> ERROR: No version selected
-11.1.0-x86_64-linux/rhel/0 -> ERROR: No version selected
+11.1.0-x86_64-linux/rhel/0 -> clang+llvm-11.1.0-x86_64-linux-gnu-ubuntu-20.10.tar.xz
 11.1.0-x86_64-linux/sun-solaris/2.11 -> ERROR: No version selected
 11.1.0-x86_64-linux/suse/11.3 -> clang+llvm-11.1.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz
 11.1.0-x86_64-linux/suse/12.2 -> clang+llvm-11.1.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz
@@ -4083,7 +4083,7 @@
 12.0.0-x86_64-linux/linuxmint/19 -> clang+llvm-12.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz
 12.0.0-x86_64-linux/pc-solaris/2.11 -> ERROR: No version selected
 12.0.0-x86_64-linux/raspbian/0 -> ERROR: No version selected
-12.0.0-x86_64-linux/rhel/0 -> ERROR: No version selected
+12.0.0-x86_64-linux/rhel/0 -> clang+llvm-12.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz
 12.0.0-x86_64-linux/sun-solaris/2.11 -> ERROR: No version selected
 12.0.0-x86_64-linux/suse/11.3 -> clang+llvm-12.0.0-x86_64-linux-sles12.4.tar.xz
 12.0.0-x86_64-linux/suse/12.2 -> clang+llvm-12.0.0-x86_64-linux-sles12.4.tar.xz
@@ -4425,7 +4425,7 @@
 12.0.1-x86_64-linux/linuxmint/19 -> clang+llvm-12.0.1-x86_64-linux-gnu-ubuntu-16.04.tar.xz
 12.0.1-x86_64-linux/pc-solaris/2.11 -> ERROR: No version selected
 12.0.1-x86_64-linux/raspbian/0 -> ERROR: No version selected
-12.0.1-x86_64-linux/rhel/0 -> ERROR: No version selected
+12.0.1-x86_64-linux/rhel/0 -> clang+llvm-12.0.1-x86_64-linux-gnu-ubuntu-16.04.tar.xz
 12.0.1-x86_64-linux/sun-solaris/2.11 -> ERROR: No version selected
 12.0.1-x86_64-linux/suse/11.3 -> clang+llvm-12.0.1-x86_64-linux-gnu-ubuntu-16.04.tar.xz
 12.0.1-x86_64-linux/suse/12.2 -> clang+llvm-12.0.1-x86_64-linux-gnu-ubuntu-16.04.tar.xz
@@ -4767,7 +4767,7 @@
 13.0.0-x86_64-linux/linuxmint/19 -> clang+llvm-13.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz
 13.0.0-x86_64-linux/pc-solaris/2.11 -> ERROR: No version selected
 13.0.0-x86_64-linux/raspbian/0 -> ERROR: No version selected
-13.0.0-x86_64-linux/rhel/0 -> ERROR: No version selected
+13.0.0-x86_64-linux/rhel/0 -> clang+llvm-13.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz
 13.0.0-x86_64-linux/sun-solaris/2.11 -> ERROR: No version selected
 13.0.0-x86_64-linux/suse/11.3 -> clang+llvm-13.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz
 13.0.0-x86_64-linux/suse/12.2 -> clang+llvm-13.0.0-x86_64-linux-gnu-ubuntu-20.04.tar.xz
@@ -5109,7 +5109,7 @@
 13.0.1-x86_64-linux/linuxmint/19 -> clang+llvm-13.0.1-x86_64-linux-gnu-ubuntu-18.04.tar.xz
 13.0.1-x86_64-linux/pc-solaris/2.11 -> ERROR: No version selected
 13.0.1-x86_64-linux/raspbian/0 -> ERROR: No version selected
-13.0.1-x86_64-linux/rhel/0 -> ERROR: No version selected
+13.0.1-x86_64-linux/rhel/0 -> clang+llvm-13.0.1-x86_64-linux-gnu-ubuntu-18.04.tar.xz
 13.0.1-x86_64-linux/sun-solaris/2.11 -> ERROR: No version selected
 13.0.1-x86_64-linux/suse/11.3 -> clang+llvm-13.0.1-x86_64-linux-gnu-ubuntu-18.04.tar.xz
 13.0.1-x86_64-linux/suse/12.2 -> clang+llvm-13.0.1-x86_64-linux-gnu-ubuntu-18.04.tar.xz
@@ -5451,7 +5451,7 @@
 14.0.0-x86_64-linux/linuxmint/19 -> clang+llvm-14.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz
 14.0.0-x86_64-linux/pc-solaris/2.11 -> clang+llvm-14.0.0-amd64-pc-solaris2.11.tar.xz
 14.0.0-x86_64-linux/raspbian/0 -> ERROR: No version selected
-14.0.0-x86_64-linux/rhel/0 -> ERROR: No version selected
+14.0.0-x86_64-linux/rhel/0 -> clang+llvm-14.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz
 14.0.0-x86_64-linux/sun-solaris/2.11 -> ERROR: No version selected
 14.0.0-x86_64-linux/suse/11.3 -> clang+llvm-14.0.0-x86_64-linux-sles12.4.tar.xz
 14.0.0-x86_64-linux/suse/12.2 -> clang+llvm-14.0.0-x86_64-linux-sles12.4.tar.xz
@@ -7486,7 +7486,7 @@
 14.0.6-x86_32-windows/windows/ -> ERROR: No version selected
 14.0.6-x86_64-darwin/darwin/ -> clang+llvm-14.0.6-x86_64-apple-darwin.tar.xz
 14.0.6-x86_64-linux/amzn/0 -> ERROR: No version selected
-14.0.6-x86_64-linux/arch/0 -> ERROR: No version selected
+14.0.6-x86_64-linux/arch/0 -> clang+llvm-14.0.6-x86_64-linux-gnu-rhel-8.4.tar.xz
 14.0.6-x86_64-linux/centos/6 -> clang+llvm-14.0.6-x86_64-linux-gnu-rhel-8.4.tar.xz
 14.0.6-x86_64-linux/centos/7 -> clang+llvm-14.0.6-x86_64-linux-gnu-rhel-8.4.tar.xz
 14.0.6-x86_64-linux/debian/0 -> clang+llvm-14.0.6-x86_64-linux-gnu-rhel-8.4.tar.xz
@@ -7499,8 +7499,8 @@
 14.0.6-x86_64-linux/freebsd/11 -> ERROR: No version selected
 14.0.6-x86_64-linux/freebsd/12 -> clang+llvm-14.0.6-amd64-unknown-freebsd12.tar.xz
 14.0.6-x86_64-linux/freebsd/13 -> clang+llvm-14.0.6-amd64-unknown-freebsd13.tar.xz
-14.0.6-x86_64-linux/linuxmint/18 -> ERROR: No version selected
-14.0.6-x86_64-linux/linuxmint/19 -> ERROR: No version selected
+14.0.6-x86_64-linux/linuxmint/18 -> clang+llvm-14.0.6-x86_64-linux-gnu-rhel-8.4.tar.xz
+14.0.6-x86_64-linux/linuxmint/19 -> clang+llvm-14.0.6-x86_64-linux-gnu-rhel-8.4.tar.xz
 14.0.6-x86_64-linux/pc-solaris/2.11 -> ERROR: No version selected
 14.0.6-x86_64-linux/raspbian/0 -> ERROR: No version selected
 14.0.6-x86_64-linux/rhel/0 -> clang+llvm-14.0.6-x86_64-linux-gnu-rhel-8.4.tar.xz
@@ -7512,15 +7512,15 @@
 14.0.6-x86_64-linux/suse/15.5 -> ERROR: No version selected
 14.0.6-x86_64-linux/suse/16.0 -> ERROR: No version selected
 14.0.6-x86_64-linux/suse/17.0 -> ERROR: No version selected
-14.0.6-x86_64-linux/ubuntu/14.04 -> ERROR: No version selected
-14.0.6-x86_64-linux/ubuntu/16.04 -> ERROR: No version selected
-14.0.6-x86_64-linux/ubuntu/18.04.5 -> ERROR: No version selected
-14.0.6-x86_64-linux/ubuntu/18.04.6 -> ERROR: No version selected
-14.0.6-x86_64-linux/ubuntu/18.04 -> ERROR: No version selected
-14.0.6-x86_64-linux/ubuntu/20.04 -> ERROR: No version selected
-14.0.6-x86_64-linux/ubuntu/20.10 -> ERROR: No version selected
-14.0.6-x86_64-linux/ubuntu/22.04 -> ERROR: No version selected
-14.0.6-x86_64-linux/ubuntu/24.04 -> ERROR: No version selected
+14.0.6-x86_64-linux/ubuntu/14.04 -> clang+llvm-14.0.6-x86_64-linux-gnu-rhel-8.4.tar.xz
+14.0.6-x86_64-linux/ubuntu/16.04 -> clang+llvm-14.0.6-x86_64-linux-gnu-rhel-8.4.tar.xz
+14.0.6-x86_64-linux/ubuntu/18.04.5 -> clang+llvm-14.0.6-x86_64-linux-gnu-rhel-8.4.tar.xz
+14.0.6-x86_64-linux/ubuntu/18.04.6 -> clang+llvm-14.0.6-x86_64-linux-gnu-rhel-8.4.tar.xz
+14.0.6-x86_64-linux/ubuntu/18.04 -> clang+llvm-14.0.6-x86_64-linux-gnu-rhel-8.4.tar.xz
+14.0.6-x86_64-linux/ubuntu/20.04 -> clang+llvm-14.0.6-x86_64-linux-gnu-rhel-8.4.tar.xz
+14.0.6-x86_64-linux/ubuntu/20.10 -> clang+llvm-14.0.6-x86_64-linux-gnu-rhel-8.4.tar.xz
+14.0.6-x86_64-linux/ubuntu/22.04 -> clang+llvm-14.0.6-x86_64-linux-gnu-rhel-8.4.tar.xz
+14.0.6-x86_64-linux/ubuntu/24.04 -> clang+llvm-14.0.6-x86_64-linux-gnu-rhel-8.4.tar.xz
 14.0.6-x86_64-windows/windows/ -> ERROR: No version selected
 15.0.0-aarch64-darwin/darwin/ -> clang+llvm-15.0.0-arm64-apple-darwin21.0.tar.xz
 15.0.0-aarch64-linux/amzn/0 -> clang+llvm-15.0.0-aarch64-linux-gnu.tar.xz
@@ -7828,7 +7828,7 @@
 15.0.0-x86_32-windows/windows/ -> ERROR: No version selected
 15.0.0-x86_64-darwin/darwin/ -> clang+llvm-15.0.0-x86_64-apple-darwin.tar.xz
 15.0.0-x86_64-linux/amzn/0 -> ERROR: No version selected
-15.0.0-x86_64-linux/arch/0 -> ERROR: No version selected
+15.0.0-x86_64-linux/arch/0 -> clang+llvm-15.0.0-x86_64-linux-gnu-rhel-8.4.tar.xz
 15.0.0-x86_64-linux/centos/6 -> clang+llvm-15.0.0-x86_64-linux-gnu-rhel-8.4.tar.xz
 15.0.0-x86_64-linux/centos/7 -> clang+llvm-15.0.0-x86_64-linux-gnu-rhel-8.4.tar.xz
 15.0.0-x86_64-linux/debian/0 -> clang+llvm-15.0.0-x86_64-linux-gnu-rhel-8.4.tar.xz
@@ -7841,8 +7841,8 @@
 15.0.0-x86_64-linux/freebsd/11 -> ERROR: No version selected
 15.0.0-x86_64-linux/freebsd/12 -> ERROR: No version selected
 15.0.0-x86_64-linux/freebsd/13 -> ERROR: No version selected
-15.0.0-x86_64-linux/linuxmint/18 -> ERROR: No version selected
-15.0.0-x86_64-linux/linuxmint/19 -> ERROR: No version selected
+15.0.0-x86_64-linux/linuxmint/18 -> clang+llvm-15.0.0-x86_64-linux-gnu-rhel-8.4.tar.xz
+15.0.0-x86_64-linux/linuxmint/19 -> clang+llvm-15.0.0-x86_64-linux-gnu-rhel-8.4.tar.xz
 15.0.0-x86_64-linux/pc-solaris/2.11 -> clang+llvm-15.0.0-amd64-pc-solaris2.11.tar.xz
 15.0.0-x86_64-linux/raspbian/0 -> ERROR: No version selected
 15.0.0-x86_64-linux/rhel/0 -> clang+llvm-15.0.0-x86_64-linux-gnu-rhel-8.4.tar.xz
@@ -7854,15 +7854,15 @@
 15.0.0-x86_64-linux/suse/15.5 -> ERROR: No version selected
 15.0.0-x86_64-linux/suse/16.0 -> ERROR: No version selected
 15.0.0-x86_64-linux/suse/17.0 -> ERROR: No version selected
-15.0.0-x86_64-linux/ubuntu/14.04 -> ERROR: No version selected
-15.0.0-x86_64-linux/ubuntu/16.04 -> ERROR: No version selected
-15.0.0-x86_64-linux/ubuntu/18.04.5 -> ERROR: No version selected
-15.0.0-x86_64-linux/ubuntu/18.04.6 -> ERROR: No version selected
-15.0.0-x86_64-linux/ubuntu/18.04 -> ERROR: No version selected
-15.0.0-x86_64-linux/ubuntu/20.04 -> ERROR: No version selected
-15.0.0-x86_64-linux/ubuntu/20.10 -> ERROR: No version selected
-15.0.0-x86_64-linux/ubuntu/22.04 -> ERROR: No version selected
-15.0.0-x86_64-linux/ubuntu/24.04 -> ERROR: No version selected
+15.0.0-x86_64-linux/ubuntu/14.04 -> clang+llvm-15.0.0-x86_64-linux-gnu-rhel-8.4.tar.xz
+15.0.0-x86_64-linux/ubuntu/16.04 -> clang+llvm-15.0.0-x86_64-linux-gnu-rhel-8.4.tar.xz
+15.0.0-x86_64-linux/ubuntu/18.04.5 -> clang+llvm-15.0.0-x86_64-linux-gnu-rhel-8.4.tar.xz
+15.0.0-x86_64-linux/ubuntu/18.04.6 -> clang+llvm-15.0.0-x86_64-linux-gnu-rhel-8.4.tar.xz
+15.0.0-x86_64-linux/ubuntu/18.04 -> clang+llvm-15.0.0-x86_64-linux-gnu-rhel-8.4.tar.xz
+15.0.0-x86_64-linux/ubuntu/20.04 -> clang+llvm-15.0.0-x86_64-linux-gnu-rhel-8.4.tar.xz
+15.0.0-x86_64-linux/ubuntu/20.10 -> clang+llvm-15.0.0-x86_64-linux-gnu-rhel-8.4.tar.xz
+15.0.0-x86_64-linux/ubuntu/22.04 -> clang+llvm-15.0.0-x86_64-linux-gnu-rhel-8.4.tar.xz
+15.0.0-x86_64-linux/ubuntu/24.04 -> clang+llvm-15.0.0-x86_64-linux-gnu-rhel-8.4.tar.xz
 15.0.0-x86_64-windows/windows/ -> ERROR: No version selected
 15.0.1-aarch64-darwin/darwin/ -> clang+llvm-15.0.1-arm64-apple-darwin21.0.tar.xz
 15.0.1-aarch64-linux/amzn/0 -> clang+llvm-15.0.1-aarch64-linux-gnu.tar.xz
@@ -8529,7 +8529,7 @@
 15.0.2-x86_64-linux/linuxmint/19 -> clang+llvm-15.0.2-x86_64-unknown-linux-gnu-rhel86.tar.xz
 15.0.2-x86_64-linux/pc-solaris/2.11 -> ERROR: No version selected
 15.0.2-x86_64-linux/raspbian/0 -> ERROR: No version selected
-15.0.2-x86_64-linux/rhel/0 -> ERROR: No version selected
+15.0.2-x86_64-linux/rhel/0 -> clang+llvm-15.0.2-x86_64-unknown-linux-gnu-rhel86.tar.xz
 15.0.2-x86_64-linux/sun-solaris/2.11 -> ERROR: No version selected
 15.0.2-x86_64-linux/suse/11.3 -> clang+llvm-15.0.2-x86_64-unknown-linux-gnu-rhel86.tar.xz
 15.0.2-x86_64-linux/suse/12.2 -> clang+llvm-15.0.2-x86_64-unknown-linux-gnu-rhel86.tar.xz
@@ -9196,7 +9196,7 @@
 15.0.4-x86_32-windows/windows/ -> ERROR: No version selected
 15.0.4-x86_64-darwin/darwin/ -> clang+llvm-15.0.4-x86_64-apple-darwin.tar.xz
 15.0.4-x86_64-linux/amzn/0 -> ERROR: No version selected
-15.0.4-x86_64-linux/arch/0 -> ERROR: No version selected
+15.0.4-x86_64-linux/arch/0 -> clang+llvm-15.0.4-x86_64-linux-gnu-rhel-8.4.tar.xz
 15.0.4-x86_64-linux/centos/6 -> clang+llvm-15.0.4-x86_64-linux-gnu-rhel-8.4.tar.xz
 15.0.4-x86_64-linux/centos/7 -> clang+llvm-15.0.4-x86_64-linux-gnu-rhel-8.4.tar.xz
 15.0.4-x86_64-linux/debian/0 -> clang+llvm-15.0.4-x86_64-linux-gnu-rhel-8.4.tar.xz
@@ -9209,8 +9209,8 @@
 15.0.4-x86_64-linux/freebsd/11 -> ERROR: No version selected
 15.0.4-x86_64-linux/freebsd/12 -> ERROR: No version selected
 15.0.4-x86_64-linux/freebsd/13 -> ERROR: No version selected
-15.0.4-x86_64-linux/linuxmint/18 -> ERROR: No version selected
-15.0.4-x86_64-linux/linuxmint/19 -> ERROR: No version selected
+15.0.4-x86_64-linux/linuxmint/18 -> clang+llvm-15.0.4-x86_64-linux-gnu-rhel-8.4.tar.xz
+15.0.4-x86_64-linux/linuxmint/19 -> clang+llvm-15.0.4-x86_64-linux-gnu-rhel-8.4.tar.xz
 15.0.4-x86_64-linux/pc-solaris/2.11 -> ERROR: No version selected
 15.0.4-x86_64-linux/raspbian/0 -> ERROR: No version selected
 15.0.4-x86_64-linux/rhel/0 -> clang+llvm-15.0.4-x86_64-linux-gnu-rhel-8.4.tar.xz
@@ -9222,15 +9222,15 @@
 15.0.4-x86_64-linux/suse/15.5 -> ERROR: No version selected
 15.0.4-x86_64-linux/suse/16.0 -> ERROR: No version selected
 15.0.4-x86_64-linux/suse/17.0 -> ERROR: No version selected
-15.0.4-x86_64-linux/ubuntu/14.04 -> ERROR: No version selected
-15.0.4-x86_64-linux/ubuntu/16.04 -> ERROR: No version selected
-15.0.4-x86_64-linux/ubuntu/18.04.5 -> ERROR: No version selected
-15.0.4-x86_64-linux/ubuntu/18.04.6 -> ERROR: No version selected
-15.0.4-x86_64-linux/ubuntu/18.04 -> ERROR: No version selected
-15.0.4-x86_64-linux/ubuntu/20.04 -> ERROR: No version selected
-15.0.4-x86_64-linux/ubuntu/20.10 -> ERROR: No version selected
-15.0.4-x86_64-linux/ubuntu/22.04 -> ERROR: No version selected
-15.0.4-x86_64-linux/ubuntu/24.04 -> ERROR: No version selected
+15.0.4-x86_64-linux/ubuntu/14.04 -> clang+llvm-15.0.4-x86_64-linux-gnu-rhel-8.4.tar.xz
+15.0.4-x86_64-linux/ubuntu/16.04 -> clang+llvm-15.0.4-x86_64-linux-gnu-rhel-8.4.tar.xz
+15.0.4-x86_64-linux/ubuntu/18.04.5 -> clang+llvm-15.0.4-x86_64-linux-gnu-rhel-8.4.tar.xz
+15.0.4-x86_64-linux/ubuntu/18.04.6 -> clang+llvm-15.0.4-x86_64-linux-gnu-rhel-8.4.tar.xz
+15.0.4-x86_64-linux/ubuntu/18.04 -> clang+llvm-15.0.4-x86_64-linux-gnu-rhel-8.4.tar.xz
+15.0.4-x86_64-linux/ubuntu/20.04 -> clang+llvm-15.0.4-x86_64-linux-gnu-rhel-8.4.tar.xz
+15.0.4-x86_64-linux/ubuntu/20.10 -> clang+llvm-15.0.4-x86_64-linux-gnu-rhel-8.4.tar.xz
+15.0.4-x86_64-linux/ubuntu/22.04 -> clang+llvm-15.0.4-x86_64-linux-gnu-rhel-8.4.tar.xz
+15.0.4-x86_64-linux/ubuntu/24.04 -> clang+llvm-15.0.4-x86_64-linux-gnu-rhel-8.4.tar.xz
 15.0.4-x86_64-windows/windows/ -> ERROR: No version selected
 15.0.5-aarch64-darwin/darwin/ -> clang+llvm-15.0.5-arm64-apple-darwin21.0.tar.xz
 15.0.5-aarch64-linux/amzn/0 -> ERROR: No version selected
@@ -9555,7 +9555,7 @@
 15.0.5-x86_64-linux/linuxmint/19 -> clang+llvm-15.0.5-x86_64-linux-gnu-ubuntu-18.04.tar.xz
 15.0.5-x86_64-linux/pc-solaris/2.11 -> ERROR: No version selected
 15.0.5-x86_64-linux/raspbian/0 -> ERROR: No version selected
-15.0.5-x86_64-linux/rhel/0 -> ERROR: No version selected
+15.0.5-x86_64-linux/rhel/0 -> clang+llvm-15.0.5-x86_64-linux-gnu-ubuntu-18.04.tar.xz
 15.0.5-x86_64-linux/sun-solaris/2.11 -> ERROR: No version selected
 15.0.5-x86_64-linux/suse/11.3 -> clang+llvm-15.0.5-x86_64-linux-gnu-ubuntu-18.04.tar.xz
 15.0.5-x86_64-linux/suse/12.2 -> clang+llvm-15.0.5-x86_64-linux-gnu-ubuntu-18.04.tar.xz
@@ -9897,7 +9897,7 @@
 15.0.6-x86_64-linux/linuxmint/19 -> clang+llvm-15.0.6-x86_64-linux-gnu-ubuntu-18.04.tar.xz
 15.0.6-x86_64-linux/pc-solaris/2.11 -> ERROR: No version selected
 15.0.6-x86_64-linux/raspbian/0 -> ERROR: No version selected
-15.0.6-x86_64-linux/rhel/0 -> ERROR: No version selected
+15.0.6-x86_64-linux/rhel/0 -> clang+llvm-15.0.6-x86_64-linux-gnu-ubuntu-18.04.tar.xz
 15.0.6-x86_64-linux/sun-solaris/2.11 -> ERROR: No version selected
 15.0.6-x86_64-linux/suse/11.3 -> clang+llvm-15.0.6-x86_64-linux-gnu-ubuntu-18.04.tar.xz
 15.0.6-x86_64-linux/suse/12.2 -> clang+llvm-15.0.6-x86_64-linux-gnu-ubuntu-18.04.tar.xz
@@ -10581,7 +10581,7 @@
 16.0.0-x86_64-linux/linuxmint/19 -> clang+llvm-16.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz
 16.0.0-x86_64-linux/pc-solaris/2.11 -> clang+llvm-16.0.0-amd64-pc-solaris2.11.tar.xz
 16.0.0-x86_64-linux/raspbian/0 -> ERROR: No version selected
-16.0.0-x86_64-linux/rhel/0 -> ERROR: No version selected
+16.0.0-x86_64-linux/rhel/0 -> clang+llvm-16.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz
 16.0.0-x86_64-linux/sun-solaris/2.11 -> ERROR: No version selected
 16.0.0-x86_64-linux/suse/11.3 -> clang+llvm-16.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz
 16.0.0-x86_64-linux/suse/12.2 -> clang+llvm-16.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz
@@ -11265,7 +11265,7 @@
 16.0.2-x86_64-linux/linuxmint/19 -> clang+llvm-16.0.2-x86_64-linux-gnu-ubuntu-22.04.tar.xz
 16.0.2-x86_64-linux/pc-solaris/2.11 -> ERROR: No version selected
 16.0.2-x86_64-linux/raspbian/0 -> ERROR: No version selected
-16.0.2-x86_64-linux/rhel/0 -> ERROR: No version selected
+16.0.2-x86_64-linux/rhel/0 -> clang+llvm-16.0.2-x86_64-linux-gnu-ubuntu-22.04.tar.xz
 16.0.2-x86_64-linux/sun-solaris/2.11 -> ERROR: No version selected
 16.0.2-x86_64-linux/suse/11.3 -> clang+llvm-16.0.2-x86_64-linux-gnu-ubuntu-22.04.tar.xz
 16.0.2-x86_64-linux/suse/12.2 -> clang+llvm-16.0.2-x86_64-linux-gnu-ubuntu-22.04.tar.xz
@@ -11607,7 +11607,7 @@
 16.0.3-x86_64-linux/linuxmint/19 -> clang+llvm-16.0.3-x86_64-linux-gnu-ubuntu-22.04.tar.xz
 16.0.3-x86_64-linux/pc-solaris/2.11 -> ERROR: No version selected
 16.0.3-x86_64-linux/raspbian/0 -> ERROR: No version selected
-16.0.3-x86_64-linux/rhel/0 -> ERROR: No version selected
+16.0.3-x86_64-linux/rhel/0 -> clang+llvm-16.0.3-x86_64-linux-gnu-ubuntu-22.04.tar.xz
 16.0.3-x86_64-linux/sun-solaris/2.11 -> ERROR: No version selected
 16.0.3-x86_64-linux/suse/11.3 -> clang+llvm-16.0.3-x86_64-linux-gnu-ubuntu-22.04.tar.xz
 16.0.3-x86_64-linux/suse/12.2 -> clang+llvm-16.0.3-x86_64-linux-gnu-ubuntu-22.04.tar.xz
@@ -11949,7 +11949,7 @@
 16.0.4-x86_64-linux/linuxmint/19 -> clang+llvm-16.0.4-x86_64-linux-gnu-ubuntu-22.04.tar.xz
 16.0.4-x86_64-linux/pc-solaris/2.11 -> ERROR: No version selected
 16.0.4-x86_64-linux/raspbian/0 -> ERROR: No version selected
-16.0.4-x86_64-linux/rhel/0 -> ERROR: No version selected
+16.0.4-x86_64-linux/rhel/0 -> clang+llvm-16.0.4-x86_64-linux-gnu-ubuntu-22.04.tar.xz
 16.0.4-x86_64-linux/sun-solaris/2.11 -> ERROR: No version selected
 16.0.4-x86_64-linux/suse/11.3 -> clang+llvm-16.0.4-x86_64-linux-gnu-ubuntu-22.04.tar.xz
 16.0.4-x86_64-linux/suse/12.2 -> clang+llvm-16.0.4-x86_64-linux-gnu-ubuntu-22.04.tar.xz
@@ -13317,7 +13317,7 @@
 17.0.2-x86_64-linux/linuxmint/19 -> clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04.tar.xz
 17.0.2-x86_64-linux/pc-solaris/2.11 -> clang+llvm-17.0.2-amd64-pc-solaris2.11.tar.xz
 17.0.2-x86_64-linux/raspbian/0 -> ERROR: No version selected
-17.0.2-x86_64-linux/rhel/0 -> ERROR: No version selected
+17.0.2-x86_64-linux/rhel/0 -> clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04.tar.xz
 17.0.2-x86_64-linux/sun-solaris/2.11 -> ERROR: No version selected
 17.0.2-x86_64-linux/suse/11.3 -> clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04.tar.xz
 17.0.2-x86_64-linux/suse/12.2 -> clang+llvm-17.0.2-x86_64-linux-gnu-ubuntu-22.04.tar.xz
@@ -14001,7 +14001,7 @@
 17.0.4-x86_64-linux/linuxmint/19 -> clang+llvm-17.0.4-x86_64-linux-gnu-ubuntu-22.04.tar.xz
 17.0.4-x86_64-linux/pc-solaris/2.11 -> ERROR: No version selected
 17.0.4-x86_64-linux/raspbian/0 -> ERROR: No version selected
-17.0.4-x86_64-linux/rhel/0 -> ERROR: No version selected
+17.0.4-x86_64-linux/rhel/0 -> clang+llvm-17.0.4-x86_64-linux-gnu-ubuntu-22.04.tar.xz
 17.0.4-x86_64-linux/sun-solaris/2.11 -> ERROR: No version selected
 17.0.4-x86_64-linux/suse/11.3 -> clang+llvm-17.0.4-x86_64-linux-gnu-ubuntu-22.04.tar.xz
 17.0.4-x86_64-linux/suse/12.2 -> clang+llvm-17.0.4-x86_64-linux-gnu-ubuntu-22.04.tar.xz
@@ -14343,7 +14343,7 @@
 17.0.5-x86_64-linux/linuxmint/19 -> clang+llvm-17.0.5-x86_64-linux-gnu-ubuntu-22.04.tar.xz
 17.0.5-x86_64-linux/pc-solaris/2.11 -> ERROR: No version selected
 17.0.5-x86_64-linux/raspbian/0 -> ERROR: No version selected
-17.0.5-x86_64-linux/rhel/0 -> ERROR: No version selected
+17.0.5-x86_64-linux/rhel/0 -> clang+llvm-17.0.5-x86_64-linux-gnu-ubuntu-22.04.tar.xz
 17.0.5-x86_64-linux/sun-solaris/2.11 -> ERROR: No version selected
 17.0.5-x86_64-linux/suse/11.3 -> clang+llvm-17.0.5-x86_64-linux-gnu-ubuntu-22.04.tar.xz
 17.0.5-x86_64-linux/suse/12.2 -> clang+llvm-17.0.5-x86_64-linux-gnu-ubuntu-22.04.tar.xz
@@ -14685,7 +14685,7 @@
 17.0.6-x86_64-linux/linuxmint/19 -> clang+llvm-17.0.6-x86_64-linux-gnu-ubuntu-22.04.tar.xz
 17.0.6-x86_64-linux/pc-solaris/2.11 -> clang+llvm-17.0.6-amd64-pc-solaris2.11.tar.xz
 17.0.6-x86_64-linux/raspbian/0 -> ERROR: No version selected
-17.0.6-x86_64-linux/rhel/0 -> ERROR: No version selected
+17.0.6-x86_64-linux/rhel/0 -> clang+llvm-17.0.6-x86_64-linux-gnu-ubuntu-22.04.tar.xz
 17.0.6-x86_64-linux/sun-solaris/2.11 -> ERROR: No version selected
 17.0.6-x86_64-linux/suse/11.3 -> clang+llvm-17.0.6-x86_64-linux-gnu-ubuntu-22.04.tar.xz
 17.0.6-x86_64-linux/suse/12.2 -> clang+llvm-17.0.6-x86_64-linux-gnu-ubuntu-22.04.tar.xz
@@ -16395,7 +16395,7 @@
 18.1.4-x86_64-linux/linuxmint/19 -> clang+llvm-18.1.4-x86_64-linux-gnu-ubuntu-18.04.tar.xz
 18.1.4-x86_64-linux/pc-solaris/2.11 -> ERROR: No version selected
 18.1.4-x86_64-linux/raspbian/0 -> ERROR: No version selected
-18.1.4-x86_64-linux/rhel/0 -> ERROR: No version selected
+18.1.4-x86_64-linux/rhel/0 -> clang+llvm-18.1.4-x86_64-linux-gnu-ubuntu-18.04.tar.xz
 18.1.4-x86_64-linux/sun-solaris/2.11 -> ERROR: No version selected
 18.1.4-x86_64-linux/suse/11.3 -> clang+llvm-18.1.4-x86_64-linux-gnu-ubuntu-18.04.tar.xz
 18.1.4-x86_64-linux/suse/12.2 -> clang+llvm-18.1.4-x86_64-linux-gnu-ubuntu-18.04.tar.xz
@@ -17421,7 +17421,7 @@
 18.1.7-x86_64-linux/linuxmint/19 -> clang+llvm-18.1.7-x86_64-linux-gnu-ubuntu-18.04.tar.xz
 18.1.7-x86_64-linux/pc-solaris/2.11 -> ERROR: No version selected
 18.1.7-x86_64-linux/raspbian/0 -> ERROR: No version selected
-18.1.7-x86_64-linux/rhel/0 -> ERROR: No version selected
+18.1.7-x86_64-linux/rhel/0 -> clang+llvm-18.1.7-x86_64-linux-gnu-ubuntu-18.04.tar.xz
 18.1.7-x86_64-linux/sun-solaris/2.11 -> ERROR: No version selected
 18.1.7-x86_64-linux/suse/11.3 -> clang+llvm-18.1.7-x86_64-linux-gnu-ubuntu-18.04.tar.xz
 18.1.7-x86_64-linux/suse/12.2 -> clang+llvm-18.1.7-x86_64-linux-gnu-ubuntu-18.04.tar.xz
@@ -17763,7 +17763,7 @@
 18.1.8-x86_64-linux/linuxmint/19 -> clang+llvm-18.1.8-x86_64-linux-gnu-ubuntu-18.04.tar.xz
 18.1.8-x86_64-linux/pc-solaris/2.11 -> ERROR: No version selected
 18.1.8-x86_64-linux/raspbian/0 -> ERROR: No version selected
-18.1.8-x86_64-linux/rhel/0 -> ERROR: No version selected
+18.1.8-x86_64-linux/rhel/0 -> clang+llvm-18.1.8-x86_64-linux-gnu-ubuntu-18.04.tar.xz
 18.1.8-x86_64-linux/sun-solaris/2.11 -> ERROR: No version selected
 18.1.8-x86_64-linux/suse/11.3 -> clang+llvm-18.1.8-x86_64-linux-gnu-ubuntu-18.04.tar.xz
 18.1.8-x86_64-linux/suse/12.2 -> clang+llvm-18.1.8-x86_64-linux-gnu-ubuntu-18.04.tar.xz

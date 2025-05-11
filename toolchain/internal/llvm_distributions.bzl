@@ -757,6 +757,8 @@ _UBUNTU_VERSIONS = [
     "linux-gnu-ubuntu-18.04",
     "linux-gnu-ubuntu-16.04",
     "linux-gnu-ubuntu-14.04",
+    "linux-ubuntu-",  # Version prefix to catch other versions.
+    "linux-gnu-ubuntu-",  # Version prefix to catch other versions.
     "linux-gnu",
     "unknown-linux-gnu",
     "unknown-linux-gnu-rhel86",
@@ -775,6 +777,9 @@ def _dist_to_os_names(dist, default_os_names = []):
             "linux-sles12.2",
             "linux-sles11.3",
             "linux-sles",
+            # The below rhel/ubuntu selection implements backwards compatibility
+            # with the old predictions. However suse is not close to either. So
+            # We are not using `_UBUNTU_VERSIONS` here.
             "unknown-linux-gnu-rhel86",
             "linux-gnu-ubuntu-24.04",
             "linux-gnu-ubuntu-22.04",
@@ -787,8 +792,9 @@ def _dist_to_os_names(dist, default_os_names = []):
         return [
             "linux-gnu",
             "unknown-linux-gnu",
-            # The Ubuntu list could be replaced with _UBUNTU_VERSIONS which
-            # Spawns more selections and changes a few to near Ubuntu versions.
+            # The below ubuntu selection implements backwards compatibility
+            # with the old predictions. However suse is not close to either. So
+            # We are not using `_UBUNTU_VERSIONS` here.
             "linux-gnu-ubuntu-22.04",
             "linux-gnu-ubuntu-20.04",
             "linux-gnu-ubuntu-18.04",
@@ -800,24 +806,16 @@ def _dist_to_os_names(dist, default_os_names = []):
             "unknown-linux-gnu-rhel86",
             "linux-gnu",
             "unknown-linux-gnu",
-            # The Ubuntu list could be replaced with _UBUNTU_VERSIONS which
-            # Spawns more selections and changes a few to near Ubuntu versions.
-            "linux-gnu-ubuntu-22.04",
-            "linux-gnu-ubuntu-20.04",
-            "linux-gnu-ubuntu-18.04",
-            "linux-gnu-ubuntu-16.04",
-            "linux-ubuntu-20.04",
-            "linux-ubuntu-18.04",
-            "linux-ubuntu-18.04.6",
-            "linux-ubuntu-18.04.5",
-            "linux-ubuntu-16.04",
-        ]
+        ] + _UBUNTU_VERSIONS
     if dist.name == "freebsd":
         return ["unknown-freebsd", "unknown-freebsd-"]
     if dist.name == "raspbian":
         return ["linux-gnueabihf", "linux-gnu"]
     if dist.name in ["rhel", "ol", "almalinux"]:
-        return ["linux-rhel-", "linux-gnu-rhel-"]
+        return [
+            "linux-rhel-",
+            "linux-gnu-rhel-",
+        ] + _UBUNTU_VERSIONS
     if dist.name == "debian":
         return [
             "linux-gnu-debian8",
@@ -892,29 +890,6 @@ def _find_llvm_basename_list(llvm_version, host_info):
                 os = "pc-windows-msvc",
             ),
         ])
-    elif dist.name in ["amzn", "suse"] and arch == "x86_64":
-        return _find_llvm_basenames_by_stem([
-            "clang+llvm-{llvm_version}-{arch}-{os}".format(
-                llvm_version = llvm_version,
-                arch = arch,
-                os = suse_os,
-            )
-            for suse_os in _dist_to_os_names(dist)
-        ], is_prefix = True, return_first_match = True)
-    elif dist.name in _UBUNTU_NAMES:
-        arch_list = {
-            "sparcv9": ["sparc64", "sparcv9"],
-        }.get(arch, [arch])
-        return _find_llvm_basenames_by_stem([
-            "clang+llvm-{llvm_version}-{arch}-{os}".format(
-                llvm_version = llvm_version,
-                arch = select_arch,
-                os = select_os,
-            )
-            for select_os in _dist_to_os_names(dist)
-            for select_arch in arch_list
-        ], return_first_match = True)
-
     elif dist.name == "raspbian":
         return _find_llvm_basenames_by_stem([
             "clang+llvm-{llvm_version}-{arch}-{os}".format(
@@ -925,20 +900,20 @@ def _find_llvm_basename_list(llvm_version, host_info):
             for select_os in _dist_to_os_names(dist)
         ])
     elif os == "linux":
-        if arch in ["aarch64", "armv7a", "mips", "mipsel"]:
-            return _find_llvm_basenames_by_stem(["clang+llvm-{llvm_version}-{arch}-{os}".format(
-                llvm_version = llvm_version,
-                arch = arch,
-                os = "linux-gnu",
-            )])
-        elif arch in ["sparc64", "sparcv9"]:
+        if arch in ["aarch64", "armv7a", "mips", "mipsel", "sparc64", "sparcv9"]:
+            arch_alias_list = {
+                "sparc64": ["sparc64", "sparcv9"],
+                "sparcv9": ["sparc64", "sparcv9"],
+            }.get(arch, [arch])
+
             return _find_llvm_basenames_by_stem([
                 "clang+llvm-{llvm_version}-{arch}-{os}".format(
                     llvm_version = llvm_version,
                     arch = arch_alias,
-                    os = "unknown-linux-gnu",
+                    os = os_name,
                 )
-                for arch_alias in ["sparc64", "sparcv9"]
+                for arch_alias in arch_alias_list
+                for os_name in ["linux-gnu", "unknown-linux-gnu"] + _dist_to_os_names(dist)
             ])
 
         arch_alias_list = {
