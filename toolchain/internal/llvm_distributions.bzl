@@ -1098,7 +1098,7 @@ def _find_llvm_basename_or_error(llvm_version, all_llvm_distributions, host_info
 
 def _parse_version_requirements(version_requirements):
     if version_requirements in ["latest", "first"]:
-        return []
+        return None
     for prefix in ["latest:", "first:"]:
         if version_requirements.startswith(prefix):
             return versions.parse_requirements(version_requirements.removeprefix(prefix))
@@ -1111,21 +1111,29 @@ def _get_llvm_versions(*, version_requirements, all_llvm_distributions):
     for distribution in all_llvm_distributions.keys():
         version = distribution.split("-")[1]
         llvm_versions[version] = None
-    if version_requirements.startswith("latest:"):
+    if version_requirements.startswith("latest"):
         return reversed(llvm_versions.keys())
     else:
         return llvm_versions.keys()
 
 def _required_llvm_release_name(*, version_requirements, all_llvm_distributions, host_info):
     llvm_versions = _get_llvm_versions(version_requirements = version_requirements, all_llvm_distributions = all_llvm_distributions)
-    requires = _parse_version_requirements(version_requirements)
+    requirements = _parse_version_requirements(version_requirements)
     for llvm_version in llvm_versions:
-        if not versions.check_all_requirements(llvm_version, requires):
+        if requirements and not versions.check_all_requirements(llvm_version, requirements):
             continue
         basenames = _find_llvm_basename_list(llvm_version, all_llvm_distributions, host_info)
         if len(basenames) == 1:
             return llvm_version, basenames[0], None
     return None, None, "ERROR: No matching distribution found."
+
+def required_llvm_release_name_rctx(rctx, llvm_version):
+    all_llvm_distributions = _get_all_llvm_distributions(rctx)
+    return _required_llvm_release_name(
+        version_requirements = llvm_version,
+        all_llvm_distributions = all_llvm_distributions,
+        host_info = host_info(rctx),
+    )
 
 def _contains_any(str, chars):
     for c in chars:
@@ -1420,6 +1428,8 @@ def _requirements_test_writer_impl(ctx):
         "latest:<20.1.0,>17.0.4",
         "latest:>=15.0.6,<16",
         "first:>=15.0.6,<16",
+        "latest",
+        "first",
     ]
     arch_list = [
         "aarch64",

@@ -37,10 +37,7 @@ load(
     _supported_targets = "SUPPORTED_TARGETS",
     _toolchain_tools = "toolchain_tools",
 )
-load(
-    "//toolchain/internal:llvm_distributions.bzl",
-    _latest_llvm_release_name_or_fail = "latest_llvm_release_name_or_fail",
-)
+load("//toolchain/internal:llvm_distributions.bzl", "required_llvm_release_name_rctx")
 load(
     "//toolchain/internal:sysroot.bzl",
     _default_sysroot_path = "default_sysroot_path",
@@ -84,8 +81,10 @@ def llvm_config_impl(rctx):
     if not toolchain_root:
         fail("LLVM toolchain root missing for ({}, {})".format(os, arch))
     (_key, llvm_version) = _exec_os_arch_dict_value(rctx, "llvm_versions")
-    if llvm_version.startswith("latest"):
-        (llvm_version, distribution) = _latest_llvm_release_name_or_fail(rctx, llvm_version)
+    if llvm_version.startswith("first") or llvm_version.startswith("latest"):
+        llvm_version, distribution, error = required_llvm_release_name_rctx(rctx, llvm_version)
+        if error:
+            fail(error)
         if llvm_version:
             print("\nINFO: Resolved latest LLVM version to {llvm_version}: {distribution}".format(
                 distribution = distribution,
