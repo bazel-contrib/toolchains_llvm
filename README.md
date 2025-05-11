@@ -133,8 +133,8 @@ In case of `first`, the first distribution matching the `condition` will be sele
 
 The condition consists of a commpara separated list of semver version comparisons supporting `<`, `<=`, `>`, `>=`, `==`, `!=`. Examples:
 
-- `latest:<=20.1.0`
-- `latest:<=20.1.0,>17.0.4,!=19.1.7`
+- `latest:>=20.1.0`
+- `latest:>17.0.4,!=19.1.7,<=20.1.0`
 - `first:>=15.0.6,<16`
 
 ### Selecting Toolchains
