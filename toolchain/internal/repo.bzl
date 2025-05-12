@@ -35,6 +35,13 @@ common_attrs = {
                "in the list of known llvm_distributions using the provided version. " +
                "If unset, a default value is set from the `llvm_version` attribute."),
     ),
+    "extra_llvm_distributions": attr.string_dict(
+        mandatory = False,
+        doc = ("A dictionary that maps distributions to their SHA256 values. " +
+               "It allows for simple additon of llvm distributiosn using the " +
+               "'utils/lvm_checksums.sh' tool. This also allows to use the " +
+               "distributions lists of future toolchain versions."),
+    ),
     "exec_os": attr.string(
         mandatory = False,
         doc = "Execution platform OS, if different from host OS.",
@@ -54,13 +61,6 @@ llvm_repo_attrs.update({
                "`latest` in order to find the respective first or latest LLVM version " +
                "supported on the OS/arch. Further, requirements can be provided, e.g. " +
                "`latest:>=17.0.4,!=19.0.7`."),
-    ),
-    "extra_llvm_distributions": attr.string_dict(
-        mandatory = False,
-        doc = ("A dictionary that maps distributions to their SHA256 values. " +
-               "It allows for simple additon of llvm distributiosn using the " +
-               "'utils/lvm_checksums.sh' tool. This also allows to use the " +
-               "distributions lists of future toolchain versions."),
     ),
     "urls": attr.string_list_dict(
         mandatory = False,

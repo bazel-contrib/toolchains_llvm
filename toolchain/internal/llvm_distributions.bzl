@@ -1171,7 +1171,7 @@ def _distribution_urls(rctx):
         rctx_host_info = host_info(rctx)
         if is_requirement(llvm_version):
             llvm_version, basename, error = _required_llvm_release_name(
-                version_or_requirements = _parse_version_or_requirements(llvm_version),
+                version_or_requirements = llvm_version,
                 all_llvm_distributions = all_llvm_distributions,
                 host_info = rctx_host_info,
             )
