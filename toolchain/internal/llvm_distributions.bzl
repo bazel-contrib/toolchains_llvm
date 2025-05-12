@@ -1070,6 +1070,10 @@ def _find_llvm_basename_list(llvm_version, all_llvm_distributions, host_info):
     return []
 
 def _find_llvm_basename_or_error(llvm_version, all_llvm_distributions, host_info):
+    all_llvm_distributions = _filter_llvm_distributions(
+        llvm_version = llvm_version,
+        all_llvm_distributions = all_llvm_distributions,
+    )
     basenames = _find_llvm_basename_list(llvm_version, all_llvm_distributions, host_info)
     if len(basenames) > 1:
         return None, "ERROR: Multiple configurations found for version {llvm_version} on {os}/{dist_name}/{dist_version} with arch {arch}: [{basenames}].".format(
@@ -1096,29 +1100,32 @@ def _find_llvm_basename_or_error(llvm_version, all_llvm_distributions, host_info
 
     return basenames[0], None
 
-def _parse_version_requirements(version_requirements):
-    if version_requirements in ["latest", "first"]:
+def _parse_version_or_requirements(version_or_requirements):
+    if version_or_requirements in ["latest", "first"]:
         return None
     for prefix in ["latest:", "first:"]:
-        if version_requirements.startswith(prefix):
-            return versions.parse_requirements(version_requirements.removeprefix(prefix))
-    fail("ERROR: Invalid version requirements: '{version_requirements}'.".format(
-        version_requirements = version_requirements,
+        if version_or_requirements.startswith(prefix):
+            return versions.parse_requirements(version_or_requirements.removeprefix(prefix))
+    fail("ERROR: Invalid version requirements: '{version_or_requirements}'.".format(
+        version_or_requirements = version_or_requirements,
     ))
 
-def _get_llvm_versions(*, version_requirements, all_llvm_distributions):
-    llvm_versions = {}
-    for distribution in all_llvm_distributions.keys():
-        version = distribution.split("-")[1]
-        llvm_versions[version] = None
-    if version_requirements.startswith("latest"):
-        return reversed(llvm_versions.keys())
-    else:
-        return llvm_versions.keys()
+def _get_version_from_distribution(distribution):
+    # We assume here that the `distribution` is a basename of the form `LLVM-<version>-...` or
+    # `clang+llvm-<version>-...`.
+    return distribution.split("-")[1]
 
-def _required_llvm_release_name(*, version_requirements, all_llvm_distributions, host_info):
-    llvm_versions = _get_llvm_versions(version_requirements = version_requirements, all_llvm_distributions = all_llvm_distributions)
-    requirements = _parse_version_requirements(version_requirements)
+def _get_llvm_versions(*, version_or_requirements, all_llvm_distributions):
+    llvm_version_dict = {}
+    for distribution in all_llvm_distributions.keys():
+        version = _get_version_from_distribution(distribution)
+        llvm_version_dict[_parse_version(version)] = version
+
+    return [v for k, v in sorted(llvm_version_dict.items(), reverse = version_or_requirements.startswith("latest"))]
+
+def _required_llvm_release_name(*, version_or_requirements, all_llvm_distributions, host_info):
+    llvm_versions = _get_llvm_versions(version_or_requirements = version_or_requirements, all_llvm_distributions = all_llvm_distributions)
+    requirements = _parse_version_or_requirements(version_or_requirements)
     for llvm_version in llvm_versions:
         if requirements and not versions.check_all_requirements(llvm_version, requirements):
             continue
@@ -1130,19 +1137,28 @@ def _required_llvm_release_name(*, version_requirements, all_llvm_distributions,
 def required_llvm_release_name_rctx(rctx, llvm_version):
     all_llvm_distributions = _get_all_llvm_distributions(rctx)
     return _required_llvm_release_name(
-        version_requirements = llvm_version,
+        version_or_requirements = llvm_version,
         all_llvm_distributions = all_llvm_distributions,
         host_info = host_info(rctx),
     )
 
-def is_requirement(str):
-    for prefix in ["first", "latest"]:
-        if str == prefix or str.startswith(prefix + ":"):
+def is_requirement(version_or_requirement):
+    """Return whether `version_or_requirement` is likely a requirement (True) or should be a version."""
+    for prefix in ["first:", "latest:"]:
+        if version_or_requirement.startswith(prefix) or version_or_requirement == prefix[:-1]:
             return True
     return False
 
+def _filter_llvm_distributions(*, llvm_version, all_llvm_distributions):
+    """Return (distribution: sha) entries from `all_llvm_distributions` that match `llvm_version`."""
+    result = {}
+    for k, v in all_llvm_distributions.items():
+        if _get_version_from_distribution(k) == llvm_version:
+            result[k] = v
+    return result
+
 def _distribution_urls(rctx):
-    """Return LLVM `urls`, `shha256` and `strip_prefix` for the given context."""
+    """Return LLVM `urls`, `sha256` and `strip_prefix` for the given context."""
     llvm_version = _get_llvm_version(rctx)
     all_llvm_distributions = _get_all_llvm_distributions(
         llvm_distributions = _llvm_distributions,
@@ -1155,7 +1171,7 @@ def _distribution_urls(rctx):
         rctx_host_info = host_info(rctx)
         if is_requirement(llvm_version):
             llvm_version, basename, error = _required_llvm_release_name(
-                version_requirements = _parse_version_requirements(llvm_version),
+                version_or_requirements = _parse_version_or_requirements(llvm_version),
                 all_llvm_distributions = all_llvm_distributions,
                 host_info = rctx_host_info,
             )
@@ -1462,7 +1478,7 @@ def _requirements_test_writer_impl(ctx):
                         dist = dist,
                     )
                     llvm_version, basename, error = _required_llvm_release_name(
-                        version_requirements = requirement,
+                        version_or_requirements = requirement,
                         all_llvm_distributions = all_llvm_distributions,
                         host_info = host_info,
                     )
