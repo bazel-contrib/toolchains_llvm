@@ -266,24 +266,24 @@
 6.0.0-sparcv9-windows/windows/ -> ERROR: No version selected
 6.0.0-x86_32-darwin/darwin/ -> ERROR: No version selected
 6.0.0-x86_32-linux/amzn/0 -> ERROR: No version selected
-6.0.0-x86_32-linux/arch/0 -> ERROR: No version selected
-6.0.0-x86_32-linux/centos/6 -> ERROR: No version selected
-6.0.0-x86_32-linux/centos/7 -> ERROR: No version selected
-6.0.0-x86_32-linux/debian/0 -> ERROR: No version selected
-6.0.0-x86_32-linux/debian/8 -> ERROR: No version selected
-6.0.0-x86_32-linux/debian/9 -> ERROR: No version selected
-6.0.0-x86_32-linux/fedora/26 -> ERROR: No version selected
-6.0.0-x86_32-linux/fedora/27 -> ERROR: No version selected
-6.0.0-x86_32-linux/fedora/42 -> ERROR: No version selected
+6.0.0-x86_32-linux/arch/0 -> clang+llvm-6.0.0-i686-linux-gnu-Fedora27.tar.xz
+6.0.0-x86_32-linux/centos/6 -> clang+llvm-6.0.0-i686-linux-gnu-Fedora27.tar.xz
+6.0.0-x86_32-linux/centos/7 -> clang+llvm-6.0.0-i686-linux-gnu-Fedora27.tar.xz
+6.0.0-x86_32-linux/debian/0 -> clang+llvm-6.0.0-i686-linux-gnu-Fedora27.tar.xz
+6.0.0-x86_32-linux/debian/8 -> clang+llvm-6.0.0-i686-linux-gnu-Fedora27.tar.xz
+6.0.0-x86_32-linux/debian/9 -> clang+llvm-6.0.0-i686-linux-gnu-Fedora27.tar.xz
+6.0.0-x86_32-linux/fedora/26 -> clang+llvm-6.0.0-i686-linux-gnu-Fedora27.tar.xz
+6.0.0-x86_32-linux/fedora/27 -> clang+llvm-6.0.0-i686-linux-gnu-Fedora27.tar.xz
+6.0.0-x86_32-linux/fedora/42 -> clang+llvm-6.0.0-i686-linux-gnu-Fedora27.tar.xz
 6.0.0-x86_32-linux/freebsd/10 -> clang+llvm-6.0.0-i386-unknown-freebsd-10.tar.xz
 6.0.0-x86_32-linux/freebsd/11 -> ERROR: No version selected
 6.0.0-x86_32-linux/freebsd/12 -> ERROR: No version selected
 6.0.0-x86_32-linux/freebsd/13 -> ERROR: No version selected
-6.0.0-x86_32-linux/linuxmint/18 -> ERROR: No version selected
-6.0.0-x86_32-linux/linuxmint/19 -> ERROR: No version selected
+6.0.0-x86_32-linux/linuxmint/18 -> clang+llvm-6.0.0-i686-linux-gnu-Fedora27.tar.xz
+6.0.0-x86_32-linux/linuxmint/19 -> clang+llvm-6.0.0-i686-linux-gnu-Fedora27.tar.xz
 6.0.0-x86_32-linux/pc-solaris/2.11 -> ERROR: No version selected
 6.0.0-x86_32-linux/raspbian/0 -> ERROR: No version selected
-6.0.0-x86_32-linux/rhel/0 -> ERROR: No version selected
+6.0.0-x86_32-linux/rhel/0 -> clang+llvm-6.0.0-i686-linux-gnu-Fedora27.tar.xz
 6.0.0-x86_32-linux/sun-solaris/2.11 -> ERROR: No version selected
 6.0.0-x86_32-linux/suse/11.3 -> ERROR: No version selected
 6.0.0-x86_32-linux/suse/12.2 -> ERROR: No version selected
@@ -292,15 +292,15 @@
 6.0.0-x86_32-linux/suse/15.5 -> ERROR: No version selected
 6.0.0-x86_32-linux/suse/16.0 -> ERROR: No version selected
 6.0.0-x86_32-linux/suse/17.0 -> ERROR: No version selected
-6.0.0-x86_32-linux/ubuntu/14.04 -> ERROR: No version selected
-6.0.0-x86_32-linux/ubuntu/16.04 -> ERROR: No version selected
-6.0.0-x86_32-linux/ubuntu/18.04.5 -> ERROR: No version selected
-6.0.0-x86_32-linux/ubuntu/18.04.6 -> ERROR: No version selected
-6.0.0-x86_32-linux/ubuntu/18.04 -> ERROR: No version selected
-6.0.0-x86_32-linux/ubuntu/20.04 -> ERROR: No version selected
-6.0.0-x86_32-linux/ubuntu/20.10 -> ERROR: No version selected
-6.0.0-x86_32-linux/ubuntu/22.04 -> ERROR: No version selected
-6.0.0-x86_32-linux/ubuntu/24.04 -> ERROR: No version selected
+6.0.0-x86_32-linux/ubuntu/14.04 -> clang+llvm-6.0.0-i686-linux-gnu-Fedora27.tar.xz
+6.0.0-x86_32-linux/ubuntu/16.04 -> clang+llvm-6.0.0-i686-linux-gnu-Fedora27.tar.xz
+6.0.0-x86_32-linux/ubuntu/18.04.5 -> clang+llvm-6.0.0-i686-linux-gnu-Fedora27.tar.xz
+6.0.0-x86_32-linux/ubuntu/18.04.6 -> clang+llvm-6.0.0-i686-linux-gnu-Fedora27.tar.xz
+6.0.0-x86_32-linux/ubuntu/18.04 -> clang+llvm-6.0.0-i686-linux-gnu-Fedora27.tar.xz
+6.0.0-x86_32-linux/ubuntu/20.04 -> clang+llvm-6.0.0-i686-linux-gnu-Fedora27.tar.xz
+6.0.0-x86_32-linux/ubuntu/20.10 -> clang+llvm-6.0.0-i686-linux-gnu-Fedora27.tar.xz
+6.0.0-x86_32-linux/ubuntu/22.04 -> clang+llvm-6.0.0-i686-linux-gnu-Fedora27.tar.xz
+6.0.0-x86_32-linux/ubuntu/24.04 -> clang+llvm-6.0.0-i686-linux-gnu-Fedora27.tar.xz
 6.0.0-x86_32-windows/windows/ -> ERROR: No version selected
 6.0.0-x86_64-darwin/darwin/ -> clang+llvm-6.0.0-x86_64-apple-darwin.tar.xz
 6.0.0-x86_64-linux/amzn/0 -> clang+llvm-6.0.0-x86_64-linux-sles12.2.tar.xz
