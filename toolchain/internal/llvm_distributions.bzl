@@ -924,8 +924,8 @@ def _find_llvm_basename_list(llvm_version, all_llvm_distributions, host_info):
             ], all_llvm_distributions = all_llvm_distributions)
 
         arch_alias_list = {
-            "x86_32": ["x86_32", "i386"],
-            "x86_64": ["x86_64", "amd64", "i686"],
+            "x86_32": ["x86_32", "i386", "i686"],
+            "x86_64": ["x86_64", "amd64"],
             "powerpc64": ["powerpc64", "final_powerpc64"],
         }.get(arch, [arch])
 
