@@ -1,8 +1,10 @@
 """LLVM extension for use with bzlmod"""
 
-load("@toolchains_llvm//toolchain:rules.bzl", "llvm_toolchain")
+load("//toolchain:toolchain.bzl", _toolchain = "toolchain")
+load("//toolchain:llvm.bzl", _llvm = "llvm")
 load(
-    "@toolchains_llvm//toolchain/internal:repo.bzl",
+    "//toolchain/internal:repo.bzl",
+    _common_attrs = "common_attrs",
     _llvm_config_attrs = "llvm_config_attrs",
     _llvm_repo_attrs = "llvm_repo_attrs",
 )
@@ -72,9 +74,25 @@ def _llvm_impl_(module_ctx):
                 name,
             )
 
-            llvm_toolchain(
-                **attrs
-            )
+            if not attrs.get("toolchain_roots"):
+                llvm_args = {
+                    k: v
+                    for k, v in attrs.items()
+                    if (k not in _llvm_config_attrs.keys()) or (k in _common_attrs.keys())
+                }
+                llvm_args["name"] = name + "_llvm"
+                _llvm(**llvm_args)
+
+            if not attrs.get("llvm_versions"):
+                attrs.update(llvm_versions = {"": attrs.get("llvm_version")})
+
+            toolchain_args = {
+                k: v
+                for k, v in attrs.items()
+                if (k not in _llvm_repo_attrs.keys()) or (k in _common_attrs.keys())
+            }
+            _toolchain(**toolchain_args)
+
 
         # Check that every defined toolchain_root or sysroot has a corresponding toolchain.
         for root in mod.tags.toolchain_root:

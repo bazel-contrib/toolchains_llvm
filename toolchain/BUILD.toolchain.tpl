@@ -15,9 +15,49 @@
 package(default_visibility = ["//visibility:public"])
 
 load("@bazel_skylib//rules:native_binary.bzl", "native_binary")
-load("@rules_cc//cc:defs.bzl", "cc_toolchain", "cc_toolchain_suite")
 load("@toolchains_llvm//toolchain/internal:system_module_map.bzl", "system_module_map")
-load("%{cc_toolchain_config_bzl}", "cc_toolchain_config")
+load("@toolchains_llvm//toolchain/internal:host_sysroot_directory.bzl", "host_sysroot_directory")
+load("@rules_cc//cc/toolchains:args.bzl", "cc_args")
+load("@rules_cc//cc/toolchains:tool.bzl", "cc_tool")
+load("@rules_cc//cc/toolchains:tool_map.bzl", "cc_tool_map")
+load("@rules_cc//cc/toolchains:feature.bzl", "cc_feature")
+load("@rules_cc//cc/toolchains:feature_constraint.bzl", "cc_feature_constraint")
+load("@rules_cc//cc/toolchains:toolchain.bzl", "cc_toolchain")
+load("@rules_cc//cc/toolchains/args:sysroot.bzl", "cc_sysroot")
+
+
+cc_feature_constraint(
+    name = "constraint_opt",
+    all_of = ["@rules_cc//cc/toolchains/features:opt"],
+)
+
+cc_feature_constraint(
+    name = "constraint_dbg",
+    all_of = ["@rules_cc//cc/toolchains/features:dbg"],
+)
+
+cc_feature_constraint(
+    name = "constraint_fastbuild",
+    all_of = ["@rules_cc//cc/toolchains/features:fastbuild"],
+)
+
+# TODO: what's the non-legacy way of this doing this?
+cc_feature_constraint(
+    name = "constraint_unfiltered_compile_flags",
+    all_of =  ["@rules_cc//cc/toolchains/features/legacy:unfiltered_compile_flags"]
+)
+
+
+# Do not resolve our symlinked resource prefixes to real paths.
+cc_args(
+    name = "no_absolute_paths_for_builtins",
+    actions = [
+        "@rules_cc//cc/toolchains/actions:compile_actions",
+        "@rules_cc//cc/toolchains/actions:ar_actions",
+    ],
+    args =  ["-no-canonical-prefixes"],
+    visibility = ["//visibility:public"],
+)
 
 # Following filegroup targets are used when not using absolute paths and shared
 # between different toolchains.

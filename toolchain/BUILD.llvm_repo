@@ -14,6 +14,54 @@
 
 package(default_visibility = ["//visibility:public"])
 
+load("@bazel_skylib//rules/directory:directory.bzl", "directory")
+load("@bazel_skylib//rules/directory:subdirectory.bzl", "subdirectory")
+
+# Directory-based rules in this toolchain only referece things in
+# lib/ or include/ subdirectories.
+directory(
+    name = "toolchain_root",
+    srcs = glob([
+        "lib/**",
+        "lib64/**",
+        "include/**",
+    ], allow_empty = True),
+)
+
+subdirectory(
+    name = "include-c++-v1",
+    parent = ":toolchain_root",
+    path = "include/c++/v1",
+)
+
+# subdirectory(
+#     name = "include-c++-v1-arch",
+#     parent = ":toolchain_root",
+#     # TODO: fix this.
+#     path = "include/aarch64-apple-macosx/c++/v1",
+#     visibility = ["//visibility:public"]
+# )
+
+subdirectory(
+    name = "lib-clang-include",
+    parent = ":toolchain_root",
+    # TODO
+    # "lib/clang/{llvm_version}/include",
+    # "lib64/clang/{major_llvm_version}/include",
+    # "lib64/clang/{llvm_version}/include"
+    path = "lib/clang/{major_llvm_version}/include",
+    visibility = ["//visibility:public"]
+)
+
+subdirectory(
+    name = "lib-clang-share",
+    parent = ":toolchain_root",
+    # TODO: 
+    # "lib/clang/{llvm_version}/share"
+    path = "lib/clang/{major_llvm_version}/share",
+    visibility = ["//visibility:public"]
+)
+
 # Some targets may need to directly depend on these files.
 exports_files(glob(
     [

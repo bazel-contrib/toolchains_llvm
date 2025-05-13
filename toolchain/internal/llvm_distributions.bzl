@@ -683,12 +683,16 @@ def download_llvm(rctx):
     strip_prefix = None
     key = None
     update_sha256 = False
+    version = None
     if rctx.attr.urls:
         urls, sha256, strip_prefix, key = _urls(rctx)
         if not sha256:
             update_sha256 = True
+        version = rctx.attr.llvm_versions[key]
     if not urls:
-        urls, sha256, strip_prefix = _distribution_urls(rctx)
+        urls, sha256, strip_prefix, version = _distribution_urls(rctx)
+
+
 
     res = rctx.download_and_extract(
         urls,
@@ -708,7 +712,7 @@ def download_llvm(rctx):
     updated_attrs = _attr_dict(rctx.attr)
     if update_sha256:
         updated_attrs["sha256"].update([(key, res.sha256)])
-    return updated_attrs
+    return updated_attrs, version
 
 def _urls(rctx):
     (key, urls) = _exec_os_arch_dict_value(rctx, "urls", debug = False)
@@ -761,4 +765,4 @@ def _distribution_urls(rctx):
 
     strip_prefix = strip_prefix.rstrip("-rhel86")
 
-    return urls, sha256, strip_prefix
+    return urls, sha256, strip_prefix, llvm_version

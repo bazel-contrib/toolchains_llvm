@@ -11,31 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-load(
-    "//toolchain/internal:configure.bzl",
-    _llvm_config_impl = "llvm_config_impl",
-)
+load(":toolchain.bzl", "toolchain")
+load(":llvm.bzl", "llvm")
 load(
     "//toolchain/internal:repo.bzl",
     _common_attrs = "common_attrs",
     _llvm_config_attrs = "llvm_config_attrs",
     _llvm_repo_attrs = "llvm_repo_attrs",
-    _llvm_repo_impl = "llvm_repo_impl",
 )
 
-llvm = repository_rule(
-    attrs = _llvm_repo_attrs,
-    local = False,
-    implementation = _llvm_repo_impl,
-)
-
-toolchain = repository_rule(
-    attrs = _llvm_config_attrs,
-    local = True,
-    configure = True,
-    implementation = _llvm_config_impl,
-)
 
 def llvm_toolchain(name, **kwargs):
     if kwargs.get("llvm_version") == kwargs.get("llvm_versions"):

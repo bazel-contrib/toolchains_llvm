@@ -1,4 +1,4 @@
-# Copyright 2021 The Bazel Authors.
+# Copyright 2025 The Bazel Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,17 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+load(
+    "//toolchain/internal:configure.bzl",
+    _llvm_config_impl = "llvm_config_impl",
+)
+
 load(
     "//toolchain/internal:common.bzl",
-    _os = "os",
     _supported_os_arch_keys = "supported_os_arch_keys",
-)
-load(
-    "//toolchain/internal:llvm_distributions.bzl",
-    _download_llvm = "download_llvm",
 )
 
 _target_pairs = ", ".join(_supported_os_arch_keys())
+
 
 # Atributes common to both `llvm` and `toolchain` repository rules.
 common_attrs = {
@@ -305,28 +307,8 @@ llvm_config_attrs.update({
     ),
 })
 
-def llvm_repo_impl(rctx):
-    os = _os(rctx)
-    if os == "windows":
-        rctx.file("BUILD.bazel", executable = False)
-        return None
-        
-    llvm_build_file_label = Label("//toolchain:BUILD.llvm_repo")
+toolchain = repository_rule(
+    attrs = llvm_config_attrs,
+    implementation = _llvm_config_impl,
+)
 
-    updated_attrs, version = _download_llvm(rctx)
-
-    rctx.file(
-        "BUILD.bazel",
-        content = rctx.read(llvm_build_file_label).format(
-            major_llvm_version = version.split(".")[0], # TODO: this is horrible
-            llvm_version = version
-        ),
-        executable = False,
-    )
-
-    # We try to avoid patches to the downloaded repo so that it is easier for
-    # users to bring their own LLVM distribution through `http_archive`. If we
-    # do want to make changes, then we should do it through a patch file, and
-    # document it for users of toolchain_roots attribute.
-
-    return updated_attrs
