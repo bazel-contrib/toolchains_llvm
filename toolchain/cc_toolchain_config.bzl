@@ -289,8 +289,8 @@ def cc_toolchain_config(
         ]
 
         link_flags.extend([
-            "-l:c++.a",
-            "-l:c++abi.a",
+            "-l:libc++.a",
+            "-l:libc++abi.a",
         ])
     elif stdlib == "dynamic-stdc++":
         cxx_flags = [
