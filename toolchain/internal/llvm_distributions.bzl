@@ -634,7 +634,13 @@ _llvm_distributions = {
     "LLVM-20.1.4-Linux-ARM64.tar.xz": "4de80a332eecb06bf55097fd3280e1c69ed80f222e5bdd556221a6ceee02721a",
     "LLVM-20.1.4-Linux-X64.tar.xz": "113b54c397adb2039fa45e38dc8107b9ec5a0baead3a3bac8ccfbb65b2340caa",
     "LLVM-20.1.4-macOS-ARM64.tar.xz": "debb43b7b364c5cf864260d84ba1b201d49b6460fe84b76eaa65688dfadf19d2",
+    "clang+llvm-20.1.4-aarch64-pc-windows-msvc.tar.xz": "5ebb023bd1470333ef4292b712bd35eed12a93ac5a81cec2e6718d0dc7142a70",
+    "clang+llvm-20.1.4-armv7a-linux-gnueabihf.tar.gz": "0ddd789fba0e2de8b22ba07a62293140c0232e90aa2e809731e951d7cf3cbc3c",
     "clang+llvm-20.1.4-x86_64-pc-windows-msvc.tar.xz": "2b12ac1a0689e29a38a7c98c409cbfa83f390aea30c60b7a06e4ed73f82d2457",
+
+    # 20.1.5
+    "LLVM-20.1.5-Linux-ARM64.tar.xz": "a6b8679be46bdaa383e0c7f13a473ca8f7a4f87233f2cc0e0a7ab19e1b6265e7",
+    "LLVM-20.1.5-Linux-X64.tar.xz": "0a764a8ca521606532ca9ec4e5745c933b16b7d30f4701a47ee851d448fcdb74",
 
     # Refer to variable declaration on how to update!
     # Example update, run: utils/llvm_checksums.sh -g -v 15.0.6
