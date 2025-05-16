@@ -1187,7 +1187,7 @@ def _write_distributions_impl(ctx):
                 dist_list = dist_dict_list.get(os, [struct(name = os, version = "")])
                 for dist in dist_list:
                     if arch == "sparc64" and dist.name != "sun-solaris":
-                        # Sparc64 and SparcV9 are handled in the same way, just difference precedence.
+                        # Sparc64 and SparcV9 are handled in the same way, just different precedence.
                         # One is the architecture th other the ISA. Restrict to one to limit output.
                         continue
                     host_info = struct(
