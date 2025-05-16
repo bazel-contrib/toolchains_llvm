@@ -641,6 +641,9 @@ _llvm_distributions = {
     # 20.1.5
     "LLVM-20.1.5-Linux-ARM64.tar.xz": "a6b8679be46bdaa383e0c7f13a473ca8f7a4f87233f2cc0e0a7ab19e1b6265e7",
     "LLVM-20.1.5-Linux-X64.tar.xz": "0a764a8ca521606532ca9ec4e5745c933b16b7d30f4701a47ee851d448fcdb74",
+    "clang+llvm-20.1.5-aarch64-pc-windows-msvc.tar.xz": "5916d93bf80e3ae504022cdd8cb8887be001f9b68a7a08bd268727e8d858afa4",
+    "clang+llvm-20.1.5-armv7a-linux-gnueabihf.tar.gz": "80d4b593ecc32bb4289ce75e2b4572c0b6f27e1ceba8ce362c37469c480d3140",
+    "clang+llvm-20.1.5-x86_64-pc-windows-msvc.tar.xz": "b8e566c0ccf948a5e5946bc0c9d16110b937991816c8f46b9c8b3d1cd9ac7c9a",
 
     # Refer to variable declaration on how to update!
     # Example update, run: utils/llvm_checksums.sh -g -v 15.0.6
@@ -777,7 +780,20 @@ _UBUNTU_VERSIONS = [
     "unknown-linux-gnu-rhel86",
 ]
 
+def _is_linux_dist(dist):
+    # Note: Both Ibm-AIX and Solaris have compatibility functionality that may
+    # make them accept linux code. For Solaris that stopped in newer versions.
+    # For Ibm-AIX that seems uncommon, so we ask to manually specify instead of
+    # manual identifying.
+    if "ibm-aix" in dist.name:
+        return False
+    if "solaris" in dist.name:
+        return False
+    return True
+
 def _dist_to_os_names(dist, default_os_names = []):
+    if not _is_linux_dist(dist):
+        return [dist.name]
     if dist.name in ["amzn", "suse"]:
         # For "amzn" based on the ID_LIKE field, sles seems like the closest
         # available distro for which LLVM releases are widely available.
@@ -866,22 +882,23 @@ def _find_llvm_basename_list(llvm_version, all_llvm_distributions, host_info):
     dist = host_info.dist
 
     # Prefer new LLVM distributions if available
-    basenames = _find_llvm_basenames_by_stem([
-        "LLVM-{llvm_version}-{os}-{arch}".format(
-            llvm_version = llvm_version,
-            arch = {
-                "aarch64": "ARM64",
-                "x86_64": "X64",
-            }.get(arch, arch),
-            os = {
-                "darwin": "macOS",
-                "linux": "Linux",
-                "windows": "Windows",
-            }.get(os, os),
-        ),
-    ], all_llvm_distributions = all_llvm_distributions)
-    if basenames:
-        return basenames
+    if os != "linux" or _is_linux_dist(dist):
+        basenames = _find_llvm_basenames_by_stem([
+            "LLVM-{llvm_version}-{os}-{arch}".format(
+                llvm_version = llvm_version,
+                arch = {
+                    "aarch64": "ARM64",
+                    "x86_64": "X64",
+                }.get(arch, arch),
+                os = {
+                    "darwin": "macOS",
+                    "linux": "Linux",
+                    "windows": "Windows",
+                }.get(os, os),
+            ),
+        ], all_llvm_distributions = all_llvm_distributions)
+        if basenames:
+            return basenames
 
     # First by 'os'', then by 'dist', then the remaining Linux variants'...
     if os == "darwin":
@@ -916,9 +933,23 @@ def _find_llvm_basename_list(llvm_version, all_llvm_distributions, host_info):
         if arch in ["aarch64", "armv7a", "mips", "mipsel", "sparc64", "sparcv9"]:
             arch_alias_list = {
                 "sparc64": ["sparc64", "sparcv9"],
-                "sparcv9": ["sparc64", "sparcv9"],
+                "sparcv9": ["sparcv9", "sparc64"],
             }.get(arch, [arch])
-
+            os_name_list = _dist_to_os_names(dist)
+            os_name_extra_list = []
+            if _is_linux_dist(dist) and [os for os in os_name_list if "linux" in os]:
+                os_name_extra_list = ["linux-gnu", "unknown-linux-gnu"]
+            basenames = _find_llvm_basenames_by_stem([
+                "clang+llvm-{llvm_version}-{arch}-{os}".format(
+                    llvm_version = llvm_version,
+                    arch = arch_alias,
+                    os = os_name,
+                )
+                for arch_alias in arch_alias_list
+                for os_name in os_name_list + os_name_extra_list
+            ], all_llvm_distributions = all_llvm_distributions)
+            if basenames or not os_name_list:
+                return basenames
             return _find_llvm_basenames_by_stem([
                 "clang+llvm-{llvm_version}-{arch}-{os}".format(
                     llvm_version = llvm_version,
@@ -926,8 +957,8 @@ def _find_llvm_basename_list(llvm_version, all_llvm_distributions, host_info):
                     os = os_name,
                 )
                 for arch_alias in arch_alias_list
-                for os_name in ["linux-gnu", "unknown-linux-gnu"] + _dist_to_os_names(dist)
-            ], all_llvm_distributions = all_llvm_distributions)
+                for os_name in os_name_list
+            ], all_llvm_distributions = all_llvm_distributions, is_prefix = True)
 
         arch_alias_list = {
             "x86_32": ["x86_32", "i386", "i686"],
@@ -1057,6 +1088,7 @@ def _write_distributions_impl(ctx):
         "mipsel",
         "powerpc64",
         "powerpc64le",
+        "sparc64",
         "sparcv9",
         "x86_32",
         "x86_64",
@@ -1069,8 +1101,8 @@ def _write_distributions_impl(ctx):
     ANY_VERSION = "0"  # Version does not matter, but must be a valid integer
     dist_dict_list = {
         "linux": [
-            # struct(name = "ibm-aix", version = "7.2"),        unreachable
             # keep sorted
+            struct(name = "ibm-aix", version = "7.2"),
             struct(name = "amzn", version = ANY_VERSION),
             struct(name = "arch", version = ANY_VERSION),
             struct(name = "centos", version = "6"),
@@ -1154,6 +1186,10 @@ def _write_distributions_impl(ctx):
             for os in os_list:
                 dist_list = dist_dict_list.get(os, [struct(name = os, version = "")])
                 for dist in dist_list:
+                    if arch == "sparc64" and dist.name != "sun-solaris":
+                        # Sparc64 and SparcV9 are handled in the same way, just different precedence.
+                        # One is the architecture th other the ISA. Restrict to one to limit output.
+                        continue
                     host_info = struct(
                         arch = arch,
                         os = os,
