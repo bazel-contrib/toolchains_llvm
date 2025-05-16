@@ -1436,7 +1436,12 @@ def _requirements_test_writer_impl(ctx):
     The test generated file '<rule_name>.out' contains the following lines:
     [<arch>,<os>,<requirement>]: <llvm_distribution_basename>
     """
-    all_llvm_distributions = _llvm_distributions
+    all_llvm_distributions = {
+        # In order to prevent new distributions to interfere we cut at 20.1.3.
+        k: v
+        for k, v in _llvm_distributions.items()
+        if _parse_version(_get_version_from_distribution(k)) <= (20, 1, 3)
+    }
     requirement_list = [
         "latest:<=20.1.0",
         "latest:<=20.1.0,>17.0.4,!=19.1.7",
