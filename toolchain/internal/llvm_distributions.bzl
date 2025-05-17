@@ -1283,17 +1283,17 @@ def _write_distributions_impl(ctx):
                             all_llvm_distributions,
                             host_info,
                         )
+                        skip_output = False
                         if error:
                             if error.startswith("ERROR: No matching config could be found for version"):
-                                # Simplify test output:
-                                error = "ERROR: No version selected"
+                                skip_output = True
                         else:
                             if predicted.endswith(".exe"):
                                 error = "ERROR: Windows .exe is not supported: " + predicted
                             elif predicted not in all_llvm_distributions:
                                 error = "ERROR: Unavailable prediction: " + predicted
                             elif len(basenames) == 0:
-                                error = "ERROR: No version selected"
+                                skip_output = True
                             elif len(basenames) == 1:
                                 predicted = basenames[0]
                             else:
@@ -1302,14 +1302,15 @@ def _write_distributions_impl(ctx):
                                 arch_found = [arch for arch in arch_list if arch in predicted]
                                 if len(arch_found) == 1 and arch_found[0] not in arch_alias_dict.get(arch, [arch]):
                                     error = "ERROR: Bad arch selection: " + predicted
-                        select.append("{version}-{arch}-{os}/{dist_name}/{dist_version} -> {basename}".format(
-                            version = _version_string(version),
-                            arch = arch,
-                            os = os,
-                            dist_name = dist.name,
-                            dist_version = dist.version,
-                            basename = error or predicted,
-                        ))
+                        if not skip_output:
+                            select.append("{version}-{arch}-{os}/{dist_name}/{dist_version} -> {basename}".format(
+                                version = _version_string(version),
+                                arch = arch,
+                                os = os,
+                                dist_name = dist.name,
+                                dist_version = dist.version,
+                                basename = error or predicted,
+                            ))
                     if len(basenames) != 1:
                         if basenames:
                             dupes.append("dup: {version}-{arch}-{os}-{dist_name}-{dist_version} -> {count}".format(
