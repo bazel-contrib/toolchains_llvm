@@ -1181,7 +1181,6 @@ def _write_distributions_impl(ctx):
     dist_dict_list = {
         "linux": [
             # keep sorted
-            struct(name = "ibm-aix", version = "7.2"),
             struct(name = "amzn", version = ANY_VERSION),
             struct(name = "arch", version = ANY_VERSION),
             struct(name = "centos", version = "6"),
@@ -1196,6 +1195,7 @@ def _write_distributions_impl(ctx):
             struct(name = "freebsd", version = "11"),
             struct(name = "freebsd", version = "12"),
             struct(name = "freebsd", version = "13"),
+            struct(name = "ibm-aix", version = "7.2"),
             struct(name = "linuxmint", version = "18"),
             struct(name = "linuxmint", version = "19"),
             struct(name = "pc-solaris", version = "2.11"),
