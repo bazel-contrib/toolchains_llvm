@@ -1161,6 +1161,10 @@ def _write_distributions_impl(ctx):
         "x86_32",
         "x86_64",
     ]
+    arch_alias_dict = {
+        "sparc64": ["sparc64", "sparcv9"],
+        "sparcv9": ["sparcv9", "sparc64"],
+    }
     os_list = [
         "darwin",
         "linux",
@@ -1289,7 +1293,7 @@ def _write_distributions_impl(ctx):
                                 error = "ERROR: Multiple selections"
                             if not error:
                                 arch_found = [arch for arch in arch_list if arch in predicted]
-                                if len(arch_found) == 1 and arch_found[0] != arch:
+                                if len(arch_found) == 1 and arch_found[0] not in arch_alias_dict.get(arch, [arch]):
                                     error = "ERROR: Bad arch selection: " + predicted
                         select.append("{version}-{arch}-{os}/{dist_name}/{dist_version} -> {basename}".format(
                             version = _version_string(version),
