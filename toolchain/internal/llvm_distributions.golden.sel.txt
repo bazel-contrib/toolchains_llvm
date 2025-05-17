@@ -1,3 +1,9 @@
+0.0.0-aarch64-darwin/darwin/ -> LLVM-0.0.0-macOS-ARM64.tar.xz
+0.0.0-aarch64-linux/linux/ -> LLVM-0.0.0-Linux-ARM64.tar.xz
+0.0.0-aarch64-windows/windows/ -> clang+llvm-0.0.0-aarch64-pc-windows-msvc.tar.xz
+0.0.0-x86_64-darwin/darwin/ -> LLVM-0.0.0-macOS-X64.tar.xz
+0.0.0-x86_64-linux/linux/ -> LLVM-0.0.0-Linux-X64.tar.xz
+0.0.0-x86_64-windows/windows/ -> clang+llvm-0.0.0-x86_64-pc-windows-msvc.tar.xz
 6.0.0-aarch64-darwin/darwin/ -> ERROR: No version selected
 6.0.0-aarch64-linux/ibm-aix/7.2 -> ERROR: No version selected
 6.0.0-aarch64-linux/amzn/0 -> clang+llvm-6.0.0-aarch64-linux-gnu.tar.xz
