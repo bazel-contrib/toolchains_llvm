@@ -786,23 +786,28 @@ def _get_llvm_version(rctx):
         )
     return llvm_version
 
-def _get_all_llvm_distributions(*, extra_llvm_distributions):
-    dists = {
-        basename: struct(
+def _get_all_llvm_distributions(*, llvm_distributions, extra_llvm_distributions, parsed_llvm_version):
+    distributions = {}
+    for basename, sha256 in llvm_distributions.items():
+        version = _distribution_version(basename)
+        if parsed_llvm_version and parsed_llvm_version != version:
+            continue
+        distributions[basename] = struct(
             distribution = basename,
             sha256 = sha256,
+            version = version,
         )
-        for basename, sha256 in _llvm_distributions.items()
-    }
     if extra_llvm_distributions:
-        dists = dists | {
-            _distribution_basename(dist): struct(
+        for dist, sha256 in extra_llvm_distributions.items():
+            version = _distribution_version(dist)
+            if parsed_llvm_version and parsed_llvm_version != version:
+                continue
+            distributions[_distribution_basename(dist)] = struct(
                 distribution = dist,
                 sha256 = sha256,
+                version = version,
             )
-            for dist, sha256 in extra_llvm_distributions.items()
-        }
-    return dists
+    return distributions
 
 _UBUNTU_NAMES = [
     "arch",
@@ -1093,7 +1098,11 @@ def _find_llvm_basename_or_error(llvm_version, all_llvm_distributions, host_info
 def _distribution_urls(rctx):
     """Return LLVM `urls`, `shha256` and `strip_prefix` for the given context."""
     llvm_version = _get_llvm_version(rctx)
-    all_llvm_distributions = _get_all_llvm_distributions(extra_llvm_distributions = rctx.attr.extra_llvm_distributions)
+    all_llvm_distributions = _get_all_llvm_distributions(
+        llvm_distributions = _llvm_distributions,
+        extra_llvm_distributions = rctx.attr.extra_llvm_distributions,
+        parsed_llvm_version = _parse_version(llvm_version),
+    )
     _, sha256, strip_prefix, _ = _key_attrs(rctx)
 
     if rctx.attr.distribution == "auto":
@@ -1145,17 +1154,18 @@ def _write_distributions_impl(ctx):
     verify that predicted distributions have been configured. Otherwise the
     algorithm could not know the hash value.
     """
-    all_llvm_distributions = _get_all_llvm_distributions(
-        # Inject version '0.0.0' that verifies additional behavior using `extra_llvm_distributions`.
-        extra_llvm_distributions = {
-            "LLVM-0.0.0-Linux-ARM64.tar.xz": "a6b8679be46bdaa383e0c7f13a473ca8f7a4f87233f2cc0e0a7ab19e1b6265e7",
-            "/foo/bar/LLVM-0.0.0-Linux-X64.tar.xz?xyz": "0a764a8ca521606532ca9ec4e5745c933b16b7d30f4701a47ee851d448fcdb74",
-            "http://server/foo/bar/LLVM-0.0.0-macOS-ARM64.tar.xz#xyz": "9da86f64a99f5ce9b679caf54e938736ca269c5e069d0c94ad08b995c5f25c16",
-            "http://server/foo/bar/LLVM-0.0.0-macOS-X64.tar.xz": "264f2f1e8b67f066749349ae8b4943d346cd44e099464164ef21b42a57663540",
-            "http://server/clang%2Bllvm-0.0.0-aarch64-pc-windows-msvc.tar.xz": "5916d93bf80e3ae504022cdd8cb8887be001f9b68a7a08bd268727e8d858afa4",
-            "http://server/path-to-file/clang%2Bllvm-0.0.0-x86_64-pc-windows-msvc.tar.xz#bla": "5916d93bf80e3ae504022cdd8cb8887be001f9b68a7a08bd268727e8d858afa4",
-        },
-    )
+    use_llvm_distributions = _llvm_distributions
+
+    # Inject version '0.0.0' that verifies additional behavior using `extra_llvm_distributions`.
+    extra_llvm_distributions = {
+        "LLVM-0.0.0-Linux-ARM64.tar.xz": "a6b8679be46bdaa383e0c7f13a473ca8f7a4f87233f2cc0e0a7ab19e1b6265e7",
+        "/foo/bar/LLVM-0.0.0-Linux-X64.tar.xz?xyz": "0a764a8ca521606532ca9ec4e5745c933b16b7d30f4701a47ee851d448fcdb74",
+        "http://server/foo/bar/LLVM-0.0.0-macOS-ARM64.tar.xz#xyz": "9da86f64a99f5ce9b679caf54e938736ca269c5e069d0c94ad08b995c5f25c16",
+        "http://server/foo/bar/LLVM-0.0.0-macOS-X64.tar.xz": "264f2f1e8b67f066749349ae8b4943d346cd44e099464164ef21b42a57663540",
+        "http://server/clang%2Bllvm-0.0.0-aarch64-pc-windows-msvc.tar.xz": "5916d93bf80e3ae504022cdd8cb8887be001f9b68a7a08bd268727e8d858afa4",
+        "http://server/path-to-file/clang%2Bllvm-0.0.0-x86_64-pc-windows-msvc.tar.xz#bla": "5916d93bf80e3ae504022cdd8cb8887be001f9b68a7a08bd268727e8d858afa4",
+    }
+
     arch_list = [
         "aarch64",
         "armv7a",
@@ -1228,7 +1238,7 @@ def _write_distributions_impl(ctx):
     MAX_VERSION = _parse_version("20.1.3")
     version_dict = {
         _distribution_version(basename): None
-        for basename in all_llvm_distributions.keys()
+        for basename in use_llvm_distributions.keys() + extra_llvm_distributions.keys()
     } | {
         _parse_version(v): None
         for v in _llvm_distributions_base_url.keys()
@@ -1244,8 +1254,8 @@ def _write_distributions_impl(ctx):
     # We keep track of versions in `not_found` and remove the ones we found.
     # So at the end all version that were not found remain, hence the name.
     not_found = {
-        basename: None
-        for basename in all_llvm_distributions.keys()
+        _distribution_basename(distribution): None
+        for distribution in use_llvm_distributions.keys() + extra_llvm_distributions.keys()
     }
 
     # While computing we add predicted versions that are not configured as True.
@@ -1257,6 +1267,11 @@ def _write_distributions_impl(ctx):
 
     # For all versions X arch X os check if we can compute the distribution.
     for version in versions:
+        all_llvm_distributions = _get_all_llvm_distributions(
+            llvm_distributions = use_llvm_distributions,
+            extra_llvm_distributions = extra_llvm_distributions,
+            parsed_llvm_version = version,
+        )
         for arch in arch_list:
             for os in os_list:
                 if version < MIN_VERSION:
