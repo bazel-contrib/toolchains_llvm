@@ -1221,23 +1221,18 @@ def _write_distributions_impl(ctx):
         ],
     }
 
-    # Compute all unique version strings starting with `MIN_VERSION`.
-    MIN_VERSION = _parse_version("0.0.0")
+    # Define the min real version. For earlier injected versions we do no perform dist testing.
+    MIN_VERSION = _parse_version("6.0.0")
 
     # Additional output will be generated for versions up to and including `MAX_VERSION`
     MAX_VERSION = _parse_version("20.1.3")
-    version_dict = {}
-    for basename in all_llvm_distributions.keys():
-        for prefix in ["LLVM-", "clang+llvm-"]:
-            if basename.startswith(prefix):
-                version = _distribution_version(basename)
-                if version >= MIN_VERSION:
-                    version_dict[version] = None
-                break
-    for v in _llvm_distributions_base_url.keys():
-        version = _parse_version(v)
-        if version >= MIN_VERSION:
-            version_dict[version] = None
+    version_dict = {
+        _distribution_version(basename): None
+        for basename in all_llvm_distributions.keys()
+    } | {
+        _parse_version(v): None
+        for v in _llvm_distributions_base_url.keys()
+    }
     versions = sorted(version_dict.keys())
 
     # Write versions to output to check which versions we take into account.
@@ -1251,7 +1246,6 @@ def _write_distributions_impl(ctx):
     not_found = {
         basename: None
         for basename in all_llvm_distributions.keys()
-        if _distribution_version(basename) >= MIN_VERSION
     }
 
     # While computing we add predicted versions that are not configured as True.
@@ -1265,8 +1259,8 @@ def _write_distributions_impl(ctx):
     for version in versions:
         for arch in arch_list:
             for os in os_list:
-                if version == (0, 0, 0):
-                    # Limited the injected version checks
+                if version < MIN_VERSION:
+                    # Limit the injected version checks
                     if arch not in ["aarch64", "x86_64"]:
                         break
                     dist_list = [struct(name = os, version = "")]
