@@ -33,6 +33,7 @@ load(
     _os_bzl = "os_bzl",
     _os_from_rctx = "os_from_rctx",
     _pkg_path_from_label = "pkg_path_from_label",
+    _supported_no_sysroot_targets = "SUPPORTED_NO_SYSROOT_TARGETS",
     _supported_targets = "SUPPORTED_TARGETS",
     _toolchain_tools = "toolchain_tools",
 )
@@ -300,9 +301,11 @@ def _cc_toolchain_str(
         if exec_os == target_os and exec_arch == target_arch:
             # For darwin -> darwin, we can use the macOS SDK path.
             sysroot_path = _default_sysroot_path(rctx, exec_os)
+        elif target_pair in _supported_no_sysroot_targets:
+            sysroot_path = ""
         else:
             # We are trying to cross-compile without a sysroot, let's bail.
-            # TODO: Are there situations where we can continue?
+            # TODO: Are there other situations where we can continue?
             return ""
 
     extra_files_str = "\":internal-use-files\""
@@ -323,6 +326,7 @@ def _cc_toolchain_str(
         "linux-aarch64": "aarch64-unknown-linux-gnu",
         "linux-armv7": "armv7-unknown-linux-gnueabihf",
         "linux-x86_64": "x86_64-unknown-linux-gnu",
+        "none-x86_64": "x86_64-unknown-none",
         "wasm32": "wasm32-unknown-unknown",
         "wasm64": "wasm64-unknown-unknown",
         "wasip1-wasm32": "wasm32-wasip1",
