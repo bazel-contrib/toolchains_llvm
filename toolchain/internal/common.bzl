@@ -20,8 +20,14 @@ SUPPORTED_TARGETS = [
     ("darwin", "aarch64"),
     ("none", "wasm32"),
     ("none", "wasm64"),
+    ("none", "x86_64"),
     ("wasip1", "wasm32"),
     ("wasip1", "wasm64"),
+]
+
+# These are targets that can build without a sysroot.
+SUPPORTED_NO_SYSROOT_TARGETS = [
+    ("none", "x86_64"),
 ]
 
 # Map of tool name to its symlinked name in the tools directory.
@@ -126,7 +132,7 @@ def os(rctx):
 
     name = rctx.attr.exec_os
     if name:
-        if name in ("linux", "darwin"):
+        if name in ("linux", "darwin", "none"):
             return name
         else:
             fail("Unsupported value for exec_os: %s" % name)
