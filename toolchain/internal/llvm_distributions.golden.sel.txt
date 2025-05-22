@@ -1,3 +1,9 @@
+0.0.0-aarch64-darwin/darwin/ -> LLVM-0.0.0-macOS-ARM64.tar.xz
+0.0.0-aarch64-linux/linux/ -> LLVM-0.0.0-Linux-ARM64.tar.xz
+0.0.0-aarch64-windows/windows/ -> clang+llvm-0.0.0-aarch64-pc-windows-msvc.tar.xz
+0.0.0-x86_64-darwin/darwin/ -> LLVM-0.0.0-macOS-X64.tar.xz
+0.0.0-x86_64-linux/linux/ -> LLVM-0.0.0-Linux-X64.tar.xz
+0.0.0-x86_64-windows/windows/ -> clang+llvm-0.0.0-x86_64-pc-windows-msvc.tar.xz
 6.0.0-aarch64-darwin/darwin/ -> ERROR: No version selected
 6.0.0-aarch64-linux/ibm-aix/7.2 -> ERROR: No version selected
 6.0.0-aarch64-linux/amzn/0 -> clang+llvm-6.0.0-aarch64-linux-gnu.tar.xz
@@ -1992,7 +1998,7 @@
 9.0.0-powerpc64le-linux/ubuntu/22.04 -> clang+llvm-9.0.0-powerpc64le-linux-ubuntu-16.04.tar.xz
 9.0.0-powerpc64le-linux/ubuntu/24.04 -> clang+llvm-9.0.0-powerpc64le-linux-ubuntu-16.04.tar.xz
 9.0.0-powerpc64le-windows/windows/ -> ERROR: No version selected
-9.0.0-sparc64-linux/sun-solaris/2.11 -> ERROR: Bad arch selection: clang+llvm-9.0.0-sparcv9-sun-solaris2.11.tar.xz
+9.0.0-sparc64-linux/sun-solaris/2.11 -> clang+llvm-9.0.0-sparcv9-sun-solaris2.11.tar.xz
 9.0.0-sparcv9-darwin/darwin/ -> ERROR: No version selected
 9.0.0-sparcv9-linux/ibm-aix/7.2 -> ERROR: No version selected
 9.0.0-sparcv9-linux/amzn/0 -> ERROR: No version selected
@@ -2344,7 +2350,7 @@
 10.0.0-powerpc64le-linux/ubuntu/22.04 -> clang+llvm-10.0.0-powerpc64le-linux-ubuntu-16.04.tar.xz
 10.0.0-powerpc64le-linux/ubuntu/24.04 -> clang+llvm-10.0.0-powerpc64le-linux-ubuntu-16.04.tar.xz
 10.0.0-powerpc64le-windows/windows/ -> ERROR: No version selected
-10.0.0-sparc64-linux/sun-solaris/2.11 -> ERROR: Bad arch selection: clang+llvm-10.0.0-sparcv9-sun-solaris2.11.tar.xz
+10.0.0-sparc64-linux/sun-solaris/2.11 -> clang+llvm-10.0.0-sparcv9-sun-solaris2.11.tar.xz
 10.0.0-sparcv9-darwin/darwin/ -> ERROR: No version selected
 10.0.0-sparcv9-linux/ibm-aix/7.2 -> ERROR: No version selected
 10.0.0-sparcv9-linux/amzn/0 -> ERROR: No version selected
@@ -3048,7 +3054,7 @@
 11.0.0-powerpc64le-linux/ubuntu/22.04 -> ERROR: No version selected
 11.0.0-powerpc64le-linux/ubuntu/24.04 -> ERROR: No version selected
 11.0.0-powerpc64le-windows/windows/ -> ERROR: No version selected
-11.0.0-sparc64-linux/sun-solaris/2.11 -> ERROR: Bad arch selection: clang+llvm-11.0.0-sparcv9-sun-solaris2.11.tar.xz
+11.0.0-sparc64-linux/sun-solaris/2.11 -> clang+llvm-11.0.0-sparcv9-sun-solaris2.11.tar.xz
 11.0.0-sparcv9-darwin/darwin/ -> ERROR: No version selected
 11.0.0-sparcv9-linux/ibm-aix/7.2 -> ERROR: No version selected
 11.0.0-sparcv9-linux/amzn/0 -> ERROR: No version selected
@@ -5512,7 +5518,7 @@
 14.0.0-powerpc64le-linux/ubuntu/22.04 -> clang+llvm-14.0.0-powerpc64le-linux-ubuntu-18.04.tar.xz
 14.0.0-powerpc64le-linux/ubuntu/24.04 -> clang+llvm-14.0.0-powerpc64le-linux-ubuntu-18.04.tar.xz
 14.0.0-powerpc64le-windows/windows/ -> ERROR: No version selected
-14.0.0-sparc64-linux/sun-solaris/2.11 -> ERROR: Bad arch selection: clang+llvm-14.0.0-sparcv9-sun-solaris2.11.tar.xz
+14.0.0-sparc64-linux/sun-solaris/2.11 -> clang+llvm-14.0.0-sparcv9-sun-solaris2.11.tar.xz
 14.0.0-sparcv9-darwin/darwin/ -> ERROR: No version selected
 14.0.0-sparcv9-linux/ibm-aix/7.2 -> ERROR: No version selected
 14.0.0-sparcv9-linux/amzn/0 -> ERROR: No version selected
@@ -5864,7 +5870,7 @@
 14.0.1-powerpc64le-linux/ubuntu/22.04 -> clang+llvm-14.0.1-powerpc64le-linux-ubuntu-18.04.tar.xz
 14.0.1-powerpc64le-linux/ubuntu/24.04 -> clang+llvm-14.0.1-powerpc64le-linux-ubuntu-18.04.tar.xz
 14.0.1-powerpc64le-windows/windows/ -> ERROR: No version selected
-14.0.1-sparc64-linux/sun-solaris/2.11 -> ERROR: Bad arch selection: clang+llvm-14.0.1-sparcv9-sun-solaris2.11.tar.xz
+14.0.1-sparc64-linux/sun-solaris/2.11 -> clang+llvm-14.0.1-sparcv9-sun-solaris2.11.tar.xz
 14.0.1-sparcv9-darwin/darwin/ -> ERROR: No version selected
 14.0.1-sparcv9-linux/ibm-aix/7.2 -> ERROR: No version selected
 14.0.1-sparcv9-linux/amzn/0 -> ERROR: No version selected
@@ -7976,45 +7982,45 @@
 15.0.0-powerpc64le-linux/ubuntu/22.04 -> clang+llvm-15.0.0-powerpc64le-linux-ubuntu-18.04.6.tar.xz
 15.0.0-powerpc64le-linux/ubuntu/24.04 -> clang+llvm-15.0.0-powerpc64le-linux-ubuntu-18.04.6.tar.xz
 15.0.0-powerpc64le-windows/windows/ -> ERROR: No version selected
-15.0.0-sparc64-linux/sun-solaris/2.11 -> ERROR: Bad arch selection: clang+llvm-15.0.0-sparcv9-sun-solaris2.11.tar.xz
+15.0.0-sparc64-linux/sun-solaris/2.11 -> clang+llvm-15.0.0-sparcv9-sun-solaris2.11.tar.xz
 15.0.0-sparcv9-darwin/darwin/ -> ERROR: No version selected
 15.0.0-sparcv9-linux/ibm-aix/7.2 -> ERROR: No version selected
-15.0.0-sparcv9-linux/amzn/0 -> ERROR: Bad arch selection: clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
-15.0.0-sparcv9-linux/arch/0 -> ERROR: Bad arch selection: clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
-15.0.0-sparcv9-linux/centos/6 -> ERROR: Bad arch selection: clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
-15.0.0-sparcv9-linux/centos/7 -> ERROR: Bad arch selection: clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
-15.0.0-sparcv9-linux/debian/0 -> ERROR: Bad arch selection: clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
-15.0.0-sparcv9-linux/debian/8 -> ERROR: Bad arch selection: clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
-15.0.0-sparcv9-linux/debian/9 -> ERROR: Bad arch selection: clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
-15.0.0-sparcv9-linux/fedora/26 -> ERROR: Bad arch selection: clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
-15.0.0-sparcv9-linux/fedora/27 -> ERROR: Bad arch selection: clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
-15.0.0-sparcv9-linux/fedora/42 -> ERROR: Bad arch selection: clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
+15.0.0-sparcv9-linux/amzn/0 -> clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
+15.0.0-sparcv9-linux/arch/0 -> clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
+15.0.0-sparcv9-linux/centos/6 -> clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
+15.0.0-sparcv9-linux/centos/7 -> clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
+15.0.0-sparcv9-linux/debian/0 -> clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
+15.0.0-sparcv9-linux/debian/8 -> clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
+15.0.0-sparcv9-linux/debian/9 -> clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
+15.0.0-sparcv9-linux/fedora/26 -> clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
+15.0.0-sparcv9-linux/fedora/27 -> clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
+15.0.0-sparcv9-linux/fedora/42 -> clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
 15.0.0-sparcv9-linux/freebsd/10 -> ERROR: No version selected
 15.0.0-sparcv9-linux/freebsd/11 -> ERROR: No version selected
 15.0.0-sparcv9-linux/freebsd/12 -> ERROR: No version selected
 15.0.0-sparcv9-linux/freebsd/13 -> ERROR: No version selected
-15.0.0-sparcv9-linux/linuxmint/18 -> ERROR: Bad arch selection: clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
-15.0.0-sparcv9-linux/linuxmint/19 -> ERROR: Bad arch selection: clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
+15.0.0-sparcv9-linux/linuxmint/18 -> clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
+15.0.0-sparcv9-linux/linuxmint/19 -> clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
 15.0.0-sparcv9-linux/pc-solaris/2.11 -> ERROR: No version selected
 15.0.0-sparcv9-linux/raspbian/0 -> ERROR: No version selected
-15.0.0-sparcv9-linux/rhel/0 -> ERROR: Bad arch selection: clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
+15.0.0-sparcv9-linux/rhel/0 -> clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
 15.0.0-sparcv9-linux/sun-solaris/2.11 -> clang+llvm-15.0.0-sparcv9-sun-solaris2.11.tar.xz
-15.0.0-sparcv9-linux/suse/11.3 -> ERROR: Bad arch selection: clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
-15.0.0-sparcv9-linux/suse/12.2 -> ERROR: Bad arch selection: clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
-15.0.0-sparcv9-linux/suse/12.3 -> ERROR: Bad arch selection: clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
-15.0.0-sparcv9-linux/suse/12.4 -> ERROR: Bad arch selection: clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
-15.0.0-sparcv9-linux/suse/15.5 -> ERROR: Bad arch selection: clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
-15.0.0-sparcv9-linux/suse/16.0 -> ERROR: Bad arch selection: clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
-15.0.0-sparcv9-linux/suse/17.0 -> ERROR: Bad arch selection: clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
-15.0.0-sparcv9-linux/ubuntu/14.04 -> ERROR: Bad arch selection: clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
-15.0.0-sparcv9-linux/ubuntu/16.04 -> ERROR: Bad arch selection: clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
-15.0.0-sparcv9-linux/ubuntu/18.04.5 -> ERROR: Bad arch selection: clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
-15.0.0-sparcv9-linux/ubuntu/18.04.6 -> ERROR: Bad arch selection: clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
-15.0.0-sparcv9-linux/ubuntu/18.04 -> ERROR: Bad arch selection: clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
-15.0.0-sparcv9-linux/ubuntu/20.04 -> ERROR: Bad arch selection: clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
-15.0.0-sparcv9-linux/ubuntu/20.10 -> ERROR: Bad arch selection: clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
-15.0.0-sparcv9-linux/ubuntu/22.04 -> ERROR: Bad arch selection: clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
-15.0.0-sparcv9-linux/ubuntu/24.04 -> ERROR: Bad arch selection: clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
+15.0.0-sparcv9-linux/suse/11.3 -> clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
+15.0.0-sparcv9-linux/suse/12.2 -> clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
+15.0.0-sparcv9-linux/suse/12.3 -> clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
+15.0.0-sparcv9-linux/suse/12.4 -> clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
+15.0.0-sparcv9-linux/suse/15.5 -> clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
+15.0.0-sparcv9-linux/suse/16.0 -> clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
+15.0.0-sparcv9-linux/suse/17.0 -> clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
+15.0.0-sparcv9-linux/ubuntu/14.04 -> clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
+15.0.0-sparcv9-linux/ubuntu/16.04 -> clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
+15.0.0-sparcv9-linux/ubuntu/18.04.5 -> clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
+15.0.0-sparcv9-linux/ubuntu/18.04.6 -> clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
+15.0.0-sparcv9-linux/ubuntu/18.04 -> clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
+15.0.0-sparcv9-linux/ubuntu/20.04 -> clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
+15.0.0-sparcv9-linux/ubuntu/20.10 -> clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
+15.0.0-sparcv9-linux/ubuntu/22.04 -> clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
+15.0.0-sparcv9-linux/ubuntu/24.04 -> clang+llvm-15.0.0-sparc64-unknown-linux-gnu.tar.xz
 15.0.0-sparcv9-windows/windows/ -> ERROR: No version selected
 15.0.0-x86_32-darwin/darwin/ -> ERROR: No version selected
 15.0.0-x86_32-linux/ibm-aix/7.2 -> ERROR: No version selected
@@ -10792,45 +10798,45 @@
 16.0.0-powerpc64le-linux/ubuntu/22.04 -> clang+llvm-16.0.0-powerpc64le-linux-ubuntu-18.04.tar.xz
 16.0.0-powerpc64le-linux/ubuntu/24.04 -> clang+llvm-16.0.0-powerpc64le-linux-ubuntu-18.04.tar.xz
 16.0.0-powerpc64le-windows/windows/ -> ERROR: No version selected
-16.0.0-sparc64-linux/sun-solaris/2.11 -> ERROR: Bad arch selection: clang+llvm-16.0.0-sparcv9-sun-solaris2.11.tar.xz
+16.0.0-sparc64-linux/sun-solaris/2.11 -> clang+llvm-16.0.0-sparcv9-sun-solaris2.11.tar.xz
 16.0.0-sparcv9-darwin/darwin/ -> ERROR: No version selected
 16.0.0-sparcv9-linux/ibm-aix/7.2 -> ERROR: No version selected
-16.0.0-sparcv9-linux/amzn/0 -> ERROR: Bad arch selection: clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
-16.0.0-sparcv9-linux/arch/0 -> ERROR: Bad arch selection: clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
-16.0.0-sparcv9-linux/centos/6 -> ERROR: Bad arch selection: clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
-16.0.0-sparcv9-linux/centos/7 -> ERROR: Bad arch selection: clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
-16.0.0-sparcv9-linux/debian/0 -> ERROR: Bad arch selection: clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
-16.0.0-sparcv9-linux/debian/8 -> ERROR: Bad arch selection: clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
-16.0.0-sparcv9-linux/debian/9 -> ERROR: Bad arch selection: clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
-16.0.0-sparcv9-linux/fedora/26 -> ERROR: Bad arch selection: clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
-16.0.0-sparcv9-linux/fedora/27 -> ERROR: Bad arch selection: clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
-16.0.0-sparcv9-linux/fedora/42 -> ERROR: Bad arch selection: clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
+16.0.0-sparcv9-linux/amzn/0 -> clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
+16.0.0-sparcv9-linux/arch/0 -> clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
+16.0.0-sparcv9-linux/centos/6 -> clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
+16.0.0-sparcv9-linux/centos/7 -> clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
+16.0.0-sparcv9-linux/debian/0 -> clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
+16.0.0-sparcv9-linux/debian/8 -> clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
+16.0.0-sparcv9-linux/debian/9 -> clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
+16.0.0-sparcv9-linux/fedora/26 -> clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
+16.0.0-sparcv9-linux/fedora/27 -> clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
+16.0.0-sparcv9-linux/fedora/42 -> clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
 16.0.0-sparcv9-linux/freebsd/10 -> ERROR: No version selected
 16.0.0-sparcv9-linux/freebsd/11 -> ERROR: No version selected
 16.0.0-sparcv9-linux/freebsd/12 -> ERROR: No version selected
 16.0.0-sparcv9-linux/freebsd/13 -> ERROR: No version selected
-16.0.0-sparcv9-linux/linuxmint/18 -> ERROR: Bad arch selection: clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
-16.0.0-sparcv9-linux/linuxmint/19 -> ERROR: Bad arch selection: clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
+16.0.0-sparcv9-linux/linuxmint/18 -> clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
+16.0.0-sparcv9-linux/linuxmint/19 -> clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
 16.0.0-sparcv9-linux/pc-solaris/2.11 -> ERROR: No version selected
 16.0.0-sparcv9-linux/raspbian/0 -> ERROR: No version selected
-16.0.0-sparcv9-linux/rhel/0 -> ERROR: Bad arch selection: clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
+16.0.0-sparcv9-linux/rhel/0 -> clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
 16.0.0-sparcv9-linux/sun-solaris/2.11 -> clang+llvm-16.0.0-sparcv9-sun-solaris2.11.tar.xz
-16.0.0-sparcv9-linux/suse/11.3 -> ERROR: Bad arch selection: clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
-16.0.0-sparcv9-linux/suse/12.2 -> ERROR: Bad arch selection: clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
-16.0.0-sparcv9-linux/suse/12.3 -> ERROR: Bad arch selection: clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
-16.0.0-sparcv9-linux/suse/12.4 -> ERROR: Bad arch selection: clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
-16.0.0-sparcv9-linux/suse/15.5 -> ERROR: Bad arch selection: clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
-16.0.0-sparcv9-linux/suse/16.0 -> ERROR: Bad arch selection: clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
-16.0.0-sparcv9-linux/suse/17.0 -> ERROR: Bad arch selection: clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
-16.0.0-sparcv9-linux/ubuntu/14.04 -> ERROR: Bad arch selection: clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
-16.0.0-sparcv9-linux/ubuntu/16.04 -> ERROR: Bad arch selection: clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
-16.0.0-sparcv9-linux/ubuntu/18.04.5 -> ERROR: Bad arch selection: clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
-16.0.0-sparcv9-linux/ubuntu/18.04.6 -> ERROR: Bad arch selection: clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
-16.0.0-sparcv9-linux/ubuntu/18.04 -> ERROR: Bad arch selection: clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
-16.0.0-sparcv9-linux/ubuntu/20.04 -> ERROR: Bad arch selection: clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
-16.0.0-sparcv9-linux/ubuntu/20.10 -> ERROR: Bad arch selection: clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
-16.0.0-sparcv9-linux/ubuntu/22.04 -> ERROR: Bad arch selection: clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
-16.0.0-sparcv9-linux/ubuntu/24.04 -> ERROR: Bad arch selection: clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
+16.0.0-sparcv9-linux/suse/11.3 -> clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
+16.0.0-sparcv9-linux/suse/12.2 -> clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
+16.0.0-sparcv9-linux/suse/12.3 -> clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
+16.0.0-sparcv9-linux/suse/12.4 -> clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
+16.0.0-sparcv9-linux/suse/15.5 -> clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
+16.0.0-sparcv9-linux/suse/16.0 -> clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
+16.0.0-sparcv9-linux/suse/17.0 -> clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
+16.0.0-sparcv9-linux/ubuntu/14.04 -> clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
+16.0.0-sparcv9-linux/ubuntu/16.04 -> clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
+16.0.0-sparcv9-linux/ubuntu/18.04.5 -> clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
+16.0.0-sparcv9-linux/ubuntu/18.04.6 -> clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
+16.0.0-sparcv9-linux/ubuntu/18.04 -> clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
+16.0.0-sparcv9-linux/ubuntu/20.04 -> clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
+16.0.0-sparcv9-linux/ubuntu/20.10 -> clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
+16.0.0-sparcv9-linux/ubuntu/22.04 -> clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
+16.0.0-sparcv9-linux/ubuntu/24.04 -> clang+llvm-16.0.0-sparc64-unknown-linux-gnu.tar.xz
 16.0.0-sparcv9-windows/windows/ -> ERROR: No version selected
 16.0.0-x86_32-darwin/darwin/ -> ERROR: No version selected
 16.0.0-x86_32-linux/ibm-aix/7.2 -> ERROR: No version selected
@@ -13256,45 +13262,45 @@
 17.0.1-powerpc64le-linux/ubuntu/22.04 -> ERROR: No version selected
 17.0.1-powerpc64le-linux/ubuntu/24.04 -> ERROR: No version selected
 17.0.1-powerpc64le-windows/windows/ -> ERROR: No version selected
-17.0.1-sparc64-linux/sun-solaris/2.11 -> ERROR: Bad arch selection: clang+llvm-17.0.1-sparcv9-sun-solaris2.11.tar.xz
+17.0.1-sparc64-linux/sun-solaris/2.11 -> clang+llvm-17.0.1-sparcv9-sun-solaris2.11.tar.xz
 17.0.1-sparcv9-darwin/darwin/ -> ERROR: No version selected
 17.0.1-sparcv9-linux/ibm-aix/7.2 -> ERROR: No version selected
-17.0.1-sparcv9-linux/amzn/0 -> ERROR: Bad arch selection: clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
-17.0.1-sparcv9-linux/arch/0 -> ERROR: Bad arch selection: clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
-17.0.1-sparcv9-linux/centos/6 -> ERROR: Bad arch selection: clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
-17.0.1-sparcv9-linux/centos/7 -> ERROR: Bad arch selection: clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
-17.0.1-sparcv9-linux/debian/0 -> ERROR: Bad arch selection: clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
-17.0.1-sparcv9-linux/debian/8 -> ERROR: Bad arch selection: clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
-17.0.1-sparcv9-linux/debian/9 -> ERROR: Bad arch selection: clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
-17.0.1-sparcv9-linux/fedora/26 -> ERROR: Bad arch selection: clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
-17.0.1-sparcv9-linux/fedora/27 -> ERROR: Bad arch selection: clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
-17.0.1-sparcv9-linux/fedora/42 -> ERROR: Bad arch selection: clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
+17.0.1-sparcv9-linux/amzn/0 -> clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
+17.0.1-sparcv9-linux/arch/0 -> clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
+17.0.1-sparcv9-linux/centos/6 -> clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
+17.0.1-sparcv9-linux/centos/7 -> clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
+17.0.1-sparcv9-linux/debian/0 -> clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
+17.0.1-sparcv9-linux/debian/8 -> clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
+17.0.1-sparcv9-linux/debian/9 -> clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
+17.0.1-sparcv9-linux/fedora/26 -> clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
+17.0.1-sparcv9-linux/fedora/27 -> clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
+17.0.1-sparcv9-linux/fedora/42 -> clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
 17.0.1-sparcv9-linux/freebsd/10 -> ERROR: No version selected
 17.0.1-sparcv9-linux/freebsd/11 -> ERROR: No version selected
 17.0.1-sparcv9-linux/freebsd/12 -> ERROR: No version selected
 17.0.1-sparcv9-linux/freebsd/13 -> ERROR: No version selected
-17.0.1-sparcv9-linux/linuxmint/18 -> ERROR: Bad arch selection: clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
-17.0.1-sparcv9-linux/linuxmint/19 -> ERROR: Bad arch selection: clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
+17.0.1-sparcv9-linux/linuxmint/18 -> clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
+17.0.1-sparcv9-linux/linuxmint/19 -> clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
 17.0.1-sparcv9-linux/pc-solaris/2.11 -> ERROR: No version selected
 17.0.1-sparcv9-linux/raspbian/0 -> ERROR: No version selected
-17.0.1-sparcv9-linux/rhel/0 -> ERROR: Bad arch selection: clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
+17.0.1-sparcv9-linux/rhel/0 -> clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
 17.0.1-sparcv9-linux/sun-solaris/2.11 -> clang+llvm-17.0.1-sparcv9-sun-solaris2.11.tar.xz
-17.0.1-sparcv9-linux/suse/11.3 -> ERROR: Bad arch selection: clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
-17.0.1-sparcv9-linux/suse/12.2 -> ERROR: Bad arch selection: clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
-17.0.1-sparcv9-linux/suse/12.3 -> ERROR: Bad arch selection: clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
-17.0.1-sparcv9-linux/suse/12.4 -> ERROR: Bad arch selection: clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
-17.0.1-sparcv9-linux/suse/15.5 -> ERROR: Bad arch selection: clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
-17.0.1-sparcv9-linux/suse/16.0 -> ERROR: Bad arch selection: clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
-17.0.1-sparcv9-linux/suse/17.0 -> ERROR: Bad arch selection: clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
-17.0.1-sparcv9-linux/ubuntu/14.04 -> ERROR: Bad arch selection: clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
-17.0.1-sparcv9-linux/ubuntu/16.04 -> ERROR: Bad arch selection: clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
-17.0.1-sparcv9-linux/ubuntu/18.04.5 -> ERROR: Bad arch selection: clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
-17.0.1-sparcv9-linux/ubuntu/18.04.6 -> ERROR: Bad arch selection: clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
-17.0.1-sparcv9-linux/ubuntu/18.04 -> ERROR: Bad arch selection: clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
-17.0.1-sparcv9-linux/ubuntu/20.04 -> ERROR: Bad arch selection: clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
-17.0.1-sparcv9-linux/ubuntu/20.10 -> ERROR: Bad arch selection: clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
-17.0.1-sparcv9-linux/ubuntu/22.04 -> ERROR: Bad arch selection: clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
-17.0.1-sparcv9-linux/ubuntu/24.04 -> ERROR: Bad arch selection: clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
+17.0.1-sparcv9-linux/suse/11.3 -> clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
+17.0.1-sparcv9-linux/suse/12.2 -> clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
+17.0.1-sparcv9-linux/suse/12.3 -> clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
+17.0.1-sparcv9-linux/suse/12.4 -> clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
+17.0.1-sparcv9-linux/suse/15.5 -> clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
+17.0.1-sparcv9-linux/suse/16.0 -> clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
+17.0.1-sparcv9-linux/suse/17.0 -> clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
+17.0.1-sparcv9-linux/ubuntu/14.04 -> clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
+17.0.1-sparcv9-linux/ubuntu/16.04 -> clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
+17.0.1-sparcv9-linux/ubuntu/18.04.5 -> clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
+17.0.1-sparcv9-linux/ubuntu/18.04.6 -> clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
+17.0.1-sparcv9-linux/ubuntu/18.04 -> clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
+17.0.1-sparcv9-linux/ubuntu/20.04 -> clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
+17.0.1-sparcv9-linux/ubuntu/20.10 -> clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
+17.0.1-sparcv9-linux/ubuntu/22.04 -> clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
+17.0.1-sparcv9-linux/ubuntu/24.04 -> clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz
 17.0.1-sparcv9-windows/windows/ -> ERROR: No version selected
 17.0.1-x86_32-darwin/darwin/ -> ERROR: No version selected
 17.0.1-x86_32-linux/ibm-aix/7.2 -> ERROR: No version selected
@@ -13608,45 +13614,45 @@
 17.0.2-powerpc64le-linux/ubuntu/22.04 -> ERROR: No version selected
 17.0.2-powerpc64le-linux/ubuntu/24.04 -> ERROR: No version selected
 17.0.2-powerpc64le-windows/windows/ -> ERROR: No version selected
-17.0.2-sparc64-linux/sun-solaris/2.11 -> ERROR: Bad arch selection: clang+llvm-17.0.2-sparcv9-sun-solaris2.11.tar.xz
+17.0.2-sparc64-linux/sun-solaris/2.11 -> clang+llvm-17.0.2-sparcv9-sun-solaris2.11.tar.xz
 17.0.2-sparcv9-darwin/darwin/ -> ERROR: No version selected
 17.0.2-sparcv9-linux/ibm-aix/7.2 -> ERROR: No version selected
-17.0.2-sparcv9-linux/amzn/0 -> ERROR: Bad arch selection: clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
-17.0.2-sparcv9-linux/arch/0 -> ERROR: Bad arch selection: clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
-17.0.2-sparcv9-linux/centos/6 -> ERROR: Bad arch selection: clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
-17.0.2-sparcv9-linux/centos/7 -> ERROR: Bad arch selection: clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
-17.0.2-sparcv9-linux/debian/0 -> ERROR: Bad arch selection: clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
-17.0.2-sparcv9-linux/debian/8 -> ERROR: Bad arch selection: clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
-17.0.2-sparcv9-linux/debian/9 -> ERROR: Bad arch selection: clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
-17.0.2-sparcv9-linux/fedora/26 -> ERROR: Bad arch selection: clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
-17.0.2-sparcv9-linux/fedora/27 -> ERROR: Bad arch selection: clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
-17.0.2-sparcv9-linux/fedora/42 -> ERROR: Bad arch selection: clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
+17.0.2-sparcv9-linux/amzn/0 -> clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
+17.0.2-sparcv9-linux/arch/0 -> clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
+17.0.2-sparcv9-linux/centos/6 -> clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
+17.0.2-sparcv9-linux/centos/7 -> clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
+17.0.2-sparcv9-linux/debian/0 -> clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
+17.0.2-sparcv9-linux/debian/8 -> clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
+17.0.2-sparcv9-linux/debian/9 -> clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
+17.0.2-sparcv9-linux/fedora/26 -> clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
+17.0.2-sparcv9-linux/fedora/27 -> clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
+17.0.2-sparcv9-linux/fedora/42 -> clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
 17.0.2-sparcv9-linux/freebsd/10 -> ERROR: No version selected
 17.0.2-sparcv9-linux/freebsd/11 -> ERROR: No version selected
 17.0.2-sparcv9-linux/freebsd/12 -> ERROR: No version selected
 17.0.2-sparcv9-linux/freebsd/13 -> ERROR: No version selected
-17.0.2-sparcv9-linux/linuxmint/18 -> ERROR: Bad arch selection: clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
-17.0.2-sparcv9-linux/linuxmint/19 -> ERROR: Bad arch selection: clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
+17.0.2-sparcv9-linux/linuxmint/18 -> clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
+17.0.2-sparcv9-linux/linuxmint/19 -> clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
 17.0.2-sparcv9-linux/pc-solaris/2.11 -> ERROR: No version selected
 17.0.2-sparcv9-linux/raspbian/0 -> ERROR: No version selected
-17.0.2-sparcv9-linux/rhel/0 -> ERROR: Bad arch selection: clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
+17.0.2-sparcv9-linux/rhel/0 -> clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
 17.0.2-sparcv9-linux/sun-solaris/2.11 -> clang+llvm-17.0.2-sparcv9-sun-solaris2.11.tar.xz
-17.0.2-sparcv9-linux/suse/11.3 -> ERROR: Bad arch selection: clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
-17.0.2-sparcv9-linux/suse/12.2 -> ERROR: Bad arch selection: clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
-17.0.2-sparcv9-linux/suse/12.3 -> ERROR: Bad arch selection: clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
-17.0.2-sparcv9-linux/suse/12.4 -> ERROR: Bad arch selection: clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
-17.0.2-sparcv9-linux/suse/15.5 -> ERROR: Bad arch selection: clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
-17.0.2-sparcv9-linux/suse/16.0 -> ERROR: Bad arch selection: clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
-17.0.2-sparcv9-linux/suse/17.0 -> ERROR: Bad arch selection: clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
-17.0.2-sparcv9-linux/ubuntu/14.04 -> ERROR: Bad arch selection: clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
-17.0.2-sparcv9-linux/ubuntu/16.04 -> ERROR: Bad arch selection: clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
-17.0.2-sparcv9-linux/ubuntu/18.04.5 -> ERROR: Bad arch selection: clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
-17.0.2-sparcv9-linux/ubuntu/18.04.6 -> ERROR: Bad arch selection: clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
-17.0.2-sparcv9-linux/ubuntu/18.04 -> ERROR: Bad arch selection: clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
-17.0.2-sparcv9-linux/ubuntu/20.04 -> ERROR: Bad arch selection: clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
-17.0.2-sparcv9-linux/ubuntu/20.10 -> ERROR: Bad arch selection: clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
-17.0.2-sparcv9-linux/ubuntu/22.04 -> ERROR: Bad arch selection: clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
-17.0.2-sparcv9-linux/ubuntu/24.04 -> ERROR: Bad arch selection: clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
+17.0.2-sparcv9-linux/suse/11.3 -> clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
+17.0.2-sparcv9-linux/suse/12.2 -> clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
+17.0.2-sparcv9-linux/suse/12.3 -> clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
+17.0.2-sparcv9-linux/suse/12.4 -> clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
+17.0.2-sparcv9-linux/suse/15.5 -> clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
+17.0.2-sparcv9-linux/suse/16.0 -> clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
+17.0.2-sparcv9-linux/suse/17.0 -> clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
+17.0.2-sparcv9-linux/ubuntu/14.04 -> clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
+17.0.2-sparcv9-linux/ubuntu/16.04 -> clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
+17.0.2-sparcv9-linux/ubuntu/18.04.5 -> clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
+17.0.2-sparcv9-linux/ubuntu/18.04.6 -> clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
+17.0.2-sparcv9-linux/ubuntu/18.04 -> clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
+17.0.2-sparcv9-linux/ubuntu/20.04 -> clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
+17.0.2-sparcv9-linux/ubuntu/20.10 -> clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
+17.0.2-sparcv9-linux/ubuntu/22.04 -> clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
+17.0.2-sparcv9-linux/ubuntu/24.04 -> clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz
 17.0.2-sparcv9-windows/windows/ -> ERROR: No version selected
 17.0.2-x86_32-darwin/darwin/ -> ERROR: No version selected
 17.0.2-x86_32-linux/ibm-aix/7.2 -> ERROR: No version selected
@@ -15016,7 +15022,7 @@
 17.0.6-powerpc64le-linux/ubuntu/22.04 -> ERROR: No version selected
 17.0.6-powerpc64le-linux/ubuntu/24.04 -> ERROR: No version selected
 17.0.6-powerpc64le-windows/windows/ -> ERROR: No version selected
-17.0.6-sparc64-linux/sun-solaris/2.11 -> ERROR: Bad arch selection: clang+llvm-17.0.6-sparcv9-sun-solaris2.11.tar.xz
+17.0.6-sparc64-linux/sun-solaris/2.11 -> clang+llvm-17.0.6-sparcv9-sun-solaris2.11.tar.xz
 17.0.6-sparcv9-darwin/darwin/ -> ERROR: No version selected
 17.0.6-sparcv9-linux/ibm-aix/7.2 -> ERROR: No version selected
 17.0.6-sparcv9-linux/amzn/0 -> ERROR: No version selected
@@ -15368,7 +15374,7 @@
 18.1.0-powerpc64le-linux/ubuntu/22.04 -> ERROR: No version selected
 18.1.0-powerpc64le-linux/ubuntu/24.04 -> ERROR: No version selected
 18.1.0-powerpc64le-windows/windows/ -> ERROR: No version selected
-18.1.0-sparc64-linux/sun-solaris/2.11 -> ERROR: Bad arch selection: clang+llvm-18.1.0-sparcv9-sun-solaris2.11.tar.xz
+18.1.0-sparc64-linux/sun-solaris/2.11 -> clang+llvm-18.1.0-sparcv9-sun-solaris2.11.tar.xz
 18.1.0-sparcv9-darwin/darwin/ -> ERROR: No version selected
 18.1.0-sparcv9-linux/ibm-aix/7.2 -> ERROR: No version selected
 18.1.0-sparcv9-linux/amzn/0 -> clang+llvm-18.1.0-sparcv9-unknown-linux-gnu.tar.xz
@@ -16072,7 +16078,7 @@
 18.1.2-powerpc64le-linux/ubuntu/22.04 -> ERROR: No version selected
 18.1.2-powerpc64le-linux/ubuntu/24.04 -> ERROR: No version selected
 18.1.2-powerpc64le-windows/windows/ -> ERROR: No version selected
-18.1.2-sparc64-linux/sun-solaris/2.11 -> ERROR: Bad arch selection: clang+llvm-18.1.2-sparcv9-sun-solaris2.11.tar.xz
+18.1.2-sparc64-linux/sun-solaris/2.11 -> clang+llvm-18.1.2-sparcv9-sun-solaris2.11.tar.xz
 18.1.2-sparcv9-darwin/darwin/ -> ERROR: No version selected
 18.1.2-sparcv9-linux/ibm-aix/7.2 -> ERROR: No version selected
 18.1.2-sparcv9-linux/amzn/0 -> ERROR: No version selected
@@ -17480,7 +17486,7 @@
 18.1.6-powerpc64le-linux/ubuntu/22.04 -> ERROR: No version selected
 18.1.6-powerpc64le-linux/ubuntu/24.04 -> ERROR: No version selected
 18.1.6-powerpc64le-windows/windows/ -> ERROR: No version selected
-18.1.6-sparc64-linux/sun-solaris/2.11 -> ERROR: Bad arch selection: clang+llvm-18.1.6-sparcv9-sun-solaris2.11.tar.xz
+18.1.6-sparc64-linux/sun-solaris/2.11 -> clang+llvm-18.1.6-sparcv9-sun-solaris2.11.tar.xz
 18.1.6-sparcv9-darwin/darwin/ -> ERROR: No version selected
 18.1.6-sparcv9-linux/ibm-aix/7.2 -> ERROR: No version selected
 18.1.6-sparcv9-linux/amzn/0 -> ERROR: No version selected
