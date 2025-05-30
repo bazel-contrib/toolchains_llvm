@@ -645,8 +645,12 @@ _llvm_distributions = {
     "clang+llvm-20.1.5-armv7a-linux-gnueabihf.tar.gz": "80d4b593ecc32bb4289ce75e2b4572c0b6f27e1ceba8ce362c37469c480d3140",
     "clang+llvm-20.1.5-x86_64-pc-windows-msvc.tar.xz": "b8e566c0ccf948a5e5946bc0c9d16110b937991816c8f46b9c8b3d1cd9ac7c9a",
 
+    # 20.1.6
+    "LLVM-20.1.6-Linux-ARM64.tar.xz": "f7c2851771cf26af3e2196e3be060cdafe7ea2e04db24bbd736aea0d2c95e3e9",
+    "LLVM-20.1.6-Linux-X64.tar.xz": "8ecc9878e3d99c8f1db25e5564d12900b4a1fc947f62b8cd01135fd0b15220e4",
+
     # Refer to variable declaration on how to update!
-    # Example update, run: utils/llvm_checksums.sh -g -v 15.0.6
+    # Example update, run: utils/llvm_checksums.sh -g -v 20.1.6
 }
 
 # Note: Unlike the user-specified llvm_mirror attribute, the URL prefixes in
