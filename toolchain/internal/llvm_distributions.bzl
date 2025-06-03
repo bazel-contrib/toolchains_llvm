@@ -648,6 +648,9 @@ _llvm_distributions = {
     # 20.1.6
     "LLVM-20.1.6-Linux-ARM64.tar.xz": "f7c2851771cf26af3e2196e3be060cdafe7ea2e04db24bbd736aea0d2c95e3e9",
     "LLVM-20.1.6-Linux-X64.tar.xz": "8ecc9878e3d99c8f1db25e5564d12900b4a1fc947f62b8cd01135fd0b15220e4",
+    "clang+llvm-20.1.6-aarch64-pc-windows-msvc.tar.xz": "f33460a63ed868374b1a207bcc2d4d3eb0753b77c12aa0b138886c2376f3c894",
+    "clang+llvm-20.1.6-armv7a-linux-gnueabihf.tar.gz": "c811bb8c63af8884ee5be27516fbb1733b14634ed71617abf9761ddbab08a3fe",
+    "clang+llvm-20.1.6-x86_64-pc-windows-msvc.tar.xz": "86345035d5ecc482ff391c3270fe37ba9f53e241e7c419f0d7bab9b7c7c57df0",
 
     # Refer to variable declaration on how to update!
     # Example update, run: utils/llvm_checksums.sh -g -v 20.1.6
