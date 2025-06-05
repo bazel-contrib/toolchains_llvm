@@ -1418,7 +1418,7 @@ def _distributions_test_writer_impl(ctx):
     ctx.actions.write(ctx.outputs.output, "\n".join(output) + "\n")
     ctx.actions.write(ctx.outputs.select, "\n".join(select) + "\n")
 
-write_distributions = rule(
+distributions_test_writer = rule(
     implementation = _distributions_test_writer_impl,
     attrs = {
         "output": attr.output(mandatory = True),

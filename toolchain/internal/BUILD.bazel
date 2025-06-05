@@ -13,11 +13,11 @@
 # limitations under the License.
 
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
-load("llvm_distributions.bzl", "requirements_test_writer", "write_distributions")
+load("llvm_distributions.bzl", "distributions_test_writer", "requirements_test_writer")
 
 exports_files(["template.modulemap"])
 
-write_distributions(
+distributions_test_writer(
     name = "llvm_distributions",
     testonly = True,
     output = "llvm_distributions.out.txt",
