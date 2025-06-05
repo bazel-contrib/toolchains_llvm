@@ -789,7 +789,8 @@ def _get_llvm_version(rctx):
 
 def _get_all_llvm_distributions(*, llvm_distributions, extra_llvm_distributions, parsed_llvm_version):
     distributions = {}
-    for basename, sha256 in llvm_distributions.items():
+    for dist, sha256 in llvm_distributions.items() + (extra_llvm_distributions.items() if extra_llvm_distributions else []):
+        basename = _distribution_basename(dist)
         version = _distribution_version(basename)
         if parsed_llvm_version and parsed_llvm_version != version:
             continue
@@ -798,16 +799,6 @@ def _get_all_llvm_distributions(*, llvm_distributions, extra_llvm_distributions,
             sha256 = sha256,
             version = version,
         )
-    if extra_llvm_distributions:
-        for dist, sha256 in extra_llvm_distributions.items():
-            version = _distribution_version(dist)
-            if parsed_llvm_version and parsed_llvm_version != version:
-                continue
-            distributions[_distribution_basename(dist)] = struct(
-                distribution = dist,
-                sha256 = sha256,
-                version = version,
-            )
     return distributions
 
 _UBUNTU_NAMES = [
@@ -1135,7 +1126,11 @@ def _required_llvm_release_name(*, version_or_requirements, all_llvm_distributio
     return None, None, "ERROR: No matching distribution found."
 
 def required_llvm_release_name_rctx(rctx, llvm_version):
-    all_llvm_distributions = _get_all_llvm_distributions(rctx)
+    all_llvm_distributions = _get_all_llvm_distributions(
+        llvm_distributions = _llvm_distributions,
+        extra_llvm_distributions = rctx.attr.extra_llvm_distributions,
+        parsed_llvm_version = _parse_version(llvm_version),
+    )
     return _required_llvm_release_name(
         version_or_requirements = llvm_version,
         all_llvm_distributions = all_llvm_distributions,
@@ -1424,7 +1419,7 @@ def _distributions_test_writer_impl(ctx):
     ctx.actions.write(ctx.outputs.select, "\n".join(select) + "\n")
 
 write_distributions = rule(
-    implementation = _write_distributions_impl,
+    implementation = _distributions_test_writer_impl,
     attrs = {
         "output": attr.output(mandatory = True),
         "select": attr.output(mandatory = True),
