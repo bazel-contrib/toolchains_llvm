@@ -653,6 +653,13 @@ _llvm_distributions = {
     "clang+llvm-20.1.6-armv7a-linux-gnueabihf.tar.gz": "c811bb8c63af8884ee5be27516fbb1733b14634ed71617abf9761ddbab08a3fe",
     "clang+llvm-20.1.6-x86_64-pc-windows-msvc.tar.xz": "86345035d5ecc482ff391c3270fe37ba9f53e241e7c419f0d7bab9b7c7c57df0",
 
+    # 20.1.7
+    "LLVM-20.1.7-Linux-ARM64.tar.xz": "832f2802a29457dc758f56e26e98558c6cd0e45fcd07186f540cb6e7f4e59385",
+    "LLVM-20.1.7-Linux-X64.tar.xz": "8494c98a774051a40bfe1187a2d6442f4bc107598998bbe1673d9bb1572cfd6f",
+    "LLVM-20.1.7-macOS-ARM64.tar.xz": "6aa75de00575ad0663183b00f00f39992ded611b5136e57649ace1e6a53c0d16",
+    "LLVM-20.1.7-macOS-X64.tar.xz": "ccf82ffe7e136ee49659cb57157856a7963d0950fac3d05aabba0db75bfba26f",
+    "clang+llvm-20.1.7-x86_64-pc-windows-msvc.tar.xz": "34a66bb4891584b32d32bbe5f129e345899b255593dab2c359b730b92e304b3e",
+
     # Refer to variable declaration on how to update!
     # Example update, run: utils/llvm_checksums.sh -g -v 20.1.6
 }
