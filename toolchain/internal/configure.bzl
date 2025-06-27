@@ -70,7 +70,7 @@ def llvm_config_impl(rctx):
     os = _os(rctx)
     if os == "windows":
         _empty_repository(rctx)
-        return
+        return None
     arch = _arch(rctx)
 
     if not rctx.attr.toolchain_roots:
@@ -93,7 +93,7 @@ def llvm_config_impl(rctx):
     if not llvm_version:
         # LLVM version missing for (os, arch)
         _empty_repository(rctx)
-        return
+        return None
     use_absolute_paths_llvm = rctx.attr.absolute_paths
     use_absolute_paths_sysroot = use_absolute_paths_llvm
 
@@ -236,6 +236,11 @@ def llvm_config_impl(rctx):
             "%{toolchain_path_prefix}": llvm_dist_path_prefix,
         },
     )
+
+    if hasattr(rctx, "repo_metadata"):
+        return rctx.repo_metadata(reproducible = True)
+    else:
+        return None
 
 def _cc_toolchains_str(
         rctx,
