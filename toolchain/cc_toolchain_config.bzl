@@ -145,11 +145,12 @@ def cc_toolchain_config(
     unfiltered_compile_flags = [
         # Do not resolve our symlinked resource prefixes to real paths.
         "-no-canonical-prefixes",
-        # Reproducibility
+        # Reproducibility.
         "-Wno-builtin-macro-redefined",
         "-D__DATE__=\"redacted\"",
         "-D__TIMESTAMP__=\"redacted\"",
         "-D__TIME__=\"redacted\"",
+        "-ffile-prefix-map=${{pwd}}=__bazel_toolchain_llvm_repo__",
     ]
 
     is_xcompile = not (exec_os == target_os and exec_arch == target_arch)

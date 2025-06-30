@@ -44,12 +44,14 @@ trap cleanup EXIT
 
 if [[ -f %{toolchain_path_prefix}bin/clang ]]; then
   execroot_path=""
+  execroot_abs_path="${PWD}/"
 elif [[ ${BASH_SOURCE[0]} == "/"* ]]; then
   # Some consumers of `CcToolchainConfigInfo` (e.g. `cmake` from rules_foreign_cc)
   # change CWD and call $CC (this script) with its absolute path.
   # For cases like this, we'll try to find `clang` through an absolute path.
   # This script is at _execroot_/external/_repo_name_/bin/cc_wrapper.sh
   execroot_path="${BASH_SOURCE[0]%/*/*/*/*}/"
+  execroot_abs_path="$(cd "${execroot_path}" && pwd -P)/"
 else
   echo >&2 "ERROR: could not find clang; PWD=\"${PWD}\"; PATH=\"${PATH}\"."
   exit 5
@@ -63,6 +65,9 @@ function sanitize_option() {
     # shellcheck disable=SC2206
     parts=(${opt/=/ }) # Split flag name and value into array.
     printf "%s" "${parts[0]}=${execroot_path}${parts[1]}"
+  elif [[ ${opt} == *"\${{pwd}}"* ]]; then
+    # Replace the literal string '${{pwd}}' with the execroot.
+    printf "%s" "${opt//\$\{\{pwd\}\}/${execroot_abs_path%/}}"
   else
     printf "%s" "${opt}"
   fi
