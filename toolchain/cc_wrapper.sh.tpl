@@ -49,9 +49,33 @@ trap cleanup EXIT
 # Going into %{toolchain_path_prefix} without the `external/` prefix + `bin/clang`
 #
 
-script_dir=$(dirname ${BASH_SOURCE[0]})
+dirname_shim() {
+  local path="$1"
+  
+  # Remove trailing slashes
+  path="${path%/}"
+
+  # If there's no slash, return "."
+  if [[ "$path" != */* ]]; then
+    echo "."
+    return
+  fi
+
+  # Remove the last component after the final slash
+  path="${path%/*}"
+
+  # If it becomes empty, it means root "/"
+  echo "${path:-/}"
+}
+
+script_dir=$(dirname_shim "${BASH_SOURCE[0]}")
 toolchain_path_prefix="%{toolchain_path_prefix}"
-toolchain_path_prefix="$script_dir/../../${toolchain_path_prefix#external/}"
+
+# Sometimes this path may be an absolute path in which case we dont do anything because
+# This is using the host toolchain to build.
+if [[ ${toolchain_path_prefix} != /* ]]; then
+  toolchain_path_prefix="$script_dir/../../${toolchain_path_prefix#external/}"
+fi
 
 if [[ ! -f ${toolchain_path_prefix}bin/clang ]]; then
   echo >&2 "ERROR: could not find clang; PWD=\"${PWD}\"; PATH=\"${PATH}\"; toolchain_path_prefix=${toolchain_path_prefix}."
