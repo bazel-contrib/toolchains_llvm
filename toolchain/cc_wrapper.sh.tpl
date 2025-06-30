@@ -51,12 +51,12 @@ trap cleanup EXIT
 
 dirname_shim() {
   local path="$1"
-  
+
   # Remove trailing slashes
   path="${path%/}"
 
   # If there's no slash, return "."
-  if [[ "$path" != */* ]]; then
+  if [[ "${path}" != */* ]]; then
     echo "."
     return
   fi
@@ -74,7 +74,7 @@ toolchain_path_prefix="%{toolchain_path_prefix}"
 # Sometimes this path may be an absolute path in which case we dont do anything because
 # This is using the host toolchain to build.
 if [[ ${toolchain_path_prefix} != /* ]]; then
-  toolchain_path_prefix="$script_dir/../../${toolchain_path_prefix#external/}"
+  toolchain_path_prefix="${script_dir}/../../${toolchain_path_prefix#external/}"
 fi
 
 if [[ ! -f ${toolchain_path_prefix}bin/clang ]]; then
@@ -89,7 +89,7 @@ function sanitize_option() {
   elif [[ ${opt} =~ ^-fsanitize-(ignore|black)list=[^/] ]] && [[ ${script_dir} == /* ]]; then
     # shellcheck disable=SC2206
     parts=(${opt/=/ }) # Split flag name and value into array.
-    printf "%s" "${parts[0]}=$script_dir/../../../${parts[1]}"
+    printf "%s" "${parts[0]}=${script_dir}/../../../${parts[1]}"
   else
     printf "%s" "${opt}"
   fi
