@@ -741,7 +741,6 @@ def download_llvm(rctx):
             update_sha256 = True
     if not urls:
         urls, sha256, strip_prefix = _distribution_urls(rctx)
-        strip_prefix = _strip_prefix(basename = _distribution_basename(urls[0]))
 
     res = rctx.download_and_extract(
         [_full_url(url) for url in urls],
