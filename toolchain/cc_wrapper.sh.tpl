@@ -85,6 +85,7 @@ fi
 OUTPUT=
 
 function sanitize_option() {
+  global OUTPUT
   local -r opt=$1
   set -x
   if [[ "${OUTPUT}" == "1" ]]; then
