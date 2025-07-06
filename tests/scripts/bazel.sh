@@ -47,9 +47,9 @@ common_test_args=(
   "--symlink_prefix=/"
   "--color=yes"
   "--show_progress_rate_limit=30"
+  "--keep_going"
   "--test_output=errors"
   "--features=layering_check"
-  "-s"
   "--process_headers_in_dependencies"
 )
 
