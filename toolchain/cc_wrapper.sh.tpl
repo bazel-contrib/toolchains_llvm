@@ -82,19 +82,8 @@ if [[ ! -f ${toolchain_path_prefix}bin/clang ]]; then
   exit 5
 fi
 
-OUTPUT=
-
 function sanitize_option() {
-  global OUTPUT
   local -r opt=$1
-  set -x
-  if [[ "${OUTPUT}" == "1" ]]; then
-    OUTPUT=${opt}
-  elif [[ "${opt}" == -o ]]; then
-    # Output path comes next.
-    OUTPUT=1
-  fi
-  set +x
   if [[ ${opt} == */cc_wrapper.sh ]]; then
     printf "%s" "${toolchain_path_prefix}bin/clang"
   elif [[ ${opt} =~ ^-fsanitize-(ignore|black)list=[^/] ]] && [[ ${script_dir} == /* ]]; then
@@ -132,7 +121,6 @@ done
 # Call the C++ compiler.
 "${cmd[@]}"
 
-set -x
 # Generate an empty file if header processing succeeded.
 if [[ "${OUTPUT}" == *.h.processed ]]; then
   echo -n >"${OUTPUT}"
