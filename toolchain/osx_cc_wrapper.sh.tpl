@@ -122,6 +122,7 @@ fi
 OUTPUT=
 
 function sanitize_option() {
+  global OUTPUT
   local -r opt=$1
   if [[ "${OUTPUT}" == "1" ]]; then
     OUTPUT=${opt}
