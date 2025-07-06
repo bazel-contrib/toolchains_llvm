@@ -85,13 +85,13 @@ fi
 OUTPUT=
 
 function parse_option() {
-    local -r opt="$1"
-    if [[ "${OUTPUT}" = "1" ]]; then
-        OUTPUT=$opt
-    elif [[ "$opt" = "-o" ]]; then
-        # output is coming
-        OUTPUT=1
-    fi
+  local -r opt="$1"
+  if [[ "${OUTPUT}" = "1" ]]; then
+    OUTPUT=${opt}
+  elif [[ "${opt}" = "-o" ]]; then
+    # output is coming
+    OUTPUT=1
+  fi
 }
 
 function sanitize_option() {
