@@ -348,6 +348,7 @@ def cc_toolchain_config(
     # https://cs.opensource.google/bazel/bazel/+/master:src/main/starlark/builtins_bzl/common/cc/cc_toolchain_provider_helper.bzl;l=75;drc=f0150efd1cca473640269caaf92b5a23c288089d
     # https://cs.opensource.google/bazel/bazel/+/master:src/main/java/com/google/devtools/build/lib/rules/cpp/CcModule.java;l=1257;drc=6743d76f9ecde726d592e88d8914b9db007b1c43
     # https://cs.opensource.google/bazel/bazel/+/refs/tags/7.0.0:tools/cpp/unix_cc_toolchain_config.bzl;l=192,201;drc=044a14cca2747aeff258fc71eaeb153c08cb34d5
+    # https://github.com/bazelbuild/rules_cc/blob/fe41fc4ea219c9d3680ee536bba6681f3baf838e/cc/private/toolchain/unix_cc_toolchain_config.bzl#L1887
     # NOTE: Ensure these are listed in toolchain_tools in toolchain/internal/common.bzl.
     tool_paths = {
         "ar": tools_path_prefix + ("llvm-ar" if not use_libtool else "libtool"),
@@ -362,6 +363,7 @@ def cc_toolchain_config(
         "objcopy": tools_path_prefix + "llvm-objcopy",
         "objdump": tools_path_prefix + "llvm-objdump",
         "strip": tools_path_prefix + "llvm-strip",
+        "parse_headers": wrapper_bin_prefix + "cc_wrapper.sh",
     }
 
     # Start-end group linker support:
