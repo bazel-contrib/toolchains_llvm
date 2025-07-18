@@ -658,6 +658,8 @@ _llvm_distributions = {
     "LLVM-20.1.7-Linux-X64.tar.xz": "8494c98a774051a40bfe1187a2d6442f4bc107598998bbe1673d9bb1572cfd6f",
     "LLVM-20.1.7-macOS-ARM64.tar.xz": "6aa75de00575ad0663183b00f00f39992ded611b5136e57649ace1e6a53c0d16",
     "LLVM-20.1.7-macOS-X64.tar.xz": "ccf82ffe7e136ee49659cb57157856a7963d0950fac3d05aabba0db75bfba26f",
+    "clang+llvm-20.1.7-aarch64-pc-windows-msvc.tar.xz": "4fac201fc680a1a9b4a21cf0f3be522dc31951d39d709a62a2827347ecffc72e",
+    "clang+llvm-20.1.7-armv7a-linux-gnueabihf.tar.gz": "c69e642b93f7dff28ab5278b1d32e1ac1ce51ffc32f264ef4962c749c41424af",
     "clang+llvm-20.1.7-x86_64-pc-windows-msvc.tar.xz": "34a66bb4891584b32d32bbe5f129e345899b255593dab2c359b730b92e304b3e",
 
     # 20.1.8
