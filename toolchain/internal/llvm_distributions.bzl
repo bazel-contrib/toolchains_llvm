@@ -659,8 +659,16 @@ _llvm_distributions = {
     "LLVM-20.1.7-macOS-X64.tar.xz": "ccf82ffe7e136ee49659cb57157856a7963d0950fac3d05aabba0db75bfba26f",
     "clang+llvm-20.1.7-x86_64-pc-windows-msvc.tar.xz": "34a66bb4891584b32d32bbe5f129e345899b255593dab2c359b730b92e304b3e",
 
+    # 20.1.8
+    "LLVM-20.1.8-Linux-ARM64.tar.xz": "b855cc17d935fdd83da82206b7a7cfc680095efd1e9e8182c4a05e761958bef8",
+    "LLVM-20.1.8-Linux-X64.tar.xz": "1ead36b3dfcb774b57be530df42bec70ab2d239fbce9889447c7a29a4ddc1ae6",
+    "LLVM-20.1.8-macOS-ARM64.tar.xz": "a9a22f450d35f1f73cd61ab6a17c6f27d8f6051d56197395c1eb397f0c9bbec4",
+    "clang+llvm-20.1.8-aarch64-pc-windows-msvc.tar.xz": "0df3e81e8fe26370dd2b60b9e009d81cd130d3fdc41b257434aa663c5d9f0c13",
+    "clang+llvm-20.1.8-armv7a-linux-gnueabihf.tar.gz": "d2060f7a2259d95d121e6a2ceaa948b7d724c497e6e0b752e39086eaaf1675c6",
+    "clang+llvm-20.1.8-x86_64-pc-windows-msvc.tar.xz": "f229769f11d6a6edc8ada599c0cda964b7dee6ab1a08c6cf9dd7f513e85b107f",
+
     # Refer to variable declaration on how to update!
-    # Example update, run: utils/llvm_checksums.sh -g -v 20.1.6
+    # Example update (without deleting): utils/llvm_checksums.sh -g -v 20.1.9 -t /tmp/llvm
 }
 
 # Note: Unlike the user-specified llvm_mirror attribute, the URL prefixes in
