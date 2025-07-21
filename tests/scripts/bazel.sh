@@ -50,6 +50,7 @@ common_test_args=(
   "--keep_going"
   "--test_output=errors"
   "--features=layering_check"
+  "--process_headers_in_dependencies"
 )
 
 # Do not run autoconf to configure local CC toolchains.

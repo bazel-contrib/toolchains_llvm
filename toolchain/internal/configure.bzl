@@ -541,6 +541,7 @@ cc_toolchain(
     strip_files = "strip-files-{suffix}",
     toolchain_config = "local-{suffix}",
     module_map = "module-{suffix}",
+    supports_header_parsing = True,
 )
 """
 

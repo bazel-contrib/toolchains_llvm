@@ -82,6 +82,18 @@ if [[ ! -f ${toolchain_path_prefix}bin/clang ]]; then
   exit 5
 fi
 
+OUTPUT=
+
+function parse_option() {
+  local -r opt="$1"
+  if [[ "${OUTPUT}" = "1" ]]; then
+    OUTPUT=${opt}
+  elif [[ "${opt}" = "-o" ]]; then
+    # output is coming
+    OUTPUT=1
+  fi
+}
+
 function sanitize_option() {
   local -r opt=$1
   if [[ ${opt} == */cc_wrapper.sh ]]; then
@@ -106,6 +118,7 @@ for ((i = 0; i <= $#; i++)); do
         set -e
         sanitize_option "${opt}"
       )"
+      parse_option "${opt}"
       echo "${opt}" >>"${tmpfile}"
     done <"${!i:1}"
     cmd+=("@${tmpfile}")
@@ -114,9 +127,15 @@ for ((i = 0; i <= $#; i++)); do
       set -e
       sanitize_option "${!i}"
     )"
+    parse_option "${opt}"
     cmd+=("${opt}")
   fi
 done
 
 # Call the C++ compiler.
 "${cmd[@]}"
+
+# Generate an empty file if header processing succeeded.
+if [[ "${OUTPUT}" == *.h.processed ]]; then
+  echo -n >"${OUTPUT}"
+fi
