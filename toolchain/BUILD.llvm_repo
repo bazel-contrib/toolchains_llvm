@@ -48,7 +48,7 @@ filegroup(
 filegroup(
     name = "include",
     srcs = glob([
-        "include/**/c++/**",
+        "include/**",
         "lib/clang/*/include/**",
     ]),
 )
@@ -70,8 +70,11 @@ filegroup(
     name = "lib",
     srcs = glob(
         [
+            "lib/lib*.a",
             "lib/**/lib*.a",
+            "lib/**/lib*.a.syms",
             "lib/clang/*/lib/**/*.a",
+            "lib/clang/*/lib/**/*.a.syms",
             "lib/clang/*/lib/**/*.dylib",
             # clang_rt.*.o supply crtbegin and crtend sections.
             "lib/**/clang_rt.*.o",
