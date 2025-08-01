@@ -41,7 +41,8 @@ filegroup(
     srcs = [
         "bin/ld.lld",
         "bin/ld64.lld",
-        "bin/wasm-ld",
+        # Not all distributions contain wasm-ld.
+        glob(["bin/wasm-ld"], allow_empty = True),
     ],
 )
 
