@@ -38,12 +38,11 @@ filegroup(
 
 filegroup(
     name = "ld",
+    # Not all distributions contain wasm-ld.
     srcs = [
         "bin/ld.lld",
         "bin/ld64.lld",
-        # Not all distributions contain wasm-ld.
-        glob(["bin/wasm-ld"], allow_empty = True),
-    ],
+    ] + glob(["bin/wasm-ld"], allow_empty = True),
 )
 
 filegroup(
