@@ -18,6 +18,7 @@ SUPPORTED_TARGETS = [
     ("linux", "armv7"),
     ("darwin", "x86_64"),
     ("darwin", "aarch64"),
+    ("none", "riscv32"),
     ("none", "wasm32"),
     ("none", "wasm64"),
     ("none", "x86_64"),
@@ -27,6 +28,7 @@ SUPPORTED_TARGETS = [
 
 # These are targets that can build without a sysroot.
 SUPPORTED_NO_SYSROOT_TARGETS = [
+    ("none", "riscv32"),
     ("none", "x86_64"),
 ]
 
