@@ -13,6 +13,7 @@
 # limitations under the License.
 load(
     "//toolchain/internal:common.bzl",
+    _attr_dict = "attr_dict",
     _os = "os",
     _supported_os_arch_keys = "supported_os_arch_keys",
 )
