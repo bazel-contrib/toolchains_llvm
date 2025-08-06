@@ -334,4 +334,10 @@ def llvm_repo_impl(rctx):
     # do want to make changes, then we should do it through a patch file, and
     # document it for users of toolchain_roots attribute.
 
-    return updated_attrs
+    if hasattr(rctx, "repo_metadata"):
+        if updated_attrs == _attr_dict(rctx.attr):
+            return rctx.repo_metadata(reproducible = True)
+        else:
+            return rctx.repo_metadata(attrs_for_reproducibility = updated_attrs)
+    else:
+        return updated_attrs
