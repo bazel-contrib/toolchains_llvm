@@ -97,6 +97,14 @@ def cc_toolchain_config(
             "clang",
             "glibc_unknown",
         ),
+        "none-riscv32": (
+            "clang-riscv32-none",
+            "riscv32",
+            "unknown",
+            "clang",
+            "unknown",
+            "unknown",
+        ),
         "none-x86_64": (
             "clang-x86_64-none",
             "k8",
