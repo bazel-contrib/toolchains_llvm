@@ -316,7 +316,7 @@ def _cc_toolchain_str(
         if exec_os == target_os and exec_arch == target_arch:
             # For darwin -> darwin, we can use the macOS SDK path.
             sysroot_path = _default_sysroot_path(rctx, exec_os)
-        elif target_pair in _supported_no_sysroot_targets:
+        elif (target_os, target_arch) in _supported_no_sysroot_targets:
             sysroot_path = ""
         else:
             # We are trying to cross-compile without a sysroot, let's bail.
@@ -341,6 +341,7 @@ def _cc_toolchain_str(
         "linux-aarch64": "aarch64-unknown-linux-gnu",
         "linux-armv7": "armv7-unknown-linux-gnueabihf",
         "linux-x86_64": "x86_64-unknown-linux-gnu",
+        "none-riscv32": "riscv32-unknown-none-elf",
         "none-x86_64": "x86_64-unknown-none",
         "wasm32": "wasm32-unknown-unknown",
         "wasm64": "wasm64-unknown-unknown",
