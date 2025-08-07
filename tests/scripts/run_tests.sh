@@ -84,6 +84,9 @@ if [[ -z ${toolchain_name} && -z ${disable_wasm_tests} ]]; then
     "//wasm:all"
   )
   "${bazel}" clean --expunge
+  # Remove the repo contents cache in addition to cleaning the work trees since
+  # this is where the llvm toolchains are stored.
+  rm -r "$HOME/.cache/bazel/_bazel_$USER/cache/repos/v1/contents"
   "${bazel}" ${TEST_MIGRATION:+"--strict"} --bazelrc=/dev/null test \
     "${common_test_args[@]}" "${test_args[@]}" "${wasm_targets[@]}"
 fi
