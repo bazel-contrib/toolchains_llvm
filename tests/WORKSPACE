@@ -325,8 +325,11 @@ rules_foreign_cc_dependencies()
 
 load("@bazel_features//:deps.bzl", "bazel_features_deps")
 
-# Dep of `rules_foreign_cc`.
 bazel_features_deps()
+
+load("@rules_cc//cc:extensions.bzl", "compatibility_proxy_repo")
+
+compatibility_proxy_repo()
 
 _ALL_CONTENT = """\
 filegroup(

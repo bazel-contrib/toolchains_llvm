@@ -179,7 +179,7 @@ def cc_toolchain_config(
 
     dbg_compile_flags = ["-g", "-fstandalone-debug"]
 
-    fastbuild_compile_flags = ["-gmlt"]
+    fastbuild_compile_flags = []
 
     opt_compile_flags = [
         "-g0",

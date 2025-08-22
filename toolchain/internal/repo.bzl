@@ -209,6 +209,14 @@ _compiler_configuration_attrs = {
                "target OS and arch pair you want to override " +
                "({}); empty key overrides all.".format(_target_pairs)),
     ),
+    "fastbuild_compile_flags": attr.string_list_dict(
+        mandatory = False,
+        doc = ("Override for fastbuild_compile_flags, replacing the default values. " +
+               "`{toolchain_path_prefix}` in the flags will be substituted by the path " +
+               "to the root LLVM distribution directory. Provide one list for each " +
+               "target OS and arch pair you want to override " +
+               "({}); empty key overrides all.".format(_target_pairs)),
+    ),
     "opt_compile_flags": attr.string_list_dict(
         mandatory = False,
         doc = ("Override for opt_compile_flags, replacing the default values. " +
