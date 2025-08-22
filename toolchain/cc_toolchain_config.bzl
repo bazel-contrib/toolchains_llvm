@@ -179,6 +179,8 @@ def cc_toolchain_config(
 
     dbg_compile_flags = ["-g", "-fstandalone-debug"]
 
+    fastbuild_compile_flags = ["-gmlt"]
+
     opt_compile_flags = [
         "-g0",
         "-O2",
@@ -400,6 +402,8 @@ def cc_toolchain_config(
         opt_link_flags = _fmt_flags(compiler_configuration["opt_link_flags"], toolchain_path_prefix)
     if compiler_configuration["dbg_compile_flags"] != None:
         dbg_compile_flags = _fmt_flags(compiler_configuration["dbg_compile_flags"], toolchain_path_prefix)
+    if compiler_configuration["fastbuild_compile_flags"] != None:
+        fastbuild_compile_flags = _fmt_flags(compiler_configuration["fastbuild_compile_flags"], toolchain_path_prefix)
     if compiler_configuration["coverage_compile_flags"] != None:
         coverage_compile_flags = _fmt_flags(compiler_configuration["coverage_compile_flags"], toolchain_path_prefix)
     if compiler_configuration["coverage_link_flags"] != None:
@@ -421,6 +425,7 @@ def cc_toolchain_config(
         cxx_builtin_include_directories = cxx_builtin_include_directories,
         tool_paths = tool_paths,
         compile_flags = compile_flags,
+        fastbuild_compile_flags = fastbuild_compile_flags,
         dbg_compile_flags = dbg_compile_flags,
         opt_compile_flags = opt_compile_flags,
         conly_flags = conly_flags,
