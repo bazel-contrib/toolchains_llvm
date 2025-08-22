@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# buildifier: disable=bzl-visibility
 load(
-    "@bazel_tools//tools/cpp:unix_cc_toolchain_config.bzl",
+    "@rules_cc//cc/private/toolchain:unix_cc_toolchain_config.bzl",
     unix_cc_toolchain_config = "cc_toolchain_config",
 )
 load(
