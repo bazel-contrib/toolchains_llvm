@@ -30,7 +30,17 @@ set -exuo pipefail
 # Common setup
 export DEBIAN_FRONTEND=noninteractive
 apt-get -qq update
-apt-get -qq -y install curl libtinfo5 libxml2 zlib1g-dev >/dev/null
+LIBTINFO=libtinfo5
+if ! apt list "${LIBTINFO}"; then
+  LIBTINFO=libtinfo6
+  if apt list "${LIBTINFO}"; then
+    echo "Using ${LIBTINFO}"
+  else
+    echo "No suitable libtinfo found"
+    exit 1
+  fi
+fi
+apt-get -qq -y install curl "${LIBTINFO}" libxml2 zlib1g-dev >/dev/null
 # The above command gives some verbose output that can not be silenced easily.
 # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=288778
 
