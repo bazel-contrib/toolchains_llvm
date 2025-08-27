@@ -60,11 +60,17 @@ def _join(path1, path2):
     else:
         return path2
 
+def _is_absolute(path):
+    return path[0] == "/" and (len(path) == 1 or path[1] != "/")
+
 def llvm_config_impl(rctx):
+    _check_os_arch_keys(rctx.attr.toolchain_roots)
+    _check_os_arch_keys(rctx.attr.target_toolchain_roots)
     _check_os_arch_keys(rctx.attr.sysroot)
     _check_os_arch_keys(rctx.attr.cxx_builtin_include_directories)
     _check_os_arch_keys(rctx.attr.extra_exec_compatible_with)
     _check_os_arch_keys(rctx.attr.extra_target_compatible_with)
+    _check_os_arch_keys(rctx.attr.stdlib)
 
     os = _os(rctx)
     if os == "windows":
@@ -86,6 +92,25 @@ def llvm_config_impl(rctx):
         return None
     use_absolute_paths_llvm = rctx.attr.absolute_paths
     use_absolute_paths_sysroot = use_absolute_paths_llvm
+
+    # Make sure the toolchain root and target toolchain roots either are both absolute or both not.
+    for target_toolchain_root in rctx.attr.target_toolchain_roots.values():
+        if _is_absolute(toolchain_root) != _is_absolute(target_toolchain_root):
+            fail("Host and target toolchain roots must both be absolute or not")
+
+    # Compute the repo paths for each of the target toolchains.
+    target_llvm_repo_paths = {}
+    toolchain_path_prefix = None
+    if use_absolute_paths_llvm:
+        llvm_repo_label = Label(toolchain_root + ":BUILD.bazel")  # Exact target does not matter.
+        toolchain_path_prefix = _canonical_dir_path(str(rctx.path(llvm_repo_label).dirname))
+        for a_key in rctx.attr.target_toolchain_roots:
+            target_llvm_repo_label = Label(rctx.attr.target_toolchain_roots[a_key] + ":BUILD.bazel")
+            target_llvm_repo_paths[a_key] = _canonical_dir_path(str(rctx.path(target_llvm_repo_label).dirname))
+    else:
+        for a_key in rctx.attr.target_toolchain_roots:
+            target_llvm_repo_label = Label(rctx.attr.target_toolchain_roots[a_key] + ":BUILD.bazel")
+            target_llvm_repo_paths[a_key] = _pkg_path_from_label(target_llvm_repo_label)
 
     # Check if the toolchain root is a system path.
     system_llvm = False
@@ -170,6 +195,10 @@ def llvm_config_impl(rctx):
         dbg_compile_flags_dict = rctx.attr.dbg_compile_flags,
         coverage_compile_flags_dict = rctx.attr.coverage_compile_flags,
         coverage_link_flags_dict = rctx.attr.coverage_link_flags,
+        target_toolchain_path_prefixes_dict = target_llvm_repo_paths,
+        target_toolchain_roots_dict = rctx.attr.target_toolchain_roots,
+        toolchain_path_prefix = toolchain_path_prefix,
+        toolchain_root = toolchain_root,
         unfiltered_compile_flags_dict = rctx.attr.unfiltered_compile_flags,
         llvm_version = llvm_version,
         extra_compiler_files = rctx.attr.extra_compiler_files,
@@ -338,20 +367,29 @@ def _cc_toolchain_str(
         "wasip1-wasm32": "wasm32-wasip1",
         "wasip1-wasm64": "wasm64-wasip1",
     }[target_pair]
+
+    target_toolchain_root = toolchain_info.toolchain_root
+    if target_pair in toolchain_info.target_toolchain_roots_dict:
+        target_toolchain_root = toolchain_info.target_toolchain_roots_dict[target_pair]
+    elif "" in toolchain_info.target_toolchain_roots_dict:
+        target_toolchain_root = toolchain_info.target_toolchain_roots_dict[""]
+    target_toolchain_path_prefix = toolchain_info.toolchain_path_prefix
+    if target_pair in toolchain_info.target_toolchain_path_prefixes_dict:
+        target_toolchain_path_prefix = toolchain_info.target_toolchain_path_prefixes_dict[target_pair]
+    elif "" in toolchain_info.target_toolchain_roots_dict:
+        target_toolchain_path_prefix = toolchain_info.target_toolchain_path_prefixes_dict[""]
+
+    # C++ built-in include directories:
+    resource_dir_version = llvm_version if major_llvm_version < 16 else major_llvm_version
     cxx_builtin_include_directories = [
-        toolchain_path_prefix + "include/c++/v1",
-        toolchain_path_prefix + "include/{}/c++/v1".format(target_system_name),
-        toolchain_path_prefix + "lib/clang/{}/include".format(llvm_version),
-        toolchain_path_prefix + "lib/clang/{}/share".format(llvm_version),
-        toolchain_path_prefix + "lib64/clang/{}/include".format(llvm_version),
-        toolchain_path_prefix + "lib/clang/{}/include".format(major_llvm_version),
-        toolchain_path_prefix + "lib/clang/{}/share".format(major_llvm_version),
-        toolchain_path_prefix + "lib64/clang/{}/include".format(major_llvm_version),
+        target_toolchain_path_prefix + "include/c++/v1",
+        target_toolchain_path_prefix + "include/{}/c++/v1".format(target_system_name),
+        target_toolchain_path_prefix + "lib/clang/{}/include".format(resource_dir_version),
+        target_toolchain_path_prefix + "lib/clang/{}/share".format(resource_dir_version),
+        target_toolchain_path_prefix + "lib64/clang/{}/include".format(resource_dir_version),
     ]
 
-    sysroot_prefix = ""
-    if sysroot_path:
-        sysroot_prefix = "%sysroot%"
+    sysroot_prefix = "%sysroot%" if sysroot_path else ""
     if target_os == "linux":
         cxx_builtin_include_directories.extend([
             _join(sysroot_prefix, "/include"),
@@ -384,6 +422,7 @@ cc_toolchain_config(
     target_os = "{target_os}",
     target_system_name = "{target_system_name}",
     toolchain_path_prefix = "{llvm_dist_path_prefix}",
+    target_toolchain_path_prefix = "{target_toolchain_path_prefix}",
     tools_path_prefix = "{tools_path_prefix}",
     wrapper_bin_prefix = "{wrapper_bin_prefix}",
     compiler_configuration = {{
@@ -404,7 +443,7 @@ cc_toolchain_config(
       "unfiltered_compile_flags": {unfiltered_compile_flags},
     }},
     cxx_builtin_include_directories = {cxx_builtin_include_directories},
-    major_llvm_version = {major_llvm_version},
+    llvm_version = "{llvm_version}",
 )
 
 toolchain(
@@ -467,8 +506,8 @@ filegroup(name = "strip-files-{suffix}", srcs = [{extra_files_str}])
 filegroup(
     name = "compiler-components-{suffix}",
     srcs = [
-        "{llvm_dist_label_prefix}clang",
-        "{llvm_dist_label_prefix}include",
+        "{toolchain_root}:clang",
+        "{target_toolchain_root}:include",
         ":sysroot-components-{suffix}",
         {extra_compiler_files}
     ],
@@ -477,18 +516,18 @@ filegroup(
 filegroup(
     name = "linker-components-{suffix}",
     srcs = [
-        "{llvm_dist_label_prefix}clang",
-        "{llvm_dist_label_prefix}ld",
-        "{llvm_dist_label_prefix}ar",
-        "{llvm_dist_label_prefix}lib",
         ":sysroot-components-{suffix}",
+        "{toolchain_root}:clang",
+        "{toolchain_root}:ld",
+        "{toolchain_root}:ar",
+        "{target_toolchain_root}:lib",
     ],
 )
 
 filegroup(
     name = "all-components-{suffix}",
     srcs = [
-        "{llvm_dist_label_prefix}bin",
+        "{toolchain_root}:bin",
         ":compiler-components-{suffix}",
         ":linker-components-{suffix}",
     ],
@@ -558,6 +597,9 @@ cc_toolchain(
         exec_os_bzl = exec_os_bzl,
         llvm_dist_label_prefix = toolchain_info.llvm_dist_label_prefix,
         llvm_dist_path_prefix = toolchain_info.llvm_dist_path_prefix,
+        toolchain_root = toolchain_info.toolchain_root,
+        target_toolchain_root = target_toolchain_root,
+        target_toolchain_path_prefix = target_toolchain_path_prefix,
         tools_path_prefix = toolchain_info.tools_path_prefix,
         wrapper_bin_prefix = toolchain_info.wrapper_bin_prefix,
         sysroot_label_str = sysroot_label_str,
@@ -579,7 +621,7 @@ cc_toolchain(
         extra_files_str = extra_files_str,
         cxx_builtin_include_directories = _list_to_string(filtered_cxx_builtin_include_directories),
         extra_compiler_files = ("\"%s\"," % str(toolchain_info.extra_compiler_files)) if toolchain_info.extra_compiler_files else "",
-        major_llvm_version = major_llvm_version,
+        llvm_version = llvm_version,
         extra_exec_compatible_with_specific = toolchain_info.extra_exec_compatible_with.get(target_pair, []),
         extra_target_compatible_with_specific = toolchain_info.extra_target_compatible_with.get(target_pair, []),
         extra_exec_compatible_with_all_targets = toolchain_info.extra_exec_compatible_with.get("", []),
@@ -590,6 +632,8 @@ def _is_remote(rctx, exec_os, exec_arch):
     return not (_os_from_rctx(rctx) == exec_os and _arch_from_rctx(rctx) == exec_arch)
 
 def _convenience_targets_str(rctx, use_absolute_paths, llvm_dist_rel_path, llvm_dist_label_prefix, exec_dl_ext):
+    # TODO: This doesn't really deal with cross compilation very well.  There can be multiple
+    # targets for 1 toolchain, and the target platform matters, not the exec platform.
     if use_absolute_paths:
         llvm_dist_label_prefix = ":"
         filenames = []
