@@ -670,6 +670,11 @@ _llvm_distributions = {
     "clang+llvm-20.1.8-armv7a-linux-gnueabihf.tar.gz": "d2060f7a2259d95d121e6a2ceaa948b7d724c497e6e0b752e39086eaaf1675c6",
     "clang+llvm-20.1.8-x86_64-pc-windows-msvc.tar.xz": "f229769f11d6a6edc8ada599c0cda964b7dee6ab1a08c6cf9dd7f513e85b107f",
 
+    # 21.1.0
+    "LLVM-21.1.0-Linux-ARM64.tar.xz": "ffd51d9a583c1f662abc101f3a125d7303b21ad7d4e15773c8ad2c14cf621d5e",
+    "LLVM-21.1.0-Linux-X64.tar.xz": "4a8c4b07646a4a2eb76ccf1d73522c3e13519745b72ef09d631c09b7577b0ed2",
+    "clang+llvm-21.1.0-x86_64-pc-windows-msvc.tar.xz": "751aab63f074f041883a5317ad100dbe1e60794693f896df83958824cbc4962a",
+
     # Refer to variable declaration on how to update!
     # Example update (without deleting): utils/llvm_checksums.sh -g -v 20.1.9 -t /tmp/llvm
 }
