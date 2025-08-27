@@ -16,7 +16,7 @@
 set -euo pipefail
 
 images=(
-  "debian:latest"
+  "debian:bookworm"
 )
 
 git_root=$(git rev-parse --show-toplevel)
