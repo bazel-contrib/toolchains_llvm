@@ -29,9 +29,10 @@ set -exuo pipefail
 
 # Common setup
 export DEBIAN_FRONTEND=noninteractive
+apt-key adv --keyserver keyserver.ubuntu.com --recv-key C99B11DEB97541F0
+add-apt-repository universe
 apt-get -qq update
-apt-get -qq -y install curl libtinfo5 || apt-get -qq -y install curl libtinfo6
-apt-get -qq -y install curl libxml2 zlib1g-dev >/dev/null
+apt-get -qq -y install curl libtinfo5 libxml2 zlib1g-dev >/dev/null
 # The above command gives some verbose output that can not be silenced easily.
 # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=288778
 
