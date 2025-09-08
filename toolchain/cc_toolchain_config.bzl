@@ -259,15 +259,6 @@ def cc_toolchain_config(
             "-std=" + cxx_standard,
             "-stdlib=libc++",
         ]
-        if major_llvm_version >= 14:
-            # With C++20, Clang defaults to using C++ rather than Clang modules,
-            # which breaks Bazel's `use_module_maps` feature, which is used by
-            # `layering_check`. Since Bazel doesn't support C++ modules yet, it
-            # is safe to disable them globally until the toolchain shipped by
-            # Bazel sets this flag on `use_module_maps`.
-            # https://github.com/llvm/llvm-project/commit/0556138624edf48621dd49a463dbe12e7101f17d
-            cxx_flags.append("-Xclang")
-            cxx_flags.append("-fno-cxx-modules")
         if use_lld:
             # For single-platform builds, we can statically link the bundled
             # libraries.
@@ -342,6 +333,16 @@ def cc_toolchain_config(
         ])
     else:
         fail("Unknown value passed for stdlib: {stdlib}".format(stdlib = stdlib))
+
+    if major_llvm_version >= 14:
+        # With C++20, Clang defaults to using C++ rather than Clang modules,
+        # which breaks Bazel's `use_module_maps` feature, which is used by
+        # `layering_check`. Since Bazel doesn't support C++ modules yet, it
+        # is safe to disable them globally until the toolchain shipped by
+        # Bazel sets this flag on `use_module_maps`.
+        # https://github.com/llvm/llvm-project/commit/0556138624edf48621dd49a463dbe12e7101f17d
+        cxx_flags.append("-Xclang")
+        cxx_flags.append("-fno-cxx-modules")
 
     opt_link_flags = ["-Wl,--gc-sections"] if target_os == "linux" else []
 
