@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 # Copyright 2021 The Bazel Authors. All rights reserved.
 #
@@ -16,15 +16,15 @@
 
 # shellcheck disable=SC1083
 
-set -euo pipefail
+set -euo
 
-CLEANUP_FILES=()
-
-function cleanup() {
-  if [[ ${#CLEANUP_FILES[@]} -gt 0 ]]; then
-    rm -f "${CLEANUP_FILES[@]}"
-  fi
+cleanup() {
+  while read -r f; do
+    rm -f "${f}"
+  done <"${CLEANUP_FILES}"
 }
+
+CLEANUP_FILES=""
 
 trap cleanup EXIT
 
@@ -50,13 +50,13 @@ trap cleanup EXIT
 #
 
 dirname_shim() {
-  local path="$1"
+  path="$1"
 
   # Remove trailing slashes
   path="${path%/}"
 
   # If there's no slash, return "."
-  if [[ "${path}" != */* ]]; then
+  if [ "${path}" != "*/*" ]; then
     echo "."
     return
   fi
@@ -68,51 +68,65 @@ dirname_shim() {
   echo "${path:-/}"
 }
 
-script_dir=$(dirname_shim "${BASH_SOURCE[0]}")
+script_dir=$(dirname_shim "$0")
 toolchain_path_prefix="%{toolchain_path_prefix}"
 
 # Sometimes this path may be an absolute path in which case we dont do anything because
 # This is using the host toolchain to build.
-if [[ ${toolchain_path_prefix} != /* ]]; then
-  toolchain_path_prefix="${script_dir}/../../${toolchain_path_prefix#external/}"
-fi
+case "${toolchain_path_prefix}" in
+/*) ;;
+*) toolchain_path_prefix="${script_dir}/../../${toolchain_path_prefix#external/}" ;;
+esac
 
-if [[ ! -f ${toolchain_path_prefix}bin/clang ]]; then
+if [ ! -f "${toolchain_path_prefix}bin/clang" ]; then
   echo >&2 "ERROR: could not find clang; PWD=\"${PWD}\"; PATH=\"${PATH}\"; toolchain_path_prefix=${toolchain_path_prefix}."
   exit 5
 fi
 
 OUTPUT=
 
-function parse_option() {
-  local -r opt="$1"
-  if [[ "${OUTPUT}" = "1" ]]; then
-    OUTPUT=${opt}
-  elif [[ "${opt}" = "-o" ]]; then
+parse_option() {
+  po_opt="$1"
+  if [ "${OUTPUT}" = "1" ]; then
+    OUTPUT=${po_opt}
+  elif [ "${po_opt}" = "-o" ]; then
     # output is coming
     OUTPUT=1
   fi
 }
 
-function sanitize_option() {
-  local -r opt=$1
-  if [[ ${opt} == */cc_wrapper.sh ]]; then
-    printf "%s" "${toolchain_path_prefix}bin/clang"
-  elif [[ ${opt} =~ ^-fsanitize-(ignore|black)list=[^/] ]] && [[ ${script_dir} == /* ]]; then
-    # shellcheck disable=SC2206
-    parts=(${opt/=/ }) # Split flag name and value into array.
-    printf "%s" "${parts[0]}=${script_dir}/../../../${parts[1]}"
-  else
-    printf "%s" "${opt}"
-  fi
+sanitize_option() {
+  so_opt="$1"
+  case ${so_opt} in
+  */cc_wrapper.sh) printf "%s" "${toolchain_path_prefix}bin/clang" ;;
+  *)
+    if eval "case ${so_opt} in -fsanitize-ignorelist=*|-fsanitize-blacklist=*) [ ${script_dir} == /* ] ;; esac"; then
+      # Split flag name and value.
+      #
+      # shellcheck disable=SC2206
+      part0=$(echo "${so_opt}" | cut -d '=' -f 1)
+      part1=$(echo "${so_opt}" | cut -d '=' -f 2)
+      printf "%s" "${part0}=${script_dir}/../../../${part1}"
+    else
+      printf "%s" "${so_opt}"
+    fi
+    ;;
+  esac
 }
 
-cmd=()
-for ((i = 0; i <= $#; i++)); do
-  if [[ ${!i} == @* && -r "${i:1}" ]]; then
+COUNT=$#
+i=0
+while [ "${i}" -le "${COUNT}" ]; do
+  temp=""
+  eval "temp=\${${i}}"
+  substr="${temp#?}"
+  if eval "case ${temp} in @*) [ -r \"{substr}\" ] ;; esac"; then
     # Create a new, sanitized file.
     tmpfile=$(mktemp)
-    CLEANUP_FILES+=("${tmpfile}")
+    # POSIX shell does not support arrays, so we write the cleanup files as an
+    # array-separated list. We do not need to worry about spaces in filenames,
+    # because `mktemp` cannot use them when using the default template.
+    CLEANUP_FILES="${CLEANUP_FILES} ${tmpfile}"
     while IFS= read -r opt; do
       opt="$(
         set -e
@@ -120,22 +134,25 @@ for ((i = 0; i <= $#; i++)); do
       )"
       parse_option "${opt}"
       echo "${opt}" >>"${tmpfile}"
-    done <"${!i:1}"
-    cmd+=("@${tmpfile}")
+    done <"${substr}"
+    cmd="${cmd} ${tmpfile}"
   else
     opt="$(
       set -e
-      sanitize_option "${!i}"
+      sanitize_option "${temp}"
     )"
     parse_option "${opt}"
-    cmd+=("${opt}")
+    # The items within $cmd also cannot contain spaces, because of how
+    # `sanitize_option` behaves.
+    cmd="${cmd} ${opt}"
   fi
+  i=$((i + 1))
 done
 
 # Call the C++ compiler.
-"${cmd[@]}"
+eval \""${cmd}"\"
 
 # Generate an empty file if header processing succeeded.
-if [[ "${OUTPUT}" == *.h.processed ]]; then
-  echo -n >"${OUTPUT}"
+if [ "${OUTPUT}" = "*.h.processed" ]; then
+  true >"${OUTPUT}"
 fi
