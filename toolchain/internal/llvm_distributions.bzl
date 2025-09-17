@@ -679,6 +679,8 @@ _llvm_distributions = {
     # 21.1.1
     "LLVM-21.1.1-Linux-ARM64.tar.xz": "2764bb49ad4dab93226328d6374ca4466799bdc18372c544d8f6ebc1aa0c28a9",
     "LLVM-21.1.1-Linux-X64.tar.xz": "fe9886992273e469fbd664851cbee2f125b383664694684923a41af1c71b9632",
+    "clang+llvm-21.1.1-aarch64-pc-windows-msvc.tar.xz": "93c0b2e9db00343f991cbcae11072165f19c8729440f32f8ad43f130aa96dd39",
+    "clang+llvm-21.1.1-armv7a-linux-gnueabihf.tar.gz": "f4f96938e2610fb4c810c81c7c128c64e82cccbc59839166af0bb5d976b595d5",
     "clang+llvm-21.1.1-x86_64-pc-windows-msvc.tar.xz": "2a5b94a59270d6c60128d5cac244dc898fcf061a72de1633554e98881f8ade55",
 
     # Refer to variable declaration on how to update!
