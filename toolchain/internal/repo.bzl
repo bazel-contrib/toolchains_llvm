@@ -322,6 +322,9 @@ llvm_config_attrs.update({
     "_cc_wrapper_sh_tpl": attr.label(
         default = "//toolchain:cc_wrapper.sh.tpl",
     ),
+    "_cc_wrapper_inner_sh_tpl": attr.label(
+        default = "//toolchain:cc_wrapper_inner.sh.tpl",
+    ),
 })
 
 def llvm_repo_impl(rctx):

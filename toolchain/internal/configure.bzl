@@ -228,6 +228,17 @@ def llvm_config_impl(rctx):
         },
     )
 
+    # Inner CC wrapper script (redirect used for shell compatibility on Linux
+    # platforms).
+    if os != "darwin":
+        rctx.template(
+            "bin/cc_wrapper_inner.sh",
+            rctx.attr._cc_wrapper_inner_sh_tpl,
+            {
+                "%{toolchain_path_prefix}": llvm_dist_path_prefix,
+            },
+        )
+
     if hasattr(rctx, "repo_metadata"):
         return rctx.repo_metadata(reproducible = True)
     else:
