@@ -35,16 +35,6 @@ def bazel_toolchain_dependencies():
             sha256 = "bc283cdfcd526a52c3201279cda4bc298652efa898b10b4db0837dc51652756f",
         )
 
-    # Skip bazel_skylib_workspace because we are not using lib/unittest.bzl
-
-    if not native.existing_rule("helly25_bzl"):
-        http_archive(
-            name = "helly25_bzl",
-            strip_prefix = "bzl-0.1.2",
-            url = "https://github.com/helly25/bzl/releases/download/0.1.2/bzl-0.1.2.tar.gz",
-            sha256 = "404f8473bcaad2e370752e57d274d2093eb87ca94cb9a597c1a3553b76743206",
-        )
-
     # Load bazel_features if the user has not defined them.
     if not native.existing_rule("bazel_features"):
         http_archive(
@@ -52,4 +42,13 @@ def bazel_toolchain_dependencies():
             sha256 = "ba1282c1aa1d1fffdcf994ab32131d7c7551a9bc960fbf05f42d55a1b930cbfb",
             strip_prefix = "bazel_features-1.15.0",
             url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.15.0/bazel_features-v1.15.0.tar.gz",
+        )
+
+    # Load helly25_bzl for version comparisons.
+    if not native.existing_rule("helly25_bzl"):
+        http_archive(
+            name = "helly25_bzl",
+            strip_prefix = "bzl-0.1.2",
+            url = "https://github.com/helly25/bzl/releases/download/0.1.2/bzl-0.1.2.tar.gz",
+            sha256 = "404f8473bcaad2e370752e57d274d2093eb87ca94cb9a597c1a3553b76743206",
         )
