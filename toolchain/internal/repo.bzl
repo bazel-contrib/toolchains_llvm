@@ -265,6 +265,95 @@ _compiler_configuration_attrs = {
                "target OS and arch pair you want to override " +
                "({}); empty key overrides all.".format(_target_pairs)),
     ),
+    # Same as the above flags, but instead of overriding the defaults, it just adds extras
+    "extra_compile_flags": attr.string_list_dict(
+        mandatory = False,
+        doc = ("Extra compile_flags, added after default values. " +
+               "`{toolchain_path_prefix}` in the flags will be substituted by the path " +
+               "to the root LLVM distribution directory. Provide one list for each " +
+               "target OS and arch pair you want to add " +
+               "({}); an empty key adds all.".format(_target_pairs)),
+    ),
+    "extra_cxx_flags": attr.string_list_dict(
+        mandatory = False,
+        doc = ("Extra cxx_flags, added after default values. " +
+               "`{toolchain_path_prefix}` in the flags will be substituted by the path " +
+               "to the root LLVM distribution directory. Provide one list for each " +
+               "target OS and arch pair you want to add " +
+               "({}); an empty key adds all.".format(_target_pairs)),
+    ),
+    "extra_link_flags": attr.string_list_dict(
+        mandatory = False,
+        doc = ("Extra link_flags, added after the default values. " +
+               "`{toolchain_path_prefix}` in the flags will be substituted by the path " +
+               "to the root LLVM distribution directory. Provide one list for each " +
+               "target OS and arch pair you want to add " +
+               "({}); an empty key adds all.".format(_target_pairs)),
+    ),
+    "extra_archive_flags": attr.string_list_dict(
+        mandatory = False,
+        doc = ("Extra archive_flags, added after the default values. " +
+               "`{toolchain_path_prefix}` in the flags will be substituted by the path " +
+               "to the root LLVM distribution directory. Provide one list for each " +
+               "target OS and arch pair you want to add " +
+               "({}); an empty key adds all.".format(_target_pairs)),
+    ),
+    "extra_link_libs": attr.string_list_dict(
+        mandatory = False,
+        doc = ("Extra for link_libs, added after the default values. " +
+               "`{toolchain_path_prefix}` in the flags will be substituted by the path " +
+               "to the root LLVM distribution directory. Provide one list for each " +
+               "target OS and arch pair you want to add " +
+               "({}); an empty key adds all.".format(_target_pairs)),
+    ),
+    "extra_opt_compile_flags": attr.string_list_dict(
+        mandatory = False,
+        doc = ("Extra opt_compile_flags, added after the default values. " +
+               "`{toolchain_path_prefix}` in the flags will be substituted by the path " +
+               "to the root LLVM distribution directory. Provide one list for each " +
+               "target OS and arch pair you want to add " +
+               "({}); an empty key adds all.".format(_target_pairs)),
+    ),
+    "extra_opt_link_flags": attr.string_list_dict(
+        mandatory = False,
+        doc = ("Extra opt_link_flags, added after the default values. " +
+               "`{toolchain_path_prefix}` in the flags will be substituted by the path " +
+               "to the root LLVM distribution directory. Provide one list for each " +
+               "target OS and arch pair you want to add " +
+               "({}); an empty key adds all.".format(_target_pairs)),
+    ),
+    "extra_dbg_compile_flags": attr.string_list_dict(
+        mandatory = False,
+        doc = ("Extra dbg_compile_flags, added after the default values. " +
+               "`{toolchain_path_prefix}` in the flags will be substituted by the path " +
+               "to the root LLVM distribution directory. Provide one list for each " +
+               "target OS and arch pair you want to add " +
+               "({}); an empty key adds all.".format(_target_pairs)),
+    ),
+    "extra_coverage_compile_flags": attr.string_list_dict(
+        mandatory = False,
+        doc = ("Extra coverage_compile_flags, added after the default values. " +
+               "`{toolchain_path_prefix}` in the flags will be substituted by the path " +
+               "to the root LLVM distribution directory. Provide one list for each " +
+               "target OS and arch pair you want to add " +
+               "({}); an empty key adds all.".format(_target_pairs)),
+    ),
+    "extra_coverage_link_flags": attr.string_list_dict(
+        mandatory = False,
+        doc = ("Extra coverage_link_flags, added after the default values. " +
+               "`{toolchain_path_prefix}` in the flags will be substituted by the path " +
+               "to the root LLVM distribution directory. Provide one list for each " +
+               "target OS and arch pair you want to add " +
+               "({}); an empty key adds all.".format(_target_pairs)),
+    ),
+    "extra_unfiltered_compile_flags": attr.string_list_dict(
+        mandatory = False,
+        doc = ("Extra unfiltered_compile_flags, added after the default values. " +
+               "`{toolchain_path_prefix}` in the flags will be substituted by the path " +
+               "to the root LLVM distribution directory. Provide one list for each " +
+               "target OS and arch pair you want to add " +
+               "({}); an empty key adds all.".format(_target_pairs)),
+    ),
     "target_settings": attr.string_list_dict(
         mandatory = False,
         doc = ("Override the toolchain's `target_settings` attribute."),
