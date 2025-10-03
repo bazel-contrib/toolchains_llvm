@@ -20,7 +20,7 @@ jobs:
       contents: read # For repo checkout
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Trunk Check
         uses: trunk-io/trunk-action@v1
   test:
@@ -33,7 +33,7 @@ jobs:
         bzlmod: [true, false]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - if: startsWith(matrix.os, 'ubuntu')
         run: tests/scripts/ubuntu_install_libtinfo.sh
       - run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android
@@ -51,7 +51,7 @@ jobs:
         bzlmod: [true, false]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Test
         env:
           USE_BAZEL_VERSION: ${{ matrix.bazel_version }}
@@ -67,7 +67,7 @@ jobs:
         bzlmod: [true, false]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - if: startsWith(matrix.os, 'ubuntu')
         run: tests/scripts/ubuntu_install_libtinfo.sh
       - name: Test
@@ -93,7 +93,7 @@ jobs:
         bzlmod: [true, false]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android
       - name: Test
         env:
@@ -106,7 +106,7 @@ jobs:
         bzlmod: [true, false]
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Test
         env:
           USE_BZLMOD: ${{ matrix.bzlmod }}
@@ -118,7 +118,7 @@ jobs:
         bzlmod: [true, false]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: tests/scripts/ubuntu_install_libtinfo.sh
       - name: Test
         env:
@@ -131,7 +131,7 @@ jobs:
         bzlmod: [true, false]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: tests/scripts/ubuntu_install_libtinfo.sh
       - name: Download and Extract LLVM distribution
         env:
