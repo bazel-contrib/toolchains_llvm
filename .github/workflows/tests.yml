@@ -43,13 +43,19 @@ jobs:
           USE_BZLMOD: ${{ matrix.bzlmod }}
         run: tests/scripts/run_tests.sh
   toolchain_test:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+        bazel_version: [7.x, latest]
+        bzlmod: [true, false]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v5
       - name: Test
         env:
-          USE_BAZEL_VERSION: latest
-          USE_BZLMOD: true
+          USE_BAZEL_VERSION: ${{ matrix.bazel_version }}
+          USE_BZLMOD: ${{ matrix.bzlmod }}
         run: tests/scripts/run_toolchain_tests.sh
   external_test:
     strategy:
