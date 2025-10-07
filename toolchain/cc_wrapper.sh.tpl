@@ -68,7 +68,14 @@ dirname_shim() {
   echo "${path:-/}"
 }
 
-script_dir=$(dirname_shim "${BASH_SOURCE[0]}")
+if [[ "${BASH_SOURCE[0]}" == "/"* ]]; then
+  bash_source_abs="$(realpath "${BASH_SOURCE[0]}")"
+  pwd_abs="$(realpath ".")"
+  bash_source_rel=${bash_source_abs#"${pwd_abs}/"}
+else
+  bash_source_rel="${BASH_SOURCE[0]}"
+fi
+script_dir=$(dirname_shim "${bash_source_rel}")
 toolchain_path_prefix="%{toolchain_path_prefix}"
 
 # Sometimes this path may be an absolute path in which case we dont do anything because
