@@ -50,10 +50,10 @@ def _constraint_dict(tags, name):
 
 def _llvm_impl_(module_ctx):
     for mod in module_ctx.modules:
-        if not mod.is_root:
-            fail("Only the root module can use the 'llvm' extension")
         toolchain_names = []
         for toolchain_attr in mod.tags.toolchain:
+            if not mod.is_root:
+                fail("Only the root module can use the 'llvm.toolchain()' tag")
             name = toolchain_attr.name
             toolchain_names.append(name)
             attrs = {
