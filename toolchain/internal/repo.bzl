@@ -408,11 +408,14 @@ llvm_config_attrs.update({
     "_build_toolchain_tpl": attr.label(
         default = "//toolchain:BUILD.toolchain.tpl",
     ),
-    "_darwin_cc_wrapper_sh_tpl": attr.label(
-        default = "//toolchain:osx_cc_wrapper.sh.tpl",
-    ),
     "_cc_wrapper_sh_tpl": attr.label(
         default = "//toolchain:cc_wrapper.sh.tpl",
+    ),
+    "_darwin_cc_wrapper_inner_sh_tpl": attr.label(
+        default = "//toolchain:osx_cc_wrapper_inner.sh.tpl",
+    ),
+    "_cc_wrapper_inner_sh_tpl": attr.label(
+        default = "//toolchain:cc_wrapper_inner.sh.tpl",
     ),
 })
 
