@@ -1,5 +1,3 @@
-#!/bin/bash
-#
 # Copyright 2015 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -67,8 +65,8 @@ function parse_option() {
 # `wrapper_bin_prefix` for why this wrapper is needed.
 
 # this script is located at either
-# - <execroot>/external/<repo_name>/bin/cc_wrapper.sh
-# - <runfiles>/<repo_name>/bin/cc_wrapper.sh
+# - <execroot>/external/<repo_name>/bin/cc_wrapper_inner.sh
+# - <runfiles>/<repo_name>/bin/cc_wrapper_inner.sh
 # The clang is located at
 # - <execroot>/external/<repo_name2>/bin/clang
 # - <runfiles>/<repo_name2>/bin/clang

@@ -236,18 +236,36 @@ def llvm_config_impl(rctx):
         },
     )
 
-    # CC wrapper script; see comments near the definition of `wrapper_bin_prefix`.
-    if os == "darwin":
-        cc_wrapper_tpl = rctx.attr._darwin_cc_wrapper_sh_tpl
-    else:
-        cc_wrapper_tpl = rctx.attr._cc_wrapper_sh_tpl
+    # CC wrapper scripts; see comments near the definition of `wrapper_bin_prefix`.
     rctx.template(
         "bin/cc_wrapper.sh",
-        cc_wrapper_tpl,
+        rctx.attr._cc_wrapper_sh_tpl,
         {
             "%{toolchain_path_prefix}": llvm_dist_path_prefix,
         },
     )
+    if os == "darwin":
+        cc_wrapper_inner_tpl = rctx.attr._darwin_cc_wrapper_inner_sh_tpl
+    else:
+        cc_wrapper_inner_tpl = rctx.attr._cc_wrapper_inner_sh_tpl
+    rctx.template(
+        "bin/cc_wrapper_inner.sh",
+        cc_wrapper_inner_tpl,
+        {
+            "%{toolchain_path_prefix}": llvm_dist_path_prefix,
+        },
+    )
+
+    # Inner CC wrapper script (redirect used for shell compatibility on Linux
+    # platforms).
+    if os != "darwin":
+        rctx.template(
+            "bin/cc_wrapper_inner.sh",
+            rctx.attr._cc_wrapper_inner_sh_tpl,
+            {
+                "%{toolchain_path_prefix}": llvm_dist_path_prefix,
+            },
+        )
 
     if hasattr(rctx, "repo_metadata"):
         return rctx.repo_metadata(reproducible = True)
