@@ -211,11 +211,14 @@ def cc_toolchain_config(
     archive_flags = []
 
     # Linker flags:
-    if exec_os == "darwin" and not is_xcompile:
-        # lld is experimental for Mach-O, so we use the native ld64 linker.
-        # TODO: How do we cross-compile from Linux to Darwin?
-        use_lld = False
+    ld = "ld.lld"
+    if target_os == "darwin":
+        use_lld = True
+
+        ld = "ld64.lld"
+        ld_path = toolchain_path_prefix + "/bin/" + ld
         link_flags.extend([
+            "--ld-path=" + ld_path,
             "-headerpad_max_install_names",
             "-fobjc-link-runtime",
         ])
@@ -238,7 +241,9 @@ def cc_toolchain_config(
         # not an option because it is not a cross-linker, so lld is the
         # only option.
         use_lld = True
+        ld_path = toolchain_path_prefix + "/bin/" + ld
         link_flags.extend([
+            "--ld-path=" + ld_path,
             "-fuse-ld=lld",
             "-Wl,--build-id=md5",
             "-Wl,--hash-style=gnu",
@@ -368,7 +373,7 @@ def cc_toolchain_config(
         "dwp": tools_path_prefix + "llvm-dwp",
         "gcc": wrapper_bin_prefix + "cc_wrapper.sh",
         "gcov": tools_path_prefix + "llvm-profdata",
-        "ld": tools_path_prefix + "ld.lld" if use_lld else "/usr/bin/ld",
+        "ld": tools_path_prefix + ld if use_lld else "/usr/bin/ld",
         "llvm-cov": tools_path_prefix + "llvm-cov",
         "llvm-profdata": tools_path_prefix + "llvm-profdata",
         "nm": tools_path_prefix + "llvm-nm",
