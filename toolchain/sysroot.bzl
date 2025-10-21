@@ -1,0 +1,78 @@
+load("@aspect_bazel_lib//lib:repo_utils.bzl", "repo_utils")
+
+def _sysroot_impl(rctx):
+    urls = rctx.attr.urls
+    if rctx.attr.url:
+        urls = [rctx.attr.url] + urls
+
+    if not urls:
+        fail("At least one of url and urls must be provided")
+
+    _, _, archive = urls[0].rpartition("/")
+
+    rctx.download(urls, archive, sha256 = rctx.attr.sha256)
+
+    # Sysroot handling has assumptions about the filegroup's package matching the sysroot directory,
+    # but provide an alias to handle the existing usage of the `//:sysroot` target.
+    rctx.file(
+        "BUILD.bazel",
+        """alias(
+    name = "sysroot",
+    actual = "//sysroot",
+    visibility = ["//visibility:public"],
+)""",
+    )
+
+    # Declare the sysroot files as a source directory so they can be
+    # optimized in the Merkle tree cache more effectively.
+    # Also, create the BUILD file before extracting because `bsdtar` expects the target
+    # directory to exist, and this way Bazel creates it for us without needing `mkdir`.
+    rctx.file(
+        "sysroot/BUILD.bazel",
+        """filegroup(
+    name = "sysroot",
+    srcs = ["."],
+    visibility = ["//visibility:public"],
+)""",
+    )
+
+    host_bsdtar = Label("@bsd_tar_toolchains_%s//:tar" % repo_utils.platform(rctx))
+
+    cmd = [
+        str(rctx.path(host_bsdtar)),
+        "--extract",
+        "--no-same-owner",
+        "--no-same-permissions",
+        "--file",
+        archive,
+        "--directory",
+        "sysroot",
+    ]
+
+    for include in rctx.attr.include_patterns:
+        cmd.extend(["--include", include])
+
+    for exclude in rctx.attr.exclude_patterns:
+        cmd.extend(["--exclude", exclude])
+
+    result = rctx.execute(cmd)
+    if result.return_code != 0:
+        fail(result.stdout + result.stderr)
+
+    rctx.delete(archive)
+
+    if hasattr(rctx, "repo_metadata"):
+        return rctx.repo_metadata(reproducible = True)
+    else:
+        return None
+
+sysroot = repository_rule(
+    implementation = _sysroot_impl,
+    attrs = {
+        "url": attr.string(),
+        "urls": attr.string_list(),
+        "sha256": attr.string(),
+        "include_patterns": attr.string_list(),
+        "exclude_patterns": attr.string_list(),
+    },
+)
