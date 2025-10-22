@@ -161,8 +161,6 @@ def cc_toolchain_config(
         "-D__TIME__=\"redacted\"",
     ]
 
-    is_xcompile = not (exec_os == target_os and exec_arch == target_arch)
-
     # Default compiler flags:
     compile_flags = [
         "--target=" + target_system_name,
@@ -198,7 +196,7 @@ def cc_toolchain_config(
 
     if exec_os == "darwin":
         # These will get expanded by osx_cc_wrapper's `sanitize_option`
-        link_flags.append("--ld-path=ld.lld" if is_xcompile else "--ld-path=ld64.lld")
+        link_flags.append("--ld-path=ld64.lld" if target_os == "darwin" else "--ld-path=ld.lld")
 
     stdlib = compiler_configuration["stdlib"]
     if stdlib != "none":
@@ -212,7 +210,7 @@ def cc_toolchain_config(
     libunwind_link_flags = []
     compiler_rt_link_flags = []
 
-    is_darwin_exec_and_target = exec_os == "darwin" and not is_xcompile
+    is_darwin_exec_and_target = exec_os == "darwin" and target_os == "darwin"
 
     # Linker flags:
     if is_darwin_exec_and_target:
@@ -245,14 +243,16 @@ def cc_toolchain_config(
     cxx_standard = compiler_configuration["cxx_standard"]
     conly_flags = compiler_configuration["conly_flags"]
     sysroot_path = compiler_configuration["sysroot_path"]
-    if stdlib == "builtin-libc++" and is_xcompile:
+    if stdlib == "builtin-libc++" and exec_os != target_os:
         stdlib = "stdc++"
     if stdlib == "builtin-libc++":
         cxx_flags = [
             "-std=" + cxx_standard,
             "-stdlib=libc++",
         ]
-        if is_darwin_exec_and_target:
+
+        # exec_os == target_os at this point.
+        if exec_os == "darwin":
             # Several system libraries on macOS dynamically link libc++ and
             # libc++abi, so static linking them becomes a problem. We need to
             # ensure that they are dynamic linked from the system sysroot and
