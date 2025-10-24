@@ -12,19 +12,11 @@ def _sysroot_impl(rctx):
 
     rctx.download(urls, archive, sha256 = rctx.attr.sha256)
 
-    # Sysroot handling has assumptions about the filegroup's package matching the sysroot directory,
-    # but provide an alias to handle the existing usage of the `//:sysroot` target.
-    rctx.file(
-        "BUILD.bazel",
-        """alias(
-    name = "sysroot",
-    actual = "//sysroot",
-    visibility = ["//visibility:public"],
-)""",
-    )
+    # Source directories are more efficient than file groups for 2 reasons:
+    #   - They can be symlinked into a local sandbox with a single symlink instead of 1-per-file
+    #   - They serve as a signal to the Merkle tree cache machinery since they can be memoized as a single node.
+    # Since sysroots are usually a ton of files, it can improve build performance to declare them as source directories.
 
-    # Declare the sysroot files as a source directory so they can be
-    # optimized in the Merkle tree cache more effectively.
     # Also, create the BUILD file before extracting because `bsdtar` expects the target
     # directory to exist, and this way Bazel creates it for us without needing `mkdir`.
     rctx.file(
