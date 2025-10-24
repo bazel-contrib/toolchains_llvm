@@ -38,8 +38,12 @@ toolchain = repository_rule(
 )
 
 def llvm_toolchain(name, **kwargs):
-    if kwargs.get("llvm_version") == kwargs.get("llvm_versions"):
+    if kwargs.get("llvm_version") and kwargs.get("llvm_versions"):
         fail("Exactly one of llvm_version or llvm_versions must be set")
+    if not kwargs.get("llvm_versions"):
+        if not kwargs.get("llvm_version"):
+            fail("One of llvm_version or llvm_versions must be set")
+        kwargs.update(llvm_versions = {"": kwargs.get("llvm_version")})
 
     if not kwargs.get("toolchain_roots"):
         llvm_args = {
@@ -48,9 +52,6 @@ def llvm_toolchain(name, **kwargs):
             if (k not in _llvm_config_attrs.keys()) or (k in _common_attrs.keys())
         }
         llvm(name = name + "_llvm", **llvm_args)
-
-    if not kwargs.get("llvm_versions"):
-        kwargs.update(llvm_versions = {"": kwargs.get("llvm_version")})
 
     toolchain_args = {
         k: v
