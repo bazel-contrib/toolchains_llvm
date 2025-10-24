@@ -13,11 +13,17 @@
 # limitations under the License.
 
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "read_netrc", "use_netrc")
-load("//toolchain/internal:common.bzl", _arch = "arch", _attr_dict = "attr_dict", _exec_os_arch_dict_value = "exec_os_arch_dict_value", _os = "os")
-load("//toolchain/internal:release_name.bzl", _llvm_release_name = "llvm_release_name")
+load("@helly25_bzl//bzl/versions:versions.bzl", "versions")
+load(
+    "//toolchain/internal:common.bzl",
+    "attr_dict",
+    "exec_os_arch_dict_value",
+    "host_info",
+)
 
 # If a new LLVM version is missing from this list, please add the shasums here
-# and send a PR on github. To compute the shasum block, you can run (for example):
+# and the new version in toolchain/internal/llvm_distributions.golden.txt.
+# Then send a PR on github. To compute the shasum block, you can run (for example):
 #   utils/llvm_checksums.sh -g -v 15.0.6
 #
 # To find all available release versions, search for "tag_name" in
@@ -405,6 +411,7 @@ _llvm_distributions = {
     "clang+llvm-17.0.1-aarch64-linux-gnu.tar.xz": "d2eaca72ce3aab0b343e01b2233303628ff43a43a6107dca1aa8d3039da847f5",
     "clang+llvm-17.0.1-amd64-pc-solaris2.11.tar.xz": "153b8b650705390cc3b4ff739b061f5bff87542531c002c039d52c00781559f7",
     "clang+llvm-17.0.1-arm64-apple-darwin22.0.tar.xz": "d5678bc475c42c3ab7c0ee35ebd95534d81b6816507cfc9e42d86136d8315ebc",
+    "clang+llvm-17.0.1-armv7a-linux-gnueabihf.tar.gz": "1ca3b7adeee14c656e0689c76cea962a644fb6dba9ecda894505506f837f9d69",
     "clang+llvm-17.0.1-final_powerpc64-ibm-aix-7.2.tar.xz": "f5d9bf5822a775d4b10e7af035076e1779983dee1b05b3f57af2674231bcf678",
     "clang+llvm-17.0.1-powerpc64le-linux-rhel-8.8.tar.xz": "937394cd44c5eb81aae8d1c66b6d3b930ebd2b013ac6493d17f33f5083281d37",
     "clang+llvm-17.0.1-sparc64-unknown-linux-gnu.tar.xz": "0ab5f6a9b19ec968628d987d9430a033801c78bee65fbf40c72da660ff401f4d",
@@ -414,6 +421,7 @@ _llvm_distributions = {
     "clang+llvm-17.0.2-aarch64-linux-gnu.tar.xz": "b08480f2a77167556907869065b0e0e30f4d6cb64ecc625d523b61c22ff0200f",
     "clang+llvm-17.0.2-amd64-pc-solaris2.11.tar.xz": "8e98c6015202575407f5580bed9a9b58d3bdc3e5d64e39289189b491949b957f",
     "clang+llvm-17.0.2-arm64-apple-darwin22.0.tar.xz": "dfb3226b3e16f5b8d3882f3ff0e8ebf40b26dd1e97d879197430b930d773ea84",
+    "clang+llvm-17.0.2-armv7a-linux-gnueabihf.tar.gz": "2204da50c85db65def57b11bd0d96abdc96808cf410403daf7aa9c86f2b9e732",
     "clang+llvm-17.0.2-powerpc64-ibm-aix-7.2.tar.xz": "c0175b48bf72c621316f3fc7ec4662163d4e17718b179f967d75149d7cfeee80",
     "clang+llvm-17.0.2-powerpc64le-linux-rhel-8.8.tar.xz": "ef19116996a1966a4fa6e261c86eef7b807e5f39a963dc914b5547976336ab1b",
     "clang+llvm-17.0.2-sparc64-unknown-linux-gnu.tar.xz": "950d1ef440f17e29c4201450ad619d3b4a37a0bbf15f19ce03195e0b4da7d73f",
@@ -423,12 +431,14 @@ _llvm_distributions = {
     # 17.0.3
     "clang+llvm-17.0.3-aarch64-linux-gnu.tar.xz": "289da98e4cbc157153e987ff24ce835717a36cfab03ecd03bf359378ee4ae9d7",
     "clang+llvm-17.0.3-arm64-apple-darwin22.0.tar.xz": "da452a1aa33954c123d5264bd849ebc572a28e8511b868b43e82d6960fda60d7",
+    "clang+llvm-17.0.3-armv7a-linux-gnueabihf.tar.gz": "5da6f3a350a34f8401125d31aeef85bc2deda04601b9b703f62356e81516e73c",
     "clang+llvm-17.0.3-powerpc64-ibm-aix-7.2.tar.xz": "86b05883c17ddb4b7e9ad6a6a88e78311c117fdc03415fa47293e12e6e2810ff",
     "clang+llvm-17.0.3-powerpc64le-linux-rhel-8.8.tar.xz": "fcba4ac2a717762ff1b5fe482a811648837d7dc7bf7b654702c80f2fa044d07d",
 
     # 17.0.4
     "clang+llvm-17.0.4-aarch64-linux-gnu.tar.xz": "18b326b3e17168fc423726b5059b4d55b6070d49408e51440ad3fca2ebb37779",
     "clang+llvm-17.0.4-arm64-apple-darwin22.0.tar.xz": "5d514fa64a290dca53288ce859e6ec59a0b48198b3a5b27ca53b6fe80a977b8d",
+    "clang+llvm-17.0.4-armv7a-linux-gnueabihf.tar.gz": "6da0b41a942bd5020966511722e8917260349628b6a77aab916ca2c244cecafd",
     "clang+llvm-17.0.4-powerpc64-ibm-aix-7.2.tar.xz": "54d4d6b91624597e0c0b15264c4c8e57092f521247b87ba6f1297db339ac6e2b",
     "clang+llvm-17.0.4-powerpc64le-linux-rhel-8.8.tar.xz": "2e3ac8b7288ed5d5c3549e457332bbf3c913022fdd7cfbe13fde46448f76d136",
     "clang+llvm-17.0.4-x86_64-linux-gnu-ubuntu-22.04.tar.xz": "6b45be6c0483b7ee3f63981678093b731fd9f4ea6987b4ceb6efde21890ffca7",
@@ -436,6 +446,7 @@ _llvm_distributions = {
     # 17.0.5
     "clang+llvm-17.0.5-aarch64-linux-gnu.tar.xz": "ee12126c404d42a0723ff3a4449470b5570fe5ce610be9d9baee88a6d27701d2",
     "clang+llvm-17.0.5-arm64-apple-darwin22.0.tar.xz": "6c9aa227800d30d39c28dadbd72c15442e0d9b6813efb2aaa66a478630b7f0c6",
+    "clang+llvm-17.0.5-armv7a-linux-gnueabihf.tar.gz": "b7978d073e250ed66d5e8a5136026460200db1951ce75d402976fde4c2f0c3d8",
     "clang+llvm-17.0.5-powerpc64-ibm-aix-7.2.tar.xz": "b5da095901fe604f562363cf9611d6ca73e13d81831a96518823d690babc608f",
     "clang+llvm-17.0.5-powerpc64le-linux-rhel-8.8.tar.xz": "11aace89d7881b694a05d1e93de3c78a31e141d0df1401491d67f73020bc3df2",
     "clang+llvm-17.0.5-x86_64-linux-gnu-ubuntu-22.04.tar.xz": "5a3cedecd8e2e8663e84bec2f8e5522b8ea097f4a8b32637386f27ac1ca01818",
@@ -444,6 +455,7 @@ _llvm_distributions = {
     "clang+llvm-17.0.6-aarch64-linux-gnu.tar.xz": "6dd62762285326f223f40b8e4f2864b5c372de3f7de0731cb7cd55ca5287b75a",
     "clang+llvm-17.0.6-amd64-pc-solaris2.11.tar.xz": "8feb660750a4d24b18d8e894fbccf26bd0dfbc92581d202ec9057f00f3fbf232",
     "clang+llvm-17.0.6-arm64-apple-darwin22.0.tar.xz": "1264eb3c2a4a6d5e9354c3e5dc5cb6c6481e678f6456f36d2e0e566e9400fcad",
+    "clang+llvm-17.0.6-armv7a-linux-gnueabihf.tar.gz": "7a51ea063f74fb1b7c0389455916cec52c98d1b51da44d6ebc8232014d7af3d1",
     "clang+llvm-17.0.6-powerpc64-ibm-aix-7.2.tar.xz": "3aeda4bb5808db2e47bde60cc49b15b869114e3681092413f7b297345d2e13ce",
     "clang+llvm-17.0.6-powerpc64le-linux-rhel-8.8.tar.xz": "04e18072797920c2b5e9bdf0c3ee9e5a61adf76bd5ffeb438fafd9e32fc48b62",
     "clang+llvm-17.0.6-sparcv9-sun-solaris2.11.tar.xz": "b7df7b383679af98640640f88114f461f38a6efdfe7c369692b0675751ac2773",
@@ -452,6 +464,7 @@ _llvm_distributions = {
     # 18.1.0
     "clang+llvm-18.1.0-aarch64-linux-gnu.tar.xz": "32faaad5b6e072d763a603f7c51e4ee63e2d82c16e945524a539df84e3f2b058",
     "clang+llvm-18.1.0-amd64-pc-solaris2.11.tar.xz": "c352b81dd6add029e3def54a7b90387bb1df15f76497adac0b9f305694eb2d8c",
+    "clang+llvm-18.1.0-armv7a-linux-gnueabihf.tar.gz": "bfbd3bb71f4a1aaf8f1e13cf681e16a54f1029e7f5c85492812bf93a1d893dc8",
     "clang+llvm-18.1.0-powerpc64-ibm-aix-7.2.tar.xz": "cc9bcf2b2132c158a71f7f3971d105454131701c25767f97e977c568418aff89",
     "clang+llvm-18.1.0-powerpc64le-linux-rhel-8.8.tar.xz": "730c40a0c79d89ca8875c2004fd49180e9b65585b24f68728232b06b3d8bda32",
     "clang+llvm-18.1.0-sparcv9-sun-solaris2.11.tar.xz": "e871f472ceafbe0197cff81d7240552e45e55ead00fe82f4fb326af32bbfb657",
@@ -460,6 +473,7 @@ _llvm_distributions = {
 
     # 18.1.1
     "clang+llvm-18.1.1-aarch64-linux-gnu.tar.xz": "6815ef3c314566605f90cff7922ff3ef5a6eaaf854604e4add6a170e6e98389f",
+    "clang+llvm-18.1.1-armv7a-linux-gnueabihf.tar.gz": "c87928c9d9d9c4c0eedfed1fb49216b9c52c377ccdd0242f7145401b9aea51f7",
     "clang+llvm-18.1.1-powerpc64-ibm-aix-7.2.tar.xz": "c900418e781d0de1f316fcce50ffeca903fa15d97df0dd90f6ac4bd2b43105d4",
     "clang+llvm-18.1.1-powerpc64le-linux-rhel-8.8.tar.xz": "7415429a0c0eceeacedc00b3f99f9a869909682fab130c2e514f240379539741",
     "clang+llvm-18.1.1-x86_64-pc-windows-msvc.tar.xz": "79ea242c0fbd66c632ed3aaebf6f821c1e4c03140497c67ea750443eb36bfc5d",
@@ -467,6 +481,7 @@ _llvm_distributions = {
     # 18.1.2
     "clang+llvm-18.1.2-aarch64-linux-gnu.tar.xz": "aa9d6c6e70cbe2344be1f4b780525a9a4feb70a6e4fa46ea67822f0e7f839c21",
     "clang+llvm-18.1.2-amd64-pc-solaris2.11.tar.xz": "83ca7644b5eebf5ac55014e628d0bbe685a79416d70a0d80d24ece0ddfc05c6d",
+    "clang+llvm-18.1.2-armv7a-linux-gnueabihf.tar.gz": "5260702615952f25bc715c4aaa286c85d44c20a9a662357a7774841539560fe3",
     "clang+llvm-18.1.2-powerpc64-ibm-aix-7.2.tar.xz": "ad7351206905f61933be5937017fc454995d287346f7f0325c48c4552803af87",
     "clang+llvm-18.1.2-powerpc64le-linux-rhel-8.8.tar.xz": "0dc4831dab74f47691dab934a52a055ea8fae6bfeec2ed5261991146b38f1cf3",
     "clang+llvm-18.1.2-sparcv9-sun-solaris2.11.tar.xz": "b719027e8423296f06375ee151652623b0a1df46848dac0bb2614210e5bd233e",
@@ -496,12 +511,14 @@ _llvm_distributions = {
     # 18.1.6
     "clang+llvm-18.1.6-aarch64-linux-gnu.tar.xz": "bcb3d53d3bd1027bc7f26544dff8cdc5ff74776add6eb994047326b284147a90",
     "clang+llvm-18.1.6-amd64-pc-solaris2.11.tar.xz": "abdf9e930c0069b97cff69156c62e97056f8f9ec24d15cdea743ac555887436e",
+    "clang+llvm-18.1.6-armv7a-linux-gnueabihf.tar.gz": "30264de61eaed2f860217a71e701d2ce3d1821acea0e0239bc6a8457ff4586f2",
     "clang+llvm-18.1.6-powerpc64le-linux-rhel-8.8.tar.xz": "201c8d784acf9e3553a00078bd2e4007134957bd4541706fafe9c7c0583c3cd6",
     "clang+llvm-18.1.6-sparcv9-sun-solaris2.11.tar.xz": "da65c1abea553c17fd22ae3de51c70f4ff0789e95019fb4d95f05371b830e090",
     "clang+llvm-18.1.6-x86_64-pc-windows-msvc.tar.xz": "479e9e77b9d114721a7168718c894343ac01c397db3499e8a3002ee7a3903d54",
 
     # 18.1.7
     "clang+llvm-18.1.7-aarch64-linux-gnu.tar.xz": "f0df4a38d4e205ee9dea23fdbe1b3acb0d3174d1366ef1488f1ea619cd6e6c0e",
+    "clang+llvm-18.1.7-armv7a-linux-gnueabihf.tar.gz": "ed5fb7aa5b66696e4a11a44531c94c2274cbfd92584dac50cbbbc4ed386594c4",
     "clang+llvm-18.1.7-powerpc64-ibm-aix-7.2.tar.xz": "a4317fe5bfc5579093f02bc6b63de3d1fa545ebca471405b70ff213d400e8da3",
     "clang+llvm-18.1.7-powerpc64le-linux-rhel-8.8.tar.xz": "8889adb5b6a6deffeaffd8c6dc0d2388c26660cb2c357df66b27561c7932ed66",
     "clang+llvm-18.1.7-x86_64-linux-gnu-ubuntu-18.04.tar.xz": "9aae4d652c438d8c44aaea480e52c7fd9b92f88f1c90673144165c7c8cbf9d28",
@@ -510,6 +527,7 @@ _llvm_distributions = {
     # 18.1.8
     "clang+llvm-18.1.8-aarch64-linux-gnu.tar.xz": "dcaa1bebbfbb86953fdfbdc7f938800229f75ad26c5c9375ef242edad737d999",
     "clang+llvm-18.1.8-arm64-apple-macos11.tar.xz": "4573b7f25f46d2a9c8882993f091c52f416c83271db6f5b213c93f0bd0346a10",
+    "clang+llvm-18.1.8-armv7a-linux-gnueabihf.tar.gz": "a4fc669dd54030f27e422fa67751509fa14bb90fbef32c2bd24c7f395c93c47c",
     "clang+llvm-18.1.8-powerpc64-ibm-aix-7.2.tar.xz": "0bf2df8cc823e1b76b2c42f5e8ac3ef1076865eee87a7098deb227d0f66b7e7c",
     "clang+llvm-18.1.8-powerpc64le-linux-rhel-8.8.tar.xz": "b3df0c1607bfb04fe268c2e80542aba6e63ef0766a0bc4100ccf6a1ea99a0a1b",
     "clang+llvm-18.1.8-x86_64-linux-gnu-ubuntu-18.04.tar.xz": "54ec30358afcc9fb8aa74307db3046f5187f9fb89fb37064cdde906e062ebf36",
@@ -517,38 +535,51 @@ _llvm_distributions = {
 
     # 19.1.0
     "LLVM-19.1.0-Linux-X64.tar.xz": "cee77d641690466a193d9b88c89705de1c02bbad46bde6a3b126793c0a0f2923",
+    "LLVM-19.1.0-Windows-X64.tar.xz": "a132377865d72bc7452343d59d05da63266ffc928b4072d63fb854fd42097dc4",
     "LLVM-19.1.0-macOS-ARM64.tar.xz": "9da86f64a99f5ce9b679caf54e938736ca269c5e069d0c94ad08b995c5f25c16",
     "LLVM-19.1.0-macOS-X64.tar.xz": "264f2f1e8b67f066749349ae8b4943d346cd44e099464164ef21b42a57663540",
-    "LLVM-19.1.0-Windows-X64.tar.xz": "a132377865d72bc7452343d59d05da63266ffc928b4072d63fb854fd42097dc4",
+    "clang+llvm-19.1.0-aarch64-linux-gnu.tar.xz": "7bb54afd330fe1a1c2d4c593fa1e2dbe2abd9bf34fb3597994ff41e443cf144b",
+    "clang+llvm-19.1.0-armv7a-linux-gnueabihf.tar.gz": "d2f9f7fe803b38dc2fa64a1b2d1d3356f230f9ba402c321d8615ba3598f5cb66",
+    "clang+llvm-19.1.0-x86_64-pc-windows-msvc.tar.xz": "de3199fcace428386878e5a98c2be35576459f140f405eddc8b1f8e91f5dae64",
 
     # 19.1.1
     "LLVM-19.1.1-Linux-X64.tar.xz": "8204de000b6a6921f0572e038336601e3225898e9a253c8aaa43b0a5fae8a4ce",
-    "LLVM-19.1.1-macOS-ARM64.tar.xz": "e00def99a6b32de61fffabd4bb85290589731f3f5cb9836fd51770256cd694dd",
     "LLVM-19.1.1-Windows-X64.tar.xz": "dafd21646d10b7a59cf755002b608a657173c22daf63d99663eb193aedde48c1",
+    "LLVM-19.1.1-macOS-ARM64.tar.xz": "e00def99a6b32de61fffabd4bb85290589731f3f5cb9836fd51770256cd694dd",
+    "clang+llvm-19.1.1-aarch64-linux-gnu.tar.xz": "414d2ebef10c5035e9df10a224e81b484dbe17d319373050d0c1b3b1467040d2",
+    "clang+llvm-19.1.1-armv7a-linux-gnueabihf.tar.gz": "bf63f9092d1cd4c63d1858182ffa2a1713d4f00bc637d4169717bd5c9c905be3",
+    "clang+llvm-19.1.1-x86_64-pc-windows-msvc.tar.xz": "621fc299fceb1bbdae927e355d1073034c9a1bbdda5a46a27e217c56af72f72a",
 
     # 19.1.2
     "LLVM-19.1.2-Linux-X64.tar.xz": "5b7fe5b2dbbacadd0fee17ac45103c0393bc4b5a9096506a865aa2fbcba976a7",
-    "LLVM-19.1.2-macOS-ARM64.tar.xz": "62eb2d8e9f610595fc53db020e26e4576c57c5853a55981292f17730916e676d",
     "LLVM-19.1.2-Windows-X64.tar.xz": "3aa49c72622c14caabb63f80cc156ce1d6806e12af554754ae1084bd7bc8f6ba",
+    "LLVM-19.1.2-macOS-ARM64.tar.xz": "62eb2d8e9f610595fc53db020e26e4576c57c5853a55981292f17730916e676d",
+    "clang+llvm-19.1.2-aarch64-linux-gnu.tar.xz": "eb9ab2b24f4b75f8010feed4a43d5a4ebf3c7e1ccff881e1cdf12a122748e7c4",
+    "clang+llvm-19.1.2-armv7a-linux-gnueabihf.tar.gz": "5a86ae82efca724882af265e3a8d7a37f09cf217483604882365b6ecb4195f00",
+    "clang+llvm-19.1.2-x86_64-pc-windows-msvc.tar.xz": "14e764eb79e4ed58da1b88320e33e5eb6c6064103446b47c4439b14292b99d12",
 
     # 19.1.3
     "LLVM-19.1.3-Linux-X64.tar.xz": "052a5ee117782aab5893dba2cdf2cb97c3d873f7a50ba6b1690594161c75c519",
+    "LLVM-19.1.3-Windows-X64.tar.xz": "1077267ca353a1e236055ed4b57d6a404d09c40b01bd27dc882870395cdc1aae",
     "LLVM-19.1.3-macOS-ARM64.tar.xz": "80a54a467e9e770a76ba9670e89a235224ec47578cc4d4dbd928592813732518",
     "LLVM-19.1.3-macOS-X64.tar.xz": "52ea30f3089af4e086a98638a16167c5a20d253d43f7146c058e3e9e6d33274f",
-    "LLVM-19.1.3-Windows-X64.tar.xz": "1077267ca353a1e236055ed4b57d6a404d09c40b01bd27dc882870395cdc1aae",
     "clang+llvm-19.1.3-aarch64-linux-gnu.tar.xz": "a730175e58233f20a99ecab0015d8cd0f1af5d92411ca1f9e3e472645d889bcd",
+    "clang+llvm-19.1.3-armv7a-linux-gnueabihf.tar.gz": "b602416a0ea588da73d535050a7efc2b89bc58c69556cd2d828d413c258ba215",
+    "clang+llvm-19.1.3-x86_64-pc-windows-msvc.tar.xz": "84789dc852e67f8507861a5dea9ed41f11ad7a6c9d3db6d52f04d72b3e4e29d3",
 
     # 19.1.4
     "LLVM-19.1.4-Linux-X64.tar.xz": "da7e0f571b440e5ef9ae6e061ae6afc1071179e18f86f77cf630dabbed11a5f6",
     "LLVM-19.1.4-macOS-ARM64.tar.xz": "52245bc374fdb9f3665046fe7319b5b8165ca2732053c74f06ba1e90e142ed8e",
     "LLVM-19.1.4-macOS-X64.tar.xz": "eedb896c193cc3bad35a9f132d91e16cf73d33723f35d63dcaae4755872674c2",
     "clang+llvm-19.1.4-aarch64-linux-gnu.tar.xz": "c42ea92e7a4cfad96b2b0d6c7872c6e9a9960a1d8a56c1847eca45d79cd67533",
+    "clang+llvm-19.1.4-armv7a-linux-gnueabihf.tar.gz": "1725f51a2be83feb9e7d2c393e179fa646f85eb80d17dca8b1c65bcee43455a4",
     "clang+llvm-19.1.4-x86_64-pc-windows-msvc.tar.xz": "5e965a1281c9df1fda8eddab3752ee6a3139e36ce469537f216cd938c498e6c3",
 
     # 19.1.5
     "LLVM-19.1.5-Linux-X64.tar.xz": "13e9975b026d431c945927960e5f8c0a47a155a2f600f57e85f4d1482620c65f",
     "LLVM-19.1.5-macOS-X64.tar.xz": "f593d45992807d03c2aeb4c968c5cab9e78403430caea21dca4b787cbca3b9f4",
     "clang+llvm-19.1.5-aarch64-linux-gnu.tar.xz": "1bdc342b7d03cbcfafb2ffb8659eb0e4d5c6ddef6f56e0cad0e0c09c52577a4f",
+    "clang+llvm-19.1.5-armv7a-linux-gnueabihf.tar.gz": "f0058f9fc80dd939609a1ac2cbf791bbaf3e66ee56eb320b93f1494f3478cb57",
     "clang+llvm-19.1.5-x86_64-pc-windows-msvc.tar.xz": "467d1a73ca938f47734af3baac2e78c5e730285469096ee088bb5c9590cabd70",
 
     # 19.1.6
@@ -556,6 +587,7 @@ _llvm_distributions = {
     "LLVM-19.1.6-macOS-ARM64.tar.xz": "2c28bcd132ce3db367354c892839a962aa01b7b850a25e61316178f2ac72ecac",
     "LLVM-19.1.6-macOS-X64.tar.xz": "58ce29a2adb82872b6de49018091c6d844ca555a9b017faa698f6df409b25281",
     "clang+llvm-19.1.6-aarch64-linux-gnu.tar.xz": "f6fd8cf8bb12f507c4a55609ef6a435b3c59bc658008b712b80ec1cdc1ee9325",
+    "clang+llvm-19.1.6-armv7a-linux-gnueabihf.tar.gz": "3ce188e3394c2bf2d2f2ec1c63f4e450e10092d642953d1b73940cfe9213f9ba",
     "clang+llvm-19.1.6-x86_64-pc-windows-msvc.tar.xz": "d2e64d4d6eca9199ea5b8ac018e626fe2f2814ab90247c335fc9fd7448681bb3",
 
     # 19.1.7
@@ -563,6 +595,7 @@ _llvm_distributions = {
     "LLVM-19.1.7-macOS-ARM64.tar.xz": "d93bf12952d89fe4ec7501c40475718b722407da6a8d651f05c995863468e570",
     "LLVM-19.1.7-macOS-X64.tar.xz": "49405e75fbe7ad6f8139a33f59ec8c5112b75b3027405c7b92d19f4c6f02c78a",
     "clang+llvm-19.1.7-aarch64-linux-gnu.tar.xz": "a73d9326e5d756e3937df6a9f621664d76403b59119f741901106b387e53a6ae",
+    "clang+llvm-19.1.7-armv7a-linux-gnueabihf.tar.gz": "dedde2acbc164649b77d6f6635e8551218c9aed5a6df4c09b2614aaccc0c05b2",
     "clang+llvm-19.1.7-x86_64-pc-windows-msvc.tar.xz": "b4557b4f012161f56a2f5d9e877ab9635cafd7a08f7affe14829bd60c9d357f0",
 
     # 20.1.0
@@ -570,17 +603,100 @@ _llvm_distributions = {
     "LLVM-20.1.0-Linux-X64.tar.xz": "954ac51498519f6ed9540714fb04bc401f70039b296a8160dd1559be380788d7",
     "LLVM-20.1.0-macOS-ARM64.tar.xz": "2c42ec26ec50c4bf8b95585f762b9d2f5b385d170dee772d9c1d6c9a7190dcef",
     "clang+llvm-20.1.0-aarch64-pc-windows-msvc.tar.xz": "f52e40d68843ed6205858e817ed791295ef51e526037186352a1aeac4a59e51a",
+    "clang+llvm-20.1.0-armv7a-linux-gnueabihf.tar.gz": "487d38a49bd64ef03b46ce1dc6f32645052ded09f96ada847e4f46e69c799d01",
     "clang+llvm-20.1.0-x86_64-pc-windows-msvc.tar.xz": "91e29416f4a0c188368f0540a5538efc0d8a9f7134afba7a2160296472ce84eb",
 
     # 20.1.1
     "LLVM-20.1.1-Linux-ARM64.tar.xz": "09f5a08ef6c96a7c6c11258b3053ae5ed11a6717ffd9fd01bbebd75d8038a0fc",
     "LLVM-20.1.1-Linux-X64.tar.xz": "b1f40360adbf31934d5d3d999c5f91f7e52e089ae984d237565cc4c23bbfa283",
     "LLVM-20.1.1-macOS-ARM64.tar.xz": "ae52012b28bb43e1aa698aa347e37d06edb4643895b8bb189ed275025cd349ed",
+    "clang+llvm-20.1.1-aarch64-pc-windows-msvc.tar.xz": "6ee4c1a8c51cf081e19a7225d802d160cc888cdc3a8da07dcbdb5768e3160244",
+    "clang+llvm-20.1.1-armv7a-linux-gnueabihf.tar.gz": "c443e13fc8293f688acdd1d715cb56cd36c763a0525b86265417d57cdfa42994",
+    "clang+llvm-20.1.1-x86_64-pc-windows-msvc.tar.xz": "f8114cb674317e8a303731b1f9d22bf37b8c571b64f600abe528e92275ed4ace",
+
+    # 20.1.2
+    "LLVM-20.1.2-Linux-ARM64.tar.xz": "41a6a2892cf66cd7c275753f2d1afe0e33b26c9674eff7d114fb36a52253436a",
+    "LLVM-20.1.2-Linux-X64.tar.xz": "3a392f151375eeed4fd50c6b6f7c7203da37b373a57f220ae58ef62b8aade3cc",
+    "LLVM-20.1.2-macOS-ARM64.tar.xz": "e502de0ccaa12dec9b7499c9e15e896006feda438078aba8b97894ae3218d4e3",
+    "clang+llvm-20.1.2-aarch64-pc-windows-msvc.tar.xz": "cb82f730a7d0d70866d4228fedafb8aca36d7dc3fd8a74a570f72ed95a52d5ed",
+    "clang+llvm-20.1.2-armv7a-linux-gnueabihf.tar.gz": "79ea2536f45a9f4c3fa89c3c03dae29be2e5fcd1bea2e163939ba527aa913219",
+    "clang+llvm-20.1.2-x86_64-pc-windows-msvc.tar.xz": "8e771a685cd718303ea0d632a8a95ad7b3cb17068f3952fbefa64a77290324d8",
+
+    # 20.1.3
+    "LLVM-20.1.3-Linux-ARM64.tar.xz": "a9030b70bd8e1d8fe1e48d7b32c8328f2861f00e8474b22105037235a5774bcf",
+    "LLVM-20.1.3-Linux-X64.tar.xz": "c75103f520626cd2137a7e907998f12fff64136514ade1bb0a259995ae2de80e",
+    "LLVM-20.1.3-macOS-ARM64.tar.xz": "70cd48fcd6b838690149bd00a85270d054c1c410d430f7c51f6d6e9019790d62",
+    "LLVM-20.1.3-macOS-X64.tar.xz": "c3043862e4715ed3dc9f2c83e2a600e75ffecc005b977a391af50664a63fed2b",
+    "clang+llvm-20.1.3-aarch64-pc-windows-msvc.tar.xz": "fcbbd259fc4430f96f4a1ee51bc41038cd1e93138675d2f46baa2d479f0eb306",
+    "clang+llvm-20.1.3-armv7a-linux-gnueabihf.tar.gz": "fc6ebfbabbbfea74f164f7c19ae953bcf066d34d348c6ef758d32fb87872b9e3",
+    "clang+llvm-20.1.3-x86_64-pc-windows-msvc.tar.xz": "3831e10ca8409e2288d70491c2fd925f5d5f9b644abf4553552887ff9ce32798",
+
+    # 20.1.4
+    "LLVM-20.1.4-Linux-ARM64.tar.xz": "4de80a332eecb06bf55097fd3280e1c69ed80f222e5bdd556221a6ceee02721a",
+    "LLVM-20.1.4-Linux-X64.tar.xz": "113b54c397adb2039fa45e38dc8107b9ec5a0baead3a3bac8ccfbb65b2340caa",
+    "LLVM-20.1.4-macOS-ARM64.tar.xz": "debb43b7b364c5cf864260d84ba1b201d49b6460fe84b76eaa65688dfadf19d2",
+    "clang+llvm-20.1.4-aarch64-pc-windows-msvc.tar.xz": "5ebb023bd1470333ef4292b712bd35eed12a93ac5a81cec2e6718d0dc7142a70",
+    "clang+llvm-20.1.4-armv7a-linux-gnueabihf.tar.gz": "0ddd789fba0e2de8b22ba07a62293140c0232e90aa2e809731e951d7cf3cbc3c",
+    "clang+llvm-20.1.4-x86_64-pc-windows-msvc.tar.xz": "2b12ac1a0689e29a38a7c98c409cbfa83f390aea30c60b7a06e4ed73f82d2457",
+
+    # 20.1.5
+    "LLVM-20.1.5-Linux-ARM64.tar.xz": "a6b8679be46bdaa383e0c7f13a473ca8f7a4f87233f2cc0e0a7ab19e1b6265e7",
+    "LLVM-20.1.5-Linux-X64.tar.xz": "0a764a8ca521606532ca9ec4e5745c933b16b7d30f4701a47ee851d448fcdb74",
+    "clang+llvm-20.1.5-aarch64-pc-windows-msvc.tar.xz": "5916d93bf80e3ae504022cdd8cb8887be001f9b68a7a08bd268727e8d858afa4",
+    "clang+llvm-20.1.5-armv7a-linux-gnueabihf.tar.gz": "80d4b593ecc32bb4289ce75e2b4572c0b6f27e1ceba8ce362c37469c480d3140",
+    "clang+llvm-20.1.5-x86_64-pc-windows-msvc.tar.xz": "b8e566c0ccf948a5e5946bc0c9d16110b937991816c8f46b9c8b3d1cd9ac7c9a",
+
+    # 20.1.6
+    "LLVM-20.1.6-Linux-ARM64.tar.xz": "f7c2851771cf26af3e2196e3be060cdafe7ea2e04db24bbd736aea0d2c95e3e9",
+    "LLVM-20.1.6-Linux-X64.tar.xz": "8ecc9878e3d99c8f1db25e5564d12900b4a1fc947f62b8cd01135fd0b15220e4",
+    "clang+llvm-20.1.6-aarch64-pc-windows-msvc.tar.xz": "f33460a63ed868374b1a207bcc2d4d3eb0753b77c12aa0b138886c2376f3c894",
+    "clang+llvm-20.1.6-armv7a-linux-gnueabihf.tar.gz": "c811bb8c63af8884ee5be27516fbb1733b14634ed71617abf9761ddbab08a3fe",
+    "clang+llvm-20.1.6-x86_64-pc-windows-msvc.tar.xz": "86345035d5ecc482ff391c3270fe37ba9f53e241e7c419f0d7bab9b7c7c57df0",
+
+    # 20.1.7
+    "LLVM-20.1.7-Linux-ARM64.tar.xz": "832f2802a29457dc758f56e26e98558c6cd0e45fcd07186f540cb6e7f4e59385",
+    "LLVM-20.1.7-Linux-X64.tar.xz": "8494c98a774051a40bfe1187a2d6442f4bc107598998bbe1673d9bb1572cfd6f",
+    "LLVM-20.1.7-macOS-ARM64.tar.xz": "6aa75de00575ad0663183b00f00f39992ded611b5136e57649ace1e6a53c0d16",
+    "LLVM-20.1.7-macOS-X64.tar.xz": "ccf82ffe7e136ee49659cb57157856a7963d0950fac3d05aabba0db75bfba26f",
+    "clang+llvm-20.1.7-aarch64-pc-windows-msvc.tar.xz": "4fac201fc680a1a9b4a21cf0f3be522dc31951d39d709a62a2827347ecffc72e",
+    "clang+llvm-20.1.7-armv7a-linux-gnueabihf.tar.gz": "c69e642b93f7dff28ab5278b1d32e1ac1ce51ffc32f264ef4962c749c41424af",
+    "clang+llvm-20.1.7-x86_64-pc-windows-msvc.tar.xz": "34a66bb4891584b32d32bbe5f129e345899b255593dab2c359b730b92e304b3e",
+
+    # 20.1.8
+    "LLVM-20.1.8-Linux-ARM64.tar.xz": "b855cc17d935fdd83da82206b7a7cfc680095efd1e9e8182c4a05e761958bef8",
+    "LLVM-20.1.8-Linux-X64.tar.xz": "1ead36b3dfcb774b57be530df42bec70ab2d239fbce9889447c7a29a4ddc1ae6",
+    "LLVM-20.1.8-macOS-ARM64.tar.xz": "a9a22f450d35f1f73cd61ab6a17c6f27d8f6051d56197395c1eb397f0c9bbec4",
+    "clang+llvm-20.1.8-aarch64-pc-windows-msvc.tar.xz": "0df3e81e8fe26370dd2b60b9e009d81cd130d3fdc41b257434aa663c5d9f0c13",
+    "clang+llvm-20.1.8-armv7a-linux-gnueabihf.tar.gz": "d2060f7a2259d95d121e6a2ceaa948b7d724c497e6e0b752e39086eaaf1675c6",
+    "clang+llvm-20.1.8-x86_64-pc-windows-msvc.tar.xz": "f229769f11d6a6edc8ada599c0cda964b7dee6ab1a08c6cf9dd7f513e85b107f",
+
+    # 21.1.0
+    "LLVM-21.1.0-Linux-ARM64.tar.xz": "ffd51d9a583c1f662abc101f3a125d7303b21ad7d4e15773c8ad2c14cf621d5e",
+    "LLVM-21.1.0-Linux-X64.tar.xz": "4a8c4b07646a4a2eb76ccf1d73522c3e13519745b72ef09d631c09b7577b0ed2",
+    "clang+llvm-21.1.0-aarch64-pc-windows-msvc.tar.xz": "c2869e4173ed18185fa599174faeedab3fdaaf1fd86926d4b62df9bf137bef53",
+    "clang+llvm-21.1.0-armv7a-linux-gnueabihf.tar.gz": "41fcc7c995b1aa1ba4e9d771796a5997d9582a710fc15e86cc8a881323d8eca8",
+    "clang+llvm-21.1.0-x86_64-pc-windows-msvc.tar.xz": "751aab63f074f041883a5317ad100dbe1e60794693f896df83958824cbc4962a",
+
+    # 21.1.1
+    "LLVM-21.1.1-Linux-ARM64.tar.xz": "2764bb49ad4dab93226328d6374ca4466799bdc18372c544d8f6ebc1aa0c28a9",
+    "LLVM-21.1.1-Linux-X64.tar.xz": "fe9886992273e469fbd664851cbee2f125b383664694684923a41af1c71b9632",
+    "clang+llvm-21.1.1-aarch64-pc-windows-msvc.tar.xz": "93c0b2e9db00343f991cbcae11072165f19c8729440f32f8ad43f130aa96dd39",
+    "clang+llvm-21.1.1-armv7a-linux-gnueabihf.tar.gz": "f4f96938e2610fb4c810c81c7c128c64e82cccbc59839166af0bb5d976b595d5",
+    "clang+llvm-21.1.1-x86_64-pc-windows-msvc.tar.xz": "2a5b94a59270d6c60128d5cac244dc898fcf061a72de1633554e98881f8ade55",
+
+    # 21.1.2
+    "LLVM-21.1.2-Linux-ARM64.tar.xz": "b16c36731eabdc3cbe7f265e241efdb9aa6ab7c4be4114763c356da1392aac73",
+    "LLVM-21.1.2-Linux-X64.tar.xz": "38dc1e278b8d688d9f4f1077da1dcda623d9e0dd89ffcf03bc18d3492bbd9cb6",
+    "clang+llvm-21.1.2-x86_64-pc-windows-msvc.tar.xz": "929c60a1342ced5641ddbef709d3e5a0fbe291686800e9f5b543aa88b8d43019",
+
+    # Refer to variable declaration on how to update!
+    # Example update (without deleting): utils/llvm_checksums.sh -g -v 20.1.9 -t /tmp/llvm
 }
 
 # Note: Unlike the user-specified llvm_mirror attribute, the URL prefixes in
 # this map are not immediately appended with "/". This is because LLVM prebuilt
 # URLs changed when they switched to hosting the files on GitHub as of 10.0.0.
+_llvm_distributions_base_url_default = "https://github.com/llvm/llvm-project/releases/download/llvmorg-"
 _llvm_distributions_base_url = {
     "6.0.0": "https://releases.llvm.org/",
     "6.0.1": "https://releases.llvm.org/",
@@ -588,63 +704,26 @@ _llvm_distributions_base_url = {
     "8.0.0": "https://releases.llvm.org/",
     "8.0.1": "https://releases.llvm.org/",
     "9.0.0": "https://releases.llvm.org/",
-    "10.0.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "10.0.1": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "11.0.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "11.0.1": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "11.1.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "12.0.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "12.0.1": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "13.0.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "13.0.1": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "14.0.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "14.0.1": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "14.0.2": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "14.0.3": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "14.0.4": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "14.0.5": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "14.0.6": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "15.0.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "15.0.1": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "15.0.2": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "15.0.3": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "15.0.4": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "15.0.5": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "15.0.6": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "15.0.7": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "16.0.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "16.0.1": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "16.0.2": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "16.0.3": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "16.0.4": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "16.0.5": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "16.0.6": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "17.0.1": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "17.0.2": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "17.0.3": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "17.0.4": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "17.0.5": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "17.0.6": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "18.1.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "18.1.1": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "18.1.2": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "18.1.3": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "18.1.4": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "18.1.5": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "18.1.6": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "18.1.7": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "18.1.8": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "19.1.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "19.1.1": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "19.1.2": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "19.1.3": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "19.1.4": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "19.1.5": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "19.1.6": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "19.1.7": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "20.1.0": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
-    "20.1.1": "https://github.com/llvm/llvm-project/releases/download/llvmorg-",
 }
+
+def _parse_version(v):
+    return tuple([int(s) for s in v.split(".")])
+
+def _version_string(version):
+    return ".".join([str(v) for v in version])
+
+def _distribution_basename(distribution):
+    return distribution.split("?", 1)[0].split("#", 1)[0].split("/")[-1].split("\\")[-1].replace("%2B", "+")
+
+def _distribution_version_string(distribution):
+    # We assume here that the `distribution` contains a basename of the forms:
+    # - `LLVM-<version>-...`, or
+    # - `clang+llvm-<version>-...`.
+    return _distribution_basename(distribution).split("-", 2)[1]
+
+def _distribution_version(distribution):
+    # Return the version string of a distribution.
+    return _parse_version(_distribution_version_string(distribution))
 
 def _get_auth(ctx, urls):
     """
@@ -668,7 +747,19 @@ def _get_auth(ctx, urls):
 
     return {}
 
+def _strip_prefix(*, basename, strip_suffix = ""):
+    for suffix in [".exe", ".tar.gz", ".tar.xz", ".tar.zst"]:
+        if basename.endswith(suffix):
+            return basename.removesuffix(suffix).rstrip(strip_suffix)
+    fail("Unknown URL file extension {url}", url = basename)
+
+def _full_url(url):
+    if url.startswith("/"):
+        return "file://" + url
+    return url
+
 def download_llvm(rctx):
+    """Download the LLVM distribution for the given context."""
     urls = []
     sha256 = None
     strip_prefix = None
@@ -682,7 +773,7 @@ def download_llvm(rctx):
         urls, sha256, strip_prefix = _distribution_urls(rctx)
 
     res = rctx.download_and_extract(
-        urls,
+        [_full_url(url) for url in urls],
         sha256 = sha256,
         stripPrefix = strip_prefix,
         auth = _get_auth(rctx, urls),
@@ -696,19 +787,21 @@ def download_llvm(rctx):
                 lib_path = clang_version.get_child("lib", lib_name)
                 rctx.file(lib_path, libclang_rt_content, legacy_utf8 = False)
 
-    updated_attrs = _attr_dict(rctx.attr)
+    updated_attrs = attr_dict(rctx.attr)
     if update_sha256:
         updated_attrs["sha256"].update([(key, res.sha256)])
     return updated_attrs
 
-def _urls(rctx):
-    (key, urls) = _exec_os_arch_dict_value(rctx, "urls", debug = False)
-    if not urls:
-        print("LLVM archive URLs missing and no default fallback provided; will try 'distribution' attribute")  # buildifier: disable=print
-
+def _key_attrs(rctx):
+    key, urls = exec_os_arch_dict_value(rctx, "urls", debug = False)
     sha256 = rctx.attr.sha256.get(key, default = "")
     strip_prefix = rctx.attr.strip_prefix.get(key, default = "")
+    return urls, sha256, strip_prefix, key
 
+def _urls(rctx):
+    urls, sha256, strip_prefix, key = _key_attrs(rctx)
+    if not urls:
+        print("LLVM archive URLs missing and no default fallback provided; will try 'distribution' attribute")  # buildifier: disable=print
     return urls, sha256, strip_prefix, key
 
 def _get_llvm_version(rctx):
@@ -716,21 +809,426 @@ def _get_llvm_version(rctx):
         return rctx.attr.llvm_version
     if not rctx.attr.llvm_versions:
         fail("Neither 'llvm_version' nor 'llvm_versions' given.")
-    (_, llvm_version) = _exec_os_arch_dict_value(rctx, "llvm_versions")
+    (_, llvm_version) = exec_os_arch_dict_value(rctx, "llvm_versions")
     if not llvm_version:
-        fail("LLVM version string missing for ({os}, {arch})", os = _os(rctx), arch = _arch(rctx))
+        info = host_info(rctx)
+        fail(
+            "LLVM version string missing for ({os}/{dist_name}/{dist_verison}, {arch})",
+            os = info.os,
+            dist_name = info.dist.name,
+            dist_version = info.dist.version,
+            arch = info.arch,
+        )
     return llvm_version
 
+def _get_all_llvm_distributions(*, llvm_distributions, extra_llvm_distributions, parsed_llvm_version):
+    distributions = {}
+    for dist, sha256 in llvm_distributions.items() + (extra_llvm_distributions.items() if extra_llvm_distributions else []):
+        basename = _distribution_basename(dist)
+        version = _distribution_version(basename)
+        if parsed_llvm_version and parsed_llvm_version != version:
+            continue
+        distributions[basename] = struct(
+            distribution = basename,
+            sha256 = sha256,
+            version = version,
+        )
+    return distributions
+
+_UBUNTU_NAMES = [
+    "arch",
+    "linuxmint",
+    "manjaro",
+    "nixos",
+    "pop",
+    "ubuntu",
+]
+
+_UBUNTU_VERSIONS = [
+    "linux-ubuntu-20.04",
+    "linux-ubuntu-18.04",
+    "linux-ubuntu-18.04.6",
+    "linux-ubuntu-18.04.5",
+    "linux-ubuntu-16.04",
+    "linux-gnu-ubuntu-22.04",
+    "linux-gnu-ubuntu-20.10",
+    "linux-gnu-ubuntu-20.04",
+    "linux-gnu-ubuntu-18.04",
+    "linux-gnu-ubuntu-16.04",
+    "linux-gnu-ubuntu-14.04",
+    "linux-ubuntu-",  # Version prefix to catch other versions.
+    "linux-gnu-ubuntu-",  # Version prefix to catch other versions.
+    "linux-gnu",
+    "unknown-linux-gnu",
+    "unknown-linux-gnu-rhel86",
+]
+
+def _is_linux_dist(dist):
+    # Note: Both Ibm-AIX and Solaris have compatibility functionality that may
+    # make them accept linux code. For Solaris that stopped in newer versions.
+    # For Ibm-AIX that seems uncommon, so we ask to manually specify instead of
+    # manual identifying.
+    if "ibm-aix" in dist.name:
+        return False
+    if "solaris" in dist.name:
+        return False
+    return True
+
+def _dist_to_os_names(dist, default_os_names = []):
+    if not _is_linux_dist(dist):
+        return [dist.name]
+    if dist.name in ["amzn", "suse"]:
+        # For "amzn" based on the ID_LIKE field, sles seems like the closest
+        # available distro for which LLVM releases are widely available.
+        return [
+            # The order is important here as we want to find the best match
+            # without implmenting complex version comparisons.
+            "linux-sles" + dist.version,
+            "linux-sles12.4",
+            "linux-sles12.3",
+            "linux-sles12.2",
+            "linux-sles11.3",
+            "linux-sles",
+            # The below rhel/ubuntu selection implements backwards compatibility
+            # with the old predictions. However suse is not close to either. So
+            # We are not using `_UBUNTU_VERSIONS` here.
+            "unknown-linux-gnu-rhel86",
+            "linux-gnu-ubuntu-24.04",
+            "linux-gnu-ubuntu-22.04",
+            "linux-gnu-ubuntu-20.04",
+            "linux-gnu-ubuntu-18.04",
+            "linux-gnu-ubuntu-16.04",
+            "linux-gnu-ubuntu-",
+        ]
+    if dist.name == "centos":
+        return [
+            "linux-gnu",
+            "unknown-linux-gnu",
+            # The below ubuntu selection implements backwards compatibility
+            # with the old predictions. However suse is not close to either. So
+            # We are not using `_UBUNTU_VERSIONS` here.
+            "linux-gnu-ubuntu-22.04",
+            "linux-gnu-ubuntu-20.04",
+            "linux-gnu-ubuntu-18.04",
+            "linux-gnu-ubuntu-16.04",
+        ]
+    if dist.name == "fedora":
+        return [
+            "linux-gnu-Fedora27",
+            "unknown-linux-gnu-rhel86",
+            "linux-gnu",
+            "unknown-linux-gnu",
+        ] + _UBUNTU_VERSIONS
+    if dist.name == "freebsd":
+        return ["unknown-freebsd", "unknown-freebsd-"]
+    if dist.name == "raspbian":
+        return ["linux-gnueabihf", "linux-gnu"]
+    if dist.name in ["rhel", "ol", "almalinux"]:
+        return [
+            "linux-rhel-",
+            "linux-gnu-rhel-",
+        ] + _UBUNTU_VERSIONS
+    if dist.name == "debian":
+        return [
+            "linux-gnu-debian8",
+        ] + _UBUNTU_VERSIONS
+    if dist.name in _UBUNTU_NAMES:
+        return [
+            "linux-gnu-ubuntu-" + dist.version,
+            "linux-ubuntu-" + dist.version,
+        ] + _UBUNTU_VERSIONS
+    return default_os_names
+
+def _find_llvm_basenames_by_stem(*, prefixes, all_llvm_distributions, is_prefix = False, return_first_match = False):
+    basenames = []
+    for prefix in prefixes:
+        for suffix in [".tar.gz", ".tar.xz"]:
+            basename = prefix + suffix
+            if basename in all_llvm_distributions:
+                return [basename]
+        if not is_prefix:
+            continue
+        for basename in all_llvm_distributions.keys():
+            if not basename.startswith(prefix):
+                continue
+            for suffix in [".tar.gz", ".tar.xz"]:
+                if basename.endswith(suffix) and basename not in basenames:
+                    basenames.append(basename)
+                    if return_first_match:
+                        return basenames
+    return basenames
+
+def _find_llvm_basename_list(llvm_version, all_llvm_distributions, host_info):
+    """Lookup (llvm_version, host_info) in `all_llvm_distributions.`"""
+    arch = host_info.arch
+    os = host_info.os
+    dist = host_info.dist
+
+    # Prefer new LLVM distributions if available
+    if os != "linux" or _is_linux_dist(dist):
+        basenames = _find_llvm_basenames_by_stem(
+            prefixes = [
+                "LLVM-{llvm_version}-{os}-{arch}".format(
+                    llvm_version = llvm_version,
+                    arch = {
+                        "aarch64": "ARM64",
+                        "x86_64": "X64",
+                    }.get(arch, arch),
+                    os = {
+                        "darwin": "macOS",
+                        "linux": "Linux",
+                        "windows": "Windows",
+                    }.get(os, os),
+                ),
+            ],
+            all_llvm_distributions = all_llvm_distributions,
+        )
+        if basenames:
+            return basenames
+
+    # First by 'os'', then by 'dist', then the remaining Linux variants'...
+    if os == "darwin":
+        return _find_llvm_basenames_by_stem(
+            prefixes = [
+                "clang+llvm-{llvm_version}-{arch}-{os}".format(
+                    llvm_version = llvm_version,
+                    arch = {
+                        "aarch64": "arm64",
+                    }.get(arch, arch),
+                    os = select_os,
+                )
+                for select_os in ["apple-darwin", "apple-macos", "darwin-apple"]
+            ],
+            all_llvm_distributions = all_llvm_distributions,
+            is_prefix = True,
+        )
+    elif os == "windows":
+        return _find_llvm_basenames_by_stem(
+            prefixes = [
+                "clang+llvm-{llvm_version}-{arch}-{os}".format(
+                    llvm_version = llvm_version,
+                    arch = arch,
+                    os = "pc-windows-msvc",
+                ),
+            ],
+            all_llvm_distributions = all_llvm_distributions,
+        )
+    elif dist.name == "raspbian":
+        return _find_llvm_basenames_by_stem(
+            prefixes = [
+                "clang+llvm-{llvm_version}-{arch}-{os}".format(
+                    llvm_version = llvm_version,
+                    arch = arch,
+                    os = select_os,
+                )
+                for select_os in _dist_to_os_names(dist)
+            ],
+            all_llvm_distributions = all_llvm_distributions,
+        )
+    elif os == "linux":
+        if arch in ["aarch64", "armv7a", "mips", "mipsel", "sparc64", "sparcv9"]:
+            arch_alias_list = {
+                "sparc64": ["sparc64", "sparcv9"],
+                "sparcv9": ["sparcv9", "sparc64"],
+            }.get(arch, [arch])
+            os_name_list = _dist_to_os_names(dist)
+            os_name_extra_list = []
+            if _is_linux_dist(dist) and [os for os in os_name_list if "linux" in os]:
+                os_name_extra_list = ["linux-gnu", "unknown-linux-gnu"]
+            basenames = _find_llvm_basenames_by_stem(
+                prefixes = [
+                    "clang+llvm-{llvm_version}-{arch}-{os}".format(
+                        llvm_version = llvm_version,
+                        arch = arch_alias,
+                        os = os_name,
+                    )
+                    for arch_alias in arch_alias_list
+                    for os_name in os_name_list + os_name_extra_list
+                ],
+                all_llvm_distributions = all_llvm_distributions,
+            )
+            if basenames or not os_name_list:
+                return basenames
+            return _find_llvm_basenames_by_stem(
+                prefixes = [
+                    "clang+llvm-{llvm_version}-{arch}-{os}".format(
+                        llvm_version = llvm_version,
+                        arch = arch_alias,
+                        os = os_name,
+                    )
+                    for arch_alias in arch_alias_list
+                    for os_name in os_name_list
+                ],
+                all_llvm_distributions = all_llvm_distributions,
+                is_prefix = True,
+            )
+
+        arch_alias_list = {
+            "x86_32": ["x86_32", "i386", "i686"],
+            "x86_64": ["x86_64", "amd64"],
+            "powerpc64": ["powerpc64", "final_powerpc64"],
+        }.get(arch, [arch])
+
+        prefixes = []
+        for dist_name in _dist_to_os_names(dist, [dist.name]):
+            for arch_alias in arch_alias_list:
+                basenames = _find_llvm_basenames_by_stem(
+                    prefixes = [
+                        "clang+llvm-{llvm_version}-{arch}-{dist_name}{dist_version}".format(
+                            llvm_version = llvm_version,
+                            arch = arch_alias,
+                            dist_name = dist_name,
+                            dist_version = dist.version,
+                        ),
+                    ],
+                    all_llvm_distributions = all_llvm_distributions,
+                )
+                if basenames:
+                    return basenames
+                if dist.name not in ["freebsd"]:
+                    prefixes.append("clang+llvm-{llvm_version}-{arch}-{dist_name}".format(
+                        llvm_version = llvm_version,
+                        arch = arch_alias,
+                        dist_name = dist_name,
+                    ))
+        return _find_llvm_basenames_by_stem(prefixes = prefixes, all_llvm_distributions = all_llvm_distributions, is_prefix = True, return_first_match = True)
+    return []
+
+def _find_llvm_basename_or_error(llvm_version, all_llvm_distributions, host_info):
+    all_llvm_distributions = _filter_llvm_distributions(
+        llvm_version = llvm_version,
+        all_llvm_distributions = all_llvm_distributions,
+    )
+    basenames = _find_llvm_basename_list(llvm_version, all_llvm_distributions, host_info)
+    if len(basenames) > 1:
+        return None, "ERROR: Multiple configurations found for version {llvm_version} on {os}/{dist_name}/{dist_version} with arch {arch}: [{basenames}].".format(
+            llvm_version = llvm_version,
+            os = host_info.os,
+            dist_name = host_info.dist.name,
+            dist_version = host_info.dist.version,
+            arch = host_info.arch,
+            basenames = ", ".join(basenames),
+        )
+    if not basenames:
+        return None, "ERROR: No matching config could be found for version {llvm_version} on {os}/{dist_name}/{dist_version} with arch {arch}.".format(
+            llvm_version = llvm_version,
+            os = host_info.os,
+            dist_name = host_info.dist.name,
+            dist_version = host_info.dist.version,
+            arch = host_info.arch,
+        )
+
+    # Use the following for debugging:
+    # print("Found LLVM: " + basenames[0])  # buildifier: disable=print
+    if basenames[0] not in all_llvm_distributions:
+        return None, "ERROR: Unknown LLVM release: %s\nPlease ensure file name is correct." % basenames[0]
+
+    return basenames[0], None
+
+def _parse_version_or_requirements(version_or_requirements):
+    if version_or_requirements in ["latest", "first"]:
+        return None
+    for prefix in ["latest:", "first:"]:
+        if version_or_requirements.startswith(prefix):
+            return versions.parse_requirements(version_or_requirements.removeprefix(prefix))
+    fail("ERROR: Invalid version requirements: '{version_or_requirements}'.".format(
+        version_or_requirements = version_or_requirements,
+    ))
+
+def _get_version_from_distribution(distribution):
+    # We assume here that the `distribution` is a basename of the form `LLVM-<version>-...` or
+    # `clang+llvm-<version>-...`.
+    return distribution.split("-")[1]
+
+def _get_llvm_versions(*, version_or_requirements, all_llvm_distributions):
+    llvm_version_dict = {}
+    for distribution in all_llvm_distributions.keys():
+        version = _get_version_from_distribution(distribution)
+        llvm_version_dict[_parse_version(version)] = version
+
+    return [v for k, v in sorted(llvm_version_dict.items(), reverse = version_or_requirements.startswith("latest"))]
+
+def _required_llvm_release_name(*, version_or_requirements, all_llvm_distributions, host_info):
+    llvm_versions = _get_llvm_versions(version_or_requirements = version_or_requirements, all_llvm_distributions = all_llvm_distributions)
+    requirements = _parse_version_or_requirements(version_or_requirements)
+    for llvm_version in llvm_versions:
+        if requirements and not versions.check_all_requirements(llvm_version, requirements):
+            continue
+        basenames = _find_llvm_basename_list(llvm_version, all_llvm_distributions, host_info)
+        if len(basenames) == 1:
+            return llvm_version, basenames[0], None
+    return None, None, "ERROR: No matching distribution found."
+
+def required_llvm_release_name_rctx(rctx, llvm_version):
+    all_llvm_distributions = _get_all_llvm_distributions(
+        llvm_distributions = _llvm_distributions,
+        extra_llvm_distributions = rctx.attr.extra_llvm_distributions,
+        parsed_llvm_version = _parse_version(llvm_version),
+    )
+    return _required_llvm_release_name(
+        version_or_requirements = llvm_version,
+        all_llvm_distributions = all_llvm_distributions,
+        host_info = host_info(rctx),
+    )
+
+def is_requirement(version_or_requirement):
+    """Return whether `version_or_requirement` is likely a requirement (True) or should be a version."""
+    for prefix in ["first:", "latest:"]:
+        if version_or_requirement.startswith(prefix) or version_or_requirement == prefix[:-1]:
+            return True
+    return False
+
+def _filter_llvm_distributions(*, llvm_version, all_llvm_distributions):
+    """Return (distribution: sha) entries from `all_llvm_distributions` that match `llvm_version`."""
+    result = {}
+    for k, v in all_llvm_distributions.items():
+        if _get_version_from_distribution(k) == llvm_version:
+            result[k] = v
+    return result
+
 def _distribution_urls(rctx):
+    """Return LLVM `urls`, `sha256` and `strip_prefix` for the given context."""
     llvm_version = _get_llvm_version(rctx)
+    all_llvm_distributions = _get_all_llvm_distributions(
+        llvm_distributions = _llvm_distributions,
+        extra_llvm_distributions = rctx.attr.extra_llvm_distributions,
+        parsed_llvm_version = _parse_version(llvm_version),
+    )
+    _, sha256, strip_prefix, _ = _key_attrs(rctx)
 
     if rctx.attr.distribution == "auto":
-        basename = _llvm_release_name(rctx, llvm_version)
+        rctx_host_info = host_info(rctx)
+        if is_requirement(llvm_version):
+            llvm_version, basename, error = _required_llvm_release_name(
+                version_or_requirements = llvm_version,
+                all_llvm_distributions = all_llvm_distributions,
+                host_info = rctx_host_info,
+            )
+        else:
+            basename, error = _find_llvm_basename_or_error(llvm_version, all_llvm_distributions, rctx_host_info)
+        if error:
+            fail(error)
+        dist_info = all_llvm_distributions[basename]
+        if sha256 and sha256 != dist_info.sha256:
+            fail("ERROR: Attribute sha256 provided a different SHA256 than the stored one.")
+        sha256 = dist_info.sha256
+        distribution = dist_info.distribution
     else:
-        basename = rctx.attr.distribution
+        distribution = rctx.attr.distribution
+        basename = _distribution_basename(distribution)
+        dist_info = all_llvm_distributions.get(basename, None)
+        if sha256:
+            if dist_info and sha256 != dist_info.sha256:
+                fail("ERROR: Attribute sha256 provided a different SHA than the stored one.")
+        elif dist_info:
+            sha256 = dist_info.sha256
+        else:
+            fail("ERROR: Unknown LLVM release: %s\nPlease ensure file name is correct." % distribution)
 
-    if basename not in _llvm_distributions:
-        fail("Unknown LLVM release: %s\nPlease ensure file name is correct." % basename)
+    if not strip_prefix:
+        strip_prefix = _strip_prefix(basename = basename, strip_suffix = "-rhel86")
+    if basename != distribution:
+        return [distribution], sha256, strip_prefix
 
     urls = []
     url_suffix = "{0}/{1}".format(llvm_version, basename).replace("+", "%2B")
@@ -739,17 +1237,309 @@ def _distribution_urls(rctx):
     if rctx.attr.alternative_llvm_sources:
         for pattern in rctx.attr.alternative_llvm_sources:
             urls.append(pattern.format(llvm_version = llvm_version, basename = basename))
-    urls.append("{0}{1}".format(_llvm_distributions_base_url[llvm_version], url_suffix))
-
-    sha256 = _llvm_distributions[basename]
-
-    if basename.endswith(".tar.xz"):
-        strip_prefix = basename[:(len(basename) - len(".tar.xz"))]
-    elif basename.endswith(".tar.zst"):
-        strip_prefix = basename[:(len(basename) - len(".tar.zst"))]
-    else:
-        fail("Unknown URL file extension {url}", url = basename)
-
-    strip_prefix = strip_prefix.rstrip("-rhel86")
+    url_base = _llvm_distributions_base_url.get(llvm_version, _llvm_distributions_base_url_default)
+    urls.append(url_base + url_suffix)
 
     return urls, sha256, strip_prefix
+
+def _distributions_test_writer_impl(ctx):
+    """Analyze the configured versions and write to a file for test consumption.
+
+    The test generated file '<rule_name>.out' contains the following lines:
+    - a 'del:' line denotes a llvm distribution basename that was not found.
+    - a 'add:' line denotes a version that was predicted but does not exist.
+
+    Lines of type `add:` should never occur as the algorithm is supposed to
+    verify that predicted distributions have been configured. Otherwise the
+    algorithm could not know the hash value.
+    """
+    use_llvm_distributions = _llvm_distributions
+
+    # Inject version '0.0.0' that verifies additional behavior using `extra_llvm_distributions`.
+    extra_llvm_distributions = {
+        "LLVM-0.0.0-Linux-ARM64.tar.xz": "a6b8679be46bdaa383e0c7f13a473ca8f7a4f87233f2cc0e0a7ab19e1b6265e7",
+        "/foo/bar/LLVM-0.0.0-Linux-X64.tar.xz?xyz": "0a764a8ca521606532ca9ec4e5745c933b16b7d30f4701a47ee851d448fcdb74",
+        "http://server/foo/bar/LLVM-0.0.0-macOS-ARM64.tar.xz#xyz": "9da86f64a99f5ce9b679caf54e938736ca269c5e069d0c94ad08b995c5f25c16",
+        "http://server/foo/bar/LLVM-0.0.0-macOS-X64.tar.xz": "264f2f1e8b67f066749349ae8b4943d346cd44e099464164ef21b42a57663540",
+        "http://server/clang%2Bllvm-0.0.0-aarch64-pc-windows-msvc.tar.xz": "5916d93bf80e3ae504022cdd8cb8887be001f9b68a7a08bd268727e8d858afa4",
+        "http://server/path-to-file/clang%2Bllvm-0.0.0-x86_64-pc-windows-msvc.tar.xz#bla": "5916d93bf80e3ae504022cdd8cb8887be001f9b68a7a08bd268727e8d858afa4",
+    }
+
+    arch_list = [
+        "aarch64",
+        "armv7a",
+        "mips",
+        "mipsel",
+        "powerpc64",
+        "powerpc64le",
+        "sparc64",
+        "sparcv9",
+        "x86_32",
+        "x86_64",
+    ]
+    arch_alias_dict = {
+        "sparc64": ["sparc64", "sparcv9"],
+        "sparcv9": ["sparcv9", "sparc64"],
+    }
+    os_list = [
+        "darwin",
+        "linux",
+        "windows",
+    ]
+    ANY_VERSION = "0"  # Version does not matter, but must be a valid integer
+    dist_dict_list = {
+        "linux": [
+            # keep sorted
+            struct(name = "amzn", version = ANY_VERSION),
+            struct(name = "arch", version = ANY_VERSION),
+            struct(name = "centos", version = "6"),
+            struct(name = "centos", version = "7"),
+            struct(name = "debian", version = "0"),
+            struct(name = "debian", version = "8"),
+            struct(name = "debian", version = "9"),
+            struct(name = "fedora", version = "26"),
+            struct(name = "fedora", version = "27"),
+            struct(name = "fedora", version = "42"),
+            struct(name = "freebsd", version = "10"),
+            struct(name = "freebsd", version = "11"),
+            struct(name = "freebsd", version = "12"),
+            struct(name = "freebsd", version = "13"),
+            struct(name = "ibm-aix", version = "7.2"),
+            struct(name = "linuxmint", version = "18"),
+            struct(name = "linuxmint", version = "19"),
+            struct(name = "pc-solaris", version = "2.11"),
+            struct(name = "raspbian", version = ANY_VERSION),
+            struct(name = "rhel", version = ANY_VERSION),
+            struct(name = "sun-solaris", version = "2.11"),
+            struct(name = "suse", version = "11.3"),
+            struct(name = "suse", version = "12.2"),
+            struct(name = "suse", version = "12.3"),
+            struct(name = "suse", version = "12.4"),
+            struct(name = "suse", version = "15.5"),
+            struct(name = "suse", version = "16.0"),
+            struct(name = "suse", version = "17.0"),
+            struct(name = "ubuntu", version = "14.04"),
+            struct(name = "ubuntu", version = "16.04"),
+            struct(name = "ubuntu", version = "18.04.5"),
+            struct(name = "ubuntu", version = "18.04.6"),
+            struct(name = "ubuntu", version = "18.04"),
+            struct(name = "ubuntu", version = "20.04"),
+            struct(name = "ubuntu", version = "20.10"),
+            struct(name = "ubuntu", version = "22.04"),
+            struct(name = "ubuntu", version = "24.04"),
+        ],
+    }
+
+    # Define the min real version. For earlier injected versions we do no perform dist testing.
+    MIN_VERSION = _parse_version("6.0.0")
+
+    # Additional output will be generated for versions up to and including `MAX_VERSION`
+    MAX_VERSION = _parse_version("20.1.3")
+    version_dict = {
+        _distribution_version(basename): None
+        for basename in use_llvm_distributions.keys() + extra_llvm_distributions.keys()
+    } | {
+        _parse_version(v): None
+        for v in _llvm_distributions_base_url.keys()
+    }
+    versions = sorted(version_dict.keys())
+
+    # Write versions to output to check which versions we take into account.
+    output = []
+    select = []
+    for version in versions:
+        output.append("version: " + _version_string(version))
+
+    # We keep track of versions in `not_found` and remove the ones we found.
+    # So at the end all version that were not found remain, hence the name.
+    not_found = {
+        _distribution_basename(distribution): None
+        for distribution in use_llvm_distributions.keys() + extra_llvm_distributions.keys()
+    }
+
+    # While computing we add predicted versions that are not configured as True.
+    # At the end we add the not-found versions as False.
+    result = {}
+
+    # Collect cases that produce duplicates (or multiple) basenames.
+    dupes = []
+
+    # For all versions X arch X os check if we can compute the distribution.
+    for version in versions:
+        all_llvm_distributions = _get_all_llvm_distributions(
+            llvm_distributions = use_llvm_distributions,
+            extra_llvm_distributions = extra_llvm_distributions,
+            parsed_llvm_version = version,
+        )
+        for arch in arch_list:
+            for os in os_list:
+                if version < MIN_VERSION:
+                    # Limit the injected version checks
+                    if arch not in ["aarch64", "x86_64"]:
+                        break
+                    dist_list = [struct(name = os, version = "")]
+                else:
+                    dist_list = dist_dict_list.get(os, [struct(name = os, version = "")])
+                for dist in dist_list:
+                    if arch == "sparc64" and dist.name != "sun-solaris":
+                        # Sparc64 and SparcV9 are handled in the same way, just different precedence.
+                        # One is the architecture th other the ISA. Restrict to one to limit output.
+                        continue
+                    host_info = struct(
+                        arch = arch,
+                        os = os,
+                        dist = dist,
+                    )
+                    basenames = _find_llvm_basename_list(_version_string(version), all_llvm_distributions, host_info)
+                    if version <= MAX_VERSION:
+                        predicted, error = _find_llvm_basename_or_error(
+                            _version_string(version),
+                            all_llvm_distributions,
+                            host_info,
+                        )
+                        skip_output = False
+                        if error:
+                            if error.startswith("ERROR: No matching config could be found for version"):
+                                skip_output = True
+                        else:
+                            if predicted.endswith(".exe"):
+                                error = "ERROR: Windows .exe is not supported: " + predicted
+                            elif predicted not in all_llvm_distributions:
+                                error = "ERROR: Unavailable prediction: " + predicted
+                            elif len(basenames) == 0:
+                                skip_output = True
+                            elif len(basenames) == 1:
+                                predicted = basenames[0]
+                            else:
+                                error = "ERROR: Multiple selections"
+                            if not error:
+                                arch_found = [arch for arch in arch_list if arch in predicted]
+                                if len(arch_found) == 1 and arch_found[0] not in arch_alias_dict.get(arch, [arch]):
+                                    error = "ERROR: Bad arch selection: " + predicted
+                        if not skip_output:
+                            select.append("{version}-{arch}-{os}/{dist_name}/{dist_version} -> {basename}".format(
+                                version = _version_string(version),
+                                arch = arch,
+                                os = os,
+                                dist_name = dist.name,
+                                dist_version = dist.version,
+                                basename = error or predicted,
+                            ))
+                    if len(basenames) != 1:
+                        if basenames:
+                            dupes.append("dup: {version}-{arch}-{os}-{dist_name}-{dist_version} -> {count}".format(
+                                version = _version_string(version),
+                                arch = arch,
+                                os = os,
+                                dist_name = dist.name,
+                                dist_version = dist.version,
+                                count = len(basenames),
+                            ))
+                            dupes.extend(["   : " + basename for basename in basenames])
+                        continue
+                    basename = basenames[0]
+                    if basename in all_llvm_distributions:
+                        if basename in not_found:
+                            not_found.pop(basename)
+                    else:
+                        result[basename] = True
+
+    # Build result
+    for dist in not_found:
+        result[dist] = False
+    output += [("add: " if found else "del: ") + dist for dist, found in result.items()]
+    output += dupes
+    ctx.actions.write(ctx.outputs.output, "\n".join(output) + "\n")
+    ctx.actions.write(ctx.outputs.select, "\n".join(select) + "\n")
+
+distributions_test_writer = rule(
+    implementation = _distributions_test_writer_impl,
+    attrs = {
+        "output": attr.output(mandatory = True),
+        "select": attr.output(mandatory = True),
+    },
+)
+
+def _requirements_test_writer_impl(ctx):
+    """Analyze the configured versions and write to a file for test consumption.
+    The test generated file '<rule_name>.out' contains the following lines:
+    [<arch>,<os>,<requirement>]: <llvm_distribution_basename>
+    """
+    all_llvm_distributions = {
+        # In order to prevent new distributions to interfere we cut at 20.1.3.
+        k: v
+        for k, v in _llvm_distributions.items()
+        if _parse_version(_get_version_from_distribution(k)) <= (20, 1, 3)
+    }
+    requirement_list = [
+        "latest:<=20.1.0",
+        "latest:<=20.1.0,>17.0.4,!=19.1.7",
+        "latest:<20.1.0,>17.0.4,!=19.1.7",
+        "latest:<20.1.0,>17.0.4",
+        "latest:>=15.0.6,<16",
+        "first:>=15.0.6,<16",
+        "latest",
+        "first",
+    ]
+    arch_list = [
+        "aarch64",
+        "armv7a",
+        "x86_64",
+    ]
+    os_list = [
+        "darwin",
+        "linux",
+        "windows",
+    ]
+    ANY_VERSION = "0"  # Version does not matter, but must be a valid integer
+    dist_dict_list = {
+        "linux": [
+            # keep sorted
+            struct(name = "ubuntu", version = ANY_VERSION),
+            struct(name = "raspbian", version = ANY_VERSION),
+            struct(name = "rhel", version = ANY_VERSION),
+        ],
+    }
+    result = []
+    for arch in arch_list:
+        for os in os_list:
+            dist_list = dist_dict_list.get(os, [struct(name = os, version = "")])
+            for dist in dist_list:
+                for requirement in requirement_list:
+                    host_info = struct(
+                        arch = arch,
+                        os = os,
+                        dist = dist,
+                    )
+                    llvm_version, basename, error = _required_llvm_release_name(
+                        version_or_requirements = requirement,
+                        all_llvm_distributions = all_llvm_distributions,
+                        host_info = host_info,
+                    )
+                    if llvm_version and basename:
+                        result.append("[{arch},{os}{dist_name}{dist_version},'{requirement}']: {llvm_version} = {basename}".format(
+                            arch = arch,
+                            os = os,
+                            dist_name = "," + dist.name if os == "linux" else "",
+                            dist_version = "," + dist.version if os == "linux" else "",
+                            requirement = requirement,
+                            llvm_version = llvm_version,
+                            basename = basename,
+                        ))
+                    else:
+                        result.append("[{arch},{os},\"{requirement}\"]: {error}".format(
+                            arch = arch,
+                            os = os,
+                            requirement = requirement,
+                            llvm_version = llvm_version,
+                            basename = basename,
+                            error = error or "ERROR: N/A",
+                        ))
+    ctx.actions.write(ctx.outputs.result, "\n".join(result) + "\n")
+
+requirements_test_writer = rule(
+    implementation = _requirements_test_writer_impl,
+    attrs = {
+        "result": attr.output(mandatory = True),
+    },
+)

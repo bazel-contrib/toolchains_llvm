@@ -19,9 +19,9 @@ def bazel_toolchain_dependencies():
     if not native.existing_rule("rules_cc"):
         http_archive(
             name = "rules_cc",
-            urls = ["https://github.com/bazelbuild/rules_cc/releases/download/0.0.17/rules_cc-0.0.17.tar.gz"],
-            sha256 = "abc605dd850f813bb37004b77db20106a19311a96b2da1c92b789da529d28fe1",
-            strip_prefix = "rules_cc-0.0.17",
+            urls = ["https://github.com/bazelbuild/rules_cc/releases/download/0.2.2/rules_cc-0.2.2.tar.gz"],
+            sha256 = "e50f24506011841e2ac83d9733a0c7e058eb3a10a6e3e10baa9c7942ff5f4767",
+            strip_prefix = "rules_cc-0.2.2",
         )
 
     # Load bazel_skylib if the user has not defined them.
@@ -29,10 +29,26 @@ def bazel_toolchain_dependencies():
         http_archive(
             name = "bazel_skylib",
             urls = [
-                "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.7.1/bazel-skylib-1.7.1.tar.gz",
-                "https://github.com/bazelbuild/bazel-skylib/releases/download/1.7.1/bazel-skylib-1.7.1.tar.gz",
+                "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.8.2/bazel-skylib-1.8.2.tar.gz",
+                "https://github.com/bazelbuild/bazel-skylib/releases/download/1.8.2/bazel-skylib-1.8.2.tar.gz",
             ],
-            sha256 = "bc283cdfcd526a52c3201279cda4bc298652efa898b10b4db0837dc51652756f",
+            sha256 = "6e78f0e57de26801f6f564fa7c4a48dc8b36873e416257a92bbb0937eeac8446",
         )
 
-        # Skip bazel_skylib_workspace because we are not using lib/unittest.bzl
+    # Load bazel_features if the user has not defined them.
+    if not native.existing_rule("bazel_features"):
+        http_archive(
+            name = "bazel_features",
+            sha256 = "9390b391a68d3b24aef7966bce8556d28003fe3f022a5008efc7807e8acaaf1a",
+            strip_prefix = "bazel_features-1.36.0",
+            url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.36.0/bazel_features-v1.36.0.tar.gz",
+        )
+
+    # Load helly25_bzl for version comparisons.
+    if not native.existing_rule("helly25_bzl"):
+        http_archive(
+            name = "helly25_bzl",
+            strip_prefix = "bzl-0.1.2",
+            url = "https://github.com/helly25/bzl/releases/download/0.1.2/bzl-0.1.2.tar.gz",
+            sha256 = "404f8473bcaad2e370752e57d274d2093eb87ca94cb9a597c1a3553b76743206",
+        )

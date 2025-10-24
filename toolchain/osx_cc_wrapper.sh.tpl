@@ -35,6 +35,15 @@ LIBS=
 LIB_DIRS=
 RPATHS=
 OUTPUT=
+CLEANUP_FILES=()
+
+function cleanup() {
+  if [[ ${#CLEANUP_FILES[@]} -gt 0 ]]; then
+    rm -f "${CLEANUP_FILES[@]}"
+  fi
+}
+
+trap cleanup EXIT
 
 function parse_option() {
   local -r opt="$1"
@@ -54,31 +63,82 @@ function parse_option() {
   fi
 }
 
-if [[ -f %{toolchain_path_prefix}bin/clang ]]; then
-  execroot_path=""
-  execroot_abs_path="${PWD}/"
-elif [[ ${BASH_SOURCE[0]} == "/"* ]]; then
-  # Some consumers of `CcToolchainConfigInfo` (e.g. `cmake` from rules_foreign_cc)
-  # change CWD and call $CC (this script) with its absolute path.
-  # For cases like this, we'll try to find `clang` through an absolute path.
-  # This script is at _execroot_/external/_repo_name_/bin/cc_wrapper.sh
-  execroot_path="${BASH_SOURCE[0]%/*/*/*/*}/"
-  execroot_abs_path="$(cd "${execroot_path}" && pwd -P)/"
+# See note in toolchain/internal/configure.bzl where we define
+# `wrapper_bin_prefix` for why this wrapper is needed.
+
+# this script is located at either
+# - <execroot>/external/<repo_name>/bin/cc_wrapper.sh
+# - <runfiles>/<repo_name>/bin/cc_wrapper.sh
+# The clang is located at
+# - <execroot>/external/<repo_name2>/bin/clang
+# - <runfiles>/<repo_name2>/bin/clang
+#
+# In both cases, getting to clang can be done via
+# Finding the current dir of this script,
+# - <execroot>/external/<repo_name>/bin/
+# - <runfiles>/<repo_name>/bin/
+# going back 2 directories
+# - <execroot>/external
+# - <runfiles>
+#
+# Going into %{toolchain_path_prefix} without the `external/` prefix + `bin/clang`
+#
+
+dirname_shim() {
+  local path="$1"
+
+  # Remove trailing slashes
+  path="${path%/}"
+
+  # If there's no slash, return "."
+  if [[ "${path}" != */* ]]; then
+    echo "."
+    return
+  fi
+
+  # Remove the last component after the final slash
+  path="${path%/*}"
+
+  # If it becomes empty, it means root "/"
+  echo "${path:-/}"
+}
+
+if [[ "${BASH_SOURCE[0]}" == "/"* ]]; then
+  bash_source_abs="$(realpath "${BASH_SOURCE[0]}")"
+  pwd_abs="$(realpath ".")"
+  bash_source_rel=${bash_source_abs#"${pwd_abs}/"}
 else
-  echo >&2 "ERROR: could not find clang; PWD=\"${PWD}\"; PATH=\"${PATH}\"."
+  bash_source_rel="${BASH_SOURCE[0]}"
+fi
+script_dir=$(dirname_shim "${bash_source_rel}")
+toolchain_path_prefix="%{toolchain_path_prefix}"
+# Sometimes this path may be an absolute path in which case we dont do anything because
+# This is using the host toolchain to build.
+if [[ ${toolchain_path_prefix} != /* ]]; then
+  # shellcheck disable=SC2312
+  toolchain_path_prefix="$(dirname_shim "$(dirname_shim "${script_dir}")")/${toolchain_path_prefix#external/}"
+  toolchain_path_prefix_abs="$(cd "${toolchain_path_prefix}" && pwd -P)/"
+else
+  toolchain_path_prefix_abs="${toolchain_path_prefix}"
+fi
+
+if [[ ! -f ${toolchain_path_prefix}bin/clang ]]; then
+  echo >&2 "ERROR: could not find clang; PWD=\"${PWD}\"; PATH=\"${PATH}\"; toolchain_path_prefix=${toolchain_path_prefix}."
   exit 5
 fi
 
 function sanitize_option() {
   local -r opt=$1
   if [[ ${opt} == */cc_wrapper.sh ]]; then
-    printf "%s" "${execroot_path}%{toolchain_path_prefix}bin/clang"
-  elif [[ ${opt} == "-fuse-ld=ld64.lld" ]]; then
-    echo "--ld-path=${execroot_abs_path}%{toolchain_path_prefix}bin/ld64.lld"
-  elif [[ ${opt} =~ ^-fsanitize-(ignore|black)list=[^/] ]]; then
+    printf "%s" "${toolchain_path_prefix}bin/clang"
+  elif [[ ${opt} == "--ld-path=ld.lld" || ${opt} == "--ld-path=ld64.lld" ]]; then
+    local ld_name=${opt#--ld-path=}
+    echo "--ld-path=${toolchain_path_prefix_abs}bin/${ld_name}"
+  elif [[ ${opt} =~ ^-fsanitize-(ignore|black)list=[^/] ]] && [[ ${script_dir} == /* ]]; then
     # shellcheck disable=SC2206
     parts=(${opt/=/ }) # Split flag name and value into array.
-    printf "%s" "${parts[0]}=${execroot_path}${parts[1]}"
+    # shellcheck disable=SC2312
+    printf "%s" "${parts[0]}=$(dirname_shim "$(dirname_shim "$(dirname_shim "${script_dir}")")")/${parts[1]}"
   else
     printf "%s" "${opt}"
   fi
@@ -87,17 +147,16 @@ function sanitize_option() {
 cmd=()
 for ((i = 0; i <= $#; i++)); do
   if [[ ${!i} == @* && -r "${i:1}" ]]; then
+    tmpfile=$(mktemp)
+    CLEANUP_FILES+=("${tmpfile}")
     while IFS= read -r opt; do
-      if [[ ${opt} == "-fuse-ld=ld64.lld" ]]; then
-        cmd+=("-fuse-ld=lld")
-      fi
       opt="$(
         set -e
         sanitize_option "${opt}"
       )"
-      parse_option "${opt}"
-      cmd+=("${opt}")
+      parse_option "${opt}" >>"${tmpfile}"
     done <"${!i:1}"
+    cmd+=("@${tmpfile}")
   else
     opt="$(
       set -e
@@ -108,28 +167,13 @@ for ((i = 0; i <= $#; i++)); do
   fi
 done
 
-# On macOS, we use ld as the linker for single-platform builds (i.e., when not
-# cross-compiling). Some applications may remove /usr/bin from PATH before
-# calling this script, which would make /usr/bin/ld unreachable.  For example,
-# rules_rust does not set PATH (unless the user explicitly sets PATH in env
-# through attributes) [1] when calling rustc, and rustc does not replace an
-# unset PATH with a reasonable default either ([2], [3]), which results in CC
-# being called with PATH={sysroot}/{rust_lib}/bin. Note that rules_cc [4] and
-# rules_go [5] do ensure that /usr/bin is in PATH.
-# [1]: https://github.com/bazelbuild/rules_rust/blob/e589105b4e8181dd1d0d8ccaa0cf3267efb06e86/cargo/cargo_build_script.bzl#L66-L68
-# [2]: https://github.com/rust-lang/rust/blob/1c03f0d0ba4fee54b7aa458f4d3ad989d8bf7b34/compiler/rustc_session/src/session.rs#L804-L813
-# [3]: https://github.com/rust-lang/rust/blob/1c03f0d0ba4fee54b7aa458f4d3ad989d8bf7b34/compiler/rustc_codegen_ssa/src/back/link.rs#L640-L645
-# [4]: https://cs.opensource.google/bazel/bazel/+/master:src/main/java/com/google/devtools/build/lib/bazel/rules/BazelRuleClassProvider.java;l=529;drc=72caead7b428fd50164079956ec368fc54a9567c
-# [5]: https://github.com/bazelbuild/rules_go/blob/63dfd99403076331fef0775d52a8039d502d4115/go/private/context.bzl#L434
-# Let's restore /usr/bin to PATH in such cases. Note that /usr/bin is not a
-# writeable directory on macOS even with sudo privileges, so it should be safe
-# to add it to PATH even when the application wants to use a very strict PATH.
-if [[ ":${PATH}:" != *":/usr/bin:"* ]]; then
-  PATH="${PATH}:/usr/bin"
-fi
-
 # Call the C++ compiler.
 "${cmd[@]}"
+
+# Generate an empty file if header processing succeeded.
+if [[ "${OUTPUT}" == *.h.processed ]]; then
+  echo -n >"${OUTPUT}"
+fi
 
 function get_library_path() {
   for libdir in ${LIB_DIRS}; do

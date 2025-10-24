@@ -15,27 +15,35 @@
 
 set -euo pipefail
 
-images=(
-  "debian:bookworm"
+while getopts "h" opt; do
+  case "${opt}" in
+  "h")
+    echo "Usage: No options"
+    exit 2
+    ;;
+  *)
+    echo "invalid option: -${OPTARG}"
+    exit 1
+    ;;
+  esac
+done
+
+scripts_dir="$(dirname "${BASH_SOURCE[0]}")"
+source "${scripts_dir}/bazel.sh"
+"${bazel}" version
+
+set -x
+test_args=(
+  "--check_direct_dependencies=off"
 )
 
-git_root=$(git rev-parse --show-toplevel)
-readonly git_root
+targets=(
+  "//toolchain/..."
+)
 
-for image in "${images[@]}"; do
-  docker pull "${image}"
-  docker run --rm --entrypoint=/bin/bash --env USE_BZLMOD --volume="${git_root}:/src:ro" "${image}" -c """
-set -exuo pipefail
+if [[ -z "${common_test_args:-}" ]]; then
+  common_test_args=()
+fi
 
-# Common setup
-export DEBIAN_FRONTEND=noninteractive
-apt-get -qq update
-apt-get -qq -y install curl libtinfo5 libxml2 zlib1g-dev >/dev/null
-# The above command gives some verbose output that can not be silenced easily.
-# https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=288778
-
-# Run tests
-cd /src
-tests/scripts/run_tests.sh
-"""
-done
+"${bazel}" ${TEST_MIGRATION:+"--strict"} --bazelrc=/dev/null test \
+  "${common_test_args[@]}" "${test_args[@]}" -- "${targets[@]}"

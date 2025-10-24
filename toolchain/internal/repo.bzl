@@ -13,6 +13,7 @@
 # limitations under the License.
 load(
     "//toolchain/internal:common.bzl",
+    _attr_dict = "attr_dict",
     _os = "os",
     _supported_os_arch_keys = "supported_os_arch_keys",
 )
@@ -35,6 +36,13 @@ common_attrs = {
                "in the list of known llvm_distributions using the provided version. " +
                "If unset, a default value is set from the `llvm_version` attribute."),
     ),
+    "extra_llvm_distributions": attr.string_dict(
+        mandatory = False,
+        doc = ("A dictionary that maps distributions to their SHA256 values. " +
+               "It allows for simple additon of llvm distributiosn using the " +
+               "'utils/lvm_checksums.sh' tool. This also allows to use the " +
+               "distributions lists of future toolchain versions."),
+    ),
     "exec_os": attr.string(
         mandatory = False,
         doc = "Execution platform OS, if different from host OS.",
@@ -50,7 +58,10 @@ llvm_repo_attrs.update({
     "llvm_version": attr.string(
         doc = ("One of the supported versions of LLVM, e.g. 12.0.0; used with the " +
                "`auto` value for the `distribution` attribute, and as a default value " +
-               "for the `llvm_versions` attribute."),
+               "for the `llvm_versions` attribute. This value can be set to `first` or " +
+               "`latest` in order to find the respective first or latest LLVM version " +
+               "supported on the OS/arch. Further, requirements can be provided, e.g. " +
+               "`latest:>=17.0.4,!=19.0.7`."),
     ),
     "urls": attr.string_list_dict(
         mandatory = False,
@@ -201,6 +212,14 @@ _compiler_configuration_attrs = {
                "target OS and arch pair you want to override " +
                "({}); empty key overrides all.".format(_target_pairs)),
     ),
+    "fastbuild_compile_flags": attr.string_list_dict(
+        mandatory = False,
+        doc = ("Override for fastbuild_compile_flags, replacing the default values. " +
+               "`{toolchain_path_prefix}` in the flags will be substituted by the path " +
+               "to the root LLVM distribution directory. Provide one list for each " +
+               "target OS and arch pair you want to override " +
+               "({}); empty key overrides all.".format(_target_pairs)),
+    ),
     "opt_compile_flags": attr.string_list_dict(
         mandatory = False,
         doc = ("Override for opt_compile_flags, replacing the default values. " +
@@ -248,6 +267,95 @@ _compiler_configuration_attrs = {
                "to the root LLVM distribution directory. Provide one list for each " +
                "target OS and arch pair you want to override " +
                "({}); empty key overrides all.".format(_target_pairs)),
+    ),
+    # Same as the above flags, but instead of overriding the defaults, it just adds extras
+    "extra_compile_flags": attr.string_list_dict(
+        mandatory = False,
+        doc = ("Extra compile_flags, added after default values. " +
+               "`{toolchain_path_prefix}` in the flags will be substituted by the path " +
+               "to the root LLVM distribution directory. Provide one list for each " +
+               "target OS and arch pair you want to add " +
+               "({}); an empty key adds all.".format(_target_pairs)),
+    ),
+    "extra_cxx_flags": attr.string_list_dict(
+        mandatory = False,
+        doc = ("Extra cxx_flags, added after default values. " +
+               "`{toolchain_path_prefix}` in the flags will be substituted by the path " +
+               "to the root LLVM distribution directory. Provide one list for each " +
+               "target OS and arch pair you want to add " +
+               "({}); an empty key adds all.".format(_target_pairs)),
+    ),
+    "extra_link_flags": attr.string_list_dict(
+        mandatory = False,
+        doc = ("Extra link_flags, added after the default values. " +
+               "`{toolchain_path_prefix}` in the flags will be substituted by the path " +
+               "to the root LLVM distribution directory. Provide one list for each " +
+               "target OS and arch pair you want to add " +
+               "({}); an empty key adds all.".format(_target_pairs)),
+    ),
+    "extra_archive_flags": attr.string_list_dict(
+        mandatory = False,
+        doc = ("Extra archive_flags, added after the default values. " +
+               "`{toolchain_path_prefix}` in the flags will be substituted by the path " +
+               "to the root LLVM distribution directory. Provide one list for each " +
+               "target OS and arch pair you want to add " +
+               "({}); an empty key adds all.".format(_target_pairs)),
+    ),
+    "extra_link_libs": attr.string_list_dict(
+        mandatory = False,
+        doc = ("Extra for link_libs, added after the default values. " +
+               "`{toolchain_path_prefix}` in the flags will be substituted by the path " +
+               "to the root LLVM distribution directory. Provide one list for each " +
+               "target OS and arch pair you want to add " +
+               "({}); an empty key adds all.".format(_target_pairs)),
+    ),
+    "extra_opt_compile_flags": attr.string_list_dict(
+        mandatory = False,
+        doc = ("Extra opt_compile_flags, added after the default values. " +
+               "`{toolchain_path_prefix}` in the flags will be substituted by the path " +
+               "to the root LLVM distribution directory. Provide one list for each " +
+               "target OS and arch pair you want to add " +
+               "({}); an empty key adds all.".format(_target_pairs)),
+    ),
+    "extra_opt_link_flags": attr.string_list_dict(
+        mandatory = False,
+        doc = ("Extra opt_link_flags, added after the default values. " +
+               "`{toolchain_path_prefix}` in the flags will be substituted by the path " +
+               "to the root LLVM distribution directory. Provide one list for each " +
+               "target OS and arch pair you want to add " +
+               "({}); an empty key adds all.".format(_target_pairs)),
+    ),
+    "extra_dbg_compile_flags": attr.string_list_dict(
+        mandatory = False,
+        doc = ("Extra dbg_compile_flags, added after the default values. " +
+               "`{toolchain_path_prefix}` in the flags will be substituted by the path " +
+               "to the root LLVM distribution directory. Provide one list for each " +
+               "target OS and arch pair you want to add " +
+               "({}); an empty key adds all.".format(_target_pairs)),
+    ),
+    "extra_coverage_compile_flags": attr.string_list_dict(
+        mandatory = False,
+        doc = ("Extra coverage_compile_flags, added after the default values. " +
+               "`{toolchain_path_prefix}` in the flags will be substituted by the path " +
+               "to the root LLVM distribution directory. Provide one list for each " +
+               "target OS and arch pair you want to add " +
+               "({}); an empty key adds all.".format(_target_pairs)),
+    ),
+    "extra_coverage_link_flags": attr.string_list_dict(
+        mandatory = False,
+        doc = ("Extra coverage_link_flags, added after the default values. " +
+               "`{toolchain_path_prefix}` in the flags will be substituted by the path " +
+               "to the root LLVM distribution directory. Provide one list for each " +
+               "target OS and arch pair you want to add " +
+               "({}); an empty key adds all.".format(_target_pairs)),
+    ),
+    "extra_unfiltered_compile_flags": attr.string_list_dict(
+        mandatory = False,
+        doc = ("Extra unfiltered_compile_flags, added after the default values. " +
+               "`{toolchain_path_prefix}` in the flags will be substituted by the path " +
+               "to the root LLVM distribution directory. Provide one list for each " +
+               "target OS and arch pair you want to add " +
+               "({}); an empty key adds all.".format(_target_pairs)),
     ),
     "target_settings": attr.string_list_dict(
         mandatory = False,
@@ -327,4 +435,10 @@ def llvm_repo_impl(rctx):
     # do want to make changes, then we should do it through a patch file, and
     # document it for users of toolchain_roots attribute.
 
-    return updated_attrs
+    if hasattr(rctx, "repo_metadata"):
+        if updated_attrs == _attr_dict(rctx.attr):
+            return rctx.repo_metadata(reproducible = True)
+        else:
+            return rctx.repo_metadata(attrs_for_reproducibility = updated_attrs)
+    else:
+        return updated_attrs

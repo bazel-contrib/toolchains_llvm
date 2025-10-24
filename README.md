@@ -50,8 +50,25 @@ We currently offer limited customizability through attributes of the
 [llvm_toolchain\_\* rules](toolchain/rules.bzl). You can send us a PR to add
 more configuration attributes.
 
-The following shows how to add a specific version for a specific target before
-the version was added to [llvm_distributions.bzl](toolchain/internal/llvm_distributions.bzl):
+The `MODULE.bazel` example below demonstrates how to add new LLVM distributions before the toolchain has
+been updated. They can easily be computed using the provided checksum tool (see `llvm_checksums.sh -h`).
+
+```starlark
+llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm", dev_dependency = True)
+llvm.toolchain(
+    name = "llvm_toolchain",
+    llvm_version = "20.1.4",
+    extra_llvm_distributions = {
+        "LLVM-20.1.4-Linux-ARM64.tar.xz": "4de80a332eecb06bf55097fd3280e1c69ed80f222e5bdd556221a6ceee02721a",
+        "LLVM-20.1.4-Linux-X64.tar.xz": "113b54c397adb2039fa45e38dc8107b9ec5a0baead3a3bac8ccfbb65b2340caa",
+        "LLVM-20.1.4-macOS-ARM64.tar.xz": "debb43b7b364c5cf864260d84ba1b201d49b6460fe84b76eaa65688dfadf19d2",
+        "clang+llvm-20.1.4-x86_64-pc-windows-msvc.tar.xz": "2b12ac1a0689e29a38a7c98c409cbfa83f390aea30c60b7a06e4ed73f82d2457",
+    },
+)
+```
+
+The following `WORKSPACE` snippet shows how to add a specific version for a specific target before
+the version was added to [llvm_distributions.bzl](toolchain/internal/llvm_distributions.bzl).
 
 ```starlark
 llvm_toolchain(
@@ -105,6 +122,25 @@ vim bin/cc_wrapper.sh # Review to ensure relative paths, etc. are good.
 See [bazel
 tutorial](https://docs.bazel.build/versions/main/tutorial/cc-toolchain-config.html)
 for how CC toolchains work in general.
+
+### Requirements
+
+Version attributes can be requirements of the form `first`, `first:<condition>`,
+`latest` or `latest:<condition>`.
+
+In case of `latest`, the latest distribution matching the optional `condition`
+will be selected.
+
+In case of `first`, the first distribution matching the optional `condition`
+will be selected.
+
+The condition consists of a comma separated list of semver version comparisons
+supporting `<`, `<=`, `>`, `>=`, `==`, `!=`. Examples:
+
+- `latest`
+- `latest:>=20.1.0`
+- `latest:>17.0.4,!=19.1.7,<=20.1.0`
+- `first:>=15.0.6,<16`
 
 ### Selecting Toolchains
 

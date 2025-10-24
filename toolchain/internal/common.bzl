@@ -18,10 +18,18 @@ SUPPORTED_TARGETS = [
     ("linux", "armv7"),
     ("darwin", "x86_64"),
     ("darwin", "aarch64"),
+    ("none", "riscv32"),
     ("none", "wasm32"),
     ("none", "wasm64"),
+    ("none", "x86_64"),
     ("wasip1", "wasm32"),
     ("wasip1", "wasm64"),
+]
+
+# These are targets that can build without a sysroot.
+SUPPORTED_NO_SYSROOT_TARGETS = [
+    ("none", "riscv32"),
+    ("none", "x86_64"),
 ]
 
 # Map of tool name to its symlinked name in the tools directory.
@@ -55,27 +63,28 @@ _toolchain_tools_darwin = {
 }
 
 def exec_os_key(rctx):
-    (os, version, arch) = os_version_arch(rctx)
-    if version == "":
-        return "%s-%s" % (os, arch)
+    info = host_info(rctx)
+    if info.dist.version == "":
+        return "%s-%s" % (info.os, info.arch)
     else:
-        return "%s-%s-%s" % (os, version, arch)
+        return "%s-%s-%s" % (info.dist.name, info.dist.version, info.arch)
 
 _known_distros = [
-    "freebsd",
-    "suse",
-    "ubuntu",
+    # keep sorted
+    "almalinux",
+    "amzn",
     "arch",
-    "manjaro",
+    "centos",
     "debian",
     "fedora",
-    "centos",
-    "amzn",
-    "raspbian",
-    "pop",
-    "rhel",
+    "freebsd",
+    "manjaro",
     "ol",
-    "almalinux",
+    "pop",
+    "raspbian",
+    "rhel",
+    "suse",
+    "ubuntu",
 ]
 
 def _linux_dist(rctx):
@@ -102,22 +111,30 @@ def _linux_dist(rctx):
 
     return distname, version
 
-def os_version_arch(rctx):
+def host_info(rctx):
     _os = os(rctx)
     _arch = arch(rctx)
 
     if _os == "linux" and not rctx.attr.exec_os:
-        (distname, version) = _linux_dist(rctx)
-        return distname, version, _arch
-
-    return _os, "", _arch
+        dist_name, dist_version = _linux_dist(rctx)
+    else:
+        dist_name = os
+        dist_version = ""
+    return struct(
+        arch = _arch,
+        dist = struct(
+            name = dist_name,
+            version = dist_version,
+        ),
+        os = _os,
+    )
 
 def os(rctx):
     # Less granular host OS name, e.g. linux.
 
     name = rctx.attr.exec_os
     if name:
-        if name in ("linux", "darwin"):
+        if name in ("linux", "darwin", "none"):
             return name
         else:
             fail("Unsupported value for exec_os: %s" % name)

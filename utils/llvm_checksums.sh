@@ -16,15 +16,18 @@
 set -euo pipefail
 
 use_github_host=0
+tmp_dir=
 
-while getopts "v:gh" opt; do
+while getopts "t:v:gh" opt; do
   case "${opt}" in
+  "t") tmp_dir="${OPTARG}" ;;
   "v") llvm_version="${OPTARG}" ;;
   "g") use_github_host=1 ;;
   "h")
     echo "Usage:"
-    echo "-v - Version of clang+llvm to use"
-    echo "-g - Use github to download releases"
+    echo "-t <tempdir> - Optional: Specify a temp directory to download distributions to."
+    echo "-v <version> - Version of clang+llvm to use."
+    echo "-g           - Use github to download releases."
     exit 2
     ;;
   *)
@@ -35,36 +38,42 @@ while getopts "v:gh" opt; do
 done
 
 if [[ -z ${llvm_version-} ]]; then
-  echo "Usage: ${BASH_SOURCE[0]} [-g] -v llvm_version"
+  echo "Usage: ${BASH_SOURCE[0]} [-t <tempdir>] [-g] -v <llvm_version>"
   exit 1
 fi
-
-tmp_dir="$(mktemp -d)"
 
 cleanup() {
   rc=$?
   rm -rf "${tmp_dir}"
   exit "${rc}"
 }
-trap 'cleanup' INT HUP QUIT TERM EXIT
+
+if [[ -z "${tmp_dir}" ]]; then
+  tmp_dir="$(mktemp -d)"
+  echo "Using temp dir: '${tmp_dir}'"
+  trap 'cleanup' INT HUP QUIT TERM EXIT
+elif [[ ! -r "${tmp_dir}" ]]; then
+  echo "Temp directory does not exist: '${tmp_dir}'."
+  exit 2
+fi
 
 llvm_host() {
   local url_base="releases.llvm.org/${llvm_version}"
   output_dir="${tmp_dir}/${url_base}"
   wget --recursive --level 1 --directory-prefix="${tmp_dir}" \
-    --accept-regex "(clang%2bllvm|LLVM)-.*tar.xz$" "http://${url_base}/"
+    --accept-regex "(clang%2bllvm|LLVM)-.*tar.(xz|gz)$" "http://${url_base}/"
 }
 
 github_host() {
-  output_dir="${tmp_dir}"
+  output_dir="${tmp_dir}/${llvm_version}"
+  mkdir -p "${output_dir}"
   (
     cd "${output_dir}"
     curl -s "https://api.github.com/repos/llvm/llvm-project/releases/tags/llvmorg-${llvm_version}" |
-      jq .assets[].browser_download_url |
-      tee ./urls.txt |
-      grep -E '(clang%2Bllvm|LLVM)-.*tar.xz"$' |
+      tee ./releases.json |
+      jq '.assets[]|select(any(.name; test("^(clang[+]llvm|LLVM)-.*tar.(xz|gz)$")))|.browser_download_url' |
       tee ./filtered_urls.txt |
-      xargs -n1 curl -L -O
+      xargs -n1 curl -L -O -C -
   )
 }
 
@@ -76,9 +85,10 @@ fi
 
 echo ""
 echo "===="
-echo "Checksums for clang+llvm distributions are:"
-find "${output_dir}" -type f -name '*.xz' -exec shasum -a 256 {} \; |
+echo "Checksums for clang+llvm distributions are (${output_dir}):"
+echo "    # ${llvm_version}"
+find "${output_dir}" -type f \( -name 'clang%2?llvm-*.tar.*' -o -name 'LLVM-*.tar.*' \) \( -name '*.gz' -o -name '*.xz' \) -exec shasum -a 256 {} \; |
   sed -e "s@${output_dir}/@@" |
-  awk '{ printf "\"%s\": \"%s\",\n", $2, $1 }' |
+  awk '{ printf "    \"%s\": \"%s\",\n", $2, $1 }' |
   sed -e 's/%2[Bb]/+/' |
   sort

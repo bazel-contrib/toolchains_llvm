@@ -33,9 +33,11 @@ load(
     _os_bzl = "os_bzl",
     _os_from_rctx = "os_from_rctx",
     _pkg_path_from_label = "pkg_path_from_label",
+    _supported_no_sysroot_targets = "SUPPORTED_NO_SYSROOT_TARGETS",
     _supported_targets = "SUPPORTED_TARGETS",
     _toolchain_tools = "toolchain_tools",
 )
+load("//toolchain/internal:llvm_distributions.bzl", "is_requirement", "required_llvm_release_name_rctx")
 load(
     "//toolchain/internal:sysroot.bzl",
     _default_sysroot_path = "default_sysroot_path",
@@ -68,7 +70,7 @@ def llvm_config_impl(rctx):
     os = _os(rctx)
     if os == "windows":
         _empty_repository(rctx)
-        return
+        return None
     arch = _arch(rctx)
 
     if not rctx.attr.toolchain_roots:
@@ -79,10 +81,19 @@ def llvm_config_impl(rctx):
     if not toolchain_root:
         fail("LLVM toolchain root missing for ({}, {})".format(os, arch))
     (_key, llvm_version) = _exec_os_arch_dict_value(rctx, "llvm_versions")
+    if is_requirement(llvm_version):
+        llvm_version, distribution, error = required_llvm_release_name_rctx(rctx, llvm_version)
+        if error:
+            fail(error)
+        if llvm_version:
+            print("\nINFO: Resolved latest LLVM version to {llvm_version}: {distribution}".format(
+                distribution = distribution,
+                llvm_version = llvm_version,
+            ))  # buildifier: disable=print
     if not llvm_version:
         # LLVM version missing for (os, arch)
         _empty_repository(rctx)
-        return
+        return None
     use_absolute_paths_llvm = rctx.attr.absolute_paths
     use_absolute_paths_sysroot = use_absolute_paths_llvm
 
@@ -164,6 +175,7 @@ def llvm_config_impl(rctx):
         link_flags_dict = rctx.attr.link_flags,
         archive_flags_dict = rctx.attr.archive_flags,
         link_libs_dict = rctx.attr.link_libs,
+        fastbuild_compile_flags_dict = rctx.attr.fastbuild_compile_flags,
         opt_compile_flags_dict = rctx.attr.opt_compile_flags,
         opt_link_flags_dict = rctx.attr.opt_link_flags,
         dbg_compile_flags_dict = rctx.attr.dbg_compile_flags,
@@ -174,6 +186,17 @@ def llvm_config_impl(rctx):
         extra_compiler_files = rctx.attr.extra_compiler_files,
         extra_exec_compatible_with = rctx.attr.extra_exec_compatible_with,
         extra_target_compatible_with = rctx.attr.extra_target_compatible_with,
+        extra_compile_flags_dict = rctx.attr.extra_compile_flags,
+        extra_cxx_flags_dict = rctx.attr.extra_cxx_flags,
+        extra_link_flags_dict = rctx.attr.extra_link_flags,
+        extra_archive_flags_dict = rctx.attr.extra_archive_flags,
+        extra_link_libs_dict = rctx.attr.extra_link_libs,
+        extra_opt_compile_flags_dict = rctx.attr.extra_opt_compile_flags,
+        extra_opt_link_flags_dict = rctx.attr.extra_opt_link_flags,
+        extra_dbg_compile_flags_dict = rctx.attr.extra_dbg_compile_flags,
+        extra_coverage_compile_flags_dict = rctx.attr.extra_coverage_compile_flags,
+        extra_coverage_link_flags_dict = rctx.attr.extra_coverage_link_flags,
+        extra_unfiltered_compile_flags_dict = rctx.attr.extra_unfiltered_compile_flags,
     )
     exec_dl_ext = "dylib" if os == "darwin" else "so"
     cc_toolchains_str, toolchain_labels_str = _cc_toolchains_str(
@@ -225,6 +248,11 @@ def llvm_config_impl(rctx):
             "%{toolchain_path_prefix}": llvm_dist_path_prefix,
         },
     )
+
+    if hasattr(rctx, "repo_metadata"):
+        return rctx.repo_metadata(reproducible = True)
+    else:
+        return None
 
 def _cc_toolchains_str(
         rctx,
@@ -300,9 +328,11 @@ def _cc_toolchain_str(
         if exec_os == target_os and exec_arch == target_arch:
             # For darwin -> darwin, we can use the macOS SDK path.
             sysroot_path = _default_sysroot_path(rctx, exec_os)
+        elif (target_os, target_arch) in _supported_no_sysroot_targets:
+            sysroot_path = ""
         else:
             # We are trying to cross-compile without a sysroot, let's bail.
-            # TODO: Are there situations where we can continue?
+            # TODO: Are there other situations where we can continue?
             return ""
 
     extra_files_str = "\":internal-use-files\""
@@ -323,6 +353,8 @@ def _cc_toolchain_str(
         "linux-aarch64": "aarch64-unknown-linux-gnu",
         "linux-armv7": "armv7-unknown-linux-gnueabihf",
         "linux-x86_64": "x86_64-unknown-linux-gnu",
+        "none-riscv32": "riscv32-unknown-none-elf",
+        "none-x86_64": "x86_64-unknown-none",
         "wasm32": "wasm32-unknown-unknown",
         "wasm64": "wasm64-unknown-unknown",
         "wasip1-wasm32": "wasm32-wasip1",
@@ -386,12 +418,24 @@ cc_toolchain_config(
       "link_flags": {link_flags},
       "archive_flags": {archive_flags},
       "link_libs": {link_libs},
+      "fastbuild_compile_flags": {fastbuild_compile_flags},
       "opt_compile_flags": {opt_compile_flags},
       "opt_link_flags": {opt_link_flags},
       "dbg_compile_flags": {dbg_compile_flags},
       "coverage_compile_flags": {coverage_compile_flags},
       "coverage_link_flags": {coverage_link_flags},
       "unfiltered_compile_flags": {unfiltered_compile_flags},
+      "extra_compile_flags": {extra_compile_flags},
+      "extra_cxx_flags": {extra_cxx_flags},
+      "extra_link_flags": {extra_link_flags},
+      "extra_archive_flags": {extra_archive_flags},
+      "extra_link_libs": {extra_link_libs},
+      "extra_opt_compile_flags": {extra_opt_compile_flags},
+      "extra_opt_link_flags": {extra_opt_link_flags},
+      "extra_dbg_compile_flags": {extra_dbg_compile_flags},
+      "extra_coverage_compile_flags": {extra_coverage_compile_flags},
+      "extra_coverage_link_flags": {extra_coverage_link_flags},
+      "extra_unfiltered_compile_flags": {extra_unfiltered_compile_flags},
     }},
     cxx_builtin_include_directories = {cxx_builtin_include_directories},
     major_llvm_version = {major_llvm_version},
@@ -522,6 +566,7 @@ cc_toolchain(
     strip_files = "strip-files-{suffix}",
     toolchain_config = "local-{suffix}",
     module_map = "module-{suffix}",
+    supports_header_parsing = True,
 )
 """
 
@@ -559,12 +604,24 @@ cc_toolchain(
         link_flags = _list_to_string(_dict_value(toolchain_info.link_flags_dict, target_pair)),
         archive_flags = _list_to_string(_dict_value(toolchain_info.archive_flags_dict, target_pair)),
         link_libs = _list_to_string(_dict_value(toolchain_info.link_libs_dict, target_pair)),
+        fastbuild_compile_flags = _list_to_string(_dict_value(toolchain_info.fastbuild_compile_flags_dict, target_pair)),
         opt_compile_flags = _list_to_string(_dict_value(toolchain_info.opt_compile_flags_dict, target_pair)),
         opt_link_flags = _list_to_string(_dict_value(toolchain_info.opt_link_flags_dict, target_pair)),
         dbg_compile_flags = _list_to_string(_dict_value(toolchain_info.dbg_compile_flags_dict, target_pair)),
         coverage_compile_flags = _list_to_string(_dict_value(toolchain_info.coverage_compile_flags_dict, target_pair)),
         coverage_link_flags = _list_to_string(_dict_value(toolchain_info.coverage_link_flags_dict, target_pair)),
         unfiltered_compile_flags = _list_to_string(_dict_value(toolchain_info.unfiltered_compile_flags_dict, target_pair)),
+        extra_compile_flags = _list_to_string(_dict_value(toolchain_info.extra_compile_flags_dict, target_pair)),
+        extra_cxx_flags = _list_to_string(_dict_value(toolchain_info.extra_cxx_flags_dict, target_pair)),
+        extra_link_flags = _list_to_string(_dict_value(toolchain_info.extra_link_flags_dict, target_pair)),
+        extra_archive_flags = _list_to_string(_dict_value(toolchain_info.extra_archive_flags_dict, target_pair)),
+        extra_link_libs = _list_to_string(_dict_value(toolchain_info.extra_link_libs_dict, target_pair)),
+        extra_opt_compile_flags = _list_to_string(_dict_value(toolchain_info.extra_opt_compile_flags_dict, target_pair)),
+        extra_opt_link_flags = _list_to_string(_dict_value(toolchain_info.extra_opt_link_flags_dict, target_pair)),
+        extra_dbg_compile_flags = _list_to_string(_dict_value(toolchain_info.extra_dbg_compile_flags_dict, target_pair)),
+        extra_coverage_compile_flags = _list_to_string(_dict_value(toolchain_info.extra_coverage_compile_flags_dict, target_pair)),
+        extra_coverage_link_flags = _list_to_string(_dict_value(toolchain_info.extra_coverage_link_flags_dict, target_pair)),
+        extra_unfiltered_compile_flags = _list_to_string(_dict_value(toolchain_info.extra_unfiltered_compile_flags_dict, target_pair)),
         extra_files_str = extra_files_str,
         cxx_builtin_include_directories = _list_to_string(filtered_cxx_builtin_include_directories),
         extra_compiler_files = ("\"%s\"," % str(toolchain_info.extra_compiler_files)) if toolchain_info.extra_compiler_files else "",
