@@ -24,7 +24,7 @@ bazel_dep(name = "bazel_skylib", version = "1.5.0")
 bazel_dep(name = "aspect_bazel_lib", version = "2.0.0")
 bazel_dep(name = "rules_cc", version = "0.2.2")
 bazel_dep(name = "platforms", version = "0.0.8")
-bazel_dep(name = "helly25_bzl", version = "0.1.2")
+bazel_dep(name = "helly25_bzl", version = "0.3.1")
 
 bazel_dep(name = "tar.bzl", version = "0.6.0")
 tar_toolchains = use_extension("@tar.bzl//tar:extensions.bzl", "toolchains")

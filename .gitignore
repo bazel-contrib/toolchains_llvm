@@ -3,3 +3,4 @@
 /toolchain/tools/__pycache__
 /toolchain/tools/host_os_key.pyc
 MODULE.bazel.lock
+/.bazelrc.user
