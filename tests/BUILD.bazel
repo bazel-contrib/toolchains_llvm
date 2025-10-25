@@ -14,6 +14,7 @@
 
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load(":transitions.bzl", "dwp_file", "transition_library_to_platform")
 
 cc_library(
