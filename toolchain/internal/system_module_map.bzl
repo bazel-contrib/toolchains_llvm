@@ -70,7 +70,12 @@ def _system_module_map(ctx):
         path = paths.normalize(sysroot_files[0].path).replace("//", "/")
         template_dict.add("%sysroot%", _umbrella_submodule(execroot_prefix + path))
     else:
-        print("WARNING: Sysroot {} did not resolve to a single (directory) file. Consider using the `sysroot` repository rule in @toolchains_llvm//toolchain:sysroot.bzl for more efficient builds.".format(ctx.attr.sysroot_files.label))  # buildifier: disable=print
+        if sysroot_files:
+            # buildifier: disable=print
+            print("WARNING: Sysroot {} resolved to {} files. Consider using the `sysroot` repository rule in @toolchains_llvm//toolchain:sysroot.bzl which provides a single-file (directory) sysroot for more efficient builds.".format(
+                ctx.attr.sysroot_files.label,
+                len(sysroot_files),
+            ))
         template_dict.add_joined(
             "%sysroot%",
             ctx.attr.sysroot_files[DefaultInfo].files,
