@@ -55,20 +55,29 @@ def _system_module_map(ctx):
         execroot_prefix = execroot_prefix,
     )
 
+    umbrella_submodule_closure = lambda file: _umbrella_submodule(
+        execroot_prefix + paths.normalize(file.path).replace("//", "/"),
+    )
+
     template_dict = ctx.actions.template_dict()
+
+    cxx_builtin_files = ctx.attr.cxx_builtin_include_files[DefaultInfo].files
+    if len(cxx_builtin_files.to_list()) == 2:
+        cxx_builtin_include_files_closure = umbrella_submodule_closure
+    else:
+        cxx_builtin_include_files_closure = textual_header_closure
     template_dict.add_joined(
         "%cxx_builtin_include_files%",
-        ctx.attr.cxx_builtin_include_files[DefaultInfo].files,
+        cxx_builtin_files,
         join_with = "\n",
-        map_each = textual_header_closure,
+        map_each = cxx_builtin_include_files_closure,
         allow_closure = True,
     )
 
     # We don't have a good way to detect a source directory, so check if it's a single File...
     sysroot_files = ctx.attr.sysroot_files[DefaultInfo].files.to_list()
     if len(sysroot_files) == 1:
-        path = paths.normalize(sysroot_files[0].path).replace("//", "/")
-        template_dict.add("%sysroot%", _umbrella_submodule(execroot_prefix + path))
+        template_dict.add("%sysroot%", umbrella_submodule_closure(sysroot_files[0]))
     else:
         print("WARNING: Sysroot {} did not resolve to a single (directory) file. Consider using the `sysroot` repository rule in @toolchains_llvm//toolchain:sysroot.bzl for more efficient builds.".format(ctx.attr.sysroot_files.label))  # buildifier: disable=print
         template_dict.add_joined(

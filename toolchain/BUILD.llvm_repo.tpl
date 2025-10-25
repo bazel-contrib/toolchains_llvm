@@ -62,6 +62,14 @@ filegroup(
 )
 
 filegroup(
+    name = "cxx_builtin_include",
+    srcs = [
+        "include/c++",
+        "lib/clang/{LLVM_VERSION}/include",
+    ],
+)
+
+filegroup(
     name = "bin",
     srcs = glob(["bin/**"]),
 )
