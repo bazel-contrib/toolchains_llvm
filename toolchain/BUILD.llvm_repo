@@ -70,18 +70,14 @@ filegroup(
     name = "lib",
     srcs = glob(
         [
-            "lib/**/lib*.a",
-            "lib/clang/*/lib/**/*.a",
-            "lib/clang/*/lib/**/*.dylib",
+            "lib/**/libc++*.a",
+            "lib/**/libunwind.a",
+            # TODO(zbarsky): `lib/clang/<VERSION>` can be a source directory
+            "lib/clang/*/lib/**",
             # clang_rt.*.o supply crtbegin and crtend sections.
             "lib/**/clang_rt.*.o",
         ],
         allow_empty = True,
-        exclude = [
-            "lib/libLLVM*.a",
-            "lib/libclang*.a",
-            "lib/liblld*.a",
-        ],
     ),
     # Include the .dylib files in the linker sandbox even though they will
     # not be available at runtime to allow sanitizers to work locally.
