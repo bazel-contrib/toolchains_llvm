@@ -320,7 +320,7 @@ def _cc_toolchain_str(
     sysroot_path = toolchain_info.sysroot_paths_dict.get(target_pair)
     sysroot_label = toolchain_info.sysroot_labels_dict.get(target_pair)
     if sysroot_label:
-        sysroot_label_str = "\"%s\"" % str(sysroot_label)
+        sysroot_label_str = repr(str(sysroot_label))
     else:
         sysroot_label_str = ""
 
@@ -467,6 +467,11 @@ filegroup(
     if use_absolute_paths_llvm:
         template = template + """
 filegroup(
+    name = "cxx_builtin_include_files-{suffix}",
+    srcs = [],
+)
+
+filegroup(
     name = "compiler-components-{suffix}",
     srcs = [
         ":sysroot-components-{suffix}",
@@ -499,10 +504,17 @@ filegroup(name = "strip-files-{suffix}", srcs = [{extra_files_str}])
     else:
         template = template + """
 filegroup(
-    name = "compiler-components-{suffix}",
+    name = "cxx_builtin_include_files-{suffix}",
     srcs = [
         "{llvm_dist_label_prefix}clang",
         "{llvm_dist_label_prefix}include",
+    ],
+)
+
+filegroup(
+    name = "compiler-components-{suffix}",
+    srcs = [
+        ":cxx_builtin_include_files-{suffix}",
         ":sysroot-components-{suffix}",
         {extra_compiler_files}
     ],
@@ -539,18 +551,11 @@ filegroup(name = "strip-files-{suffix}", srcs = ["{llvm_dist_label_prefix}strip"
 """
 
     template = template + """
-filegroup(
-    name = "include-components-{suffix}",
-    srcs = [
-        ":compiler-components-{suffix}",
-        ":sysroot-components-{suffix}",
-    ],
-)
-
 system_module_map(
     name = "module-{suffix}",
-    cxx_builtin_include_files = ":include-components-{suffix}",
+    cxx_builtin_include_files = ":cxx_builtin_include_files-{suffix}",
     cxx_builtin_include_directories = {cxx_builtin_include_directories},
+    sysroot_files = ":sysroot-components-{suffix}",
     sysroot_path = "{sysroot_path}",
 )
 

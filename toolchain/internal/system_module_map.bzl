@@ -57,12 +57,28 @@ def _system_module_map(ctx):
 
     template_dict = ctx.actions.template_dict()
     template_dict.add_joined(
-        "%textual_headers%",
+        "%cxx_builtin_include_files%",
         ctx.attr.cxx_builtin_include_files[DefaultInfo].files,
         join_with = "\n",
         map_each = textual_header_closure,
         allow_closure = True,
     )
+
+    # We don't have a good way to detect a source directory, so check if it's a single File...
+    sysroot_files = ctx.attr.sysroot_files[DefaultInfo].files.to_list()
+    if len(sysroot_files) == 1:
+        path = paths.normalize(sysroot_files[0].path).replace("//", "/")
+        template_dict.add("%sysroot%", _umbrella_submodule(execroot_prefix + path))
+    else:
+        print("WARNING: Sysroot {} did not resolve to a single (directory) file. Consider using the `sysroot` repository rule in @toolchains_llvm//toolchain:sysroot.bzl for more efficient builds.".format(ctx.attr.sysroot_files.label))  # buildifier: disable=print
+        template_dict.add_joined(
+            "%sysroot%",
+            ctx.attr.sysroot_files[DefaultInfo].files,
+            join_with = "\n",
+            map_each = textual_header_closure,
+            allow_closure = True,
+        )
+
     template_dict.add_joined(
         "%umbrella_submodules%",
         depset(absolute_path_dirs),
@@ -87,6 +103,7 @@ system_module_map = rule(
     attrs = {
         "cxx_builtin_include_files": attr.label(mandatory = True),
         "cxx_builtin_include_directories": attr.string_list(mandatory = True),
+        "sysroot_files": attr.label(),
         "sysroot_path": attr.string(),
         "_module_map_template": attr.label(
             default = "template.modulemap",
