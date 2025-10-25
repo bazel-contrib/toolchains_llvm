@@ -55,20 +55,27 @@ def _system_module_map(ctx):
         execroot_prefix = execroot_prefix,
     )
 
+    umbrella_submodule_closure = lambda file: _umbrella_submodule(
+        execroot_prefix + paths.normalize(file.path).replace("//", "/"),
+    )
+
     template_dict = ctx.actions.template_dict()
+
+    # If provided, cxx_builtin_files should be a filegroup with 2 source directory entries:
+    #  - include/c++
+    #  - lib/clang/<VERSION>/include
     template_dict.add_joined(
         "%cxx_builtin_include_files%",
         ctx.attr.cxx_builtin_include_files[DefaultInfo].files,
         join_with = "\n",
-        map_each = textual_header_closure,
+        map_each = umbrella_submodule_closure,
         allow_closure = True,
     )
 
     # We don't have a good way to detect a source directory, so check if it's a single File...
     sysroot_files = ctx.attr.sysroot_files[DefaultInfo].files.to_list()
     if len(sysroot_files) == 1:
-        path = paths.normalize(sysroot_files[0].path).replace("//", "/")
-        template_dict.add("%sysroot%", _umbrella_submodule(execroot_prefix + path))
+        template_dict.add("%sysroot%", umbrella_submodule_closure(sysroot_files[0]))
     else:
         if sysroot_files:
             # buildifier: disable=print

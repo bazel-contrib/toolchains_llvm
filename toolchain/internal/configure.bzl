@@ -76,11 +76,11 @@ def llvm_config_impl(rctx):
     if not rctx.attr.toolchain_roots:
         toolchain_root = ("@" if BZLMOD_ENABLED else "") + "@%s_llvm//" % rctx.attr.name
     else:
-        (_key, toolchain_root) = _exec_os_arch_dict_value(rctx, "toolchain_roots")
+        _, toolchain_root = _exec_os_arch_dict_value(rctx, "toolchain_roots")
 
     if not toolchain_root:
         fail("LLVM toolchain root missing for ({}, {})".format(os, arch))
-    (_key, llvm_version) = _exec_os_arch_dict_value(rctx, "llvm_versions")
+    _, llvm_version = _exec_os_arch_dict_value(rctx, "llvm_versions")
     if is_requirement(llvm_version):
         llvm_version, distribution, error = required_llvm_release_name_rctx(rctx, llvm_version)
         if error:
@@ -135,10 +135,6 @@ def llvm_config_impl(rctx):
         tools = _toolchain_tools(os)
         for tool_name, symlink_name in tools.items():
             rctx.symlink(llvm_dist_rel_path + "bin/" + tool_name, tools_path_prefix + symlink_name)
-        symlinked_tools_str = "".join([
-            "\n" + (" " * 8) + "\"" + tools_path_prefix + symlink_name + "\","
-            for symlink_name in tools.values()
-        ])
     else:
         llvm_dist_rel_path = llvm_dist_path_prefix
         llvm_dist_label_prefix = llvm_dist_path_prefix
@@ -147,7 +143,6 @@ def llvm_config_impl(rctx):
         # No symlinking necessary when using absolute paths.
         wrapper_bin_prefix = "bin/"
         tools_path_prefix = llvm_dist_path_prefix + "bin/"
-        symlinked_tools_str = ""
 
     sysroot_paths_dict, sysroot_labels_dict = _sysroot_paths_dict(
         rctx,
@@ -230,8 +225,7 @@ def llvm_config_impl(rctx):
         {
             "%{cc_toolchain_config_bzl}": str(rctx.attr._cc_toolchain_config_bzl),
             "%{cc_toolchains}": cc_toolchains_str,
-            "%{symlinked_tools}": symlinked_tools_str,
-            "%{wrapper_bin_prefix}": wrapper_bin_prefix,
+            "%{tools_dir}": wrapper_bin_prefix.removesuffix("/"),
             "%{convenience_targets}": convenience_targets_str,
         },
     )
@@ -335,7 +329,7 @@ def _cc_toolchain_str(
             # TODO: Are there other situations where we can continue?
             return ""
 
-    extra_files_str = "\":internal-use-files\""
+    extra_files_str = repr(":internal-use-tools")
 
     # C++ built-in include directories.
     # This contains both the includes shipped with the compiler as well as the sysroot (or host)
@@ -360,16 +354,23 @@ def _cc_toolchain_str(
         "wasip1-wasm32": "wasm32-wasip1",
         "wasip1-wasm64": "wasm64-wasip1",
     }[target_pair]
+
     cxx_builtin_include_directories = [
         toolchain_path_prefix + "include/c++/v1",
+        toolchain_path_prefix + "lib/clang/{}/include".format(
+            major_llvm_version if major_llvm_version >= 16 else llvm_version,
+        ),
+        # Note(zbarsky): We could avoid this path if we renamed `include/{target_system_name}/c++/v1/__config_site` to `include/c++/v1/__config_site` in the LLVM repo.
+        # However, that would preclude sharing it across multiple toolchain definitions.
         toolchain_path_prefix + "include/{}/c++/v1".format(target_system_name),
-        toolchain_path_prefix + "lib/clang/{}/include".format(llvm_version),
-        toolchain_path_prefix + "lib/clang/{}/share".format(llvm_version),
-        toolchain_path_prefix + "lib64/clang/{}/include".format(llvm_version),
-        toolchain_path_prefix + "lib/clang/{}/include".format(major_llvm_version),
-        toolchain_path_prefix + "lib/clang/{}/share".format(major_llvm_version),
-        toolchain_path_prefix + "lib64/clang/{}/include".format(major_llvm_version),
     ]
+
+    # TODO(zbarsky): Not sure if these lib64 paths are actually needed for system toolchains?
+    if use_absolute_paths_llvm:
+        cxx_builtin_include_directories.extend([
+            toolchain_path_prefix + "lib64/clang/{}/include".format(llvm_version),
+            toolchain_path_prefix + "lib64/clang/{}/include".format(major_llvm_version),
+        ])
 
     sysroot_prefix = ""
     if sysroot_path:
@@ -505,10 +506,7 @@ filegroup(name = "strip-files-{suffix}", srcs = [{extra_files_str}])
         template = template + """
 filegroup(
     name = "cxx_builtin_include_files-{suffix}",
-    srcs = [
-        "{llvm_dist_label_prefix}clang",
-        "{llvm_dist_label_prefix}include",
-    ],
+    srcs = ["{llvm_dist_label_prefix}cxx_builtin_include"],
 )
 
 filegroup(
@@ -516,6 +514,8 @@ filegroup(
     srcs = [
         ":cxx_builtin_include_files-{suffix}",
         ":sysroot-components-{suffix}",
+        "{llvm_dist_label_prefix}extra_config_site",
+        "{llvm_dist_label_prefix}clang",
         {extra_compiler_files}
     ],
 )
