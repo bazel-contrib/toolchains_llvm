@@ -40,6 +40,6 @@ disable_wasm_tests='-W'
 
 # Run tests
 cd /src
-tests/scripts/run_tests.sh \${disable_wasm_tests}
+tests/scripts/run_tests.sh -t'@llvm_toolchain_16//:cc-toolchain-x86_64-linux' \${disable_wasm_tests}
 """
 done

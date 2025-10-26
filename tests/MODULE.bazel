@@ -63,11 +63,19 @@ llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
 # When updating this version, also update the versions associated with
 # llvm_toolchain below, sys_paths_test in the workflows file, and xcompile_test
 # through the `llvm_toolchain_with_sysroot` toolchain.
-# We use C++17 and the first LLVM version with full suppor is 16.0.0.
+# We use C++17 and the first LLVM version with full support is 16.0.0.
 # We also use C++20 which has reasonable wide support starting with LLVM 17.0.0.
 # MacOS X86 does not exist for LLVM 17 or 18, so we allow 19 as well.
 LLVM_VERSIONS = {
     "": "first:>=17.0.0,<20",
+}
+
+# Some tests do not yet work with LLVM versions > 16, so we define a separate
+# version set.
+LLVM_VERSIONS_16 = {
+    "": "16.0.0",
+    "darwin-aarch64": "16.0.5",
+    "darwin-x86_64": "15.0.7",
 }
 
 llvm.toolchain(
@@ -82,6 +90,20 @@ llvm.extra_target_compatible_with(
 use_repo(llvm, "llvm_toolchain", "llvm_toolchain_llvm")
 
 register_toolchains("@llvm_toolchain//:all")
+
+llvm.toolchain(
+    name = "llvm_toolchain_16",
+    cxx_standard = {"": "c++17"},
+    llvm_versions = LLVM_VERSIONS_16,
+)
+llvm.extra_target_compatible_with(
+    name = "llvm_toolchain_16",
+    constraints = ["@//:cxx17"],
+)
+use_repo(llvm, "llvm_toolchain_16")
+
+register_toolchains("@llvm_toolchain_16//:all")
+
 
 llvm.toolchain(
     name = "llvm_toolchain_cxx20",
@@ -150,7 +172,7 @@ use_repo(llvm, "llvm_toolchain_with_absolute_paths")
 # Toolchain example with system LLVM; tested in GitHub CI.
 llvm.toolchain(
     name = "llvm_toolchain_with_system_llvm",
-    llvm_versions = LLVM_VERSIONS,
+    llvm_versions = LLVM_VERSIONS_16,
 )
 
 # For this toolchain to work, the LLVM distribution archive would need to be unpacked here.
@@ -163,7 +185,7 @@ use_repo(llvm, "llvm_toolchain_with_system_llvm")
 # Toolchain example with a sysroot.
 llvm.toolchain(
     name = "llvm_toolchain_with_sysroot",
-    llvm_versions = LLVM_VERSIONS,
+    llvm_versions = LLVM_VERSIONS_16,
 )
 
 # We can share the downloaded LLVM distribution with the first configuration.
