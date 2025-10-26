@@ -1192,7 +1192,7 @@ def _distribution_urls(rctx):
     all_llvm_distributions = _get_all_llvm_distributions(
         llvm_distributions = _llvm_distributions,
         extra_llvm_distributions = rctx.attr.extra_llvm_distributions,
-        parsed_llvm_version = _parse_version(llvm_version),
+        parsed_llvm_version = _parse_version(llvm_version) if not is_requirement(llvm_version) else None,
     )
     _, sha256, strip_prefix, _ = _key_attrs(rctx)
 
