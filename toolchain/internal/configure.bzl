@@ -82,7 +82,13 @@ def llvm_config_impl(rctx):
         fail("LLVM toolchain root missing for ({}, {})".format(os, arch))
     (_key, llvm_version) = _exec_os_arch_dict_value(rctx, "llvm_versions")
     if is_requirement(llvm_version):
+        print("INFO: Resolving LLVM version requirement '{req}'...".format(req = llvm_version))  # buildifier: disable=print
         llvm_version, distribution, error = required_llvm_release_name_rctx(rctx, llvm_version)
+        print("INFO: Resolved LLVM version requirement '{req}' to version '{ver}' from distribution '{dist}'".format(
+            req = llvm_version,
+            ver = llvm_version,
+            dist = distribution,
+        ))  # buildifier: disable=print
         if error:
             fail(error)
         if llvm_version:

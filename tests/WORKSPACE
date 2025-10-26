@@ -48,10 +48,10 @@ load("@toolchains_llvm//toolchain:rules.bzl", "llvm_toolchain")
 # When updating this version, also update the versions associated with
 # llvm_toolchain below, sys_paths_test in the workflows file, and xcompile_test
 # through the `llvm_toolchain_with_sysroot` toolchain.
+# We use C++17 and the first LLVM version with full suppor is 16.0.0.
+# We also use C++20 which has reasonable wide support starting with LLVM 17.0.0.
 LLVM_VERSIONS = {
-    "": "16.0.0",
-    "darwin-aarch64": "16.0.5",
-    "darwin-x86_64": "15.0.7",
+    "": "first:>=17.0.0,<18",
 }
 
 llvm_toolchain(
@@ -253,18 +253,20 @@ http_archive(
 
 http_archive(
     name = "openssl",
-    build_file = "//openssl:openssl.bazel",
-    sha256 = "f6fb3079ad15076154eda9413fed42877d668e7069d9b87396d0804fdb3f4c90",
-    strip_prefix = "openssl-1.1.1c",
-    urls = ["https://www.openssl.org/source/openssl-1.1.1c.tar.gz"],
+    build_file = "//openssl:BUILD.bazel",
+    integrity = "sha256-d3zVlihMiDN1oqehG/XSeG/FQTJV76sgxQ1v/m0CC34=",
+    strip_prefix = "openssl-3.3.1",
+    url = "https://github.com/openssl/openssl/releases/download/openssl-3.3.1/openssl-3.3.1.tar.gz",
+    patch_cmds = [
+        "cp configs/BUILD.bazel configs",
+    ],
 )
 
 http_archive(
     name = "io_bazel_rules_go",
-    sha256 = "f4a9314518ca6acfa16cc4ab43b0b8ce1e4ea64b81c38d8a3772883f153346b8",
+    sha256 = "54bbb67a4196170cc60ef3b52a2747ad1759cba4764b4c4752b744080ad99947",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.50.1/rules_go-v0.50.1.zip",
-        "https://github.com/bazelbuild/rules_go/releases/download/v0.50.1/rules_go-v0.50.1.zip",
+        "https://github.com/bazelbuild/rules_go/releases/download/v0.58.2/rules_go-v0.58.2.zip",
     ],
 )
 

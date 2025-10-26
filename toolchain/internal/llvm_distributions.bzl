@@ -1163,7 +1163,7 @@ def required_llvm_release_name_rctx(rctx, llvm_version):
     all_llvm_distributions = _get_all_llvm_distributions(
         llvm_distributions = _llvm_distributions,
         extra_llvm_distributions = rctx.attr.extra_llvm_distributions,
-        parsed_llvm_version = _parse_version(llvm_version),
+        parsed_llvm_version = _parse_version(llvm_version) if not is_requirement(llvm_version) else None,
     )
     return _required_llvm_release_name(
         version_or_requirements = llvm_version,
