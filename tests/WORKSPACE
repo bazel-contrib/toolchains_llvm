@@ -48,10 +48,10 @@ load("@toolchains_llvm//toolchain:rules.bzl", "llvm_toolchain")
 # When updating this version, also update the versions associated with
 # llvm_toolchain below, sys_paths_test in the workflows file, and xcompile_test
 # through the `llvm_toolchain_with_sysroot` toolchain.
+# We use C++17 and the first LLVM version with full suppor is 16.0.0.
+# We also use C++20 which has reasonable wide support starting with LLVM 17.0.0.
 LLVM_VERSIONS = {
-    "": "16.0.0",
-    "darwin-aarch64": "16.0.5",
-    "darwin-x86_64": "15.0.7",
+    "": "first:>=17.0.0,<18",
 }
 
 llvm_toolchain(
