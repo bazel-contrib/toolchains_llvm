@@ -1160,7 +1160,6 @@ def _required_llvm_release_name(*, version_or_requirements, all_llvm_distributio
     return None, None, "ERROR: No matching distribution found."
 
 def required_llvm_release_name_rctx(rctx, llvm_version):
-    print("Determining required LLVM release for version/requirement: %s" % llvm_version)  # buildifier: disable=print
     all_llvm_distributions = _get_all_llvm_distributions(
         llvm_distributions = _llvm_distributions,
         extra_llvm_distributions = rctx.attr.extra_llvm_distributions,

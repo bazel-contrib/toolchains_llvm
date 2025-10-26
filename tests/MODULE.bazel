@@ -65,8 +65,9 @@ llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
 # through the `llvm_toolchain_with_sysroot` toolchain.
 # We use C++17 and the first LLVM version with full suppor is 16.0.0.
 # We also use C++20 which has reasonable wide support starting with LLVM 17.0.0.
+# MacOS X86 does not exist for LLVM 17 or 18, so we allow 19 as well.
 LLVM_VERSIONS = {
-    "": "first:>=17.0.0,<18",
+    "": "first:>=17.0.0,<20",
 }
 
 llvm.toolchain(
