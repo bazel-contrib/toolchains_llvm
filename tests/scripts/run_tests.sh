@@ -71,7 +71,7 @@ fi
 # value is only possible by creating a custom rule which is overly complex here.
 if [[ -n "${toolchain_name}" ]]; then
   omp_target="${toolchain_name/\/\/*/}"
-  test_args+=("--define omp=${omp_target/#@/}")
+  test_args+=("--define" "omp=${omp_target/#@/}")
 fi
 
 "${bazel}" ${TEST_MIGRATION:+"--strict"} --bazelrc=/dev/null test \
