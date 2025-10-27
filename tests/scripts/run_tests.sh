@@ -18,9 +18,11 @@ set -euo pipefail
 toolchain_name=""
 disable_wasm_tests=""
 
-while getopts "t:hW" opt; do
+while getopts "t:hOW" opt; do
   case "${opt}" in
-  "t") toolchain_name="${OPTARG}" ;;
+  "t")
+    toolchain_name="${OPTARG}"
+    ;;
   "h")
     echo "Usage:"
     echo "-t - Toolchain name to use for testing; default is llvm_toolchain"
@@ -56,8 +58,20 @@ targets=(
 # :test_cxx_standard_is_20 builds with a version of the default toolchain, if
 # we're trying to build with a different toolchain then it's likely the default
 # toolchain won't work so :test_cxx_standard_is_20 won't build.
-if [[ -z ${toolchain_name} ]]; then
+if [[ -z "${toolchain_name}" ]]; then
   targets+=("//:test_cxx_standard_is_20")
+fi
+
+# If a toolchain is specified, set up OpenMP dependency accordingly.
+# We could just rewrite the BUILD files to depend on the correct omp target, but
+# it is preferable to leave the BUILD file alone and instead pass the correct
+# target via command line so that the BUILD files can be used in other contexts.
+# We do so using a combination of 'constraint_setting' and 'constraint_value'
+# whose possible values must be predefined in the BUILD file. Using the defined
+# value is only possible by creating a custom rule which is overly complex here.
+if [[ -n "${toolchain_name}" ]]; then
+  omp_target="${toolchain_name/\/\/*/}"
+  test_args+=("--define omp=${omp_target/#@/}")
 fi
 
 "${bazel}" ${TEST_MIGRATION:+"--strict"} --bazelrc=/dev/null test \
