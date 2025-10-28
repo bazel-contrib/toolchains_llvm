@@ -29,6 +29,12 @@ filegroup(
     visibility = ["//visibility:private"],
 )
 
+filegroup(
+    name = "internal-use-tools-legacy",
+    srcs = glob(["%{tools_dir}/**"]),
+    visibility = ["//visibility:private"],
+)
+
 %{cc_toolchains}
 
 # Convenience targets from the LLVM toolchain.

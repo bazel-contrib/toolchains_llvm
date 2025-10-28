@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@bazel_features//:features.bzl", "bazel_features")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load(
     "//toolchain:aliases.bzl",
@@ -329,7 +330,7 @@ def _cc_toolchain_str(
             # TODO: Are there other situations where we can continue?
             return ""
 
-    extra_files_str = repr(":internal-use-tools")
+    extra_files_str = repr(":internal-use-tools" if bazel_features.rules.merkle_cache_v2 else ":internal-use-tools-legacy")
 
     # C++ built-in include directories.
     # This contains both the includes shipped with the compiler as well as the sysroot (or host)
@@ -506,7 +507,7 @@ filegroup(name = "strip-files-{suffix}", srcs = [{extra_files_str}])
         template = template + """
 filegroup(
     name = "cxx_builtin_include_files-{suffix}",
-    srcs = ["{llvm_dist_label_prefix}cxx_builtin_include"],
+    srcs = ["{llvm_dist_label_prefix}{cxx_builtin_include_label}"],
 )
 
 filegroup(
@@ -526,7 +527,7 @@ filegroup(
         "{llvm_dist_label_prefix}clang",
         "{llvm_dist_label_prefix}ld",
         "{llvm_dist_label_prefix}ar",
-        "{llvm_dist_label_prefix}lib",
+        "{llvm_dist_label_prefix}{lib_label}",
         ":sysroot-components-{suffix}",
     ],
 )
@@ -629,6 +630,8 @@ cc_toolchain(
         extra_unfiltered_compile_flags = _list_to_string(_dict_value(toolchain_info.extra_unfiltered_compile_flags_dict, target_pair)),
         extra_files_str = extra_files_str,
         cxx_builtin_include_directories = _list_to_string(filtered_cxx_builtin_include_directories),
+        cxx_builtin_include_label = "cxx_builtin_include" if bazel_features.rules.merkle_cache_v2 else "include",
+        lib_label = "lib" if bazel_features.rules.merkle_cache_v2 else "lib_legacy",
         extra_compiler_files = ("\"%s\"," % str(toolchain_info.extra_compiler_files)) if toolchain_info.extra_compiler_files else "",
         major_llvm_version = major_llvm_version,
         extra_exec_compatible_with_specific = toolchain_info.extra_exec_compatible_with.get(target_pair, []),

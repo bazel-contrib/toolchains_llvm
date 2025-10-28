@@ -95,6 +95,18 @@ filegroup(
 )
 
 filegroup(
+    name = "lib_legacy",
+    srcs = glob([
+        # Include the .dylib files in the linker sandbox even though they will
+        # not be available at runtime to allow sanitizers to work locally.
+        # Any library linked from the toolchain to be released should be linked statically.
+        "lib/clang/{LLVM_VERSION}/lib/**",
+        "lib/**/libc++*.a",
+        "lib/**/libunwind.a",
+    ]),
+)
+
+filegroup(
     name = "ar",
     srcs = ["bin/llvm-ar"],
 )
