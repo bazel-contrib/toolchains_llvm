@@ -136,6 +136,10 @@ def llvm_config_impl(rctx):
         tools = _toolchain_tools(os)
         for tool_name, symlink_name in tools.items():
             rctx.symlink(llvm_dist_rel_path + "bin/" + tool_name, tools_path_prefix + symlink_name)
+        symlinked_tools_str = "".join([
+            "\n" + (" " * 8) + "\"" + tools_path_prefix + symlink_name + "\","
+            for symlink_name in tools.values()
+        ])
     else:
         llvm_dist_rel_path = llvm_dist_path_prefix
         llvm_dist_label_prefix = llvm_dist_path_prefix
@@ -144,6 +148,7 @@ def llvm_config_impl(rctx):
         # No symlinking necessary when using absolute paths.
         wrapper_bin_prefix = "bin/"
         tools_path_prefix = llvm_dist_path_prefix + "bin/"
+        symlinked_tools_str = ""
 
     sysroot_paths_dict, sysroot_labels_dict = _sysroot_paths_dict(
         rctx,
@@ -226,6 +231,7 @@ def llvm_config_impl(rctx):
         {
             "%{cc_toolchain_config_bzl}": str(rctx.attr._cc_toolchain_config_bzl),
             "%{cc_toolchains}": cc_toolchains_str,
+            "%{symlinked_tools}": symlinked_tools_str,
             "%{tools_dir}": wrapper_bin_prefix.removesuffix("/"),
             "%{convenience_targets}": convenience_targets_str,
         },

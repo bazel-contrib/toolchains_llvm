@@ -31,7 +31,9 @@ filegroup(
 
 filegroup(
     name = "internal-use-tools-legacy",
-    srcs = glob(["%{tools_dir}/**"]),
+    srcs = [%{symlinked_tools}
+        "%{tools_dir}/cc_wrapper.sh",
+    ],
     visibility = ["//visibility:private"],
 )
 
