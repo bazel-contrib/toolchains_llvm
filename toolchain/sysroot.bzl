@@ -10,7 +10,12 @@ def _sysroot_impl(rctx):
 
     _, _, archive = urls[0].rpartition("/")
 
-    rctx.download(urls, archive, sha256 = rctx.attr.sha256)
+    rctx.download(
+        urls,
+        archive,
+        integrity = rctx.attr.integrity,
+        sha256 = rctx.attr.sha256,
+    )
 
     # Source directories are more efficient than file groups for 2 reasons:
     #   - They can be symlinked into a local sandbox with a single symlink instead of 1-per-file
@@ -39,6 +44,8 @@ def _sysroot_impl(rctx):
         archive,
         "--directory",
         "sysroot",
+        "--strip-components",
+        str(rctx.attr.strip_components),
     ]
 
     for include in rctx.attr.include_patterns:
@@ -63,7 +70,11 @@ sysroot = repository_rule(
     attrs = {
         "url": attr.string(),
         "urls": attr.string_list(),
+        "strip_components": attr.int(
+            doc = "Number of components to strip when extracting (similar to strip_prefix).",
+        ),
         "sha256": attr.string(),
+        "integrity": attr.string(),
         "include_patterns": attr.string_list(),
         "exclude_patterns": attr.string_list(),
     },
