@@ -339,6 +339,7 @@ def cc_toolchain_config(
         # https://github.com/llvm/llvm-project/commit/0556138624edf48621dd49a463dbe12e7101f17d
         cxx_flags.append("-Xclang")
         cxx_flags.append("-fno-cxx-modules")
+        cxx_flags.append("-Wno-module-import-in-extern-c")
 
     opt_link_flags = ["-Wl,--gc-sections"] if target_os == "linux" else []
 

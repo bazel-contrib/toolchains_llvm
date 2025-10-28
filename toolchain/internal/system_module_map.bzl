@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@bazel_features//:features.bzl", "bazel_features")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 
 def _textual_header(file, *, include_prefixes, execroot_prefix):
@@ -61,14 +62,19 @@ def _system_module_map(ctx):
 
     template_dict = ctx.actions.template_dict()
 
-    # If provided, cxx_builtin_files should be a filegroup with 2 source directory entries:
-    #  - include/c++
-    #  - lib/clang/<VERSION>/include
+    if bazel_features.rules.merkle_cache_v2:
+        # If provided, cxx_builtin_files should be a filegroup with 2 source directory entries:
+        #  - include/c++
+        #  - lib/clang/<VERSION>/include
+        cxx_builtin_include_files_closure = umbrella_submodule_closure
+    else:
+        cxx_builtin_include_files_closure = textual_header_closure
+
     template_dict.add_joined(
         "%cxx_builtin_include_files%",
         ctx.attr.cxx_builtin_include_files[DefaultInfo].files,
         join_with = "\n",
-        map_each = umbrella_submodule_closure,
+        map_each = cxx_builtin_include_files_closure,
         allow_closure = True,
     )
 
