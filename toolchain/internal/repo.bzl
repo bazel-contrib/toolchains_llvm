@@ -21,6 +21,8 @@ load(
 load(
     "//toolchain/internal:llvm_distributions.bzl",
     _download_llvm = "download_llvm",
+    _is_requirement = "is_requirement",
+    _required_llvm_release_name_rctx = "required_llvm_release_name_rctx",
 )
 
 _target_pairs = ", ".join(_supported_os_arch_keys())
@@ -425,6 +427,15 @@ def llvm_repo_impl(rctx):
 
     _, llvm_version = _exec_os_arch_dict_value(rctx, "llvm_versions")
 
+    if _is_requirement(llvm_version):
+        llvm_version, distribution, error = _required_llvm_release_name_rctx(rctx, llvm_version)
+        if error:
+            fail(error)
+        if llvm_version:
+            print("\nINFO: Resolved latest LLVM version to {llvm_version}: {distribution}".format(
+                distribution = distribution,
+                llvm_version = llvm_version,
+            ))  # buildifier: disable=print
     major_llvm_version = int(llvm_version.split(".")[0])
 
     rctx.file(
