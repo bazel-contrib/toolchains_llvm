@@ -140,7 +140,7 @@ llvm_toolchain(
 # The llvm_version must match the version specified in .github/workflows/tests.yml: sys_paths_test
 llvm_toolchain(
     name = "llvm_toolchain_with_system_llvm",
-    llvm_versions = "16.0.0",
+    llvm_versions = {"": "16.0.0"},
     # For this toolchain to work, the LLVM distribution archive would need to be unpacked here.
     toolchain_roots = {"": "/opt/llvm-16"},
 )
