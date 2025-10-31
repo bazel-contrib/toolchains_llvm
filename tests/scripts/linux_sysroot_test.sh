@@ -19,6 +19,8 @@ images=(
   "ubuntu:22.04"
 )
 
+LLVM_VERSION="first:>=15.0.0,<17"
+
 git_root=$(git rev-parse --show-toplevel)
 readonly git_root
 
@@ -36,6 +38,6 @@ apt-get -qq -y install curl libtinfo5 libxml2 zlib1g-dev >/dev/null
 
 # Run tests
 cd /src
-tests/scripts/run_tests.sh -t '@llvm_toolchain_with_sysroot//:cc-toolchain-x86_64-linux'
+tests/scripts/run_tests.sh -t '@llvm_toolchain_with_sysroot//:cc-toolchain-x86_64-linux' -v '${LLVM_VERSION}'
 """
 done

@@ -1125,12 +1125,21 @@ def _find_llvm_basename_or_error(llvm_version, all_llvm_distributions, host_info
 
     return basenames[0], None
 
+def _is_requirement(version_or_requirements):
+    """Return whether `version_or_requirements` is likely a requirement (True) or should be a version."""
+    if version_or_requirements.startswith("getenv("):
+        return True
+    for prefix in ["first:", "latest:"]:
+        if version_or_requirements.startswith(prefix) or version_or_requirements == prefix[:-1]:
+            return True
+    return False
+
 def _parse_version_or_requirements(version_or_requirements):
-    if version_or_requirements in ["latest", "first"]:
-        return None
     for prefix in ["latest:", "first:"]:
         if version_or_requirements.startswith(prefix):
             return versions.parse_requirements(version_or_requirements.removeprefix(prefix))
+    if _is_requirement(version_or_requirements):
+        return None
     fail("ERROR: Invalid version requirements: '{version_or_requirements}'.".format(
         version_or_requirements = version_or_requirements,
     ))
@@ -1159,12 +1168,37 @@ def _required_llvm_release_name(*, version_or_requirements, all_llvm_distributio
             return llvm_version, basenames[0], None
     return None, None, "ERROR: No matching distribution found."
 
-def required_llvm_release_name_rctx(rctx, llvm_version):
-    print("Determining required LLVM release for version/requirement: %s" % llvm_version)  # buildifier: disable=print
+def _resolve_llvm_version_rctx(rctx, llvm_version):
+    if llvm_version.startswith("getenv(") and llvm_version.endswith(")"):
+        env_var = llvm_version[len("getenv("):-1]
+        if env_var.find(",") >= 0:
+            env_name, env_default = env_var.split(",", 1)
+        else:
+            env_name = env_var
+            env_default = None
+
+        # We prefer 'repository_ctx.getenv' if it is available (~7.1+) and default
+        # to accessing the environment directly. The latter breaks "hermeticity".
+        if hasattr(rctx, "getenv"):
+            llvm_version = rctx.getenv(env_name, env_default)
+        elif env_name in rctx.os.environ:
+            llvm_version = rctx.os.environ[env_name]
+        else:
+            llvm_version = env_default
+
+        #print("\nINFO: Read environment variable '{env_var}' = '{llvm_version}'".format(
+        #    env_var = env_var,
+        #    llvm_version = llvm_version,
+        #))  # buildifier: disable=print
+
+    return llvm_version
+
+def _required_llvm_release_name_rctx(rctx, llvm_version):
+    llvm_version = _resolve_llvm_version_rctx(rctx, llvm_version)
     all_llvm_distributions = _get_all_llvm_distributions(
         llvm_distributions = _llvm_distributions,
         extra_llvm_distributions = rctx.attr.extra_llvm_distributions,
-        parsed_llvm_version = _parse_version(llvm_version) if not is_requirement(llvm_version) else None,
+        parsed_llvm_version = _parse_version(llvm_version) if not _is_requirement(llvm_version) else None,
     )
     return _required_llvm_release_name(
         version_or_requirements = llvm_version,
@@ -1172,12 +1206,19 @@ def required_llvm_release_name_rctx(rctx, llvm_version):
         host_info = host_info(rctx),
     )
 
-def is_requirement(version_or_requirement):
-    """Return whether `version_or_requirement` is likely a requirement (True) or should be a version."""
-    for prefix in ["first:", "latest:"]:
-        if version_or_requirement.startswith(prefix) or version_or_requirement == prefix[:-1]:
-            return True
-    return False
+def required_llvm_version_rctx(rctx):
+    _, llvm_version = exec_os_arch_dict_value(rctx, "llvm_versions")
+    if _is_requirement(llvm_version):
+        llvm_version, distribution, error = _required_llvm_release_name_rctx(rctx, llvm_version)
+        if error:
+            fail(error)
+        if llvm_version:
+            print("\nINFO: Resolved latest LLVM version for {name} to {llvm_version}: {distribution}".format(
+                name = rctx.attr.name,
+                distribution = distribution,
+                llvm_version = llvm_version,
+            ))  # buildifier: disable=print
+    return llvm_version
 
 def _filter_llvm_distributions(*, llvm_version, all_llvm_distributions):
     """Return (distribution: sha) entries from `all_llvm_distributions` that match `llvm_version`."""
@@ -1193,13 +1234,14 @@ def _distribution_urls(rctx):
     all_llvm_distributions = _get_all_llvm_distributions(
         llvm_distributions = _llvm_distributions,
         extra_llvm_distributions = rctx.attr.extra_llvm_distributions,
-        parsed_llvm_version = _parse_version(llvm_version) if not is_requirement(llvm_version) else None,
+        parsed_llvm_version = _parse_version(llvm_version) if not _is_requirement(llvm_version) else None,
     )
     _, sha256, strip_prefix, _ = _key_attrs(rctx)
 
     if rctx.attr.distribution == "auto":
         rctx_host_info = host_info(rctx)
-        if is_requirement(llvm_version):
+        if _is_requirement(llvm_version):
+            llvm_version = _resolve_llvm_version_rctx(rctx, llvm_version)
             llvm_version, basename, error = _required_llvm_release_name(
                 version_or_requirements = llvm_version,
                 all_llvm_distributions = all_llvm_distributions,

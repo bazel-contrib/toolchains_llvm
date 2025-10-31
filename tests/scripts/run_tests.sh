@@ -17,16 +17,20 @@ set -euo pipefail
 
 toolchain_name=""
 disable_wasm_tests=""
+LLVM_VERSION=""
 
-while getopts "t:hOW" opt; do
+while getopts "ht:v:W" opt; do
   case "${opt}" in
-  "t")
-    toolchain_name="${OPTARG}"
-    ;;
   "h")
     echo "Usage:"
     echo "-t - Toolchain name to use for testing; default is llvm_toolchain"
     exit 2
+    ;;
+  "t")
+    toolchain_name="${OPTARG}"
+    ;;
+  "v")
+    LLVM_VERSION="${OPTARG}"
     ;;
   "W")
     disable_wasm_tests="yes"
@@ -69,19 +73,20 @@ fi
 # We do so using a combination of 'constraint_setting' and 'constraint_value'
 # whose possible values must be predefined in the BUILD file. Using the defined
 # value is only possible by creating a custom rule which is overly complex here.
-if [[ -n "${toolchain_name}" ]]; then
-  omp_target="${toolchain_name/\/\/*/}"
-  test_args+=("--define" "omp=${omp_target/#@/}")
+#if [[ -n "${toolchain_name}" ]]; then
+#  omp_target="${toolchain_name/\/\/*/}"
+#  common_test_args+=("--define" "omp=${omp_target/#@/}")
+#fi
+
+if [[ -n "${LLVM_VERSION}" ]]; then
+  echo "LLVM_VERSION=${LLVM_VERSION}"
   common_test_args+=(
-    "--platforms=@toolchains_llvm//platforms:linux-x86_64"
-  #  "--extra_execution_platforms=@toolchains_llvm//platforms:linux-x86_64"
+    "--repo_env=LLVM_VERSION=${LLVM_VERSION}"
   )
 fi
 
 "${bazel}" ${TEST_MIGRATION:+"--strict"} --bazelrc=/dev/null test \
   "${common_test_args[@]}" "${test_args[@]}" "${targets[@]}"
-
-exit
 
 # Note that the following flags are currently known to cause issues in migration tests:
 # --incompatible_disallow_struct_provider_syntax # https://github.com/bazelbuild/bazel/issues/7347

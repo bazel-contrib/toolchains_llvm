@@ -19,7 +19,7 @@ images=(
   "ubuntu:20.04"
 )
 
-toolchain="@llvm_toolchain_15//:cc-toolchain-x86_64-linux"
+LLVM_VERSION="first:>=15.0.0,<17"
 
 git_root=$(git rev-parse --show-toplevel)
 readonly git_root
@@ -42,6 +42,6 @@ disable_wasm_tests='-W'
 
 # Run tests
 cd /src
-tests/scripts/run_tests.sh -t ${toolchain} \${disable_wasm_tests}
+tests/scripts/run_tests.sh -v '${LLVM_VERSION}' \${disable_wasm_tests}
 """
 done

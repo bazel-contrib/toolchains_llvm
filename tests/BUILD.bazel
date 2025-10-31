@@ -95,29 +95,13 @@ build_test(
     ],
 )
 
-# Define a constraint setting and value for OpenMP testing.
-# Use: bazel ... --define omp=toolchain_16
-# The value is provided automatically by the run_tests.sh script and defaults to
-# the standard llvm_toolchain'. The script removes the '@' and any target.
-constraint_setting(name = "omp")
-
-constraint_value(
-    name = "llvm_toolchain_15",
-    constraint_setting = "omp",
-    visibility = ["//visibility:public"],
-)
-
 # Simple test in C that depends on libomp.
 cc_test(
     name = "omp_test",
     srcs = ["omp_test.c"],
     copts = ["-fopenmp"],
     linkopts = ["-fopenmp"],
-    deps = select({
-        ":llvm_toolchain_15": ["@llvm_toolchain_15//:omp"],
-        #":llvm_toolchain_with_sysroot": ["@llvm_toolchain_with_sysroot//:omp"],
-        "//conditions:default": ["@llvm_toolchain//:omp"],
-    }),
+    deps = ["@llvm_toolchain//:omp"],
 )
 
 # C++ variant of omp_test; needed to check that including the llvm toolchain
@@ -130,11 +114,7 @@ cc_test(
     srcs = ["omp_test.cc"],
     copts = ["-fopenmp"],
     linkopts = ["-fopenmp"],
-    deps = select({
-        ":llvm_toolchain_15": ["@llvm_toolchain_15//:omp"],
-        #":llvm_toolchain_with_sysroot": ["@llvm_toolchain_with_sysroot//:omp"],
-        "//conditions:default": ["@llvm_toolchain//:omp"],
-    }),
+    deps = ["@llvm_toolchain//:omp"],
 )
 
 sh_test(
