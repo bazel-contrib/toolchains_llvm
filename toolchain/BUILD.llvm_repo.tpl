@@ -61,6 +61,21 @@ filegroup(
     ),
 )
 
+# This filegroup should only have source directories, not individual files.
+# We rely on this assumption in system_module_map.bzl.
+filegroup(
+    name = "cxx_builtin_include",
+    srcs = [
+        "include/c++",
+        "lib/clang/{LLVM_VERSION}/include",
+    ],
+)
+
+filegroup(
+    name = "extra_config_site",
+    srcs = glob(["include/*/c++/v1/__config_site"], allow_empty = True)
+)
+
 filegroup(
     name = "bin",
     srcs = glob(["bin/**"]),
@@ -68,20 +83,27 @@ filegroup(
 
 filegroup(
     name = "lib",
-    srcs = glob(
-        [
-            "lib/**/libc++*.a",
-            "lib/**/libunwind.a",
-            # TODO(zbarsky): `lib/clang/<VERSION>` can be a source directory
-            "lib/clang/*/lib/**",
-            # clang_rt.*.o supply crtbegin and crtend sections.
-            "lib/**/clang_rt.*.o",
-        ],
-        allow_empty = True,
-    ),
-    # Include the .dylib files in the linker sandbox even though they will
-    # not be available at runtime to allow sanitizers to work locally.
-    # Any library linked from the toolchain to be released should be linked statically.
+    srcs = [
+        # Include the .dylib files in the linker sandbox even though they will
+        # not be available at runtime to allow sanitizers to work locally.
+        # Any library linked from the toolchain to be released should be linked statically.
+        "lib/clang/{LLVM_VERSION}/lib",
+    ] + glob([
+        "lib/**/libc++*.a",
+        "lib/**/libunwind.a",
+    ]),
+)
+
+filegroup(
+    name = "lib_legacy",
+    srcs = glob([
+        # Include the .dylib files in the linker sandbox even though they will
+        # not be available at runtime to allow sanitizers to work locally.
+        # Any library linked from the toolchain to be released should be linked statically.
+        "lib/clang/{LLVM_VERSION}/lib/**",
+        "lib/**/libc++*.a",
+        "lib/**/libunwind.a",
+    ]),
 )
 
 filegroup(
