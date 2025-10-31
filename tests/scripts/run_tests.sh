@@ -72,10 +72,16 @@ fi
 if [[ -n "${toolchain_name}" ]]; then
   omp_target="${toolchain_name/\/\/*/}"
   test_args+=("--define" "omp=${omp_target/#@/}")
+  common_test_args+=(
+    "--platforms=@toolchains_llvm//platforms:linux-x86_64"
+  #  "--extra_execution_platforms=@toolchains_llvm//platforms:linux-x86_64"
+  )
 fi
 
 "${bazel}" ${TEST_MIGRATION:+"--strict"} --bazelrc=/dev/null test \
   "${common_test_args[@]}" "${test_args[@]}" "${targets[@]}"
+
+exit
 
 # Note that the following flags are currently known to cause issues in migration tests:
 # --incompatible_disallow_struct_provider_syntax # https://github.com/bazelbuild/bazel/issues/7347

@@ -57,7 +57,7 @@ LLVM_VERSIONS = {
 
 # Some tests do not yet work with LLVM versions > 16, so we define a separate
 # version set.
-LLVM_VERSIONS_16 = {
+LLVM_VERSIONS_15 = {
     "": "16.0.0",
     "darwin-aarch64": "16.0.5",
     "darwin-x86_64": "15.0.7",
@@ -73,12 +73,12 @@ llvm_toolchain(
 )
 
 llvm_toolchain(
-    name = "llvm_toolchain_16",
+    name = "llvm_toolchain_15",
     cxx_standard = {"": "c++17"},
     extra_target_compatible_with = {
         "": ["@//:cxx17"],
     },
-    llvm_versions = LLVM_VERSIONS_16,
+    llvm_versions = LLVM_VERSIONS_15,
 )
 
 llvm_toolchain(
@@ -143,7 +143,7 @@ llvm_toolchain(
 ## Toolchain example with system LLVM; tested in GitHub CI.
 llvm_toolchain(
     name = "llvm_toolchain_with_system_llvm",
-    llvm_versions = LLVM_VERSIONS_16,
+    llvm_versions = LLVM_VERSIONS_15,
     # For this toolchain to work, the LLVM distribution archive would need to be unpacked here.
     toolchain_roots = {"": "/opt/llvm-16"},
 )
@@ -161,7 +161,7 @@ sysroot(
 
 llvm_toolchain(
     name = "llvm_toolchain_with_sysroot",
-    llvm_versions = LLVM_VERSIONS_16,
+    llvm_versions = LLVM_VERSIONS_15,
     sysroot = {
         "linux-x86_64": "@org_chromium_sysroot_linux_x64//sysroot",
     },

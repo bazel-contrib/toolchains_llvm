@@ -19,7 +19,7 @@ images=(
   "ubuntu:20.04"
 )
 
-toolchain="@llvm_toolchain_16//:cc-toolchain-x86_64-linux"
+toolchain="@llvm_toolchain_15//:cc-toolchain-x86_64-linux"
 
 git_root=$(git rev-parse --show-toplevel)
 readonly git_root

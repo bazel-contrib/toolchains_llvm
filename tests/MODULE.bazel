@@ -22,7 +22,7 @@ local_path_override(
 
 bazel_dep(name = "bazel_skylib", version = "1.8.2")
 bazel_dep(name = "platforms", version = "1.0.0")
-bazel_dep(name = "rules_cc", version = "0.0.9")
+bazel_dep(name = "rules_cc", version = "0.2.8")
 bazel_dep(name = "rules_go", version = "0.50.1", repo_name = "io_bazel_rules_go")
 bazel_dep(name = "rules_rust", version = "0.67.0")
 bazel_dep(name = "rules_foreign_cc", version = "0.15.0")
@@ -72,10 +72,9 @@ LLVM_VERSIONS = {
 
 # Some tests do not yet work with LLVM versions > 16, so we define a separate
 # version set.
-LLVM_VERSIONS_16 = {
-    "": "16.0.0",
-    "darwin-aarch64": "16.0.5",
-    "darwin-x86_64": "15.0.7",
+LLVM_VERSIONS_15 = {
+    "": "latest:>15.0.0,<16",
+    "darwin-x86_64": "15.0.7",  # Verify this works as opposed to using one version.
 }
 
 llvm.toolchain(
@@ -92,17 +91,20 @@ use_repo(llvm, "llvm_toolchain", "llvm_toolchain_llvm")
 register_toolchains("@llvm_toolchain//:all")
 
 llvm.toolchain(
-    name = "llvm_toolchain_16",
+    name = "llvm_toolchain_15",
     cxx_standard = {"": "c++17"},
-    llvm_versions = LLVM_VERSIONS_16,
+    llvm_versions = LLVM_VERSIONS_15,
 )
 llvm.extra_target_compatible_with(
-    name = "llvm_toolchain_16",
-    constraints = ["@//:cxx17"],
+    name = "llvm_toolchain_15",
+    constraints = [
+        "@//:cxx17",
+        "//:llvm_toolchain_15",
+    ],
 )
-use_repo(llvm, "llvm_toolchain_16")
+use_repo(llvm, "llvm_toolchain_15")
 
-register_toolchains("@llvm_toolchain_16//:all")
+register_toolchains("@llvm_toolchain_15//:all")
 
 
 llvm.toolchain(
@@ -172,7 +174,7 @@ use_repo(llvm, "llvm_toolchain_with_absolute_paths")
 # Toolchain example with system LLVM; tested in GitHub CI.
 llvm.toolchain(
     name = "llvm_toolchain_with_system_llvm",
-    llvm_versions = LLVM_VERSIONS_16,
+    llvm_versions = LLVM_VERSIONS_15,
 )
 
 # For this toolchain to work, the LLVM distribution archive would need to be unpacked here.
@@ -185,7 +187,7 @@ use_repo(llvm, "llvm_toolchain_with_system_llvm")
 # Toolchain example with a sysroot.
 llvm.toolchain(
     name = "llvm_toolchain_with_sysroot",
-    llvm_versions = LLVM_VERSIONS_16,
+    llvm_versions = LLVM_VERSIONS_15,
 )
 
 # We can share the downloaded LLVM distribution with the first configuration.
