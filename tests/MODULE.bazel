@@ -73,7 +73,7 @@ LLVM_VERSIONS = {
 # Some tests do not yet work with LLVM versions > 16, so we define a separate
 # version set.
 LLVM_VERSIONS_15 = {
-    "": "latest:>15.0.0,<16",
+    "": "latest:>15.0.0,<17",
     "darwin-x86_64": "15.0.7",  # Verify this works as opposed to using one version.
 }
 
