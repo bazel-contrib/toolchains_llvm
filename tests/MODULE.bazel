@@ -150,9 +150,10 @@ llvm.toolchain_root(
 use_repo(llvm, "llvm_toolchain_with_absolute_paths")
 
 # Toolchain example with system LLVM; tested in GitHub CI.
+# The llvm_version must match the version specified in .github/workflows/tests.yml: sys_paths_test
 llvm.toolchain(
     name = "llvm_toolchain_with_system_llvm",
-    llvm_versions = LLVM_VERSIONS,
+    llvm_versions = "16.0.0", 
 )
 
 # For this toolchain to work, the LLVM distribution archive would need to be unpacked here.
