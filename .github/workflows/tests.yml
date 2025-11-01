@@ -80,15 +80,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        script:
-          [
+        script: [
             archlinux,
             debian,
             fedora,
             suse_leap,
             suse_tumbleweed,
-            ubuntu_20_04,
+            ubuntu_20_04, # Includes omp tests
             ubuntu_22_04,
+            ubuntu_24_04,
             linux_sysroot,
           ]
         bzlmod: [true, false]
