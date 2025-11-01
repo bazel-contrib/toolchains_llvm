@@ -696,7 +696,7 @@ _llvm_distributions = {
     "LLVM-21.1.3-Linux-X64.tar.xz": "52866dc560a4c00c12fed63a006d629108117e2282fd37875887961dd7b5f6f8",
     "clang+llvm-21.1.3-aarch64-pc-windows-msvc.tar.xz": "92a31b521daf34c7f80a808cf023ab6bd9dfe1e81b05b25920dd5812c5d371ad",
     "clang+llvm-21.1.3-armv7a-linux-gnueabihf.tar.gz": "cf14b3c5fa7d310a1b1a1efacc21f65cb50721713a8751d77906e40f0b339462",
-    "clang+llvm-21.1.3-x86_64-pc-windows-msvc.tar.xz": "95dc158e0b9dbeb32833096bec05040b5c847b4cb71bf0a304e51832a5fe5ff3"
+    "clang+llvm-21.1.3-x86_64-pc-windows-msvc.tar.xz": "95dc158e0b9dbeb32833096bec05040b5c847b4cb71bf0a304e51832a5fe5ff3",
 
     # 21.1.4
     "LLVM-21.1.4-Linux-ARM64.tar.xz": "b1cdf40de4dc53fc090684fb6a160c0c9348242d85d2321441a9873cb116ea18",
