@@ -20,6 +20,7 @@ load(
 load(
     "//toolchain/internal:llvm_distributions.bzl",
     _download_llvm = "download_llvm",
+    _required_llvm_version_rctx = "required_llvm_version_rctx",
 )
 
 _target_pairs = ", ".join(_supported_os_arch_keys())
@@ -422,9 +423,15 @@ def llvm_repo_impl(rctx):
         rctx.file("BUILD.bazel", executable = False)
         return None
 
+    llvm_version = _required_llvm_version_rctx(rctx)
+    major_llvm_version = int(llvm_version.split(".")[0])
+
     rctx.file(
         "BUILD.bazel",
-        content = rctx.read(Label("//toolchain:BUILD.llvm_repo")),
+        content = rctx.read(Label("//toolchain:BUILD.llvm_repo.tpl")).format(
+            # The versioning changed.
+            LLVM_VERSION = major_llvm_version if major_llvm_version >= 16 else llvm_version,
+        ),
         executable = False,
     )
 

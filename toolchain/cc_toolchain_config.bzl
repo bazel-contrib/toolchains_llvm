@@ -243,7 +243,11 @@ def cc_toolchain_config(
     cxx_standard = compiler_configuration["cxx_standard"]
     conly_flags = compiler_configuration["conly_flags"]
     sysroot_path = compiler_configuration["sysroot_path"]
-    if stdlib == "builtin-libc++" and exec_os != target_os:
+
+    is_xcompile = not (exec_os == target_os and exec_arch == target_arch)
+
+    # Darwin has a universal sysroot so the builtin can compile cross-arch.
+    if stdlib == "builtin-libc++" and is_xcompile and not is_darwin_exec_and_target:
         stdlib = "stdc++"
     if stdlib == "builtin-libc++":
         cxx_flags = [
@@ -251,8 +255,7 @@ def cc_toolchain_config(
             "-stdlib=libc++",
         ]
 
-        # exec_os == target_os at this point.
-        if exec_os == "darwin":
+        if is_darwin_exec_and_target:
             # Several system libraries on macOS dynamically link libc++ and
             # libc++abi, so static linking them becomes a problem. We need to
             # ensure that they are dynamic linked from the system sysroot and
@@ -336,6 +339,7 @@ def cc_toolchain_config(
         # https://github.com/llvm/llvm-project/commit/0556138624edf48621dd49a463dbe12e7101f17d
         cxx_flags.append("-Xclang")
         cxx_flags.append("-fno-cxx-modules")
+        cxx_flags.append("-Wno-module-import-in-extern-c")
 
     opt_link_flags = ["-Wl,--gc-sections"] if target_os == "linux" else []
 
