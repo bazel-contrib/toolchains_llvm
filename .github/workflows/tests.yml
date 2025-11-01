@@ -98,7 +98,7 @@ jobs:
       - name: Test
         env:
           USE_BZLMOD: ${{ matrix.bzlmod }}
-        run: tests/scripts/${{ matrix.script }}_test.sh ${{ matrix.script == 'ubuntu_20_04' && '' || '-O' }}
+        run: tests/scripts/${{ matrix.script }}_test.sh
   xcompile_test:
     strategy:
       fail-fast: false

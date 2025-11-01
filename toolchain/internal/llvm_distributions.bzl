@@ -1138,7 +1138,9 @@ def _parse_version_or_requirements(version_or_requirements):
     for prefix in ["latest:", "first:"]:
         if version_or_requirements.startswith(prefix):
             return versions.parse_requirements(version_or_requirements.removeprefix(prefix))
-    if _is_requirement(version_or_requirements):
+    if version_or_requirements in ["latest", "first"]:
+        return None
+    if not _is_requirement(version_or_requirements):
         return None
     fail("ERROR: Invalid version requirements: '{version_or_requirements}'.".format(
         version_or_requirements = version_or_requirements,

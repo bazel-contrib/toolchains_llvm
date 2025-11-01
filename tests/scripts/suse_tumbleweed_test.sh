@@ -38,6 +38,6 @@ zypper -n install curl gcc libc++1
 
 # Run tests
 cd /src
-tests/scripts/run_tests.sh -t ${toolchain}
+tests/scripts/run_tests.sh -O -t ${toolchain}
 """
 done
