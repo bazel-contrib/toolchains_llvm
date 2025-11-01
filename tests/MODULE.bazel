@@ -22,7 +22,7 @@ local_path_override(
 
 bazel_dep(name = "bazel_skylib", version = "1.8.2")
 bazel_dep(name = "platforms", version = "1.0.0")
-bazel_dep(name = "rules_cc", version = "0.0.9")
+bazel_dep(name = "rules_cc", version = "0.2.8")
 bazel_dep(name = "rules_go", version = "0.50.1", repo_name = "io_bazel_rules_go")
 bazel_dep(name = "rules_rust", version = "0.67.0")
 bazel_dep(name = "rules_foreign_cc", version = "0.15.0")
@@ -63,10 +63,13 @@ llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
 # When updating this version, also update the versions associated with
 # llvm_toolchain below, sys_paths_test in the workflows file, and xcompile_test
 # through the `llvm_toolchain_with_sysroot` toolchain.
+# We use C++17 and the first LLVM version with full support is 16.0.0.
+# We also use C++20 which has reasonable wide support starting with LLVM 17.0.0.
+# MacOS X86 does not exist for LLVM 17 or 18, so we allow 19 as well.
+# We also allow to override this with a environment LLVM_VERSION for testing.
 LLVM_VERSIONS = {
-    "": "16.0.0",
-    "darwin-aarch64": "16.0.5",
-    "darwin-x86_64": "15.0.7",
+    "": "getenv(LLVM_VERSION,latest:>=17.0.0,<20)",
+    "darwin-x86_64": "15.0.7",  # Verify this works as opposed to using one version.
 }
 
 llvm.toolchain(
@@ -147,9 +150,10 @@ llvm.toolchain_root(
 use_repo(llvm, "llvm_toolchain_with_absolute_paths")
 
 # Toolchain example with system LLVM; tested in GitHub CI.
+# The llvm_version must match the version specified in .github/workflows/tests.yml: sys_paths_test
 llvm.toolchain(
     name = "llvm_toolchain_with_system_llvm",
-    llvm_versions = LLVM_VERSIONS,
+    llvm_versions = {"": "16.0.0"},
 )
 
 # For this toolchain to work, the LLVM distribution archive would need to be unpacked here.

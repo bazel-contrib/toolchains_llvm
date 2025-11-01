@@ -14,13 +14,13 @@
 load(
     "//toolchain/internal:common.bzl",
     _attr_dict = "attr_dict",
-    _exec_os_arch_dict_value = "exec_os_arch_dict_value",
     _os = "os",
     _supported_os_arch_keys = "supported_os_arch_keys",
 )
 load(
     "//toolchain/internal:llvm_distributions.bzl",
     _download_llvm = "download_llvm",
+    _required_llvm_version_rctx = "required_llvm_version_rctx",
 )
 
 _target_pairs = ", ".join(_supported_os_arch_keys())
@@ -423,8 +423,7 @@ def llvm_repo_impl(rctx):
         rctx.file("BUILD.bazel", executable = False)
         return None
 
-    _, llvm_version = _exec_os_arch_dict_value(rctx, "llvm_versions")
-
+    llvm_version = _required_llvm_version_rctx(rctx)
     major_llvm_version = int(llvm_version.split(".")[0])
 
     rctx.file(
