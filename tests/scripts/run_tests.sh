@@ -20,7 +20,7 @@ enable_omp_targets="1"
 enable_wasm_tests="1"
 LLVM_VERSION=""
 
-while getopts "ht:v:W" opt; do
+while getopts "hOt:v:W" opt; do
   case "${opt}" in
   "h")
     echo "Usage:"
