@@ -687,10 +687,26 @@ _llvm_distributions = {
     # 21.1.2
     "LLVM-21.1.2-Linux-ARM64.tar.xz": "b16c36731eabdc3cbe7f265e241efdb9aa6ab7c4be4114763c356da1392aac73",
     "LLVM-21.1.2-Linux-X64.tar.xz": "38dc1e278b8d688d9f4f1077da1dcda623d9e0dd89ffcf03bc18d3492bbd9cb6",
+    "clang+llvm-21.1.2-aarch64-pc-windows-msvc.tar.xz": "6b8e9f70ed82fe13116eda6e370ac3fab88989bceec19eb53060239f8366bea0",
+    "clang+llvm-21.1.2-armv7a-linux-gnueabihf.tar.gz": "1d006e4fd478c35c46482cf2105a0c8c5239660bb7bbc42bcd653294c1770638",
     "clang+llvm-21.1.2-x86_64-pc-windows-msvc.tar.xz": "929c60a1342ced5641ddbef709d3e5a0fbe291686800e9f5b543aa88b8d43019",
 
+    # 21.1.3
+    "LLVM-21.1.3-Linux-ARM64.tar.xz": "563be4f9f9186c909e5de937b2097338132422957c7919a29d8ff524a32213c0",
+    "LLVM-21.1.3-Linux-X64.tar.xz": "52866dc560a4c00c12fed63a006d629108117e2282fd37875887961dd7b5f6f8",
+    "clang+llvm-21.1.3-aarch64-pc-windows-msvc.tar.xz": "92a31b521daf34c7f80a808cf023ab6bd9dfe1e81b05b25920dd5812c5d371ad",
+    "clang+llvm-21.1.3-armv7a-linux-gnueabihf.tar.gz": "cf14b3c5fa7d310a1b1a1efacc21f65cb50721713a8751d77906e40f0b339462",
+    "clang+llvm-21.1.3-x86_64-pc-windows-msvc.tar.xz": "95dc158e0b9dbeb32833096bec05040b5c847b4cb71bf0a304e51832a5fe5ff3"
+
+    # 21.1.4
+    "LLVM-21.1.4-Linux-ARM64.tar.xz": "b1cdf40de4dc53fc090684fb6a160c0c9348242d85d2321441a9873cb116ea18",
+    "LLVM-21.1.4-Linux-X64.tar.xz": "53c8d9a173c39c952ae367974b0b9c1dcfddeb81341c3d0553748e8407abe9f8",
+    "clang+llvm-21.1.4-aarch64-pc-windows-msvc.tar.xz": "ee0f0517e2ceeb6f45221841ab43ab875e29d086dfb8ecb2f8e5c27667cb588d",
+    "clang+llvm-21.1.4-armv7a-linux-gnueabihf.tar.gz": "5921213cd8f9acce09305e2143edc066051afd2ebc31be3bfcf07d276d777678",
+    "clang+llvm-21.1.4-x86_64-pc-windows-msvc.tar.xz": "511e4e7e0a43156cb1410578285f1db246ebb400db0018cd304c84a369562b6d",
+
     # Refer to variable declaration on how to update!
-    # Example update (without deleting): utils/llvm_checksums.sh -g -v 20.1.9 -t /tmp/llvm
+    # Example update (without deleting): utils/llvm_checksums.sh -g -t /tmp/llvm -v 21.1.5
 }
 
 # Note: Unlike the user-specified llvm_mirror attribute, the URL prefixes in
