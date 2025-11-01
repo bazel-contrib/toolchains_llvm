@@ -101,6 +101,7 @@ cc_test(
     srcs = ["omp_test.c"],
     copts = ["-fopenmp"],
     linkopts = ["-fopenmp"],
+    tags = ["manual"],
     deps = ["@llvm_toolchain//:omp"],
 )
 
@@ -114,7 +115,16 @@ cc_test(
     srcs = ["omp_test.cc"],
     copts = ["-fopenmp"],
     linkopts = ["-fopenmp"],
+    tags = ["manual"],
     deps = ["@llvm_toolchain//:omp"],
+)
+
+test_suite(
+    name = "omp_tests",
+    tests = [
+        ":omp_test",
+        ":omp_test_cc",
+    ],
 )
 
 sh_test(

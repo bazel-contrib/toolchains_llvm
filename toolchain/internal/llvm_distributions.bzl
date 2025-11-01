@@ -1168,7 +1168,7 @@ def _required_llvm_release_name(*, version_or_requirements, all_llvm_distributio
             return llvm_version, basenames[0], None
     return None, None, "ERROR: No matching distribution found."
 
-def _resolve_llvm_version_rctx(rctx, llvm_version):
+def _resolve_llvm_version_rctx_env(rctx, llvm_version):
     if llvm_version.startswith("getenv(") and llvm_version.endswith(")"):
         env_var = llvm_version[len("getenv("):-1]
         if env_var.find(",") >= 0:
@@ -1200,7 +1200,7 @@ def _resolve_llvm_version_rctx(rctx, llvm_version):
     return llvm_version
 
 def _required_llvm_release_name_rctx(rctx, llvm_version):
-    llvm_version = _resolve_llvm_version_rctx(rctx, llvm_version)
+    llvm_version = _resolve_llvm_version_rctx_env(rctx, llvm_version)
     all_llvm_distributions = _get_all_llvm_distributions(
         llvm_distributions = _llvm_distributions,
         extra_llvm_distributions = rctx.attr.extra_llvm_distributions,
@@ -1246,8 +1246,8 @@ def _distribution_urls(rctx):
 
     if rctx.attr.distribution == "auto":
         rctx_host_info = host_info(rctx)
+        llvm_version = _resolve_llvm_version_rctx_env(rctx, llvm_version)
         if _is_requirement(llvm_version):
-            llvm_version = _resolve_llvm_version_rctx(rctx, llvm_version)
             llvm_version, basename, error = _required_llvm_release_name(
                 version_or_requirements = llvm_version,
                 all_llvm_distributions = all_llvm_distributions,

@@ -41,7 +41,7 @@ jobs:
         env:
           USE_BAZEL_VERSION: ${{ matrix.bazel_version }}
           USE_BZLMOD: ${{ matrix.bzlmod }}
-        run: tests/scripts/run_tests.sh
+        run: tests/scripts/run_tests.sh -O
   toolchain_test:
     strategy:
       fail-fast: false
@@ -98,7 +98,7 @@ jobs:
       - name: Test
         env:
           USE_BZLMOD: ${{ matrix.bzlmod }}
-        run: tests/scripts/${{ matrix.script }}_test.sh
+        run: tests/scripts/${{ matrix.script }}_test.sh ${{ matrix.script == 'ubuntu_20_04' && '' || '-O' }}
   xcompile_test:
     strategy:
       fail-fast: false
@@ -123,7 +123,7 @@ jobs:
       - name: Test
         env:
           USE_BZLMOD: ${{ matrix.bzlmod }}
-        run: tests/scripts/run_tests.sh -t @llvm_toolchain_with_absolute_paths//:cc-toolchain-x86_64-linux
+        run: tests/scripts/run_tests.sh -t @llvm_toolchain_with_absolute_paths//:cc-toolchain-x86_64-linux -O
   sys_paths_test:
     strategy:
       fail-fast: false
