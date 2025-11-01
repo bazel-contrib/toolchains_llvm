@@ -62,7 +62,8 @@ jobs:
       fail-fast: false
       matrix:
         # TODO: This doesn't work with arm64 Macs yet. That is due to openssl being x86 only here.
-        os: [macos-14-large, ubuntu-latest]
+        # Since macos-14+ requires "-large" we have to disable this for now.
+        os: [ubuntu-latest]
         bazel_version: [latest] # rules_rust bzlmod support is experimental and needs latest version as of now (20230912).
         bzlmod: [true, false]
     runs-on: ${{ matrix.os }}
