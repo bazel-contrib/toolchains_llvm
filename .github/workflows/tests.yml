@@ -41,7 +41,7 @@ jobs:
         env:
           USE_BAZEL_VERSION: ${{ matrix.bazel_version }}
           USE_BZLMOD: ${{ matrix.bzlmod }}
-        run: tests/scripts/run_tests.sh
+        run: tests/scripts/run_tests.sh -O
   toolchain_test:
     strategy:
       fail-fast: false
@@ -123,7 +123,7 @@ jobs:
       - name: Test
         env:
           USE_BZLMOD: ${{ matrix.bzlmod }}
-        run: tests/scripts/run_tests.sh -t @llvm_toolchain_with_absolute_paths//:cc-toolchain-x86_64-linux
+        run: tests/scripts/run_tests.sh -t @llvm_toolchain_with_absolute_paths//:cc-toolchain-x86_64-linux -O
   sys_paths_test:
     strategy:
       fail-fast: false
@@ -134,6 +134,7 @@ jobs:
       - uses: actions/checkout@v5
       - run: tests/scripts/ubuntu_install_libtinfo.sh
       - name: Download and Extract LLVM distribution
+        # The downloaded version here must match version specified as '-v' arg to run_tests.sh below.
         env:
           release: llvmorg-16.0.0
           archive: clang+llvm-16.0.0-x86_64-linux-gnu-ubuntu-18.04
@@ -143,4 +144,4 @@ jobs:
       - name: Test
         env:
           USE_BZLMOD: ${{ matrix.bzlmod }}
-        run: tests/scripts/run_tests.sh -t @llvm_toolchain_with_system_llvm//:cc-toolchain-x86_64-linux
+        run: tests/scripts/run_tests.sh -t @llvm_toolchain_with_system_llvm//:cc-toolchain-x86_64-linux -v 16.0.0

@@ -59,11 +59,13 @@ load("@toolchains_llvm//toolchain:rules.bzl", "llvm_toolchain")
 # When updating this version, also update the versions associated with
 # llvm_toolchain below, sys_paths_test in the workflows file, and xcompile_test
 # through the `llvm_toolchain_with_sysroot` toolchain.
-# We use C++17 and the first LLVM version with full support is 16.0.0.
+# We use C++17 and the first LLVM version with full suppor is 16.0.0.
 # We also use C++20 which has reasonable wide support starting with LLVM 17.0.0.
 # MacOS X86 does not exist for LLVM 17 or 18, so we allow 19 as well.
+# We also allow to override this with a environment LLVM_VERSION for testing.
 LLVM_VERSIONS = {
-    "": "first:>=17.0.0,<20",
+    "": "getenv(LLVM_VERSION,latest:>=17.0.0,<20)",
+    "darwin-x86_64": "15.0.7",  # Verify this works as opposed to using one version.
 }
 
 llvm_toolchain(
@@ -135,9 +137,10 @@ llvm_toolchain(
 )
 
 ## Toolchain example with system LLVM; tested in GitHub CI.
+# The llvm_version must match the version specified in .github/workflows/tests.yml: sys_paths_test
 llvm_toolchain(
     name = "llvm_toolchain_with_system_llvm",
-    llvm_versions = LLVM_VERSIONS,
+    llvm_version = "getenv(LLVM_VERSION)",
     # For this toolchain to work, the LLVM distribution archive would need to be unpacked here.
     toolchain_roots = {"": "/opt/llvm-16"},
 )

@@ -16,18 +16,28 @@
 set -euo pipefail
 
 toolchain_name=""
-disable_wasm_tests=""
+enable_omp_targets="1"
+enable_wasm_tests="1"
+LLVM_VERSION=""
 
-while getopts "t:hW" opt; do
+while getopts "hOt:v:W" opt; do
   case "${opt}" in
-  "t") toolchain_name="${OPTARG}" ;;
   "h")
     echo "Usage:"
     echo "-t - Toolchain name to use for testing; default is llvm_toolchain"
     exit 2
     ;;
+  "O")
+    enable_omp_targets=""
+    ;;
+  "t")
+    toolchain_name="${OPTARG}"
+    ;;
+  "v")
+    LLVM_VERSION="${OPTARG}"
+    ;;
   "W")
-    disable_wasm_tests="yes"
+    enable_wasm_tests=""
     ;;
   *)
     echo "invalid option: -${OPTARG}"
@@ -56,8 +66,19 @@ targets=(
 # :test_cxx_standard_is_20 builds with a version of the default toolchain, if
 # we're trying to build with a different toolchain then it's likely the default
 # toolchain won't work so :test_cxx_standard_is_20 won't build.
-if [[ -z ${toolchain_name} ]]; then
+if [[ -z "${toolchain_name}" ]]; then
   targets+=("//:test_cxx_standard_is_20")
+fi
+
+if [[ -n "${enable_omp_targets}" ]]; then
+  targets+=("//:omp_tests")
+fi
+
+if [[ -n "${LLVM_VERSION}" ]]; then
+  echo "LLVM_VERSION=${LLVM_VERSION}"
+  common_test_args+=(
+    "--repo_env=LLVM_VERSION=${LLVM_VERSION}"
+  )
 fi
 
 "${bazel}" ${TEST_MIGRATION:+"--strict"} --bazelrc=/dev/null test \
@@ -72,7 +93,7 @@ fi
 # to run out of disk space.
 #
 # Mitigate this by expunging the workspace before trying to build Wasm targets.
-if [[ -z ${toolchain_name} && -z ${disable_wasm_tests} ]]; then
+if [[ -z "${toolchain_name}" ]] && [[ -n "${enable_wasm_tests}" ]]; then
   # Redefine `test_args` without `--linkopt=-Wl,-v`, which breaks `wasm-ld`.
   #
   # https://github.com/llvm/llvm-project/issues/112836
