@@ -66,18 +66,6 @@ if [[ -z "${toolchain_name}" ]]; then
   targets+=("//:test_cxx_standard_is_20")
 fi
 
-# If a toolchain is specified, set up OpenMP dependency accordingly.
-# We could just rewrite the BUILD files to depend on the correct omp target, but
-# it is preferable to leave the BUILD file alone and instead pass the correct
-# target via command line so that the BUILD files can be used in other contexts.
-# We do so using a combination of 'constraint_setting' and 'constraint_value'
-# whose possible values must be predefined in the BUILD file. Using the defined
-# value is only possible by creating a custom rule which is overly complex here.
-#if [[ -n "${toolchain_name}" ]]; then
-#  omp_target="${toolchain_name/\/\/*/}"
-#  common_test_args+=("--define" "omp=${omp_target/#@/}")
-#fi
-
 if [[ -n "${LLVM_VERSION}" ]]; then
   echo "LLVM_VERSION=${LLVM_VERSION}"
   common_test_args+=(

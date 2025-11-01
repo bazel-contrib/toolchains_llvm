@@ -1177,6 +1177,12 @@ def _resolve_llvm_version_rctx(rctx, llvm_version):
             env_name = env_var
             env_default = None
 
+        env_name = env_name.strip(" ")
+        if not env_var:
+            fail("ERROR: Bad getenv parameter '{env_var}'.".format(
+                env_var = env_var,
+            ))
+
         # We prefer 'repository_ctx.getenv' if it is available (~7.1+) and default
         # to accessing the environment directly. The latter breaks "hermeticity".
         if hasattr(rctx, "getenv"):
@@ -1186,10 +1192,10 @@ def _resolve_llvm_version_rctx(rctx, llvm_version):
         else:
             llvm_version = env_default
 
-        #print("\nINFO: Read environment variable '{env_var}' = '{llvm_version}'".format(
-        #    env_var = env_var,
-        #    llvm_version = llvm_version,
-        #))  # buildifier: disable=print
+        if not llvm_version:
+            fail("ERROR: Empty getenv lookup for '{env_var}'.".format(
+                env_var = env_var,
+            ))
 
     return llvm_version
 
