@@ -34,10 +34,6 @@ bazel_dep(name = "boringssl", version = "0.20251002.0")
 # TODO: Remove when protobuf is released with a version of rules_python that supports 8.x
 bazel_dep(name = "rules_python", version = "1.6.3")
 
-register_toolchains(
-    "//:ninja_mac_arm64_toolchain",
-)
-
 go_sdk = use_extension("@io_bazel_rules_go//go:extensions.bzl", "go_sdk")
 go_sdk.download(
     name = "go_sdk",
