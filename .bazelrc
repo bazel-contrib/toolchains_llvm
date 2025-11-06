@@ -1,2 +1,1 @@
 try-import %workspace%/.bazelrc.user
-common --repositories_without_autoloads=cc_compatibility_proxy
