@@ -353,6 +353,10 @@ rules_foreign_cc_dependencies()
 
 load("@rules_cc//cc:extensions.bzl", "compatibility_proxy_repo")
 
+# If you see an error:
+#   ERROR: Cycle caused by autoloads, failed to load .bzl file '@@cc_compatibility_proxy//:symbols.bzl'.
+# then you might need to add the following to your .bzelrc:
+#   common --repositories_without_autoloads=cc_compatibility_proxy
 compatibility_proxy_repo()
 
 _ALL_CONTENT = """\
