@@ -73,6 +73,7 @@ filegroup(
             "lib/**/lib*.a",
             "lib/clang/*/lib/**/*.a",
             "lib/clang/*/lib/**/*.dylib",
+            "lib/clang/*/lib/**/*.syms",
             # clang_rt.*.o supply crtbegin and crtend sections.
             "lib/**/clang_rt.*.o",
         ],
