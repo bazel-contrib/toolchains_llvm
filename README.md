@@ -142,6 +142,34 @@ supporting `<`, `<=`, `>`, `>=`, `==`, `!=`. Examples:
 - `latest:>17.0.4,!=19.1.7,<=20.1.0`
 - `first:>=15.0.6,<16`
 
+It is further possible to provide the version or requirement from an environment
+variable with a fallback version or requirement. In this case it is important to
+also use the bazel flag `--repo_env=LLVM_VERSION=version_or_requirement`. It is
+important to use both correctly because otherwise the resulting builds are not
+reproducible. The main purpose of using an environment variable to encode the
+version for integration or batch testing on multiple platforms where multiple
+LLVM versions should be tested.
+
+- `getenv(ENVIRONMENT_VARIABLE_NAME,fallback)`
+
+Example `MODULE.bazel`
+
+```starlark
+llvm.toolchain(
+    name = "llvm_toolchain",
+    llvm_versions = {
+        "": "getenv(LLVM_VERSION,latest:>=17.0.0,<20)",
+        "darwin-x86_64": "15.0.7",  # Verify this works as opposed to using one version.
+    },
+)
+```
+
+In this example, MacOS x86 machines have their LLVM version hard-coded to
+`15.0.7`. For all other targets the LLVM version is read from the environment
+variable `LLVM_VERSION` which must be referenced on the Bazel command line as
+explained above. If the variable is not present, then the LLVM version defaults
+to the requirement expression `latest:>=17.0.0,<20`.
+
 ### Selecting Toolchains
 
 If toolchains are registered (see Quickstart section above), you do not need to
