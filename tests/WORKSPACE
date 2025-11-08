@@ -392,5 +392,3 @@ http_archive(
         "https://github.com/bazelbuild/platforms/releases/download/1.0.0/platforms-1.0.0.tar.gz",
     ],
 )
-
-host_platform_repo(name = "host_platform")
