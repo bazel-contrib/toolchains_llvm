@@ -29,14 +29,14 @@ echo "Output base: ${output_base}"
 
 # As of rules_go 0.51.0 the 'generate_imported_dylib.sh' expects 'cc' to be available through PATH.
 if [[ ${USE_BZLMOD} == "true" ]]; then
-  script="${output_base}/external/rules_go~/tests/core/cgo/generate_imported_dylib.sh"
-  if [[ ! -f "${script}" ]]; then
-    script="${output_base}/external/rules_go+/tests/core/cgo/generate_imported_dylib.sh"
+  generate_imported_dylib_sh="${output_base}/external/rules_go~/tests/core/cgo/generate_imported_dylib.sh"
+  if [[ ! -f "${generate_imported_dylib_sh}" ]]; then
+    generate_imported_dylib_sh="${output_base}/external/rules_go+/tests/core/cgo/generate_imported_dylib.sh"
   fi
 else
-  script="${output_base}/external/io_bazel_rules_go/tests/core/cgo/generate_imported_dylib.sh"
+  generate_imported_dylib_sh="${output_base}/external/io_bazel_rules_go/tests/core/cgo/generate_imported_dylib.sh"
 fi
-"${script}" || echo "Generating imported dylib failed."
+"${generate_imported_dylib_sh}" || echo "ERROR: rules_go script 'tests/core/cgo/generate_imported_dylib.sh' failed."
 
 test_args=(
   "${common_test_args[@]}"
