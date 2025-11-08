@@ -23,16 +23,20 @@ cd "${scripts_dir}"
 
 # Generate some files needed for the tests.
 "${bazel}" query "${common_args[@]}" @io_bazel_rules_go//tests/core/cgo:dylib_test >/dev/null
+
+output_base="$("${bazel}" info output_base)"
+echo "Output base: ${output_base}"
+
+# As of rules_go 0.51.0 the 'generate_imported_dylib.sh' expects 'cc' to be available through PATH.
 if [[ ${USE_BZLMOD} == "true" ]]; then
-  script="$("${bazel}" info output_base)/external/rules_go~/tests/core/cgo/generate_imported_dylib.sh"
-  if [[ -f "${script}" ]]; then
-    "${script}"
-  else
-    "$("${bazel}" info output_base)/external/rules_go+/tests/core/cgo/generate_imported_dylib.sh"
+  script="${output_base}/external/rules_go~/tests/core/cgo/generate_imported_dylib.sh"
+  if [[ ! -f "${script}" ]]; then
+    script="${output_base}/external/rules_go+/tests/core/cgo/generate_imported_dylib.sh"
   fi
 else
-  "$("${bazel}" info output_base)/external/io_bazel_rules_go/tests/core/cgo/generate_imported_dylib.sh"
+  script="${output_base}/external/io_bazel_rules_go/tests/core/cgo/generate_imported_dylib.sh"
 fi
+"${script}" || echo "Generating imported dylib failed."
 
 test_args=(
   "${common_test_args[@]}"
@@ -60,7 +64,9 @@ absl_targets=($("${bazel}" query "${common_args[@]}" 'attr(timeout, short, tests
   @rules_rust//test/unit/{interleaved_cc_info,native_deps}:all \
   @io_bazel_rules_go//tests/core/cgo:all \
   -@io_bazel_rules_go//tests/core/cgo:cc_libs_test \
+  -@io_bazel_rules_go//tests/core/cgo:cgo_abs_paths_test \
   -@io_bazel_rules_go//tests/core/cgo:external_includes_test \
+  -@io_bazel_rules_go//tests/core/cgo:wrapped_cgo_test \
   -@rules_rust//test/unit/native_deps:{cdylib,bin}_has_native_dep_and_alwayslink_test \
   "${absl_targets[@]}" \
   -@com_google_absl//absl/time/internal/cctz:time_zone_format_test
