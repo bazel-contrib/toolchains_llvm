@@ -154,7 +154,7 @@ LLVM version should be tested.
 
 Example `MODULE.bazel`
 
-```
+```starlark
 llvm.toolchain(
     name = "llvm_toolchain",
     llvm_versions = {
