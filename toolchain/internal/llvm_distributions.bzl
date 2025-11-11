@@ -808,7 +808,7 @@ def download_llvm(rctx):
 
     res = rctx.download_and_extract(
         [_full_url(url) for url in urls],
-        sha256,
+        sha256 = sha256,
         stripPrefix = strip_prefix,
         auth = _get_auth(rctx, urls),
     )
@@ -1457,7 +1457,7 @@ def _distributions_test_writer_impl(ctx):
             parsed_llvm_version = version,
         )
         for basename, distribution in all_llvm_distributions.items():
-            sha256, shaerr = _normalize_and_check_sha256(distribution.sha256)
+            _, shaerr = _normalize_and_check_sha256(distribution.sha256)
             if shaerr:
                 output.append("err: {basename}: bad sha256: {shaerr}".format(
                     basename = basename,
