@@ -268,9 +268,9 @@ http_archive(
 
 http_archive(
     name = "boringssl",
-    sha256 = "f96733fc3df03d4195db656d1b7b8c174c33f95d052f811f0ecc8f4e4e3db332",
-    strip_prefix = "boringssl-0.20251002.0",
-    urls = ["https://github.com/google/boringssl/releases/download/0.20251002.0/boringssl-0.20251002.0.tar.gz"],
+    sha256 = "1d3b33e4a8b935cb72825d8b911f0c90d123a20b4251545030ef06deb64414c9",
+    strip_prefix = "boringssl-0.20251110.0",
+    urls = ["https://github.com/google/boringssl/releases/download/0.20251110.0/boringssl-0.20251110.0.tar.gz"],
 )
 
 http_archive(
