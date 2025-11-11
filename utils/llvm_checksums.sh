@@ -17,8 +17,9 @@ set -euo pipefail
 
 use_github_host=0
 tmp_dir=
+download=1
 
-while getopts "t:v:gh" opt; do
+while getopts "t:v:ghD" opt; do
   case "${opt}" in
   "t") tmp_dir="${OPTARG}" ;;
   "v") llvm_version="${OPTARG}" ;;
@@ -30,6 +31,7 @@ while getopts "t:v:gh" opt; do
     echo "-g           - Use github to download releases."
     exit 2
     ;;
+  "D") download=0 ;;
   *)
     echo "invalid option: -${OPTARG}"
     exit 1
@@ -67,11 +69,21 @@ llvm_host() {
 github_host() {
   output_dir="${tmp_dir}/${llvm_version}"
   mkdir -p "${output_dir}"
+  if ((download)); then
+    echo ""
+    echo "===="
+    echo "Checksums for clang+llvm distributions are (${output_dir}):"
+    echo "    # ${llvm_version}"
+    curl -s "https://api.github.com/repos/llvm/llvm-project/releases/tags/llvmorg-${llvm_version}" |
+      tee ./releases.json |
+      jq -r '.assets[]|select(any(.name; test("^(clang[+]llvm|LLVM)-.*tar.(xz|gz)$")))|"    \""+(.browser_download_url|split("/")|.[-1]|sub("%2B";"+"))+"\": \""+.digest+"\","'
+    exit 0
+  fi
   (
     cd "${output_dir}"
     curl -s "https://api.github.com/repos/llvm/llvm-project/releases/tags/llvmorg-${llvm_version}" |
       tee ./releases.json |
-      jq '.assets[]|select(any(.name; test("^(clang[+]llvm|LLVM)-.*tar.(xz|gz)$")))|.browser_download_url' |
+      jq '.assets[]|select(any(.name .digest; test("^(clang[+]llvm|LLVM)-.*tar.(xz|gz)$")))|.browser_download_url' |
       tee ./filtered_urls.txt |
       xargs -n1 curl -L -O -C -
   )

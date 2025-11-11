@@ -706,12 +706,14 @@ _llvm_distributions = {
     "clang+llvm-21.1.4-x86_64-pc-windows-msvc.tar.xz": "511e4e7e0a43156cb1410578285f1db246ebb400db0018cd304c84a369562b6d",
 
     # 21.1.5
-    "LLVM-21.1.5-Linux-ARM64.tar.xz": "c9a1ee5d1a1698a8eb0abda1c1e44c812378aec32f89cc4fbbb41865237359a9",
-    "LLVM-21.1.5-Linux-X64.tar.xz": "6279d78feeeb8e839a397f0bca7b1c0594972224d59525496416653d9b9c077f",
-    "clang+llvm-21.1.5-x86_64-pc-windows-msvc.tar.xz": "eba824f1379fdb1a385f6dff8d19275a57348f621c752ce93b6d11256741e349",
+    "clang+llvm-21.1.5-aarch64-pc-windows-msvc.tar.xz": "sha256:dcc7a6f9e3ff02f5b49b23e6f91abe2f9431972d72ab59f7b7d9f8b436ea1ca3",
+    "clang+llvm-21.1.5-armv7a-linux-gnueabihf.tar.gz": "sha256:42a964c0ea68764ef8e222f5f979a400a803a912e5df273358652d4017ca3411",
+    "clang+llvm-21.1.5-x86_64-pc-windows-msvc.tar.xz": "sha256:eba824f1379fdb1a385f6dff8d19275a57348f621c752ce93b6d11256741e349",
+    "LLVM-21.1.5-Linux-ARM64.tar.xz": "sha256:c9a1ee5d1a1698a8eb0abda1c1e44c812378aec32f89cc4fbbb41865237359a9",
+    "LLVM-21.1.5-Linux-X64.tar.xz": "sha256:6279d78feeeb8e839a397f0bca7b1c0594972224d59525496416653d9b9c077f",
 
     # Refer to variable declaration on how to update!
-    # Example update (without deleting): utils/llvm_checksums.sh -g -t /tmp/llvm -v 21.1.5
+    # Example update (without download): utils/llvm_checksums.sh -D -g -t /tmp/llvm -v 21.1.5
 }
 
 # Note: Unlike the user-specified llvm_mirror attribute, the URL prefixes in
@@ -779,6 +781,13 @@ def _full_url(url):
         return "file://" + url
     return url
 
+def _normalize_and_check_sha256(sha256):
+    if sha256:
+        sha256 = sha256.removeprefix("sha256:")
+        if len(sha256) != 64:
+            return None, "Attribute sha256 needs exactly 64 hex characters."
+    return sha256, None
+
 def download_llvm(rctx):
     """Download the LLVM distribution for the given context."""
     urls = []
@@ -792,6 +801,10 @@ def download_llvm(rctx):
             update_sha256 = True
     if not urls:
         urls, sha256, strip_prefix = _distribution_urls(rctx)
+
+    sha256, shaerr = _normalize_and_check_sha256(sha256)
+    if shaerr:
+        fail("ERROR: " + shaerr)
 
     res = rctx.download_and_extract(
         [_full_url(url) for url in urls],
@@ -1443,6 +1456,13 @@ def _distributions_test_writer_impl(ctx):
             extra_llvm_distributions = extra_llvm_distributions,
             parsed_llvm_version = version,
         )
+        for basename, distribution in all_llvm_distributions.items():
+            _, shaerr = _normalize_and_check_sha256(distribution.sha256)
+            if shaerr:
+                output.append("err: {basename}: bad sha256: {shaerr}".format(
+                    basename = basename,
+                    shaerr = shaerr,
+                ))
         for arch in arch_list:
             for os in os_list:
                 if version < MIN_VERSION:
