@@ -83,7 +83,7 @@ def _system_module_map(ctx):
     if len(sysroot_files) == 1:
         template_dict.add("%sysroot%", umbrella_submodule_closure(sysroot_files[0]))
     else:
-        if sysroot_files:
+        if sysroot_files and bazel_features.rules.merkle_cache_v2:
             # buildifier: disable=print
             print("WARNING: Sysroot {} resolved to {} files. Consider using the `sysroot` repository rule in @toolchains_llvm//toolchain:sysroot.bzl which provides a single-file (directory) sysroot for more efficient builds.".format(
                 ctx.attr.sysroot_files.label,
