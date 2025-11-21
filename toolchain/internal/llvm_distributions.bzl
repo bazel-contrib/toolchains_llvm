@@ -712,6 +712,12 @@ _llvm_distributions = {
     "LLVM-21.1.5-Linux-ARM64.tar.xz": "sha256:c9a1ee5d1a1698a8eb0abda1c1e44c812378aec32f89cc4fbbb41865237359a9",
     "LLVM-21.1.5-Linux-X64.tar.xz": "sha256:6279d78feeeb8e839a397f0bca7b1c0594972224d59525496416653d9b9c077f",
 
+    # 21.1.6
+    "clang+llvm-21.1.6-x86_64-pc-windows-msvc.tar.xz": "sha256:6fd57e4461f4f30913c6a345dd093d71df963aaf94f1ec80bb5cfb24ebb047a1",
+    "LLVM-21.1.6-Linux-ARM64.tar.xz": "sha256:1d8a9e05007b8b9005c63f90d7646b2b6263451d605cca070418d0a71e669377",
+    "LLVM-21.1.6-Linux-X64.tar.xz": "sha256:8ac1aadfa96b87b8747f7383d06ed9579f9d5c32a1af7af947b0cfe29d88ac87",
+    "LLVM-21.1.6-macOS-ARM64.tar.xz": "sha256:bdf036e9987b8706471b565f50178a34218909b1858a82c426269da49780b6ba",
+
     # Refer to variable declaration on how to update!
     # Example update (without download): utils/llvm_checksums.sh -D -g -t /tmp/llvm -v 21.1.5
 }
