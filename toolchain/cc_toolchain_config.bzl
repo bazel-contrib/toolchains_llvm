@@ -276,7 +276,7 @@ def cc_toolchain_config(
         else:
             # For single-platform builds, we can statically link the bundled
             # libraries.
-            link_flags.extend([
+            link_libs.extend([
                 "-l:libc++.a",
                 "-l:libc++abi.a",
             ])
@@ -294,7 +294,7 @@ def cc_toolchain_config(
             "-stdlib=libc++",
         ]
 
-        link_flags.extend([
+        link_libs.extend([
             "-l:libc++.a",
             "-l:libc++abi.a",
         ])
