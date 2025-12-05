@@ -24,6 +24,8 @@ SUPPORTED_TARGETS = [
     ("none", "x86_64"),
     ("wasip1", "wasm32"),
     ("wasip1", "wasm64"),
+    ("windows", "x86_64"),
+    ("windows", "aarch64"),
 ]
 
 # These are targets that can build without a sysroot.
@@ -38,6 +40,8 @@ _toolchain_tools = {
     name: name
     for name in [
         "clang-cpp",
+        "clang-cl",
+        "lld-link",
         "clang-format",
         "clang-tidy",
         "clangd",
@@ -46,6 +50,7 @@ _toolchain_tools = {
         "llvm-dwp",
         "llvm-profdata",
         "llvm-cov",
+        "llvm-lib",
         "llvm-nm",
         "llvm-objcopy",
         "llvm-objdump",
@@ -134,7 +139,7 @@ def os(rctx):
 
     name = rctx.attr.exec_os
     if name:
-        if name in ("linux", "darwin", "none"):
+        if name in ("linux", "darwin", "windows", "none"):
             return name
         else:
             fail("Unsupported value for exec_os: %s" % name)
@@ -152,7 +157,7 @@ def os_from_rctx(rctx):
 
 def os_bzl(os):
     # Return the OS string as used in bazel platform constraints.
-    return {"darwin": "osx", "linux": "linux", "none": "none", "wasip1": "wasi"}[os]
+    return {"darwin": "osx", "linux": "linux", "windows": "windows", "none": "none", "wasip1": "wasi"}[os]
 
 def arch(rctx):
     arch = rctx.attr.exec_arch
@@ -267,7 +272,15 @@ def attr_dict(attr):
     return dict(tuples)
 
 def toolchain_tools(os):
-    tools = dict(_toolchain_tools)
-    if os == "darwin":
+    if os == "windows":
+        tools = dict()
+        binary_ext = ".exe"
+        for bin, symlink in _toolchain_tools.items():
+            tools.update({bin + binary_ext: symlink + binary_ext})
+    elif os == "darwin":
+        tools = dict(_toolchain_tools)
         tools.update(_toolchain_tools_darwin)
+    else:
+        tools = dict(_toolchain_tools)
+
     return tools
