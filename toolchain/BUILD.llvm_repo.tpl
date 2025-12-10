@@ -103,7 +103,7 @@ filegroup(
         "lib/clang/{LLVM_VERSION}/lib/**",
         "lib/**/libc++*.a",
         "lib/**/libunwind.a",
-    ]),
+    ], allow_empty = True),
 )
 
 filegroup(
