@@ -91,7 +91,7 @@ filegroup(
     ] + glob([
         "lib/**/libc++*.a",
         "lib/**/libunwind.a",
-    ]),
+    ], allow_empty = True),
 )
 
 filegroup(
