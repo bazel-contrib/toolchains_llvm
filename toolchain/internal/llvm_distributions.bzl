@@ -1167,7 +1167,7 @@ def _find_llvm_basename_or_error(llvm_version, all_llvm_distributions, host_info
 
 def _is_requirement(version_or_requirements):
     """Return whether `version_or_requirements` is likely a requirement (True) or should be a version."""
-    if version_or_requirements.startswith("getenv("):
+    if version_or_requirements and version_or_requirements.startswith("getenv("):
         return True
     for prefix in ["first:", "latest:"]:
         if version_or_requirements.startswith(prefix) or version_or_requirements == prefix[:-1]:
