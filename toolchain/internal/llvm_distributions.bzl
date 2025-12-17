@@ -718,6 +718,18 @@ _llvm_distributions = {
     "LLVM-21.1.6-Linux-X64.tar.xz": "sha256:8ac1aadfa96b87b8747f7383d06ed9579f9d5c32a1af7af947b0cfe29d88ac87",
     "LLVM-21.1.6-macOS-ARM64.tar.xz": "sha256:bdf036e9987b8706471b565f50178a34218909b1858a82c426269da49780b6ba",
 
+    # 21.1.7
+    "clang+llvm-21.1.7-aarch64-pc-windows-msvc.tar.xz": "sha256:4b752962007c26565f86598d963b464c90b31a0ac758f73676f143b03f77d578",
+    "clang+llvm-21.1.7-armv7a-linux-gnueabihf.tar.gz": "sha256:b1a89d5832ae330e1cc2a60e6f93015fdd3eb0da70342f4c4213176993ecaa80",
+    "clang+llvm-21.1.7-x86_64-pc-windows-msvc.tar.xz": "sha256:70a2b73f2f14f787557f90abf380e7170b54e97b893218999144de5284b4f8f8",
+    "LLVM-21.1.7-Linux-ARM64.tar.xz": "sha256:aa85ddc8ba95ac5f2febddb51a6891ee0e57ac058c6455395d5a4bfa5650d44b",
+    "LLVM-21.1.7-Linux-X64.tar.xz": "sha256:621ab8424178ffc28db0facc5aefd3fc11f5dea339aac171b36fa0b8d4b368cb",
+
+    # 21.1.8
+    "LLVM-21.1.8-Linux-ARM64.tar.xz": "sha256:65ce0b329514e5643407db2d02a5bd34bf33d159055dafa82825c8385bd01993",
+    "LLVM-21.1.8-Linux-X64.tar.xz": "sha256:b3b7f2801d15d50736acea3c73982994d025b01c2f035b91ae3b49d1b575732b",
+    "LLVM-21.1.8-macOS-ARM64.tar.xz": "sha256:b95bdd32a33a81ee4d40363aaeb26728a26783fcef26a4d80f65457433ea4669",
+
     # Refer to variable declaration on how to update!
     # Example update (without download): utils/llvm_checksums.sh -D -g -t /tmp/llvm -v 21.1.5
 }

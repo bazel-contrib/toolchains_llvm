@@ -75,6 +75,8 @@ version: 21.1.3
 version: 21.1.4
 version: 21.1.5
 version: 21.1.6
+version: 21.1.7
+version: 21.1.8
 del: clang+llvm-9.0.0-x86_64-pc-linux-gnu.tar.xz
 del: clang+llvm-15.0.2-x86_64-unknown-linux-gnu-sles15.tar.xz
 del: clang+llvm-19.1.0-x86_64-pc-windows-msvc.tar.xz
