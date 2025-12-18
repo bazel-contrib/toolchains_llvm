@@ -404,10 +404,19 @@ def _cc_toolchain_str(
             _join(sysroot_prefix, "/System/Library/Frameworks"),
         ])
     elif target_os == "windows":
-        if sysroot_prefix:
-            cxx_builtin_include_directories.extend([
-                _join(sysroot_prefix, "/Include"),
-            ])
+        # TODO: getting this error otherwise:
+        # ERROR: C:/temp/k7ozco62/external/toolchains_llvm++llvm+llvm_toolchain/BUILD.bazel:764:13: in cc_toolchain rule @@toolchains_llvm++llvm+llvm_toolchain//:cc-clang-aarch64-windows:
+        # Traceback (most recent call last):
+        #         File "/virtual_builtins_bzl/common/cc/cc_toolchain.bzl", line 133, column 45, in _cc_toolchain_impl
+        #         File "/virtual_builtins_bzl/common/cc/cc_toolchain_provider_helper.bzl", line 238, column 64, in get_cc_toolchain_provider
+        #         File "/virtual_builtins_bzl/common/cc/cc_toolchain_provider_helper.bzl", line 143, column 17, in _resolve_include_dir
+        # Error in fail: A %sysroot% prefix is only allowed if the default_sysroot option is set
+        # ERROR: C:/temp/k7ozco62/external/toolchains_llvm++llvm+llvm_toolchain/BUILD.bazel:764:13: Analysis of target '@@toolchains_llvm++llvm+llvm_toolchain//:cc-clang-aarch64-windows' (config: 40e6e70) failed
+        #
+        # if sysroot_prefix:
+        #     cxx_builtin_include_directories.extend([
+        #         _join(sysroot_prefix, "/Include"),
+        #     ])
         pass
     elif target_os == "none" or target_os == "wasip1":
         if sysroot_prefix:
