@@ -163,16 +163,16 @@ def cc_toolchain_config(
             "x64_windows",
             "msvc",
             "clang-cl",
-            "windows_x86_64",  # TODO: is that correct?
-            "windows_x86_64",  # TODO: is that correct?
+            "unknown",
+            "unknown",
         ),
         "windows-aarch64": (
             "clang-aarch64-windows",
             "arm64_windows",
             "msvc",
             "clang-cl",
-            "windows_aarch64",  # TODO: is that correct?
-            "windows_aarch64",  # TODO: is that correct?
+            "unknown",
+            "unknown",
         ),
     }[target_os_arch_key]
 
@@ -206,7 +206,7 @@ def cc_toolchain_config(
             "/D_WIN32",
             "/D_WINDOWS",
             "/clang:-fdebug-prefix-map={}=__bazel_toolchain_llvm_repo__/".format(toolchain_path_prefix),
-            "/clang-I{}/Include".format(sysroot_path),  # TODO: is that needed now?
+            "/clang-I{}/Include".format(sysroot_path),
         ])
     else:
         compile_flags.extend([
@@ -339,7 +339,6 @@ def cc_toolchain_config(
                 "-lunwind",
             ]
         elif target_os == "windows":
-            # TODO: should we do something about that case for Windows?
             pass
         else:
             # For single-platform builds, we can statically link the bundled
@@ -521,19 +520,13 @@ def cc_toolchain_config(
             target_libc = target_libc,
             abi_version = abi_version,
             abi_libc_version = abi_libc_version,
-            # msvc_env_tmp = "%{clang_cl_env_tmp_arm64}", # TODO
-            # msvc_env_path = "%{clang_cl_env_path_arm64}", # TODO
-            # TODO: should we support that?
-            # TODO: these relative path are not working here, but I don't know how to resolve a path that would work for everything
             msvc_env_include = ";".join([
-                "{}/Include".format(sysroot_path),  # TODO: is that needed now?
-            ]),  # TODO: should we depend also on cxx includes here? Like: + [i.replace("%workspace%/", "") for i in cxx_builtin_include_directories]),
-            # TODO: should we support that?
+                "{}/Include".format(sysroot_path),
+            ]),
             # msvc_env_lib = ";".join([
             #     "{}/Lib".format(sysroot_path),
             # ]),
             msvc_cl_path = tool_paths["gcc"],
-            # msvc_ml_path = tool_paths["ml"], # TODO
             msvc_link_path = tool_paths["ld"],
             msvc_lib_path = tool_paths["llvm-lib"],
             cxx_builtin_include_directories = cxx_builtin_include_directories,
@@ -545,11 +538,16 @@ def cc_toolchain_config(
             fastbuild_mode_debug_flag = " ".join(fastbuild_compile_flags),
             supports_parse_showincludes = False,
 
-            # TODO: what to do with these?
-            # opt_compile_flags = opt_compile_flags,
-            # conly_flags = conly_flags,
-            # cxx_flags = cxx_flags,
-            # link_libs = link_libs,
+            # The following attributes are not yet supported (we had no need for it):
+            # msvc_env_tmp =
+            # msvc_env_path =
+            # msvc_ml_path =
+            #
+            # The following variables are not used on Windows toolchains:
+            # - opt_compile_flags
+            # - conly_flags
+            # - cxx_flags
+            # - link_libs
         )
     else:
         # Source: https://cs.opensource.google/bazel/bazel/+/master:tools/cpp/unix_cc_toolchain_config.bzl

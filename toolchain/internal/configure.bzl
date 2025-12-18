@@ -90,10 +90,7 @@ def llvm_config_impl(rctx):
     use_absolute_paths_sysroot = use_absolute_paths_llvm
 
     if os == "windows":
-        # FIXME: this is a hack, it must be addressed
-        #
-        # Windows has an issue resolving symlinks in the execroot.
-        # So for now we force `absolute_paths = True` as a hack
+        # TODO: Windows has an issue resolving symlinks in the execroot, so for now we force `absolute_paths = True` as a hack
         #
         # Here is an example of failure:
         #   ERROR: C:/users/titouan.bion/developer_windows/ultimate/fleet/native/launcher/BUILD.bazel:10:12: Compiling Rust bin fleet (15 files) failed: error reading file '@@toolchains_llvm++llvm+llvm_toolchain//:bin/llvm-nm.exe':
@@ -106,6 +103,7 @@ def llvm_config_impl(rctx):
         #   $ dir C:/temp/k7ozco62/external/toolchains_llvm++llvm+llvm_toolchain/bin # shows `d----l` file modes on binaries
         #   $ bazelisk.exe build //fleet/native/launcher:fleet # WORKS
         #   $ dir C:/temp/k7ozco62/external/toolchains_llvm++llvm+llvm_toolchain/bin # shows `-a----` file modes on binaries
+        #
         use_absolute_paths_llvm = True
 
     # Check if the toolchain root is a system path.
@@ -404,12 +402,8 @@ def _cc_toolchain_str(
             _join(sysroot_prefix, "/System/Library/Frameworks"),
         ])
     elif target_os == "windows":
-        # TODO: getting this error otherwise:
-        # ERROR: C:/temp/k7ozco62/external/toolchains_llvm++llvm+llvm_toolchain/BUILD.bazel:764:13: in cc_toolchain rule @@toolchains_llvm++llvm+llvm_toolchain//:cc-clang-aarch64-windows:
-        # Traceback (most recent call last):
-        #         File "/virtual_builtins_bzl/common/cc/cc_toolchain.bzl", line 133, column 45, in _cc_toolchain_impl
-        #         File "/virtual_builtins_bzl/common/cc/cc_toolchain_provider_helper.bzl", line 238, column 64, in get_cc_toolchain_provider
-        #         File "/virtual_builtins_bzl/common/cc/cc_toolchain_provider_helper.bzl", line 143, column 17, in _resolve_include_dir
+        # TODO: when uncommented, we are getting:
+        #
         # Error in fail: A %sysroot% prefix is only allowed if the default_sysroot option is set
         # ERROR: C:/temp/k7ozco62/external/toolchains_llvm++llvm+llvm_toolchain/BUILD.bazel:764:13: Analysis of target '@@toolchains_llvm++llvm+llvm_toolchain//:cc-clang-aarch64-windows' (config: 40e6e70) failed
         #
