@@ -233,7 +233,7 @@ def cc_toolchain_config(
         "-fdata-sections",
     ]
 
-    if compiler == "clang-cl":  # TODO: we should actually check if the linker is `lld-link` instead
+    if compiler == "clang-cl":  # TODO: technically it should be a check if the linker is `lld-link` instead, but we don't declare such value
         link_flags = [
             # The --target flag is for some uninvestigated yet reason required for Cargo build script to work on Windows ARM, otherwise it fails with:
             #     ERROR: C:/temp/k7ozco62/external/rules_rust++crate+fleet_crates__windows_aarch64_msvc-0.52.6/BUILD.bazel:75:19:
@@ -255,7 +255,7 @@ def cc_toolchain_config(
         link_flags.append("--ld-path=ld64.lld" if target_os == "darwin" else "--ld-path=ld.lld")
 
     stdlib = compiler_configuration["stdlib"]
-    if stdlib != "none" and compiler != "clang-cl":  # TODO: we should actually check if the linker is `lld-link` instead
+    if stdlib != "none" and compiler != "clang-cl":  # TODO: technically it should be a check if the linker is `lld-link` instead, but we don't declare such value
         link_flags.extend([
             "-lm",
         ])
