@@ -104,8 +104,6 @@ filegroup(
         # not be available at runtime to allow sanitizers to work locally.
         # Any library linked from the toolchain to be released should be linked statically.
         "lib/clang/{LLVM_VERSION}/lib/**",
-        "lib/**/libc++*.a",
-        "lib/**/libunwind.a",
     ], allow_empty = True),
 )
 
@@ -217,12 +215,5 @@ filegroup(
 
 filegroup(
     name = "libclang",
-    srcs = glob(
-        [
-            "lib/libclang.so",
-            "lib/libclang.dylib",
-            "lib/libclang.lib",
-        ],
-        allow_empty = True,
-    ),
+    srcs = ["lib/libclang.lib"],
 )
