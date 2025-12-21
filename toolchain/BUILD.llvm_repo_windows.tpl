@@ -90,7 +90,7 @@ filegroup(
 filegroup(
     name = "lib",
     srcs = [
-        # Include the .dylib files in the linker sandbox even though they will
+        # Include the .lib files in the linker sandbox even though they will
         # not be available at runtime to allow sanitizers to work locally.
         # Any library linked from the toolchain to be released should be linked statically.
         "lib/clang/{LLVM_VERSION}/lib",
@@ -100,7 +100,7 @@ filegroup(
 filegroup(
     name = "lib_legacy",
     srcs = glob([
-        # Include the .dylib files in the linker sandbox even though they will
+        # Include the .lib files in the linker sandbox even though they will
         # not be available at runtime to allow sanitizers to work locally.
         # Any library linked from the toolchain to be released should be linked statically.
         "lib/clang/{LLVM_VERSION}/lib/**",
