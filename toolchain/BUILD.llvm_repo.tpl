@@ -190,7 +190,6 @@ filegroup(
         [
             "lib/libclang.so",
             "lib/libclang.dylib",
-            "lib/libclang.lib",
         ],
         allow_empty = True,
     ),
