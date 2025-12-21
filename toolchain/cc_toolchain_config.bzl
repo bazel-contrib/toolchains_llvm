@@ -430,6 +430,13 @@ def cc_toolchain_config(
     if exec_os == "windows":
         binary_ext = ".exe"
 
+    if target_os == "windows":
+        gcc_tool = tools_path_prefix + "clang-cl" + binary_ext
+    elif exec_os == "windows":
+        gcc_tool = tools_path_prefix + "clang" + binary_ext
+    else:
+        gcc_tool = wrapper_bin_prefix + "cc_wrapper.sh"
+
     # The requirements here come from
     # https://cs.opensource.google/bazel/bazel/+/master:src/main/starlark/builtins_bzl/common/cc/cc_toolchain_provider_helper.bzl;l=75;drc=f0150efd1cca473640269caaf92b5a23c288089d
     # https://cs.opensource.google/bazel/bazel/+/master:src/main/java/com/google/devtools/build/lib/rules/cpp/CcModule.java;l=1257;drc=6743d76f9ecde726d592e88d8914b9db007b1c43
@@ -440,7 +447,7 @@ def cc_toolchain_config(
         "ar": tools_path_prefix + ("llvm-ar" if not use_libtool else "libtool") + binary_ext,
         "cpp": tools_path_prefix + "clang-cpp" + binary_ext,
         "dwp": tools_path_prefix + "llvm-dwp" + binary_ext,
-        "gcc": tools_path_prefix + "clang-cl" + binary_ext if target_os == "windows" else wrapper_bin_prefix + "cc_wrapper.sh",
+        "gcc": gcc_tool,
         "gcov": tools_path_prefix + "llvm-profdata" + binary_ext,
         "ld": tools_path_prefix + "lld-link" + binary_ext if target_os == "windows" else tools_path_prefix + "ld.lld" + binary_ext,
         "llvm-lib": tools_path_prefix + "llvm-lib" + binary_ext,
