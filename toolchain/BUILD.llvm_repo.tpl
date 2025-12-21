@@ -44,8 +44,10 @@ filegroup(
     srcs = [
         "bin/ld.lld",
         "bin/ld64.lld",
+    ] + glob([
+        "bin/wasm-ld",
         "bin/lld-link",
-    ] + glob(["bin/wasm-ld"], allow_empty = True),
+    ], allow_empty = True),
 )
 
 filegroup(
