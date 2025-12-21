@@ -276,7 +276,7 @@ def toolchain_tools(os):
         tools = dict()
         binary_ext = ".exe"
         for bin, symlink in _toolchain_tools.items():
-            tools.update({bin + binary_ext: symlink + binary_ext})
+            tools[bin + binary_ext] = symlink + binary_ext
     elif os == "darwin":
         tools = dict(_toolchain_tools)
         tools.update(_toolchain_tools_darwin)
