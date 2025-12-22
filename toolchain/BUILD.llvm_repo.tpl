@@ -33,9 +33,10 @@ filegroup(
        "bin/clang",
        "bin/clang++",
        "bin/clang-cpp",
+    ] + glob([
        "bin/clang-cl",
        "bin/lld-link",
-    ],
+    ], allow_empty = True),
 )
 
 filegroup(
