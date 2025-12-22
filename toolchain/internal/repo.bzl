@@ -14,7 +14,6 @@
 load(
     "//toolchain/internal:common.bzl",
     _attr_dict = "attr_dict",
-    _os = "os",
     _supported_os_arch_keys = "supported_os_arch_keys",
 )
 load(
@@ -418,17 +417,16 @@ llvm_config_attrs.update({
 })
 
 def llvm_repo_impl(rctx):
-    os = _os(rctx)
-    if os == "windows":
-        rctx.file("BUILD.bazel", executable = False)
-        return None
-
     llvm_version = _required_llvm_version_rctx(rctx)
     major_llvm_version = int(llvm_version.split(".")[0])
 
+    if rctx.os.name.startswith("windows"):
+        template_file_label = "//toolchain:BUILD.llvm_repo_windows.tpl"
+    else:
+        template_file_label = "//toolchain:BUILD.llvm_repo.tpl"
     rctx.file(
         "BUILD.bazel",
-        content = rctx.read(Label("//toolchain:BUILD.llvm_repo.tpl")).format(
+        content = rctx.read(Label(template_file_label)).format(
             # The versioning changed.
             LLVM_VERSION = major_llvm_version if major_llvm_version >= 16 else llvm_version,
         ),
