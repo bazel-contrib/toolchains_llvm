@@ -220,7 +220,7 @@ def cc_toolchain_config(
             "/D_WIN32",
             "/D_WINDOWS",
             "/clang:-fdebug-prefix-map={}=__bazel_toolchain_llvm_repo__/".format(toolchain_path_prefix),
-            "/clang-I{}/Include".format(sysroot_path),
+            "/clang-I{}/include".format(sysroot_path),
         ])
     else:
         compile_flags.extend([
@@ -258,7 +258,7 @@ def cc_toolchain_config(
     if linker == "lld-link":
         link_flags = [
             "/MACHINE:{}".format(_machine_arch(target_arch)),
-            "/LIBPATH:{}/Lib".format(sysroot_path),
+            "/LIBPATH:{}/lib".format(sysroot_path),
         ]
     else:
         link_flags = [
@@ -298,7 +298,7 @@ def cc_toolchain_config(
         # lld is invoked as wasm-ld for WebAssembly targets.
         use_libtool = False
     else:
-        if linker == "ld.lld":
+        if target_os == "linux": # TODO: must reason in terms of ld64
             link_flags.extend([
                 "-Wl,--build-id=md5",
                 "-Wl,--hash-style=gnu",
@@ -405,9 +405,10 @@ def cc_toolchain_config(
             "-stdlib=libstdc++",
         ]
 
-        link_flags.extend([
-            "-l:libstdc++.a",
-        ])
+        if target_os == "linux":
+            link_flags.extend([
+                "-l:libstdc++.a",
+            ])
     elif stdlib == "libc":
         cxx_flags = [
             std_flag + cxx_standard,
@@ -555,10 +556,10 @@ def cc_toolchain_config(
             abi_version = abi_version,
             abi_libc_version = abi_libc_version,
             msvc_env_include = ";".join([
-                "{}/Include".format(sysroot_path),
+                "{}/include".format(sysroot_path),
             ]),
             # msvc_env_lib = ";".join([
-            #     "{}/Lib".format(sysroot_path),
+            #     "{}/lib".format(sysroot_path),
             # ]),
             msvc_cl_path = tool_paths["gcc"],
             msvc_link_path = tool_paths["ld"],
