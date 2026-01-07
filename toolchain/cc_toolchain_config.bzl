@@ -234,16 +234,16 @@ def cc_toolchain_config(
             "-Wself-assign",
         ])
 
-    clangcl_debug_flags = ["/DEBUG"]  # ensures `.pdb` file is generated in `cc_rules` linking action when targetting Windows
+    clangcl_debug_flags = ["/DEBUG"]  # ensures `.pdb` file is generated in `cc_rules` linking action when targeting Windows
     dbg_compile_flags = [
         "-g",
         "-fstandalone-debug",
     ]
-    if compiler == "clang-cl" and target_os == "windows":
+    if compiler == "clang-cl":
         dbg_compile_flags.extend(clangcl_debug_flags)
 
     fastbuild_compile_flags = []
-    if compiler == "clang-cl" and target_os == "windows":
+    if compiler == "clang-cl":
         fastbuild_compile_flags.extend(clangcl_debug_flags)
 
     opt_compile_flags = [
@@ -311,7 +311,7 @@ def cc_toolchain_config(
     # output_file arg to it is None.
     if is_darwin_exec_and_target:
         archive_flags = ["-static"]
-    elif compiler == "clang-cl" and target_os == "windows":
+    elif compiler == "clang-cl":
         archive_flags = ["/MACHINE:{}".format(_machine_arch(target_arch))]
     else:
         archive_flags = []
@@ -327,9 +327,24 @@ def cc_toolchain_config(
     # Darwin has a universal sysroot so the builtin can compile cross-arch.
     if stdlib == "builtin-libc++" and is_xcompile and not is_darwin_exec_and_target:
         stdlib = "stdc++"
-    if stdlib == "builtin-libc++":
+
+    if compiler == "clang-cl":
+        std_flag = "/std:"
+    else:
+        std_flag = "-std="
+
+    if target_libc == "msvc":  # there is no alternative stdlib support in MSVC
+        if compiler != "clang-cl":
+            fail("Compiling to MSVC requires `clang-cl` compiler")
+
         cxx_flags = [
-            "-std=" + cxx_standard,
+            std_flag + cxx_standard,
+            "-fms-compatibility",
+            "-fms-extensions",
+        ]
+    elif stdlib == "builtin-libc++":
+        cxx_flags = [
+            std_flag + cxx_standard,
             "-stdlib=libc++",
         ]
 
@@ -351,8 +366,6 @@ def cc_toolchain_config(
                 "-Bstatic",
                 "-lunwind",
             ]
-        elif target_os == "windows":
-            pass
         else:
             # For single-platform builds, we can statically link the bundled
             # libraries.
@@ -367,10 +380,9 @@ def cc_toolchain_config(
                 "-lpthread",
                 "-ldl",
             ]
-
     elif stdlib == "libc++":
         cxx_flags = [
-            "-std=" + cxx_standard,
+            std_flag + cxx_standard,
             "-stdlib=libc++",
         ]
 
@@ -380,7 +392,7 @@ def cc_toolchain_config(
         ])
     elif stdlib == "dynamic-stdc++":
         cxx_flags = [
-            "-std=" + cxx_standard,
+            std_flag + cxx_standard,
             "-stdlib=libstdc++",
         ]
 
@@ -389,7 +401,7 @@ def cc_toolchain_config(
         ])
     elif stdlib == "stdc++":
         cxx_flags = [
-            "-std=" + cxx_standard,
+            std_flag + cxx_standard,
             "-stdlib=libstdc++",
         ]
 
@@ -398,7 +410,7 @@ def cc_toolchain_config(
         ])
     elif stdlib == "libc":
         cxx_flags = [
-            "-std=" + cxx_standard,
+            std_flag + cxx_standard,
         ]
     elif stdlib == "none":
         cxx_flags = [
@@ -407,12 +419,6 @@ def cc_toolchain_config(
         link_flags.extend([
             "-nostdlib",
         ])
-    elif compiler == "clang-cl" and target_libc == "msvc":
-        cxx_flags = [
-            "/std:" + cxx_standard,
-            "-fms-compatibility",
-            "-fms-extensions",
-        ]
     else:
         fail("Unknown value passed for stdlib: {stdlib}".format(stdlib = stdlib))
 
@@ -529,7 +535,7 @@ def cc_toolchain_config(
     if compiler_configuration["extra_unfiltered_compile_flags"] != None:
         unfiltered_compile_flags.extend(_fmt_flags(compiler_configuration["extra_unfiltered_compile_flags"], toolchain_path_prefix))
 
-    if target_os == "windows" and compiler == "clang-cl" and target_libc == "msvc":
+    if target_os == "windows":
         windows_cc_toolchain_config(
             name = name,
             cpu = target_cpu,
