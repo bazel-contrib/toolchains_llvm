@@ -220,9 +220,17 @@ def cc_toolchain_config(
             "-Wself-assign",
         ])
 
-    dbg_compile_flags = ["-g", "-fstandalone-debug"]
+    clangcl_debug_flags = ["/DEBUG"]  # ensures `.pdb` file is generated in `cc_rules` linking action when targetting Windows
+    dbg_compile_flags = [
+        "-g",
+        "-fstandalone-debug",
+    ]
+    if compiler == "clang-cl" and target_os == "windows":
+        dbg_compile_flags.extend(clangcl_debug_flags)
 
     fastbuild_compile_flags = []
+    if compiler == "clang-cl" and target_os == "windows":
+        fastbuild_compile_flags.extend(clangcl_debug_flags)
 
     opt_compile_flags = [
         "-g0",
