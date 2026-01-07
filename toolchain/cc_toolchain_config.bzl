@@ -243,12 +243,6 @@ def cc_toolchain_config(
 
     if compiler == "clang-cl":  # TODO: technically it should be a check if the linker is `lld-link` instead, but we don't declare such value
         link_flags = [
-            # The --target flag is for some uninvestigated yet reason required for Cargo build script to work on Windows ARM, otherwise it fails with:
-            #     ERROR: C:/temp/k7ozco62/external/rules_rust++crate+fleet_crates__windows_aarch64_msvc-0.52.6/BUILD.bazel:75:19:
-            #        error while validating output tree artifact external/rules_rust++crate+fleet_crates__windows_aarch64_msvc-0.52.6/_bs.cargo_runfiles:
-            #           C:\temp\k7ozco62\execroot\_main\bazel-out\arm64_windows-fastbuild\bin\external\rules_rust++crate+fleet_crates__windows_aarch64_msvc-0.52.6\_bs.cargo_runfiles\rules_rust++crate+fleet_crates__windows_aarch64_msvc-0.52.6
-            #      ERROR: C:/temp/k7ozco62/external/rules_rust++crate+fleet_crates__windows_aarch64_msvc-0.52.6/BUILD.bazel:75:19: Running Cargo build script windows_aarch64_msvc failed: not all outputs were created or valid
-            "--target=" + target_system_name,
             "/MACHINE:{}".format(_machine_arch(target_arch)),
         ]
     else:
