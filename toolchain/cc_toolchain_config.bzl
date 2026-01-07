@@ -67,6 +67,7 @@ def cc_toolchain_config(
         target_cpu,
         target_libc,
         compiler,
+        linker,
         abi_version,
         abi_libc_version,
     ) = {
@@ -75,6 +76,7 @@ def cc_toolchain_config(
             "darwin",
             "macosx",
             "clang",
+            "ld.lld",
             "darwin_x86_64",
             "darwin_x86_64",
         ),
@@ -83,6 +85,7 @@ def cc_toolchain_config(
             "darwin",
             "macosx",
             "clang",
+            "ld.lld",
             "darwin_aarch64",
             "darwin_aarch64",
         ),
@@ -91,6 +94,7 @@ def cc_toolchain_config(
             "aarch64",
             "glibc_unknown",
             "clang",
+            "ld.lld",
             "clang",
             "glibc_unknown",
         ),
@@ -99,6 +103,7 @@ def cc_toolchain_config(
             "armv7",
             "glibc_unknown",
             "clang",
+            "ld.lld",
             "clang",
             "glibc_unknown",
         ),
@@ -107,6 +112,7 @@ def cc_toolchain_config(
             "k8",
             "glibc_unknown",
             "clang",
+            "ld.lld",
             "clang",
             "glibc_unknown",
         ),
@@ -115,6 +121,7 @@ def cc_toolchain_config(
             "riscv32",
             "unknown",
             "clang",
+            "ld.lld",
             "unknown",
             "unknown",
         ),
@@ -123,6 +130,7 @@ def cc_toolchain_config(
             "k8",
             "unknown",
             "clang",
+            "ld.lld",
             "unknown",
             "unknown",
         ),
@@ -131,6 +139,7 @@ def cc_toolchain_config(
             "wasm32",
             "unknown",
             "clang",
+            "ld.lld",
             "unknown",
             "unknown",
         ),
@@ -139,6 +148,7 @@ def cc_toolchain_config(
             "wasm64",
             "unknown",
             "clang",
+            "ld.lld",
             "unknown",
             "unknown",
         ),
@@ -147,6 +157,7 @@ def cc_toolchain_config(
             "wasm32",
             "unknown",
             "clang",
+            "ld.lld",
             "unknown",
             "unknown",
         ),
@@ -155,6 +166,7 @@ def cc_toolchain_config(
             "wasm64",
             "unknown",
             "clang",
+            "ld.lld",
             "unknown",
             "unknown",
         ),
@@ -163,6 +175,7 @@ def cc_toolchain_config(
             "x64_windows",
             "msvc",
             "clang-cl",
+            "lld-link",
             "unknown",
             "unknown",
         ),
@@ -171,6 +184,7 @@ def cc_toolchain_config(
             "arm64_windows",
             "msvc",
             "clang-cl",
+            "lld-link",
             "unknown",
             "unknown",
         ),
@@ -241,9 +255,10 @@ def cc_toolchain_config(
         "-fdata-sections",
     ]
 
-    if compiler == "clang-cl":  # TODO: technically it should be a check if the linker is `lld-link` instead, but we don't declare such value
+    if linker == "lld-link":
         link_flags = [
             "/MACHINE:{}".format(_machine_arch(target_arch)),
+            "/LIBPATH:{}/Lib".format(sysroot_path),
         ]
     else:
         link_flags = [
@@ -252,12 +267,12 @@ def cc_toolchain_config(
             "-fuse-ld=lld",
         ]
 
-    if exec_os == "darwin":
+    if exec_os == "darwin" and linker == "ld.lld":
         # These will get expanded by osx_cc_wrapper's `sanitize_option`
         link_flags.append("--ld-path=ld64.lld" if target_os == "darwin" else "--ld-path=ld.lld")
 
     stdlib = compiler_configuration["stdlib"]
-    if stdlib != "none" and compiler != "clang-cl":  # TODO: technically it should be a check if the linker is `lld-link` instead, but we don't declare such value
+    if stdlib != "none" and linker == "ld.lld":
         link_flags.extend([
             "-lm",
         ])
@@ -282,17 +297,13 @@ def cc_toolchain_config(
     elif target_arch in ["wasm32", "wasm64"]:
         # lld is invoked as wasm-ld for WebAssembly targets.
         use_libtool = False
-    elif compiler == "clang-cl":
-        link_flags.extend([
-            "/LIBPATH:{}/Lib".format(sysroot_path),
-        ])
-        use_libtool = False
     else:
-        link_flags.extend([
-            "-Wl,--build-id=md5",
-            "-Wl,--hash-style=gnu",
-            "-Wl,-z,relro,-z,now",
-        ])
+        if linker == "ld.lld":
+            link_flags.extend([
+                "-Wl,--build-id=md5",
+                "-Wl,--hash-style=gnu",
+                "-Wl,-z,relro,-z,now",
+            ])
         use_libtool = False
 
     # Pre-installed libtool on macOS has -static as default, but llvm-libtool-darwin needs it
@@ -451,7 +462,7 @@ def cc_toolchain_config(
         "dwp": tools_path_prefix + "llvm-dwp" + binary_ext,
         "gcc": gcc_tool,
         "gcov": tools_path_prefix + "llvm-profdata" + binary_ext,
-        "ld": tools_path_prefix + "lld-link" + binary_ext if target_os == "windows" else tools_path_prefix + "ld.lld" + binary_ext,
+        "ld": tools_path_prefix + linker + binary_ext,
         "llvm-lib": tools_path_prefix + "llvm-lib" + binary_ext,
         "llvm-cov": tools_path_prefix + "llvm-cov" + binary_ext,
         "llvm-profdata": tools_path_prefix + "llvm-profdata" + binary_ext,
