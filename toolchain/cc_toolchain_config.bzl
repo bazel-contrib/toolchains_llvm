@@ -449,9 +449,13 @@ def cc_toolchain_config(
     if exec_os == "windows":
         binary_ext = ".exe"
 
-    if target_os == "windows":
+    if target_libc == "msvc":
         gcc_tool = tools_path_prefix + "clang-cl" + binary_ext
     elif exec_os == "windows":
+        # TODO: we avoid the usage of a wrapper in Windows, it may not be an issue due to our
+        #  `use_absolute_paths_llvm=True` hack but that may need to be reconsider when we remove it.
+        #  Note: building a wrapper is tricky on Windows, we had many string interpretation issues when we tried
+        #  especially on escapes e.g. `\"`.
         gcc_tool = tools_path_prefix + "clang" + binary_ext
     else:
         gcc_tool = wrapper_bin_prefix + "cc_wrapper.sh"
