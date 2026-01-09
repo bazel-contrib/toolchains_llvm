@@ -93,15 +93,15 @@ def llvm_config_impl(rctx):
         # TODO: Windows has an issue resolving symlinks in the execroot, so for now we force `absolute_paths = True` as a hack
         #
         # Here is an example of failure:
-        #   ERROR: C:/users/titouan.bion/developer_windows/ultimate/fleet/native/launcher/BUILD.bazel:10:12: Compiling Rust bin fleet (15 files) failed: error reading file '@@toolchains_llvm++llvm+llvm_toolchain//:bin/llvm-nm.exe':
+        #   ERROR: <path>/BUILD.bazel:10:12: Compiling Rust bin somebinary (15 files) failed: error reading file '@@toolchains_llvm++llvm+llvm_toolchain//:bin/llvm-nm.exe':
         #
         # Command to reproduce:
-        #   $ bazelisk.exe clean --expunge
-        #   $ bazelisk.exe build //fleet/native/launcher:fleet # FAILS with the above error
+        #   $ bazel.exe clean --expunge
+        #   $ bazel.exe build //some/rust:somebinary # FAILS with the above error
         #   $ dir C:/temp/k7ozco62/external/toolchains_llvm++llvm+llvm_toolchain/bin # shows `d----l` file modes on binaries
-        #   $ bazelisk.exe query --output build //fleet/native/launcher:fleet # WORKS
+        #   $ bazel.exe query --output build //some/rust:somebinary # WORKS
         #   $ dir C:/temp/k7ozco62/external/toolchains_llvm++llvm+llvm_toolchain/bin # shows `d----l` file modes on binaries
-        #   $ bazelisk.exe build //fleet/native/launcher:fleet # WORKS
+        #   $ bazel.exe build //some/rust:somebinary # WORKS
         #   $ dir C:/temp/k7ozco62/external/toolchains_llvm++llvm+llvm_toolchain/bin # shows `-a----` file modes on binaries
         #
         use_absolute_paths_llvm = True
