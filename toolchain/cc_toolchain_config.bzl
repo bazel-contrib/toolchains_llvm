@@ -445,20 +445,24 @@ def cc_toolchain_config(
     ## NOTE: make variables are missing here; unix_cc_toolchain_config doesn't
     ## pass these to `create_cc_toolchain_config_info`.
 
-    binary_ext = ""
-    if exec_os == "windows":
-        binary_ext = ".exe"
+    def _tool(tool_name):
+        if exec_os == "windows":
+            binary_ext = ".exe"
+        else:
+            binary_ext = ""
+        return tools_path_prefix + tool_name + binary_ext
 
+    cc_wrapper_unix = wrapper_bin_prefix + "cc_wrapper.sh"
     if target_libc == "msvc":
-        gcc_tool = tools_path_prefix + "clang-cl" + binary_ext
+        gcc_tool = _tool("clang-cl")
     elif exec_os == "windows":
         # TODO: we avoid the usage of a wrapper in Windows, it may not be an issue due to our
         #  `use_absolute_paths_llvm=True` hack but that may need to be reconsider when we remove it.
         #  Note: building a wrapper is tricky on Windows, we had many string interpretation issues when we tried
         #  especially on escapes e.g. `\"`.
-        gcc_tool = tools_path_prefix + "clang" + binary_ext
+        gcc_tool = _tool("clang")
     else:
-        gcc_tool = wrapper_bin_prefix + "cc_wrapper.sh"
+        gcc_tool = cc_wrapper_unix
 
     # The requirements here come from
     # https://cs.opensource.google/bazel/bazel/+/master:src/main/starlark/builtins_bzl/common/cc/cc_toolchain_provider_helper.bzl;l=75;drc=f0150efd1cca473640269caaf92b5a23c288089d
@@ -467,20 +471,20 @@ def cc_toolchain_config(
     # https://github.com/bazelbuild/rules_cc/blob/fe41fc4ea219c9d3680ee536bba6681f3baf838e/cc/private/toolchain/unix_cc_toolchain_config.bzl#L1887
     # NOTE: Ensure these are listed in toolchain_tools in toolchain/internal/common.bzl.
     tool_paths = {
-        "ar": tools_path_prefix + ("llvm-ar" if not use_libtool else "libtool") + binary_ext,
-        "cpp": tools_path_prefix + "clang-cpp" + binary_ext,
-        "dwp": tools_path_prefix + "llvm-dwp" + binary_ext,
+        "ar": _tool("llvm-ar" if not use_libtool else "libtool"),
+        "cpp": _tool("clang-cpp"),
+        "dwp": _tool("llvm-dwp"),
         "gcc": gcc_tool,
-        "gcov": tools_path_prefix + "llvm-profdata" + binary_ext,
-        "ld": tools_path_prefix + linker + binary_ext,
-        "llvm-lib": tools_path_prefix + "llvm-lib" + binary_ext,
-        "llvm-cov": tools_path_prefix + "llvm-cov" + binary_ext,
-        "llvm-profdata": tools_path_prefix + "llvm-profdata" + binary_ext,
-        "nm": tools_path_prefix + "llvm-nm" + binary_ext,
-        "objcopy": tools_path_prefix + "llvm-objcopy" + binary_ext,
-        "objdump": tools_path_prefix + "llvm-objdump" + binary_ext,
-        "strip": tools_path_prefix + "llvm-strip" + binary_ext,
-        "parse_headers": wrapper_bin_prefix + "cc_wrapper.sh",
+        "gcov": _tool("llvm-profdata"),
+        "ld": _tool(linker),
+        "llvm-lib": _tool("llvm-lib"),
+        "llvm-cov": _tool("llvm-cov"),
+        "llvm-profdata": _tool("llvm-profdata"),
+        "nm": _tool("llvm-nm"),
+        "objcopy": _tool("llvm-objcopy"),
+        "objdump": _tool("llvm-objdump"),
+        "strip": _tool("llvm-strip"),
+        "parse_headers": cc_wrapper_unix,
     }
 
     # Start-end group linker support:
