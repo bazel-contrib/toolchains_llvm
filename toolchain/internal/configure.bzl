@@ -86,35 +86,31 @@ def _detect_gcc_cxx_headers(rctx, sysroot_path, target_system_name):
 
     # Check for GCC C++ headers in common locations
     # Modern distros (Debian 10+, Ubuntu 18.04+): /usr/include/c++/<version>
-    cxx_include_base = sysroot_path + "/usr/include/c++"
-    if rctx.path(cxx_include_base).exists:
+    cxx_include_path = rctx.path(sysroot_path + "/usr/include/c++")
+    if cxx_include_path.exists:
         # Find GCC version directories (e.g., "14", "13", "12")
-        result = rctx.execute(["ls", cxx_include_base])
-        if result.return_code == 0:
-            versions = [v.strip() for v in result.stdout.strip().split("\n") if v.strip()]
-            for version in versions:
-                # Add main C++ headers
-                include_dirs.append("/usr/include/c++/" + version)
-                # Add target-specific headers (for multi-arch)
-                include_dirs.append("/usr/include/" + gnu_triple + "/c++/" + version)
-                # Add backward compatibility headers
-                include_dirs.append("/usr/include/c++/" + version + "/backward")
+        for entry in cxx_include_path.readdir():
+            version = entry.basename
+            # Add main C++ headers
+            include_dirs.append("/usr/include/c++/" + version)
+            # Add target-specific headers (for multi-arch)
+            include_dirs.append("/usr/include/" + gnu_triple + "/c++/" + version)
+            # Add backward compatibility headers
+            include_dirs.append("/usr/include/c++/" + version + "/backward")
 
     # Also check traditional GCC installation path: /usr/lib/gcc/<triple>/<version>/...
     # This is the layout used by older distros and Chromium sysroots
-    gcc_lib_base = sysroot_path + "/usr/lib/gcc/" + gnu_triple
-    if rctx.path(gcc_lib_base).exists:
-        result = rctx.execute(["ls", gcc_lib_base])
-        if result.return_code == 0:
-            versions = [v.strip() for v in result.stdout.strip().split("\n") if v.strip()]
-            for version in versions:
-                # Traditional GCC include path structure uses relative paths from gcc lib dir
-                # e.g., /usr/lib/gcc/x86_64-linux-gnu/6/../../../../include/c++/6
-                # which resolves to /usr/include/c++/6
-                base = "/usr/lib/gcc/" + gnu_triple + "/" + version
-                include_dirs.append(base + "/../../../../include/c++/" + version)
-                include_dirs.append(base + "/../../../../include/" + gnu_triple + "/c++/" + version)
-                include_dirs.append(base + "/../../../../include/c++/" + version + "/backward")
+    gcc_lib_path = rctx.path(sysroot_path + "/usr/lib/gcc/" + gnu_triple)
+    if gcc_lib_path.exists:
+        for entry in gcc_lib_path.readdir():
+            version = entry.basename
+            # Traditional GCC include path structure uses relative paths from gcc lib dir
+            # e.g., /usr/lib/gcc/x86_64-linux-gnu/6/../../../../include/c++/6
+            # which resolves to /usr/include/c++/6
+            base = "/usr/lib/gcc/" + gnu_triple + "/" + version
+            include_dirs.append(base + "/../../../../include/c++/" + version)
+            include_dirs.append(base + "/../../../../include/" + gnu_triple + "/c++/" + version)
+            include_dirs.append(base + "/../../../../include/c++/" + version + "/backward")
 
     return include_dirs
 
