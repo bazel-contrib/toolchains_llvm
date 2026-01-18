@@ -19,6 +19,8 @@
 #
 # These three Bazel flags influence whether or not `.dwo` and `.dwp` are
 # created.
+load("@rules_cc//cc:defs.bzl", "CcInfo", "DebugPackageInfo")
+
 def _fission_transition_impl(settings, attr):
     features = settings["//command_line_option:features"]
     if "per_object_debug_info" in features:
