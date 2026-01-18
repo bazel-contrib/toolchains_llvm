@@ -28,7 +28,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, ubuntu-latest]
-        bazel_version: [7.x, 8.x, latest]
+        bazel_version: [7.*, 8.*, 9.*, latest]
         bzlmod: [true, false]
     runs-on: ${{ matrix.os }}
     steps:
@@ -46,7 +46,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, ubuntu-latest]
-        bazel_version: [7.x, 8.x, latest]
+        bazel_version: [7.*, 8.*, 9.*, latest]
         bzlmod: [true, false]
     runs-on: ${{ matrix.os }}
     steps:
