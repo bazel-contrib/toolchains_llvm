@@ -889,11 +889,13 @@ def _get_all_llvm_distributions(*, llvm_distributions, extra_llvm_distributions,
 
 _UBUNTU_NAMES = [
     "arch",
+    "chainguard",
     "linuxmint",
     "manjaro",
     "nixos",
     "pop",
     "ubuntu",
+    "wolfi",
 ]
 
 _UBUNTU_VERSIONS = [
@@ -1399,6 +1401,7 @@ def _distributions_test_writer_impl(ctx):
             struct(name = "arch", version = ANY_VERSION),
             struct(name = "centos", version = "6"),
             struct(name = "centos", version = "7"),
+            struct(name = "chainguard", version = ANY_VERSION),
             struct(name = "debian", version = "0"),
             struct(name = "debian", version = "8"),
             struct(name = "debian", version = "9"),
@@ -1432,6 +1435,7 @@ def _distributions_test_writer_impl(ctx):
             struct(name = "ubuntu", version = "20.10"),
             struct(name = "ubuntu", version = "22.04"),
             struct(name = "ubuntu", version = "24.04"),
+            struct(name = "wolfi", version = ANY_VERSION),
         ],
     }
 
