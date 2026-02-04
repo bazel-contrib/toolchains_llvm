@@ -23,9 +23,9 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "bazel_features",
-    sha256 = "5ab1a90d09fd74555e0df22809ad589627ddff263cff82535815aa80ca3e3562",
-    strip_prefix = "bazel_features-1.39.0",
-    url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.39.0/bazel_features-v1.39.0.tar.gz",
+    sha256 = "966c211ec42c4deb2af4c6dd6948408100b752f61753c97055bdac9bfb5cc0c7",
+    strip_prefix = "bazel_features-1.41.0",
+    url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.41.0/bazel_features-v1.41.0.tar.gz",
 )
 
 load("@bazel_features//:deps.bzl", "bazel_features_deps")
@@ -34,9 +34,9 @@ bazel_features_deps()
 
 http_archive(
     name = "aspect_bazel_lib",
-    sha256 = "06cbcd5b98af3f530d20b505a89fb6761f09950b780cdd7726df42ee84b49d04",
-    strip_prefix = "bazel-lib-3.1.1",
-    url = "https://github.com/aspect-build/bazel-lib/releases/download/v3.1.1/bazel-lib-v3.1.1.tar.gz",
+    sha256 = "e733937de2f542436c5d3d618e22c638489b40dfd251284050357babe71103d7",
+    strip_prefix = "bazel-lib-3.2.0",
+    url = "https://github.com/aspect-build/bazel-lib/releases/download/v3.2.0/bazel-lib-v3.2.0.tar.gz",
 )
 
 http_archive(
@@ -334,9 +334,9 @@ http_archive(
 
 http_archive(
     name = "com_google_protobuf",
-    sha256 = "e0c38d45da1bdcc998fcdb05d9dc7f11832a21207c733317f463a1b816ad0fce",
-    strip_prefix = "protobuf-33.4",
-    urls = ["https://github.com/protocolbuffers/protobuf/releases/download/v33.4/protobuf-33.4.zip"],
+    sha256 = "98bc55acbc30be2bda6fb8bc9169a31e14956bd3b3169c63edbe6207b8116b68",
+    strip_prefix = "protobuf-33.5",
+    urls = ["https://github.com/protocolbuffers/protobuf/releases/download/v33.5/protobuf-33.5.zip"],
 )
 
 load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
