@@ -200,6 +200,7 @@ def cc_toolchain_config(
         "-D__TIMESTAMP__=\"redacted\"",
         "-D__TIME__=\"redacted\"",
     ]
+    # TODO: investigate the underlying bug of that failure, we should probably also have `-no-canonical-prefixes` set for Windows targets
     if exec_os == "windows" or target_os != "windows":  # disabled as we observed some neon compilation failures (`lld-link: error: undefined symbol: neon_sriiq8`) on macOS and Linux when cross-compiling to Windows targets
         unfiltered_compile_flags = [
             # Do not resolve our symlinked resource prefixes to real paths.
