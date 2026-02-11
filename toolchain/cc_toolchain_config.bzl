@@ -194,14 +194,17 @@ def cc_toolchain_config(
     # line, so take precendence over any user supplied flags through --copts or
     # such.
     unfiltered_compile_flags = [
-        # Do not resolve our symlinked resource prefixes to real paths.
-        "-no-canonical-prefixes",
         # Reproducibility
         "-Wno-builtin-macro-redefined",
         "-D__DATE__=\"redacted\"",
         "-D__TIMESTAMP__=\"redacted\"",
         "-D__TIME__=\"redacted\"",
     ]
+    if exec_os == "windows" or target_os != "windows":  # disabled as we observed some neon compilation failures (`lld-link: error: undefined symbol: neon_sriiq8`) on macOS and Linux when cross-compiling to Windows targets
+        unfiltered_compile_flags = [
+            # Do not resolve our symlinked resource prefixes to real paths.
+            "-no-canonical-prefixes",
+        ]
 
     sysroot_path = compiler_configuration["sysroot_path"]
 
