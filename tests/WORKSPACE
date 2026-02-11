@@ -253,9 +253,9 @@ wasi_sdk_sysroots(name = "wasi_sdk_sysroots")
 
 http_archive(
     name = "com_google_absl",
-    sha256 = "1692f77d1739bacf3f94337188b78583cf09bab7e420d2dc6c5605a4f86785a1",
-    strip_prefix = "abseil-cpp-20250814.1",
-    urls = ["https://github.com/abseil/abseil-cpp/releases/download/20250814.1/abseil-cpp-20250814.1.tar.gz"],
+    sha256 = "f9148fb00ec98a2396bdf875c99a78e6a70afa662b107862d92b285d857a8320",
+    strip_prefix = "abseil-cpp-20250814.2",
+    urls = ["https://github.com/abseil/abseil-cpp/releases/download/20250814.2/abseil-cpp-20250814.2.tar.gz"],
 )
 
 # As a test dep of com_google_absl.
