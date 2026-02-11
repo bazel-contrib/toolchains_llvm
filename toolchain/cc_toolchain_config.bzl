@@ -220,7 +220,7 @@ def cc_toolchain_config(
             "/D_WIN32",
             "/D_WINDOWS",
             "/clang:-fdebug-prefix-map={}=__bazel_toolchain_llvm_repo__/".format(toolchain_path_prefix),
-            "/clang-I{}/include".format(sysroot_path),
+            "/clang:-I{}/include".format(sysroot_path),
         ])
     else:
         compile_flags.extend([
