@@ -14,8 +14,23 @@
 
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
+load("@rules_cc//cc/toolchains:args.bzl", "cc_args")
+load("@rules_cc//cc/toolchains:feature.bzl", "cc_feature")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load(":transitions.bzl", "dwp_file", "transition_library_to_platform")
+
+cc_args(
+    name = "foo_flag",
+    actions = ["@rules_cc//cc/toolchains/actions:compile_actions"],
+    args = ["-foo"],
+)
+
+cc_feature(
+    name = "foo",
+    args = [":foo_flag"],
+    feature_name = "foo",
+    visibility = ["//visibility:public"],
+)
 
 cc_library(
     name = "stdlib",
