@@ -22,6 +22,12 @@ bazel_dep(name = "bazel_features", version = "1.38.0")
 bazel_dep(name = "bazel_skylib", version = "1.8.2")
 bazel_dep(name = "aspect_bazel_lib", version = "2.19.3")
 bazel_dep(name = "rules_cc", version = "0.2.14")
+git_override(
+    commit = "64024621393c26ff85d11f0d8e46bf92acbfee31",  # rules_cc main branch (0.2.16 with feature injection)
+    module_name = "rules_cc",
+    remote = "https://github.com/bazelbuild/rules_cc.git",
+)
+ 
 bazel_dep(name = "platforms", version = "1.0.0")
 bazel_dep(name = "helly25_bzl", version = "0.3.1")
 
