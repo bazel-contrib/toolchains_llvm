@@ -312,7 +312,7 @@ def cc_toolchain_config(
             "-stdlib=libstdc++",
         ]
 
-        link_flags.extend([
+        link_libs.extend([
             "-lstdc++",
         ])
     elif stdlib == "stdc++":
@@ -321,7 +321,7 @@ def cc_toolchain_config(
             "-stdlib=libstdc++",
         ]
 
-        link_flags.extend([
+        link_libs.extend([
             "-l:libstdc++.a",
         ])
     elif stdlib == "libc":
