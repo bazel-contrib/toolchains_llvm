@@ -19,6 +19,10 @@ local_repository(
     path = "..",
 )
 
+load("@toolchains_llvm//toolchain:deps.bzl", "bazel_toolchain_dependencies")
+
+bazel_toolchain_dependencies()
+
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
@@ -49,10 +53,6 @@ http_archive(
 load("@tar.bzl//tar:extensions.bzl", "create_repositories")
 
 create_repositories()
-
-load("@toolchains_llvm//toolchain:deps.bzl", "bazel_toolchain_dependencies")
-
-bazel_toolchain_dependencies()
 
 load("@toolchains_llvm//toolchain:rules.bzl", "llvm_toolchain")
 
