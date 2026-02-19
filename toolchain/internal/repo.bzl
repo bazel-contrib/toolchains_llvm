@@ -368,6 +368,24 @@ _compiler_configuration_attrs = {
                "Mostly useful for providing files containing lists of flags, e.g. " +
                "sanitizer ignorelists."),
     ),
+    "extra_enabled_features": attr.label_list(
+        mandatory = False,
+        doc = ("Extra `cc_feature` features to add to this toolchain in an initially " +
+               "enabled state. This attribute has limited integration with `cc_feature`, " +
+               "and does not run additional correctness checks or handle things like `data` " +
+               "files. This is only offered as a migration bridge for projects transitioning " +
+               "to rule-based toolchain configurations, or sharing of simple argument sets " +
+               "with older toolchains."),
+    ),
+    "extra_known_features": attr.label_list(
+        mandatory = False,
+        doc = ("Extra `cc_feature` features to add to this toolchain in an initially " +
+               "disabled state. This attribute has limited integration with `cc_feature`, " +
+               "and does not run additional correctness checks or handle things like `data` " +
+               "files. This is only offered as a migration bridge for projects transitioning " +
+               "to rule-based toolchain configurations, or sharing of simple argument sets " +
+               "with older toolchains."),
+    ),
 }
 
 llvm_config_attrs = dict(common_attrs)

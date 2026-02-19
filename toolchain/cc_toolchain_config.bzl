@@ -42,6 +42,8 @@ def cc_toolchain_config(
         wrapper_bin_prefix,
         compiler_configuration,
         cxx_builtin_include_directories,
+        extra_known_features,
+        extra_enabled_features,
         major_llvm_version):
     exec_os_arch_key = _os_arch_pair(exec_os, exec_arch)
     target_os_arch_key = _os_arch_pair(target_os, target_arch)
@@ -468,4 +470,6 @@ def cc_toolchain_config(
         coverage_link_flags = coverage_link_flags,
         supports_start_end_lib = supports_start_end_lib,
         builtin_sysroot = sysroot_path,
+        extra_enabled_features = extra_enabled_features,
+        extra_known_features = extra_known_features,
     )
