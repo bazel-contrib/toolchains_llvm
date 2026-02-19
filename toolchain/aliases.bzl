@@ -27,4 +27,5 @@ aliased_tools = [
     "llvm-cov",
     "llvm-profdata",
     "llvm-symbolizer",
+    "llvm-rc",
 ]

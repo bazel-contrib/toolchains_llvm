@@ -27,36 +27,36 @@ exports_files(glob(
 
 ## LLVM toolchain files
 
+ALL_DLLS = glob(["bin/*.dll"], allow_empty=True)
+
 filegroup(
     name = "clang",
     srcs = [
-       "bin/clang",
-       "bin/clang++",
-       "bin/clang-cpp",
-    ] + glob([
-       "bin/clang-cl",
-       "bin/lld-link",
-    ], allow_empty = True),
+        "bin/clang.exe",
+        "bin/clang++.exe",
+        "bin/clang-cpp.exe",
+        "bin/clang-cl.exe",
+        "bin/lld-link.exe",
+    ] + ALL_DLLS,
 )
 
 filegroup(
     name = "ld",
     # Not all distributions contain wasm-ld.
     srcs = [
-        "bin/ld.lld",
-        "bin/ld64.lld",
-    ] + glob([
-        "bin/wasm-ld",
-        "bin/lld-link",
-    ], allow_empty = True),
+        "bin/ld.lld.exe",
+        "bin/ld64.lld.exe",
+    ] + ALL_DLLS,
 )
 
 filegroup(
     name = "include",
-    srcs = glob([
-        "include/**/c++/**",
-        "lib/clang/*/include/**",
-    ]),
+    srcs = glob(
+        [
+            "include/**/c++/**",
+            "lib/clang/*/include/**",
+        ],
+    ),
 )
 
 filegroup(
@@ -89,109 +89,121 @@ filegroup(
 
 filegroup(
     name = "lib",
-    srcs = [
-        # Include the .dylib files in the linker sandbox even though they will
-        # not be available at runtime to allow sanitizers to work locally.
-        # Any library linked from the toolchain to be released should be linked statically.
-        "lib/clang/{LLVM_VERSION}/lib",
-    ] + glob([
-        "lib/**/libc++*.a",
-        "lib/**/libunwind.a",
-    ], allow_empty = True),
+    srcs = [],
 )
 
 filegroup(
     name = "lib_legacy",
-    srcs = glob([
-        # Include the .dylib files in the linker sandbox even though they will
-        # not be available at runtime to allow sanitizers to work locally.
-        # Any library linked from the toolchain to be released should be linked statically.
-        "lib/clang/{LLVM_VERSION}/lib/**",
-        "lib/**/libc++*.a",
-        "lib/**/libunwind.a",
-    ], allow_empty = True),
+    srcs = [], # no reported Windows exec usage on older version of Bazel
 )
 
 filegroup(
     name = "ar",
-    srcs = ["bin/llvm-ar"],
+    srcs = [
+        "bin/llvm-ar.exe",
+    ] + ALL_DLLS,
 )
 
 filegroup(
     name = "as",
     srcs = [
-        "bin/clang",
-        "bin/llvm-as",
-    ],
+        "bin/clang.exe",
+        "bin/llvm-as.exe",
+    ] + ALL_DLLS,
 )
 
 filegroup(
     name = "nm",
-    srcs = ["bin/llvm-nm"],
+    srcs = [
+        "bin/llvm-nm.exe",
+    ] + ALL_DLLS,
+)
+
+filegroup(
+    name = "llvm-lib",
+    srcs = [
+        "bin/llvm-lib.exe",
+    ] + ALL_DLLS,
 )
 
 filegroup(
     name = "objcopy",
-    srcs = ["bin/llvm-objcopy"],
+    srcs = [
+        "bin/llvm-objcopy.exe",
+    ] + ALL_DLLS,
 )
 
 filegroup(
     name = "objdump",
-    srcs = ["bin/llvm-objdump"],
+    srcs = [
+        "bin/llvm-objdump.exe",
+    ] + ALL_DLLS,
 )
 
 filegroup(
     name = "profdata",
-    srcs = ["bin/llvm-profdata"],
+    srcs = [
+        "bin/llvm-profdata.exe",
+    ] + ALL_DLLS,
 )
 
 filegroup(
     name = "dwp",
-    srcs = ["bin/llvm-dwp"],
+    srcs = [
+        "bin/llvm-dwp.exe",
+    ] + ALL_DLLS,
 )
 
 filegroup(
     name = "ranlib",
-    srcs = ["bin/llvm-ranlib"],
+    srcs = [
+        "bin/llvm-ranlib.exe",
+    ] + ALL_DLLS,
 )
 
 filegroup(
     name = "readelf",
-    srcs = ["bin/llvm-readelf"],
+    srcs = [
+        "bin/llvm-readelf.exe",
+    ] + ALL_DLLS,
 )
 
 filegroup(
     name = "strip",
-    srcs = ["bin/llvm-strip"],
+    srcs = [
+        "bin/llvm-strip.exe",
+    ] + ALL_DLLS,
 )
 
 filegroup(
     name = "symbolizer",
-    srcs = ["bin/llvm-symbolizer"],
+    srcs = [
+        "bin/llvm-symbolizer.exe",
+    ] + ALL_DLLS,
 )
 
 filegroup(
     name = "clang-tidy",
-    srcs = ["bin/clang-tidy"],
+    srcs = [
+        "bin/clang-tidy.exe",
+    ] + ALL_DLLS,
 )
 
 filegroup(
     name = "clang-format",
-    srcs = ["bin/clang-format"],
+    srcs = [
+        "bin/clang-format.exe",
+    ] + ALL_DLLS,
 )
 
 filegroup(
     name = "git-clang-format",
-    srcs = ["bin/git-clang-format"],
+    srcs = [
+        "bin/git-clang-format.exe",
+    ] + ALL_DLLS,
 )
 
 filegroup(
     name = "libclang",
-    srcs = glob(
-        [
-            "lib/libclang.so",
-            "lib/libclang.dylib",
-        ],
-        allow_empty = True,
-    ),
+    srcs = ["lib/libclang.lib"],
 )

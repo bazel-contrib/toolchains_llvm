@@ -72,9 +72,6 @@ def llvm_config_impl(rctx):
     _check_os_arch_keys(rctx.attr.extra_target_compatible_with)
 
     os = _os(rctx)
-    if os == "windows":
-        _empty_repository(rctx)
-        return None
     arch = _arch(rctx)
 
     if not rctx.attr.toolchain_roots:
@@ -91,6 +88,23 @@ def llvm_config_impl(rctx):
         return None
     use_absolute_paths_llvm = rctx.attr.absolute_paths
     use_absolute_paths_sysroot = use_absolute_paths_llvm
+
+    if os == "windows":
+        # TODO: Windows has an issue resolving symlinks in the execroot, so for now we force `absolute_paths = True` as a hack
+        #
+        # Here is an example of failure:
+        #   ERROR: <path>/BUILD.bazel:10:12: Compiling Rust bin somebinary (15 files) failed: error reading file '@@toolchains_llvm++llvm+llvm_toolchain//:bin/llvm-nm.exe':
+        #
+        # Command to reproduce:
+        #   $ bazel.exe clean --expunge
+        #   $ bazel.exe build //some/rust:somebinary # FAILS with the above error
+        #   $ dir C:/temp/k7ozco62/external/toolchains_llvm++llvm+llvm_toolchain/bin # shows `d----l` file modes on binaries
+        #   $ bazel.exe query --output build //some/rust:somebinary # WORKS
+        #   $ dir C:/temp/k7ozco62/external/toolchains_llvm++llvm+llvm_toolchain/bin # shows `d----l` file modes on binaries
+        #   $ bazel.exe build //some/rust:somebinary # WORKS
+        #   $ dir C:/temp/k7ozco62/external/toolchains_llvm++llvm+llvm_toolchain/bin # shows `-a----` file modes on binaries
+        #
+        use_absolute_paths_llvm = True
 
     # Check if the toolchain root is a system path.
     system_llvm = False
@@ -193,7 +207,6 @@ def llvm_config_impl(rctx):
         extra_coverage_link_flags_dict = rctx.attr.extra_coverage_link_flags,
         extra_unfiltered_compile_flags_dict = rctx.attr.extra_unfiltered_compile_flags,
     )
-    exec_dl_ext = "dylib" if os == "darwin" else "so"
     cc_toolchains_str, toolchain_labels_str = _cc_toolchains_str(
         rctx,
         workspace_name,
@@ -206,7 +219,6 @@ def llvm_config_impl(rctx):
         use_absolute_paths_llvm,
         llvm_dist_rel_path,
         llvm_dist_label_prefix,
-        exec_dl_ext,
     )
 
     # Convenience macro to register all generated toolchains.
@@ -355,6 +367,8 @@ def _cc_toolchain_str(
         "wasm64": "wasm64-unknown-unknown",
         "wasip1-wasm32": "wasm32-wasip1",
         "wasip1-wasm64": "wasm64-wasip1",
+        "windows-x86_64": "x86_64-pc-windows-msvc",
+        "windows-aarch64": "aarch64-pc-windows-msvc",
     }[target_pair]
 
     cxx_builtin_include_directories = [
@@ -388,6 +402,17 @@ def _cc_toolchain_str(
             _join(sysroot_prefix, "/usr/include"),
             _join(sysroot_prefix, "/System/Library/Frameworks"),
         ])
+    elif target_os == "windows":
+        # TODO: when uncommented, we are getting:
+        #
+        # Error in fail: A %sysroot% prefix is only allowed if the default_sysroot option is set
+        # ERROR: C:/temp/k7ozco62/external/toolchains_llvm++llvm+llvm_toolchain/BUILD.bazel:764:13: Analysis of target '@@toolchains_llvm++llvm+llvm_toolchain//:cc-clang-aarch64-windows' (config: 40e6e70) failed
+        #
+        # if sysroot_prefix:
+        #     cxx_builtin_include_directories.extend([
+        #         _join(sysroot_prefix, "/Include"),
+        #     ])
+        pass
     elif target_os == "none" or target_os == "wasip1":
         if sysroot_prefix:
             cxx_builtin_include_directories.extend([
@@ -644,7 +669,18 @@ cc_toolchain(
 def _is_remote(rctx, exec_os, exec_arch):
     return not (_os_from_rctx(rctx) == exec_os and _arch_from_rctx(rctx) == exec_arch)
 
-def _convenience_targets_str(rctx, use_absolute_paths, llvm_dist_rel_path, llvm_dist_label_prefix, exec_dl_ext):
+def _convenience_targets_str(rctx, use_absolute_paths, llvm_dist_rel_path, llvm_dist_label_prefix):
+    ext = ""
+    exec_dl_ext = ""
+    os = _os(rctx)
+    if os == "windows":
+        ext = ".exe"
+        exec_dl_ext = "lib"
+    elif os == "darwin":
+        exec_dl_ext = "dylib"
+    else:
+        exec_dl_ext = "so"
+
     if use_absolute_paths:
         llvm_dist_label_prefix = ":"
         filenames = []
@@ -652,7 +688,7 @@ def _convenience_targets_str(rctx, use_absolute_paths, llvm_dist_rel_path, llvm_
             filename = "lib/{}.{}".format(libname, exec_dl_ext)
             filenames.append(filename)
         for toolname in _aliased_tools:
-            filename = "bin/{}".format(toolname)
+            filename = "bin/{}{}".format(toolname, ext)
             filenames.append(filename)
 
         for filename in filenames:
@@ -672,9 +708,9 @@ cc_import(
         template = """
 native_binary(
     name = "{name}",
-    out = "{name}",
-    src = "{{llvm_dist_label_prefix}}bin/{name}",
-)""".format(name = name)
+    out = "{bin_name}",
+    src = "{{llvm_dist_label_prefix}}bin/{bin_name}",
+)""".format(name = name, bin_name = name + ext)
         tool_target_strs.append(template)
 
     return "\n".join(lib_target_strs + tool_target_strs).format(
