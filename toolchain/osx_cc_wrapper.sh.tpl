@@ -146,7 +146,7 @@ function sanitize_option() {
 
 cmd=()
 for ((i = 0; i <= $#; i++)); do
-  if [[ ${!i} == @* && -r "${i:1}" ]]; then
+  if [[ ${!i} == @* && -r "${!i:1}" ]]; then
     tmpfile=$(mktemp)
     CLEANUP_FILES+=("${tmpfile}")
     while IFS= read -r opt; do
