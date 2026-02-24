@@ -154,7 +154,8 @@ for ((i = 0; i <= $#; i++)); do
         set -e
         sanitize_option "${opt}"
       )"
-      parse_option "${opt}" >>"${tmpfile}"
+      parse_option "${opt}"
+      echo "${opt}" >>"${tmpfile}"
     done <"${!i:1}"
     cmd+=("@${tmpfile}")
   else
