@@ -118,7 +118,7 @@ function sanitize_option() {
 
 cmd=()
 for ((i = 0; i <= $#; i++)); do
-  if [[ ${!i} == @* && -r "${i:1}" ]]; then
+  if [[ ${!i} == @* && -r "${!i:1}" ]]; then
     # Create a new, sanitized file.
     tmpfile=$(mktemp)
     CLEANUP_FILES+=("${tmpfile}")
