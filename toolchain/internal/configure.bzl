@@ -127,7 +127,12 @@ def llvm_config_impl(rctx):
         # symlinked path from the wrapper.
         wrapper_bin_prefix = "bin/"
         tools_path_prefix = "bin/"
-        tools = _toolchain_tools(os)
+        # Probe each binary for existence
+        tools = {}
+        for tool in _toolchain_tools(os).items():
+            if rctx.path(llvm_dist_rel_path + "bin/" + tool[0]).exists:
+                tools.update([tool])
+
         for tool_name, symlink_name in tools.items():
             rctx.symlink(llvm_dist_rel_path + "bin/" + tool_name, tools_path_prefix + symlink_name)
         symlinked_tools_str = "".join([
