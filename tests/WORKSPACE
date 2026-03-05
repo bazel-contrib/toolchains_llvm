@@ -45,9 +45,9 @@ http_archive(
 
 http_archive(
     name = "tar.bzl",
-    sha256 = "7e67d127f64cbcc30501549233c27a15410a74a64a0dca08c547c2945af4003f",
-    strip_prefix = "tar.bzl-0.9.1",
-    url = "https://github.com/bazel-contrib/tar.bzl/releases/download/v0.9.1/tar.bzl-v0.9.1.tar.gz",
+    sha256 = "80d99a88c75efcb4e3a31661d53efbe9a6c50e497d9d033198b823868bc5434f",
+    strip_prefix = "tar.bzl-0.10.0",
+    url = "https://github.com/bazel-contrib/tar.bzl/releases/download/v0.10.0/tar.bzl-v0.10.0.tar.gz",
 )
 
 load("@tar.bzl//tar:extensions.bzl", "create_repositories")
