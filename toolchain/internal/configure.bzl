@@ -52,6 +52,68 @@ load(
 # workspace builds, there is never a @@ in labels.
 BZLMOD_ENABLED = "@@" in str(Label("//:unused"))
 
+def _detect_gcc_cxx_headers(rctx, sysroot_path, target_system_name):
+    """Detect GCC C++ header directories in a sysroot.
+
+    When using libstdc++ with a sysroot, clang needs to know where the GCC C++
+    headers are located. This function auto-detects these paths by scanning
+    the sysroot for installed GCC versions.
+
+    Args:
+        rctx: Repository context.
+        sysroot_path: Path to the sysroot (absolute or relative).
+        target_system_name: Target triple (e.g., x86_64-unknown-linux-gnu).
+
+    Returns:
+        List of C++ include directory paths relative to the sysroot root.
+    """
+    include_dirs = []
+
+    # For non-absolute paths (Bazel labels), we can't inspect the filesystem
+    # during repository rule execution. Return empty and let users specify
+    # additional include dirs manually via cxx_builtin_include_directories.
+    if not _is_absolute_path(sysroot_path):
+        return include_dirs
+
+    # Extract the GNU target triple from target_system_name
+    # e.g., "x86_64-unknown-linux-gnu" -> "x86_64-linux-gnu"
+    parts = target_system_name.split("-")
+    if len(parts) >= 3:
+        # Common GNU triple format: arch-linux-gnu or arch-linux-gnueabihf
+        gnu_triple = parts[0] + "-linux-" + parts[-1]
+    else:
+        gnu_triple = target_system_name
+
+    # Check for GCC C++ headers in common locations
+    # Modern distros (Debian 10+, Ubuntu 18.04+): /usr/include/c++/<version>
+    cxx_include_path = rctx.path(sysroot_path + "/usr/include/c++")
+    if cxx_include_path.exists:
+        # Find GCC version directories (e.g., "14", "13", "12")
+        for entry in cxx_include_path.readdir():
+            version = entry.basename
+            # Add main C++ headers
+            include_dirs.append("/usr/include/c++/" + version)
+            # Add target-specific headers (for multi-arch)
+            include_dirs.append("/usr/include/" + gnu_triple + "/c++/" + version)
+            # Add backward compatibility headers
+            include_dirs.append("/usr/include/c++/" + version + "/backward")
+
+    # Also check traditional GCC installation path: /usr/lib/gcc/<triple>/<version>/...
+    # This is the layout used by older distros and Chromium sysroots
+    gcc_lib_path = rctx.path(sysroot_path + "/usr/lib/gcc/" + gnu_triple)
+    if gcc_lib_path.exists:
+        for entry in gcc_lib_path.readdir():
+            version = entry.basename
+            # Traditional GCC include path structure uses relative paths from gcc lib dir
+            # e.g., /usr/lib/gcc/x86_64-linux-gnu/6/../../../../include/c++/6
+            # which resolves to /usr/include/c++/6
+            base = "/usr/lib/gcc/" + gnu_triple + "/" + version
+            include_dirs.append(base + "/../../../../include/c++/" + version)
+            include_dirs.append(base + "/../../../../include/" + gnu_triple + "/c++/" + version)
+            include_dirs.append(base + "/../../../../include/c++/" + version + "/backward")
+
+    return include_dirs
+
 def _empty_repository(rctx):
     rctx.file("BUILD.bazel")
     rctx.file("toolchains.bzl", """\
@@ -385,6 +447,17 @@ def _cc_toolchain_str(
             _join(sysroot_prefix, "/usr/include"),
             _join(sysroot_prefix, "/usr/local/include"),
         ])
+        # Add GCC C++ headers from sysroot when using libstdc++.
+        # These paths are needed because clang doesn't automatically add them
+        # to the include search path when cross-compiling with a sysroot.
+        # See https://github.com/bazel-contrib/toolchains_llvm/issues/533
+        stdlib = _dict_value(toolchain_info.stdlib_dict, target_pair, "builtin-libc++")
+        if stdlib in ["stdc++", "dynamic-stdc++"] and sysroot_path:
+            # Common GCC C++ header locations in modern distros (Debian/Ubuntu)
+            # Pattern: /usr/include/c++/<version> and /usr/include/<triple>/c++/<version>
+            gcc_cxx_include_dirs = _detect_gcc_cxx_headers(rctx, sysroot_path, target_system_name)
+            for dir in gcc_cxx_include_dirs:
+                cxx_builtin_include_directories.append(_join(sysroot_prefix, dir))
     elif target_os == "darwin":
         cxx_builtin_include_directories.extend([
             _join(sysroot_prefix, "/usr/include"),
