@@ -73,17 +73,30 @@ def _llvm_impl_(module_ctx):
                 name,
             )
 
+            cxx_lib = {}
+            for cl in mod.tags.cxx_lib:
+                if cl.name != name:
+                    continue
+                for target in cl.targets:
+                    if cxx_lib.get(target):
+                        fail("duplicate target '%s' for cxx_lib with name '%s'" % (target, name))
+                    cxx_lib[target] = str(cl.label)
+            attrs["cxx_lib"] = cxx_lib
+
             llvm_toolchain(
                 **attrs
             )
 
-        # Check that every defined toolchain_root or sysroot has a corresponding toolchain.
+        # Check that every defined toolchain_root, sysroot, or cxx_lib has a corresponding toolchain.
         for root in mod.tags.toolchain_root:
             if root.name not in toolchain_names:
                 fail("toolchain_root '%s' does not have a corresponding toolchain" % root.name)
         for root in mod.tags.sysroot:
             if root.name not in toolchain_names:
                 fail("sysroot '%s' does not have a corresponding toolchain" % root.name)
+        for cl in mod.tags.cxx_lib:
+            if cl.name not in toolchain_names:
+                fail("cxx_lib '%s' does not have a corresponding toolchain" % cl.name)
 
     if bazel_features.external_deps.extension_metadata_has_reproducible:
         return module_ctx.extension_metadata(reproducible = True)
@@ -100,6 +113,7 @@ _attrs.update(_llvm_repo_attrs)
 
 _attrs.pop("toolchain_roots", None)
 _attrs.pop("sysroot", None)
+_attrs.pop("cxx_lib", None)
 
 llvm = module_extension(
     implementation = _llvm_impl_,
@@ -135,6 +149,13 @@ llvm = module_extension(
                 "name": attr.string(doc = "Same name as the toolchain tag.", default = "llvm_toolchain"),
                 "targets": attr.string_list(doc = "Specific targets, if any; empty list means this applies to all."),
                 "constraints": attr.label_list(doc = "List of extra constraints to add to target_compatible_with for the generated toolchains."),
+            },
+        ),
+        "cxx_lib": tag_class(
+            attrs = {
+                "name": attr.string(doc = "Name of the toolchain this cxx_lib applies to; must match a toolchain tag name.", default = "llvm_toolchain"),
+                "targets": attr.string_list(doc = "Target pairs, e.g. linux-aarch64, linux-x86_64."),
+                "label": attr.label(doc = "Label of a repo containing include/ and lib/ for the C++ standard library."),
             },
         ),
     },
