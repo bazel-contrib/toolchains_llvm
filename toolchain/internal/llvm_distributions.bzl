@@ -730,6 +730,21 @@ _llvm_distributions = {
     "LLVM-21.1.8-Linux-X64.tar.xz": "sha256:b3b7f2801d15d50736acea3c73982994d025b01c2f035b91ae3b49d1b575732b",
     "LLVM-21.1.8-macOS-ARM64.tar.xz": "sha256:b95bdd32a33a81ee4d40363aaeb26728a26783fcef26a4d80f65457433ea4669",
 
+    # 22.1.0
+    "clang+llvm-22.1.0-aarch64-pc-windows-msvc.tar.xz": "sha256:446081c8bed99c74eae17b2274f99a2edf37256efbbffe8b8078ac1212efc132",
+    "clang+llvm-22.1.0-armv7a-linux-gnueabihf.tar.gz": "sha256:de659a6f78fa438cef16fa2f4297818336ad6e0739cf5f07ecb0fe1a491c254b",
+    "clang+llvm-22.1.0-x86_64-pc-windows-msvc.tar.xz": "sha256:2dd6a6c990865f98766dec58cce1cbfba48e5affc0098e5b1fff96c2f1d23e81",
+    "LLVM-22.1.0-Linux-ARM64.tar.xz": "sha256:e3b4205fe45d5561dec9d46465873a79c26b25b028b310515b38c34f668c6aec",
+    "LLVM-22.1.0-Linux-X64.tar.xz": "sha256:8d662e425e46c48b45f5f970770b5e37f323607c8c2cbc371593fc9c4ba1e7b3",
+    "LLVM-22.1.0-macOS-ARM64.tar.xz": "sha256:cd5e615f4dab23d0239359cd343202c5f6ceeaf072c245a3c685d73afac09646",
+
+    # 22.1.1
+    "clang+llvm-22.1.1-aarch64-pc-windows-msvc.tar.xz": "sha256:54897a70f7c4fa9d66cd1cb280a3a223a0c70f7abaee1322c78beeeb89af4682",
+    "clang+llvm-22.1.1-x86_64-pc-windows-msvc.tar.xz": "sha256:186f17ebedf13bae2835b2c0d5111a2a469ac241e7fc6387c9ce4585d6ef56ed",
+    "LLVM-22.1.1-Linux-ARM64.tar.xz": "sha256:a807a16a4dd9a288b6ad3d507df4eae47dfdfbccab118170ebd216b85370a065",
+    "LLVM-22.1.1-Linux-X64.tar.xz": "sha256:efc4d945744f951df00ec72c5b31da5d5a2eaf1d53cc7c9d0644f93f0f9e817d",
+    "LLVM-22.1.1-macOS-ARM64.tar.xz": "sha256:3839802601439300fc8d1d378bc26732e879e1ca80a220f7d6764ed229053e92",
+
     # Refer to variable declaration on how to update!
     # Example update (without download): utils/llvm_checksums.sh -D -g -t /tmp/llvm -v 21.1.5
 }
