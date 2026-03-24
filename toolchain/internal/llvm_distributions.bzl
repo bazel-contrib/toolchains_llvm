@@ -1100,7 +1100,7 @@ def _find_llvm_basename_list(llvm_version, all_llvm_distributions, host_info):
                 "sparc64": ["sparc64", "sparcv9"],
                 "sparcv9": ["sparcv9", "sparc64"],
             }.get(arch, [arch])
-            os_name_list = _dist_to_os_names(dist)
+            os_name_list = _dist_to_os_names(dist, ["linux-gnu", "unknown-linux-gnu"])
             os_name_extra_list = []
             if _is_linux_dist(dist) and [os for os in os_name_list if "linux" in os]:
                 os_name_extra_list = ["linux-gnu", "unknown-linux-gnu"]
@@ -1139,7 +1139,7 @@ def _find_llvm_basename_list(llvm_version, all_llvm_distributions, host_info):
         }.get(arch, [arch])
 
         prefixes = []
-        for dist_name in _dist_to_os_names(dist, [dist.name]):
+        for dist_name in _dist_to_os_names(dist, ["linux-gnu", "unknown-linux-gnu"]):
             for arch_alias in arch_alias_list:
                 basenames = _find_llvm_basenames_by_stem(
                     prefixes = [
@@ -1450,6 +1450,7 @@ def _distributions_test_writer_impl(ctx):
             struct(name = "ubuntu", version = "20.10"),
             struct(name = "ubuntu", version = "22.04"),
             struct(name = "ubuntu", version = "24.04"),
+            struct(name = "void", version = ANY_VERSION),
             struct(name = "wolfi", version = ANY_VERSION),
         ],
     }
