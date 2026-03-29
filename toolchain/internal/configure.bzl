@@ -690,6 +690,7 @@ native_binary(
 
 def _is_hermetic_or_exists(rctx, path, sysroot_path):
     path = path.replace("%sysroot%", sysroot_path).replace("//", "/")
+    path = path.removeprefix("%workspace%")
     if not path.startswith("/"):
         return True
     return rctx.path(path).exists
