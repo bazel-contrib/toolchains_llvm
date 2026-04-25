@@ -15,10 +15,21 @@
 SUPPORTED_TARGETS = [
     ("linux", "x86_64"),
     ("linux", "aarch64"),
+    ("linux", "armv7"),
     ("darwin", "x86_64"),
     ("darwin", "aarch64"),
+    ("none", "riscv32"),
     ("none", "wasm32"),
     ("none", "wasm64"),
+    ("none", "x86_64"),
+    ("wasip1", "wasm32"),
+    ("wasip1", "wasm64"),
+]
+
+# These are targets that can build without a sysroot.
+SUPPORTED_NO_SYSROOT_TARGETS = [
+    ("none", "riscv32"),
+    ("none", "x86_64"),
 ]
 
 # Map of tool name to its symlinked name in the tools directory.
@@ -27,6 +38,9 @@ _toolchain_tools = {
     name: name
     for name in [
         "clang-cpp",
+        "clang-format",
+        "clang-tidy",
+        "clangd",
         "ld.lld",
         "llvm-ar",
         "llvm-dwp",
@@ -49,27 +63,28 @@ _toolchain_tools_darwin = {
 }
 
 def exec_os_key(rctx):
-    (os, version, arch) = os_version_arch(rctx)
-    if version == "":
-        return "%s-%s" % (os, arch)
+    info = host_info(rctx)
+    if info.dist.version == "":
+        return "%s-%s" % (info.os, info.arch)
     else:
-        return "%s-%s-%s" % (os, version, arch)
+        return "%s-%s-%s" % (info.dist.name, info.dist.version, info.arch)
 
 _known_distros = [
-    "freebsd",
-    "suse",
-    "ubuntu",
+    # keep sorted
+    "almalinux",
+    "amzn",
     "arch",
-    "manjaro",
+    "centos",
     "debian",
     "fedora",
-    "centos",
-    "amzn",
-    "raspbian",
-    "pop",
-    "rhel",
+    "freebsd",
+    "manjaro",
     "ol",
-    "almalinux",
+    "pop",
+    "raspbian",
+    "rhel",
+    "suse",
+    "ubuntu",
 ]
 
 def _linux_dist(rctx):
@@ -96,22 +111,30 @@ def _linux_dist(rctx):
 
     return distname, version
 
-def os_version_arch(rctx):
+def host_info(rctx):
     _os = os(rctx)
     _arch = arch(rctx)
 
     if _os == "linux" and not rctx.attr.exec_os:
-        (distname, version) = _linux_dist(rctx)
-        return distname, version, _arch
-
-    return _os, "", _arch
+        dist_name, dist_version = _linux_dist(rctx)
+    else:
+        dist_name = _os
+        dist_version = ""
+    return struct(
+        arch = _arch,
+        dist = struct(
+            name = dist_name,
+            version = dist_version,
+        ),
+        os = _os,
+    )
 
 def os(rctx):
     # Less granular host OS name, e.g. linux.
 
     name = rctx.attr.exec_os
     if name:
-        if name in ("linux", "darwin"):
+        if name in ("linux", "darwin", "none"):
             return name
         else:
             fail("Unsupported value for exec_os: %s" % name)
@@ -129,7 +152,7 @@ def os_from_rctx(rctx):
 
 def os_bzl(os):
     # Return the OS string as used in bazel platform constraints.
-    return {"darwin": "osx", "linux": "linux", "none": "none"}[os]
+    return {"darwin": "osx", "linux": "linux", "none": "none", "wasip1": "wasi"}[os]
 
 def arch(rctx):
     arch = rctx.attr.exec_arch
@@ -201,10 +224,8 @@ def is_absolute_path(val):
     return val and val[0] == "/" and (len(val) == 1 or val[1] != "/")
 
 def pkg_name_from_label(label):
-    if label.workspace_name:
-        return "@" + label.workspace_name + "//" + label.package
-    else:
-        return label.package
+    s = str(label)
+    return s[:s.index(":")]
 
 def pkg_path_from_label(label):
     if label.workspace_root:
@@ -226,6 +247,9 @@ def attr_dict(attr):
     for key in dir(attr):
         if not hasattr(attr, key):
             fail("key %s not found in attributes" % key)
+        if key[0] == "_":
+            # Don't update private attrs.
+            continue
         val = getattr(attr, key)
 
         # Make mutable copies of frozen types.

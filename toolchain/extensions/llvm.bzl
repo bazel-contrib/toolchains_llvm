@@ -1,5 +1,6 @@
 """LLVM extension for use with bzlmod"""
 
+load("@bazel_features//:features.bzl", "bazel_features")
 load("@toolchains_llvm//toolchain:rules.bzl", "llvm_toolchain")
 load(
     "@toolchains_llvm//toolchain/internal:repo.bzl",
@@ -83,6 +84,11 @@ def _llvm_impl_(module_ctx):
         for root in mod.tags.sysroot:
             if root.name not in toolchain_names:
                 fail("sysroot '%s' does not have a corresponding toolchain" % root.name)
+
+    if bazel_features.external_deps.extension_metadata_has_reproducible:
+        return module_ctx.extension_metadata(reproducible = True)
+    else:
+        return None
 
 _attrs = {
     "name": attr.string(doc = """\

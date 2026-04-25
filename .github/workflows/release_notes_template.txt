@@ -43,6 +43,18 @@ load("@toolchains_llvm//toolchain:deps.bzl", "bazel_toolchain_dependencies")
 
 bazel_toolchain_dependencies()
 
+load("@bazel_features//:deps.bzl", "bazel_features_deps")
+
+bazel_features_deps()
+
+load("@rules_cc//cc:extensions.bzl", "compatibility_proxy_repo")
+
+# If you see an error:
+#   ERROR: Cycle caused by autoloads, failed to load .bzl file '@@cc_compatibility_proxy//:symbols.bzl'.
+# then you might need to add the following to your .bzelrc:
+#   common --repositories_without_autoloads=cc_compatibility_proxy
+compatibility_proxy_repo()
+
 load("@toolchains_llvm//toolchain:rules.bzl", "llvm_toolchain")
 
 llvm_toolchain(

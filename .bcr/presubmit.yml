@@ -1,6 +1,6 @@
 matrix:
-  bazel: [7.x]
-  platform: [ubuntu2004, macos, macos_arm64]
+  bazel: [7.*, 8.*]
+  platform: [ubuntu2004, ubuntu2404, macos, macos_arm64]
 tasks:
   verify_targets:
     name: Verify build targets
@@ -12,8 +12,8 @@ tasks:
 bcr_test_module:
   module_path: tests
   matrix:
-    bazel: [7.x]
-    platform: [ubuntu2004, macos, macos_arm64]
+    bazel: [7.*, 8.*]
+    platform: [ubuntu2004, ubuntu2404, macos, macos_arm64]
   tasks:
     run_test_module:
       name: Run test module

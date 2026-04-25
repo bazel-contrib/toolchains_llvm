@@ -32,6 +32,6 @@ dnf install -qy glibc-headers ncurses-compat-libs
 
 # Run tests
 cd /src
-tests/scripts/run_tests.sh
+tests/scripts/run_tests.sh -O
 """
 done

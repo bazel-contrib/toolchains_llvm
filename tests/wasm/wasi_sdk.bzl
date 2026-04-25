@@ -30,8 +30,13 @@ def _wasi_sdk_sysroots(ctx):
             name = repr(abi),
         ))
         ctx.execute(["mv", "include/" + abi, "%s/include" % (abi,)])
-        ctx.execute(["mv", "lib/" + abi, "%s/lib" % (abi,)])
         ctx.execute(["mv", "share/" + abi, "%s/share" % (abi,)])
+
+        # This is needed for wasm*-unknown-unknown targets
+        ctx.execute(["cp", "-R", "lib/" + abi, "%s/lib" % (abi,)])
+
+        # This is needed for wasm*-wasip1 targets
+        ctx.execute(["mv", "lib/" + abi, "%s/lib/%s" % (abi, abi)])
 
 wasi_sdk_sysroots = repository_rule(_wasi_sdk_sysroots)
 

@@ -20,6 +20,36 @@ local_repository(
 )
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "bazel_features",
+    sha256 = "07271d0f6b12633777b69020c4cb1eb67b1939c0cf84bb3944dc85cc250c0c01",
+    strip_prefix = "bazel_features-1.38.0",
+    url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.38.0/bazel_features-v1.38.0.tar.gz",
+)
+
+load("@bazel_features//:deps.bzl", "bazel_features_deps")
+
+bazel_features_deps()
+
+http_archive(
+    name = "aspect_bazel_lib",
+    sha256 = "8b074b1a2731d29f6b95defdca95297354dc424492caf7019cf6b9f36afba54f",
+    strip_prefix = "bazel-lib-3.0.1",
+    url = "https://github.com/aspect-build/bazel-lib/releases/download/v3.0.1/bazel-lib-v3.0.1.tar.gz",
+)
+
+http_archive(
+    name = "tar.bzl",
+    sha256 = "a0d64064a598d7a1e58196d17de0deed6d3d2d8bfe1407ed9e68b24c31c38e8d",
+    strip_prefix = "tar.bzl-0.7.0",
+    url = "https://github.com/bazel-contrib/tar.bzl/releases/download/v0.7.0/tar.bzl-v0.7.0.tar.gz",
+)
+
+load("@tar.bzl//tar:extensions.bzl", "create_repositories")
+
+create_repositories()
+
 load("@toolchains_llvm//toolchain:deps.bzl", "bazel_toolchain_dependencies")
 
 bazel_toolchain_dependencies()
@@ -29,10 +59,13 @@ load("@toolchains_llvm//toolchain:rules.bzl", "llvm_toolchain")
 # When updating this version, also update the versions associated with
 # llvm_toolchain below, sys_paths_test in the workflows file, and xcompile_test
 # through the `llvm_toolchain_with_sysroot` toolchain.
+# We use C++17 and the first LLVM version with full suppor is 16.0.0.
+# We also use C++20 which has reasonable wide support starting with LLVM 17.0.0.
+# MacOS X86 does not exist for LLVM 17 or 18, so we allow 19 as well.
+# We also allow to override this with a environment LLVM_VERSION for testing.
 LLVM_VERSIONS = {
-    "": "16.0.0",
-    "darwin-aarch64": "16.0.5",
-    "darwin-x86_64": "15.0.7",
+    "": "getenv(LLVM_VERSION,latest:>=17.0.0,<20)",
+    "darwin-x86_64": "15.0.7",  # Verify this works as opposed to using one version.
 }
 
 llvm_toolchain(
@@ -104,9 +137,10 @@ llvm_toolchain(
 )
 
 ## Toolchain example with system LLVM; tested in GitHub CI.
+# The llvm_version must match the version specified in .github/workflows/tests.yml: sys_paths_test
 llvm_toolchain(
     name = "llvm_toolchain_with_system_llvm",
-    llvm_versions = LLVM_VERSIONS,
+    llvm_version = "getenv(LLVM_VERSION)",
     # For this toolchain to work, the LLVM distribution archive would need to be unpacked here.
     toolchain_roots = {"": "/opt/llvm-16"},
 )
@@ -114,15 +148,10 @@ llvm_toolchain(
 ## Toolchain example with a sysroot.
 
 # This sysroot is used by github.com/vsco/bazel-toolchains.
-http_archive(
+load("@toolchains_llvm//toolchain:sysroot.bzl", "sysroot")
+
+sysroot(
     name = "org_chromium_sysroot_linux_x64",
-    build_file_content = """
-filegroup(
-  name = "sysroot",
-  srcs = glob(["*/**"]),
-  visibility = ["//visibility:public"],
-)
-""",
     sha256 = "84656a6df544ecef62169cfe3ab6e41bb4346a62d3ba2a045dc5a0a2ecea94a3",
     urls = ["https://commondatastorage.googleapis.com/chrome-linux-sysroot/toolchain/2202c161310ffde63729f29d27fe7bb24a0bc540/debian_stretch_amd64_sysroot.tar.xz"],
 )
@@ -131,7 +160,7 @@ llvm_toolchain(
     name = "llvm_toolchain_with_sysroot",
     llvm_versions = LLVM_VERSIONS,
     sysroot = {
-        "linux-x86_64": "@org_chromium_sysroot_linux_x64//:sysroot",
+        "linux-x86_64": "@org_chromium_sysroot_linux_x64//sysroot",
     },
     # We can share the downloaded LLVM distribution with the first configuration.
     toolchain_roots = {
@@ -156,7 +185,7 @@ llvm_toolchain(
     urls = {"": ["https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.6/clang+llvm-17.0.6-x86_64-linux-gnu-ubuntu-22.04.tar.xz"]},
 )
 
-# Toolchain example for WebAssembly.
+# Toolchain example for WebAssembly wasm* targets.
 llvm_toolchain(
     name = "llvm_toolchain_wasm",
     libclang_rt = {
@@ -185,6 +214,33 @@ load(
 
 llvm_register_toolchains_wasm()
 
+# Toolchain example for WebAssembly wasm*-wasi* targets.
+llvm_toolchain(
+    name = "llvm_toolchain_wasm_wasi",
+    libclang_rt = {
+        "@libclang_rt_wasm32//:libclang_rt.builtins-wasm32.a": "wasm32-unknown-wasip1/libclang_rt.builtins.a",
+    },
+    # WebAssembly tests use a separate (newer) version of LLVM to exercise
+    # support for experimental features such as wasm64.
+    llvm_versions = {
+        # The most recent LLVM as of 2024-10-17
+        "": "19.1.0",
+    },
+    stdlib = {
+        "wasip1-wasm32": "libc",
+    },
+    sysroot = {
+        "wasip1-wasm32": "@wasi_sdk_sysroots//wasm32-wasip1",
+    },
+)
+
+load(
+    "@llvm_toolchain_wasm_wasi//:toolchains.bzl",
+    llvm_register_toolchains_wasm_wasi = "llvm_register_toolchains",
+)
+
+llvm_register_toolchains_wasm_wasi()
+
 load("//wasm:wasi_sdk.bzl", "libclang_rt_wasm32", "wasi_sdk_sysroots")
 
 libclang_rt_wasm32(name = "libclang_rt_wasm32")
@@ -197,51 +253,56 @@ wasi_sdk_sysroots(name = "wasi_sdk_sysroots")
 
 http_archive(
     name = "com_google_absl",
-    sha256 = "f50e5ac311a81382da7fa75b97310e4b9006474f9560ac46f54a9967f07d4ae3",
-    strip_prefix = "abseil-cpp-20240722.0",
-    urls = ["https://github.com/abseil/abseil-cpp/releases/download/20240722.0/abseil-cpp-20240722.0.tar.gz"],
+    sha256 = "1692f77d1739bacf3f94337188b78583cf09bab7e420d2dc6c5605a4f86785a1",
+    strip_prefix = "abseil-cpp-20250814.1",
+    urls = ["https://github.com/abseil/abseil-cpp/releases/download/20250814.1/abseil-cpp-20250814.1.tar.gz"],
 )
 
 # As a test dep of com_google_absl.
 http_archive(
-    name = "com_google_googletest",
-    sha256 = "7b42b4d6ed48810c5362c265a17faebe90dc2373c885e5216439d37927f02926",
-    strip_prefix = "googletest-1.15.2",
-    urls = ["https://github.com/google/googletest/archive/v1.15.2.tar.gz"],
+    name = "googletest",
+    sha256 = "65fab701d9829d38cb77c14acdc431d2108bfdbf8979e40eb8ae567edf10b27c",
+    strip_prefix = "googletest-1.17.0",
+    urls = ["https://github.com/google/googletest/archive/v1.17.0.tar.gz"],
 )
 
 http_archive(
-    name = "openssl",
-    build_file = "//openssl:openssl.bazel",
-    sha256 = "f6fb3079ad15076154eda9413fed42877d668e7069d9b87396d0804fdb3f4c90",
-    strip_prefix = "openssl-1.1.1c",
-    urls = ["https://www.openssl.org/source/openssl-1.1.1c.tar.gz"],
+    name = "boringssl",
+    sha256 = "d47f89b894bf534c82071d7426c5abf1e5bd044fee242def53cd5d3d0f656c09",
+    strip_prefix = "boringssl-0.20251124.0",
+    urls = ["https://github.com/google/boringssl/releases/download/0.20251124.0/boringssl-0.20251124.0.tar.gz"],
 )
 
 http_archive(
     name = "io_bazel_rules_go",
-    sha256 = "f4a9314518ca6acfa16cc4ab43b0b8ce1e4ea64b81c38d8a3772883f153346b8",
+    sha256 = "68af54cb97fbdee5e5e8fe8d210d15a518f9d62abfd71620c3eaff3b26a5ff86",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.50.1/rules_go-v0.50.1.zip",
-        "https://github.com/bazelbuild/rules_go/releases/download/v0.50.1/rules_go-v0.50.1.zip",
+        "https://mirror.bazel.build/github.com/bazel-contrib/rules_go/releases/download/v0.59.0/rules_go-v0.59.0.zip",
+        "https://github.com/bazel-contrib/rules_go/releases/download/v0.59.0/rules_go-v0.59.0.zip",
     ],
 )
 
-load("@io_bazel_rules_go//go:deps.bzl", "go_download_sdk", "go_rules_dependencies")
+load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
 
 go_rules_dependencies()
 
-go_download_sdk(
-    name = "go_sdk",
-    version = "1.21.0",
+go_register_toolchains(version = "1.25.4")
+
+# Create the host platform repository transitively required by rules_go.
+load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
+load("@platforms//host:extension.bzl", "host_platform_repo")
+
+maybe(
+    host_platform_repo,
+    name = "host_platform",
 )
 
 # For testing rules_rust.
 
 http_archive(
     name = "rules_rust",
-    sha256 = "af4f56caae50a99a68bfce39b141b509dd68548c8204b98ab7a1cafc94d5bb02",
-    urls = ["https://github.com/bazelbuild/rules_rust/releases/download/0.54.1/rules_rust-v0.54.1.tar.gz"],
+    integrity = "sha256-3Ch+PsqAsp1cyV4mHK4nPu3xr0oAqWrpN+I0U02tskw=",
+    urls = ["https://github.com/bazelbuild/rules_rust/releases/download/0.67.0/rules_rust-0.67.0.tar.gz"],
 )
 
 load("@rules_rust//rust:repositories.bzl", "rules_rust_dependencies", "rust_register_toolchains")
@@ -252,9 +313,9 @@ rust_register_toolchains()
 
 http_archive(
     name = "rules_python",
-    sha256 = "4f7e2aa1eb9aa722d96498f5ef514f426c1f55161c3c9ae628c857a7128ceb07",
-    strip_prefix = "rules_python-1.0.0",
-    url = "https://github.com/bazelbuild/rules_python/releases/download/1.0.0/rules_python-1.0.0.tar.gz",
+    sha256 = "f609f341d6e9090b981b3f45324d05a819fd7a5a56434f849c761971ce2c47da",
+    strip_prefix = "rules_python-1.7.0",
+    url = "https://github.com/bazelbuild/rules_python/releases/download/1.7.0/rules_python-1.7.0.tar.gz",
 )
 
 load("@rules_python//python:repositories.bzl", "py_repositories")
@@ -266,16 +327,16 @@ py_repositories()
 
 http_archive(
     name = "rules_foreign_cc",
-    sha256 = "8e5605dc2d16a4229cb8fbe398514b10528553ed4f5f7737b663fdd92f48e1c2",
-    strip_prefix = "rules_foreign_cc-0.13.0",
-    url = "https://github.com/bazelbuild/rules_foreign_cc/archive/0.13.0.tar.gz",
+    sha256 = "32759728913c376ba45b0116869b71b68b1c2ebf8f2bcf7b41222bc07b773d73",
+    strip_prefix = "rules_foreign_cc-0.15.1",
+    url = "https://github.com/bazelbuild/rules_foreign_cc/archive/0.15.1.tar.gz",
 )
 
 http_archive(
     name = "com_google_protobuf",
-    sha256 = "e9b9ac1910b1041065839850603caf36e29d3d3d230ddf52bd13778dd31b9046",
-    strip_prefix = "protobuf-29.3",
-    urls = ["https://github.com/protocolbuffers/protobuf/releases/download/v29.3/protobuf-29.3.zip"],
+    sha256 = "d0c6246dc7817d26e809cae88f69b019a92827096811c85e65d3d01102974710",
+    strip_prefix = "protobuf-33.2",
+    urls = ["https://github.com/protocolbuffers/protobuf/releases/download/v33.2/protobuf-33.2.zip"],
 )
 
 load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
@@ -284,8 +345,8 @@ protobuf_deps()
 
 http_archive(
     name = "rules_java",
-    sha256 = "6d8c6d5cd86fed031ee48424f238fa35f33abc9921fd97dd4ae1119a29fc807f",
-    urls = ["https://github.com/bazelbuild/rules_java/releases/download/8.6.3/rules_java-8.6.3.tar.gz"],
+    sha256 = "6ef26d4f978e8b4cf5ce1d47532d70cb62cd18431227a1c8007c8f7843243c06",
+    urls = ["https://github.com/bazelbuild/rules_java/releases/download/9.3.0/rules_java-9.3.0.tar.gz"],
 )
 
 load("@rules_java//java:rules_java_deps.bzl", "rules_java_dependencies")
@@ -296,10 +357,13 @@ load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_depende
 
 rules_foreign_cc_dependencies()
 
-load("@bazel_features//:deps.bzl", "bazel_features_deps")
+load("@rules_cc//cc:extensions.bzl", "compatibility_proxy_repo")
 
-# Dep of `rules_foreign_cc`.
-bazel_features_deps()
+# If you see an error:
+#   ERROR: Cycle caused by autoloads, failed to load .bzl file '@@cc_compatibility_proxy//:symbols.bzl'.
+# then you might need to add the following to your .bzelrc:
+#   common --repositories_without_autoloads=cc_compatibility_proxy
+compatibility_proxy_repo()
 
 _ALL_CONTENT = """\
 filegroup(
@@ -322,13 +386,9 @@ http_archive(
 
 http_archive(
     name = "platforms",
-    sha256 = "29742e87275809b5e598dc2f04d86960cc7a55b3067d97221c9abbc9926bff0f",
+    sha256 = "3384eb1c30762704fbe38e440204e114154086c8fc8a8c2e3e28441028c019a8",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/platforms/releases/download/0.0.11/platforms-0.0.11.tar.gz",
-        "https://github.com/bazelbuild/platforms/releases/download/0.0.11/platforms-0.0.11.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/platforms/releases/download/1.0.0/platforms-1.0.0.tar.gz",
+        "https://github.com/bazelbuild/platforms/releases/download/1.0.0/platforms-1.0.0.tar.gz",
     ],
 )
-
-load("@platforms//host:extension.bzl", "host_platform_repo")
-
-host_platform_repo(name = "host_platform")

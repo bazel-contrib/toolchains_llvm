@@ -8,6 +8,7 @@ build_test(
         ":wasm32_strlen",
         ":wasm32_strlen_nolibc",
         ":wasm64_strlen_nolibc",
+        ":wasm32_wasip1_strlen",
     ],
 )
 
@@ -41,4 +42,17 @@ transition_binary_to_platform(
     name = "wasm64_strlen_nolibc",
     bin = ":wasm_strlen_nolibc",
     platform = "@toolchains_llvm//platforms:wasm64",
+)
+
+cc_binary(
+    name = "wasm_strlen_wasi",
+    srcs = ["wasm_strlen_wasi.c"],
+    linkopts = ["-Wl,--no-entry"],
+    tags = ["manual"],
+)
+
+transition_binary_to_platform(
+    name = "wasm32_wasip1_strlen",
+    bin = ":wasm_strlen_wasi",
+    platform = "@toolchains_llvm//platforms:wasip1-wasm32",
 )

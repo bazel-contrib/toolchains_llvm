@@ -36,6 +36,6 @@ apt-get -qq -y install curl libtinfo5 libxml2 zlib1g-dev >/dev/null
 
 # Run tests
 cd /src
-tests/scripts/run_tests.sh
+tests/scripts/run_tests.sh -O
 """
 done

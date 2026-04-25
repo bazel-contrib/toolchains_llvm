@@ -57,7 +57,7 @@ lint:
           batch: true
           in_place: true
   enabled:
-    - actionlint@1.6.25
+    - actionlint@1.7.8
     - buildifier@7.1.0
     - checkov@2.4.9
     - git-diff-check

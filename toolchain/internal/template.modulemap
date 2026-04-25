@@ -1,4 +1,5 @@
 module "crosstool" [system] {
-%textual_headers%
+%cxx_builtin_include_files%
+%sysroot%
 %umbrella_submodules%
 }

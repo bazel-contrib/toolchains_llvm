@@ -50,6 +50,42 @@ We currently offer limited customizability through attributes of the
 [llvm_toolchain\_\* rules](toolchain/rules.bzl). You can send us a PR to add
 more configuration attributes.
 
+The `MODULE.bazel` example below demonstrates how to add new LLVM distributions before the toolchain has
+been updated. They can easily be computed using the provided checksum tool (see `llvm_checksums.sh -h`).
+
+```starlark
+llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm", dev_dependency = True)
+llvm.toolchain(
+    name = "llvm_toolchain",
+    llvm_version = "20.1.4",
+    extra_llvm_distributions = {
+        "LLVM-20.1.4-Linux-ARM64.tar.xz": "4de80a332eecb06bf55097fd3280e1c69ed80f222e5bdd556221a6ceee02721a",
+        "LLVM-20.1.4-Linux-X64.tar.xz": "113b54c397adb2039fa45e38dc8107b9ec5a0baead3a3bac8ccfbb65b2340caa",
+        "LLVM-20.1.4-macOS-ARM64.tar.xz": "debb43b7b364c5cf864260d84ba1b201d49b6460fe84b76eaa65688dfadf19d2",
+        "clang+llvm-20.1.4-x86_64-pc-windows-msvc.tar.xz": "2b12ac1a0689e29a38a7c98c409cbfa83f390aea30c60b7a06e4ed73f82d2457",
+    },
+)
+```
+
+The following `WORKSPACE` snippet shows how to add a specific version for a specific target before
+the version was added to [llvm_distributions.bzl](toolchain/internal/llvm_distributions.bzl).
+
+```starlark
+llvm_toolchain(
+    name = "llvm_toolchain",
+    llvm_version = "19.1.6",
+    sha256 = {"linux-x86_64": "d55dcbb309de7ade4e3073ec3ac3fac4d3ff236d54df3c4de04464fe68bec531"},
+    strip_prefix = {
+        "linux-x86_64": "LLVM-19.1.6-Linux-X64",
+    },
+    urls = {
+        "linux-x86_64": [
+            "https://github.com/llvm/llvm-project/releases/download/llvmorg-19.1.6/LLVM-19.1.6-Linux-X64.tar.xz",
+        ],
+    },
+)
+```
+
 A majority of the complexity of this project is to make it generic for multiple
 use cases. For one-off experiments with new architectures, cross-compilations,
 new compiler features, etc., my advice would be to look at the toolchain
@@ -86,6 +122,53 @@ vim bin/cc_wrapper.sh # Review to ensure relative paths, etc. are good.
 See [bazel
 tutorial](https://docs.bazel.build/versions/main/tutorial/cc-toolchain-config.html)
 for how CC toolchains work in general.
+
+### Requirements
+
+Version attributes can be requirements of the form `first`, `first:<condition>`,
+`latest` or `latest:<condition>`.
+
+In case of `latest`, the latest distribution matching the optional `condition`
+will be selected.
+
+In case of `first`, the first distribution matching the optional `condition`
+will be selected.
+
+The condition consists of a comma separated list of semver version comparisons
+supporting `<`, `<=`, `>`, `>=`, `==`, `!=`. Examples:
+
+- `latest`
+- `latest:>=20.1.0`
+- `latest:>17.0.4,!=19.1.7,<=20.1.0`
+- `first:>=15.0.6,<16`
+
+It is further possible to provide the version or requirement from an environment
+variable with a fallback version or requirement. In this case it is important to
+also use the bazel flag `--repo_env=LLVM_VERSION=version_or_requirement`. It is
+important to use both correctly because otherwise the resulting builds are not
+reproducible. The main purpose of using an environment variable to encode the
+version for integration or batch testing on multiple platforms where multiple
+LLVM versions should be tested.
+
+- `getenv(ENVIRONMENT_VARIABLE_NAME,fallback)`
+
+Example `MODULE.bazel`
+
+```starlark
+llvm.toolchain(
+    name = "llvm_toolchain",
+    llvm_versions = {
+        "": "getenv(LLVM_VERSION,latest:>=17.0.0,<20)",
+        "darwin-x86_64": "15.0.7",  # Verify this works as opposed to using one version.
+    },
+)
+```
+
+In this example, MacOS x86 machines have their LLVM version hard-coded to
+`15.0.7`. For all other targets the LLVM version is read from the environment
+variable `LLVM_VERSION` which must be referenced on the Bazel command line as
+explained above. If the variable is not present, then the LLVM version defaults
+to the requirement expression `latest:>=17.0.0,<20`.
 
 ### Selecting Toolchains
 

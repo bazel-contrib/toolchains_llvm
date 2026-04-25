@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@bazel_features//:features.bzl", "bazel_features")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 
 def _textual_header(file, *, include_prefixes, execroot_prefix):
@@ -55,14 +56,47 @@ def _system_module_map(ctx):
         execroot_prefix = execroot_prefix,
     )
 
+    umbrella_submodule_closure = lambda file: _umbrella_submodule(
+        execroot_prefix + paths.normalize(file.path).replace("//", "/"),
+    )
+
     template_dict = ctx.actions.template_dict()
+
+    if bazel_features.rules.merkle_cache_v2:
+        # If provided, cxx_builtin_files should be a filegroup with 2 source directory entries:
+        #  - include/c++
+        #  - lib/clang/<VERSION>/include
+        cxx_builtin_include_files_closure = umbrella_submodule_closure
+    else:
+        cxx_builtin_include_files_closure = textual_header_closure
+
     template_dict.add_joined(
-        "%textual_headers%",
+        "%cxx_builtin_include_files%",
         ctx.attr.cxx_builtin_include_files[DefaultInfo].files,
         join_with = "\n",
-        map_each = textual_header_closure,
+        map_each = cxx_builtin_include_files_closure,
         allow_closure = True,
     )
+
+    # We don't have a good way to detect a source directory, so check if it's a single File...
+    sysroot_files = ctx.attr.sysroot_files[DefaultInfo].files.to_list()
+    if len(sysroot_files) == 1:
+        template_dict.add("%sysroot%", umbrella_submodule_closure(sysroot_files[0]))
+    else:
+        if sysroot_files and bazel_features.rules.merkle_cache_v2:
+            # buildifier: disable=print
+            print("WARNING: Sysroot {} resolved to {} files. Consider using the `sysroot` repository rule in @toolchains_llvm//toolchain:sysroot.bzl which provides a single-file (directory) sysroot for more efficient builds.".format(
+                ctx.attr.sysroot_files.label,
+                len(sysroot_files),
+            ))
+        template_dict.add_joined(
+            "%sysroot%",
+            ctx.attr.sysroot_files[DefaultInfo].files,
+            join_with = "\n",
+            map_each = textual_header_closure,
+            allow_closure = True,
+        )
+
     template_dict.add_joined(
         "%umbrella_submodules%",
         depset(absolute_path_dirs),
@@ -87,6 +121,7 @@ system_module_map = rule(
     attrs = {
         "cxx_builtin_include_files": attr.label(mandatory = True),
         "cxx_builtin_include_directories": attr.string_list(mandatory = True),
+        "sysroot_files": attr.label(),
         "sysroot_path": attr.string(),
         "_module_map_template": attr.label(
             default = "template.modulemap",

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2021 The Bazel Authors.
+# Copyright 2020 The Bazel Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,31 +13,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -euox pipefail
+set -euo pipefail
 
 images=(
-  "opensuse/tumbleweed:latest"
+  "ubuntu:24.04"
 )
-
-# See note next to the definition of this toolchain in the WORKSPACE file.
-toolchain="@llvm_toolchain_13_0_0//:cc-toolchain-x86_64-linux"
 
 git_root=$(git rev-parse --show-toplevel)
 readonly git_root
 
-echo "git root: ${git_root}"
-
 for image in "${images[@]}"; do
   docker pull "${image}"
-  docker run --rm --entrypoint=/bin/bash --env USE_BZLMOD --volume="${git_root}:/src" "${image}" -c """
+  docker run --rm --entrypoint=/bin/bash --env USE_BZLMOD --volume="${git_root}:/src:ro" "${image}" -c """
 set -exuo pipefail
 
 # Common setup
-zypper -n update
-zypper -n install curl gcc libc++1
+export DEBIAN_FRONTEND=noninteractive
+apt-get -qq update
+apt-get -qq -y install curl libtinfo6 libxml2 zlib1g-dev >/dev/null
+# The above command gives some verbose output that can not be silenced easily.
+# https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=288778
 
 # Run tests
 cd /src
-tests/scripts/run_tests.sh -O -t ${toolchain}
+tests/scripts/run_tests.sh -O
 """
 done

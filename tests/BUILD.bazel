@@ -14,6 +14,7 @@
 
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load(":transitions.bzl", "dwp_file", "transition_library_to_platform")
 
 cc_library(
@@ -80,7 +81,7 @@ build_test(
 dwp_file(
     name = "stdlib.dwp",
     src = ":stdlib_bin",
-    # NOTE: we should eventually we able to drop this; see #109.
+    # NOTE: we should eventually be able to drop this; see #109.
     override_compilation_mode = "dbg",
     target_compatible_with = [
         "@platforms//os:linux",
@@ -100,6 +101,7 @@ cc_test(
     srcs = ["omp_test.c"],
     copts = ["-fopenmp"],
     linkopts = ["-fopenmp"],
+    tags = ["manual"],
     deps = ["@llvm_toolchain//:omp"],
 )
 
@@ -113,7 +115,17 @@ cc_test(
     srcs = ["omp_test.cc"],
     copts = ["-fopenmp"],
     linkopts = ["-fopenmp"],
+    tags = ["manual"],
     deps = ["@llvm_toolchain//:omp"],
+)
+
+test_suite(
+    name = "omp_tests",
+    tags = ["manual"],
+    tests = [
+        ":omp_test",
+        ":omp_test_cc",
+    ],
 )
 
 sh_test(

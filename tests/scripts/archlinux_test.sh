@@ -32,6 +32,6 @@ set -exuo pipefail
 
 # Run tests
 cd /src
-tests/scripts/run_tests.sh -t ${toolchain}
+tests/scripts/run_tests.sh -O -t ${toolchain}
 """
 done
