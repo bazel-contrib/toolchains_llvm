@@ -47,6 +47,14 @@ platform(
 )
 
 platform(
+    name = "linux-riscv64",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:riscv64",
+    ],
+)
+
+platform(
     name = "darwin-x86_64",
     constraint_values = [
         "@platforms//os:osx",

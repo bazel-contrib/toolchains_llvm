@@ -22,17 +22,17 @@ local_path_override(
 
 bazel_dep(name = "bazel_skylib", version = "1.9.0")
 bazel_dep(name = "platforms", version = "1.0.0")
-bazel_dep(name = "rules_cc", version = "0.2.15")
+bazel_dep(name = "rules_cc", version = "0.2.17")
 bazel_dep(name = "rules_foreign_cc", version = "0.15.1")
-bazel_dep(name = "rules_go", version = "0.59.0", repo_name = "io_bazel_rules_go")
+bazel_dep(name = "rules_go", version = "0.60.0", repo_name = "io_bazel_rules_go")
 bazel_dep(name = "rules_license", version = "1.0.0")
 bazel_dep(name = "rules_rust", version = "0.67.0")
 bazel_dep(name = "rules_shell", version = "0.6.1")
-bazel_dep(name = "abseil-cpp", version = "20250814.1", repo_name = "com_google_absl")
+bazel_dep(name = "abseil-cpp", version = "20250814.2", repo_name = "com_google_absl")
 bazel_dep(name = "boringssl", version = "0.20251124.0")
 
 # TODO: Remove when protobuf is released with a version of rules_python that supports 8.x
-bazel_dep(name = "rules_python", version = "1.7.0")
+bazel_dep(name = "rules_python", version = "1.9.0")
 
 go_sdk = use_extension("@io_bazel_rules_go//go:extensions.bzl", "go_sdk")
 go_sdk.download(
@@ -259,3 +259,23 @@ sysroot(
     sha256 = "84656a6df544ecef62169cfe3ab6e41bb4346a62d3ba2a045dc5a0a2ecea94a3",
     urls = ["https://commondatastorage.googleapis.com/chrome-linux-sysroot/toolchain/2202c161310ffde63729f29d27fe7bb24a0bc540/debian_stretch_amd64_sysroot.tar.xz"],
 )
+
+http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "pcre",
+    build_file_content = """\
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**"]),
+    visibility = ["//visibility:public"],
+)
+""",
+    sha256 = "0b8e7465dc5e98c757cc3650a20a7843ee4c3edf50aaf60bb33fd879690d2c73",
+    strip_prefix = "pcre-8.43",
+    urls = [
+        "https://mirror.bazel.build/ftp.pcre.org/pub/pcre/pcre-8.43.tar.gz",
+        "https://ftp.pcre.org/pub/pcre/pcre-8.43.tar.gz",
+    ],
+)
+

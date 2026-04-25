@@ -31,7 +31,7 @@ fi
 readonly arch
 
 # Use bazelisk to catch migration problems.
-readonly bazelisk_version="v1.18.0"
+readonly bazelisk_version="v1.28.0"
 readonly url="https://github.com/bazelbuild/bazelisk/releases/download/${bazelisk_version}/bazelisk-${os}-${arch}"
 bazel="${TMPDIR:-/tmp}/bazelisk"
 readonly bazel

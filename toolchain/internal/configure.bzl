@@ -221,6 +221,8 @@ def llvm_config_impl(rctx):
         extra_coverage_compile_flags_dict = rctx.attr.extra_coverage_compile_flags,
         extra_coverage_link_flags_dict = rctx.attr.extra_coverage_link_flags,
         extra_unfiltered_compile_flags_dict = rctx.attr.extra_unfiltered_compile_flags,
+        extra_known_features = rctx.attr.extra_known_features,
+        extra_enabled_features = rctx.attr.extra_enabled_features,
     )
     exec_dl_ext = "dylib" if os == "darwin" else "so"
     cc_toolchains_str, toolchain_labels_str = _cc_toolchains_str(
@@ -377,6 +379,7 @@ def _cc_toolchain_str(
         "linux-aarch64": "aarch64-unknown-linux-gnu",
         "linux-armv7": "armv7-unknown-linux-gnueabihf",
         "linux-x86_64": "x86_64-unknown-linux-gnu",
+        "linux-riscv64": "riscv64-unknown-linux-gnu",
         "none-riscv32": "riscv32-unknown-none-elf",
         "none-x86_64": "x86_64-unknown-none",
         "wasm32": "wasm32-unknown-unknown",
@@ -480,6 +483,8 @@ cc_toolchain_config(
       "extra_coverage_link_flags": {extra_coverage_link_flags},
       "extra_unfiltered_compile_flags": {extra_unfiltered_compile_flags},
     }},
+    extra_known_features = {extra_known_features},
+    extra_enabled_features = {extra_enabled_features},
     cxx_builtin_include_directories = {cxx_builtin_include_directories},
     llvm_version = "{llvm_version}",
 )
@@ -672,6 +677,8 @@ cc_toolchain(
         extra_coverage_compile_flags = _list_to_string(_dict_value(toolchain_info.extra_coverage_compile_flags_dict, target_pair)),
         extra_coverage_link_flags = _list_to_string(_dict_value(toolchain_info.extra_coverage_link_flags_dict, target_pair)),
         extra_unfiltered_compile_flags = _list_to_string(_dict_value(toolchain_info.extra_unfiltered_compile_flags_dict, target_pair)),
+        extra_known_features = _list_to_string(toolchain_info.extra_known_features),
+        extra_enabled_features = _list_to_string(toolchain_info.extra_enabled_features),
         extra_files_str = extra_files_str,
         cxx_builtin_include_directories = _list_to_string(filtered_cxx_builtin_include_directories),
         cxx_builtin_include_label = "cxx_builtin_include" if bazel_features.rules.merkle_cache_v2 else "include",
