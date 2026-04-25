@@ -218,9 +218,9 @@ def cc_toolchain_config(
 
     # Use the standard libc++ location when not using msan
     non_msan_compile_flags = [
-        "-isystem",
+        "-cxx-isystem",
         target_toolchain_path_prefix + "include/c++/v1/",
-        "-isystem",
+        "-cxx-isystem",
         target_toolchain_path_prefix + "include/" + target_system_name + "/c++/v1/",
     ]
 
@@ -283,7 +283,6 @@ def cc_toolchain_config(
     cxx_flags = [
         "-std=" + cxx_standard,
     ]
-    compile_flags_post_language = []
 
     is_xcompile = not (exec_os == target_os and exec_arch == target_arch)
 
@@ -300,8 +299,9 @@ def cc_toolchain_config(
     if stdlib == "builtin-libc++":
         cxx_flags.extend([
             "-stdlib=libc++",
-        compile_flags_post_language.extend([
-            "-isystem",
+        ])
+        compile_flags.extend([
+            "-isystem-after",
             target_toolchain_path_prefix + "lib/clang/{}/include".format(resource_dir_version),
         ])
         if is_darwin_exec_and_target:
@@ -390,18 +390,18 @@ def cc_toolchain_config(
 
             cxx_flags.extend([
                 "-nostdinc++",
-                "-isystem",
+                "-cxx-isystem",
                 sysroot_path + "/usr/include/c++/" + libstdcxx_version,
-                "-isystem",
+                "-cxx-isystem",
                 sysroot_path + "/usr/include/" + multiarch + "/c++/" + libstdcxx_version,
-                "-isystem",
+                "-cxx-isystem",
                 sysroot_path + "/usr/include/c++/" + libstdcxx_version + "/backward",
             ])
 
             # Clang really wants C system header includes after C++ ones.
-            compile_flags_post_language.extend([
+            compile_flags.extend([
                 "-nostdinc",
-                "-isystem",
+                "-isystem-after",
                 target_toolchain_path_prefix + "lib/clang/{}/include".format(resource_dir_version),
             ])
 
@@ -561,7 +561,6 @@ def cc_toolchain_config(
         opt_compile_flags = opt_compile_flags,
         conly_flags = conly_flags,
         cxx_flags = cxx_flags,
-        compile_flags_post_language = compile_flags_post_language,
         link_flags = link_flags + select({str(Label("@toolchains_llvm//toolchain/config:use_libunwind")): libunwind_link_flags, "//conditions:default": []}) +
                      select({str(Label("@toolchains_llvm//toolchain/config:use_compiler_rt")): compiler_rt_link_flags, "//conditions:default": []}) +
                      non_msan_link_flags,
