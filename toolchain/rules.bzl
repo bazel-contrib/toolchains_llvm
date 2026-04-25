@@ -17,7 +17,6 @@ load(
     _llvm_config_impl = "llvm_config_impl",
 )
 
-BZLMOD_ENABLED = str(Label("//:BUILD.bazel")).startswith("@@")
 load(
     "//toolchain/internal:repo.bzl",
     _common_attrs = "common_attrs",
@@ -25,6 +24,8 @@ load(
     _llvm_repo_attrs = "llvm_repo_attrs",
     _llvm_repo_impl = "llvm_repo_impl",
 )
+
+BZLMOD_ENABLED = str(Label("//:BUILD.bazel")).startswith("@@")
 
 llvm = repository_rule(
     attrs = _llvm_repo_attrs,
