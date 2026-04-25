@@ -378,9 +378,6 @@ def cc_toolchain_config(
             "-lstdc++",
         ])
     elif stdlib.startswith("stdc++"):
-        if not use_lld:
-            fail("libstdc++ only supported with lld")
-
         # We use libgcc when using libstdc++ from a sysroot. Most libstdc++
         # builds link to libgcc, which means we need to use libgcc's exception
         # handling implementation, not the separate one in compiler-rt.

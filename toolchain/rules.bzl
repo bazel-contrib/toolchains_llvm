@@ -16,7 +16,6 @@ load(
     "//toolchain/internal:configure.bzl",
     _llvm_config_impl = "llvm_config_impl",
 )
-
 load(
     "//toolchain/internal:repo.bzl",
     _common_attrs = "common_attrs",
