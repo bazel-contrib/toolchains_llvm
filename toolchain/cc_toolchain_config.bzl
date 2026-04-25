@@ -300,6 +300,7 @@ def cc_toolchain_config(
     # supporting libc++ from the sysroot? Or maybe just part of a LLVM distribution
     # that's built for the target?
     if not stdlib and is_xcompile:
+        # buildifier: disable=print
         print("WARNING: Using libc++ for host architecture while cross compiling, this is " +
               "probably not what you want. Explicitly set standard_libraries to libc++ to silence.")
 
