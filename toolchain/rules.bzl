@@ -45,9 +45,6 @@ def llvm_toolchain(name, **kwargs):
             fail("One of llvm_version or llvm_versions must be set")
         kwargs.update(llvm_versions = {"": kwargs.get("llvm_version")})
 
-    if not kwargs.get("target_toolchain_roots"):
-        kwargs["target_toolchain_roots"] = kwargs["toolchain_roots"]
-
     if not kwargs.get("toolchain_roots"):
         llvm_args = {
             k: v
@@ -58,6 +55,9 @@ def llvm_toolchain(name, **kwargs):
         llvm(name = llvm_name, **llvm_args)
         toolchain_roots = {"": "@" + llvm_name + "//"}
         kwargs["toolchain_roots"] = toolchain_roots
+
+    if not kwargs.get("target_toolchain_roots"):
+        kwargs["target_toolchain_roots"] = kwargs["toolchain_roots"]
 
     toolchain_args = {
         k: v
