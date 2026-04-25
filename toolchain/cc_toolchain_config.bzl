@@ -96,6 +96,7 @@ def cc_toolchain_config(
             "clang",
             "clang",
             "glibc_unknown",
+            "arm-linux-gnueabihf",
         ),
         "linux-riscv64": (
             "clang-riscv64-linux",
@@ -104,6 +105,7 @@ def cc_toolchain_config(
             "clang",
             "clang",
             "glibc_unknown",
+            "riscv64-linux-gnu",
         ),
         "linux-x86_64": (
             "clang-x86_64-linux",
@@ -121,6 +123,7 @@ def cc_toolchain_config(
             "clang",
             "unknown",
             "unknown",
+            None,
         ),
         "none-x86_64": (
             "clang-x86_64-none",
@@ -129,6 +132,7 @@ def cc_toolchain_config(
             "clang",
             "unknown",
             "unknown",
+            None,
         ),
         "wasm32": (
             "clang-wasm32",
@@ -155,6 +159,7 @@ def cc_toolchain_config(
             "clang",
             "unknown",
             "unknown",
+            None,
         ),
         "wasip1-wasm64": (
             "clang-wasm64",
@@ -163,6 +168,7 @@ def cc_toolchain_config(
             "clang",
             "unknown",
             "unknown",
+            None,
         ),
     }[target_os_arch_key]
 
