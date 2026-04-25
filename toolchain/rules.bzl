@@ -16,6 +16,8 @@ load(
     "//toolchain/internal:configure.bzl",
     _llvm_config_impl = "llvm_config_impl",
 )
+
+BZLMOD_ENABLED = str(Label("//:BUILD.bazel")).startswith("@@")
 load(
     "//toolchain/internal:repo.bzl",
     _common_attrs = "common_attrs",
@@ -53,7 +55,7 @@ def llvm_toolchain(name, **kwargs):
         }
         llvm_name = name + "_llvm"
         llvm(name = llvm_name, **llvm_args)
-        toolchain_roots = {"": "@" + llvm_name + "//"}
+        toolchain_roots = {"": ("@@" if BZLMOD_ENABLED else "@") + llvm_name + "//"}
         kwargs["toolchain_roots"] = toolchain_roots
 
     if not kwargs.get("target_toolchain_roots"):
