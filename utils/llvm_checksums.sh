@@ -17,21 +17,23 @@ set -euo pipefail
 
 use_github_host=0
 tmp_dir=
-download=1
+download=0
 
-while getopts "t:v:ghD" opt; do
+while getopts "t:v:ghDd" opt; do
   case "${opt}" in
-  "t") tmp_dir="${OPTARG}" ;;
-  "v") llvm_version="${OPTARG}" ;;
+  "d") download=1 ;;
+  "D") download=0 ;;
   "g") use_github_host=1 ;;
   "h")
     echo "Usage:"
     echo "-t <tempdir> - Optional: Specify a temp directory to download distributions to."
     echo "-v <version> - Version of clang+llvm to use."
     echo "-g           - Use github to download releases."
+    echo "-d           - Download the distribution tarballs."
     exit 2
     ;;
-  "D") download=0 ;;
+  "t") tmp_dir="${OPTARG}" ;;
+  "v") llvm_version="${OPTARG}" ;;
   *)
     echo "invalid option: -${OPTARG}"
     exit 1
@@ -40,7 +42,7 @@ while getopts "t:v:ghD" opt; do
 done
 
 if [[ -z ${llvm_version-} ]]; then
-  echo "Usage: ${BASH_SOURCE[0]} [-t <tempdir>] [-g] -v <llvm_version>"
+  echo "Usage: ${BASH_SOURCE[0]} [-t <tempdir>] [-g] [-d] -v <llvm_version>"
   exit 1
 fi
 
@@ -54,9 +56,8 @@ if [[ -z "${tmp_dir}" ]]; then
   tmp_dir="$(mktemp -d)"
   echo "Using temp dir: '${tmp_dir}'"
   trap 'cleanup' INT HUP QUIT TERM EXIT
-elif [[ ! -r "${tmp_dir}" ]]; then
-  echo "Temp directory does not exist: '${tmp_dir}'."
-  exit 2
+else
+  mkdir -p "${tmp_dir}"
 fi
 
 llvm_host() {
@@ -69,24 +70,29 @@ llvm_host() {
 github_host() {
   output_dir="${tmp_dir}/${llvm_version}"
   mkdir -p "${output_dir}"
+
+  # Fetch release JSON and extract asset info
+  curl -s "https://api.github.com/repos/llvm/llvm-project/releases/tags/llvmorg-${llvm_version}" |
+    tee "${output_dir}/releases.json" |
+    jq -r '.assets[]|select(any(.name; test("^(clang[+]llvm|LLVM)-.*tar.(xz|gz)$")))|"    \""+(.browser_download_url|split("/")|.[-1]|sub("%2B";"+"))+"\": \""+.digest+"\","' \
+      >"${output_dir}/checksums.txt"
+
   if ((download)); then
-    echo ""
+    # Download the actual tarballs using the already-fetched JSON
+    jq -r '.assets[]|select(any(.name; test("^(clang[+]llvm|LLVM)-.*tar.(xz|gz)$")))|.browser_download_url' \
+      "${output_dir}/releases.json" \
+      >"${output_dir}/filtered_urls.txt"
+    (
+      cd "${output_dir}"
+      xargs -n1 curl -L -O -C - <filtered_urls.txt
+    )
+  else
     echo "===="
     echo "Checksums for clang+llvm distributions are (${output_dir}):"
     echo "    # ${llvm_version}"
-    curl -s "https://api.github.com/repos/llvm/llvm-project/releases/tags/llvmorg-${llvm_version}" |
-      tee ./releases.json |
-      jq -r '.assets[]|select(any(.name; test("^(clang[+]llvm|LLVM)-.*tar.(xz|gz)$")))|"    \""+(.browser_download_url|split("/")|.[-1]|sub("%2B";"+"))+"\": \""+.digest+"\","'
+    cat "${output_dir}/checksums.txt"
     exit 0
   fi
-  (
-    cd "${output_dir}"
-    curl -s "https://api.github.com/repos/llvm/llvm-project/releases/tags/llvmorg-${llvm_version}" |
-      tee ./releases.json |
-      jq '.assets[]|select(any(.name .digest; test("^(clang[+]llvm|LLVM)-.*tar.(xz|gz)$")))|.browser_download_url' |
-      tee ./filtered_urls.txt |
-      xargs -n1 curl -L -O -C -
-  )
 }
 
 if ((use_github_host)); then
