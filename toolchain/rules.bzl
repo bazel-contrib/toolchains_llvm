@@ -24,8 +24,6 @@ load(
     _llvm_repo_impl = "llvm_repo_impl",
 )
 
-BZLMOD_ENABLED = str(Label("//:BUILD.bazel")).startswith("@@")
-
 llvm = repository_rule(
     attrs = _llvm_repo_attrs,
     local = False,
@@ -53,13 +51,10 @@ def llvm_toolchain(name, **kwargs):
             for k, v in kwargs.items()
             if (k not in _llvm_config_attrs.keys()) or (k in _common_attrs.keys())
         }
-        llvm_name = name + "_llvm"
-        llvm(name = llvm_name, **llvm_args)
-        toolchain_roots = {"": ("@@" if BZLMOD_ENABLED else "@") + llvm_name + "//"}
-        kwargs["toolchain_roots"] = toolchain_roots
+        llvm(name = name + "_llvm", **llvm_args)
 
     if not kwargs.get("target_toolchain_roots"):
-        kwargs["target_toolchain_roots"] = kwargs["toolchain_roots"]
+        kwargs["target_toolchain_roots"] = kwargs.get("toolchain_roots", {})
 
     toolchain_args = {
         k: v

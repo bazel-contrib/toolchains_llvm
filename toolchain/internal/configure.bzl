@@ -133,6 +133,9 @@ def llvm_config_impl(rctx):
         else:
             llvm_dist_path_prefix = _pkg_path_from_label(llvm_dist_label)
 
+    if not toolchain_path_prefix:
+        toolchain_path_prefix = llvm_dist_path_prefix
+
     if not use_absolute_paths_llvm:
         llvm_dist_rel_path = _canonical_dir_path("../../" + llvm_dist_path_prefix)
         llvm_dist_label_prefix = toolchain_root + ":"
@@ -398,21 +401,25 @@ def _cc_toolchain_str(
     elif "" in toolchain_info.target_toolchain_roots_dict:
         target_toolchain_path_prefix = toolchain_info.target_toolchain_path_prefixes_dict[""]
 
+    target_toolchain_include_path_prefix = target_toolchain_path_prefix
+    if not use_absolute_paths_llvm:
+        target_toolchain_include_path_prefix = "%workspace%/" + target_toolchain_include_path_prefix
+
     # C++ built-in include directories:
     resource_dir_version = llvm_version if major_llvm_version < 16 else major_llvm_version
     cxx_builtin_include_directories = [
-        target_toolchain_path_prefix + "include/c++/v1",
-        target_toolchain_path_prefix + "lib/clang/{}/include".format(resource_dir_version),
+        target_toolchain_include_path_prefix + "include/c++/v1",
+        target_toolchain_include_path_prefix + "lib/clang/{}/include".format(resource_dir_version),
         # Note(zbarsky): We could avoid this path if we renamed `include/{target_system_name}/c++/v1/__config_site` to `include/c++/v1/__config_site` in the LLVM repo.
         # However, that would preclude sharing it across multiple toolchain definitions.
-        target_toolchain_path_prefix + "include/{}/c++/v1".format(target_system_name),
+        target_toolchain_include_path_prefix + "include/{}/c++/v1".format(target_system_name),
     ]
 
     # TODO(zbarsky): Not sure if these lib64 paths are actually needed for system toolchains?
     if use_absolute_paths_llvm:
         cxx_builtin_include_directories.extend([
-            target_toolchain_path_prefix + "lib64/clang/{}/include".format(llvm_version),
-            target_toolchain_path_prefix + "lib64/clang/{}/include".format(major_llvm_version),
+            target_toolchain_include_path_prefix + "lib64/clang/{}/include".format(llvm_version),
+            target_toolchain_include_path_prefix + "lib64/clang/{}/include".format(major_llvm_version),
         ])
 
     sysroot_prefix = ""
@@ -552,13 +559,13 @@ filegroup(name = "strip-files-{suffix}", srcs = [{extra_files_str}])
         template = template + """
 filegroup(
     name = "cxx_builtin_include_files-{suffix}",
-    srcs = ["{llvm_dist_label_prefix}{cxx_builtin_include_label}"],
+    srcs = ["{target_toolchain_root}:{cxx_builtin_include_label}"],
 )
 
 filegroup(
     name = "compiler-components-{suffix}",
     srcs = [
-        "{target_toolchain_root}:cxx_builtin_include_files-{suffix}",
+        ":cxx_builtin_include_files-{suffix}",
         ":sysroot-components-{suffix}",
         "{llvm_dist_label_prefix}extra_config_site",
         "{toolchain_root}:clang",
