@@ -316,8 +316,9 @@ def cc_toolchain_config(
     if stdlib == "builtin-libc++":
         cxx_flags.extend([
             "-stdlib=libc++",
+            "-isystem",
         ])
-        compile_flags.extend([
+        cxx_flags.extend([
             "-isystem-after",
             target_toolchain_path_prefix + "lib/clang/{}/include".format(resource_dir_version),
         ])
