@@ -448,6 +448,8 @@ def cc_toolchain_config(
     else:
         fail("Unknown value passed for stdlib: {stdlib}".format(stdlib = stdlib))
 
+    use_toolchain_libcxx_paths = stdlib in ["builtin-libc++", "libc++"]
+
     if major_llvm_version >= 14:
         # With C++20, Clang defaults to using C++ rather than Clang modules,
         # which breaks Bazel's `use_module_maps` feature, which is used by
@@ -527,7 +529,8 @@ def cc_toolchain_config(
         unfiltered_compile_flags.extend(_fmt_flags(compiler_configuration["unfiltered_compile_flags"], toolchain_path_prefix))
 
     # TODO(AustinSchuh): Add msan support and make this conditional.
-    cxx_flags = non_msan_compile_flags + cxx_flags
+    if use_toolchain_libcxx_paths:
+        cxx_flags = non_msan_compile_flags + cxx_flags
 
     # Add the sysroot flags here, as we want to check these last
     if sysroot_path != None:
@@ -589,7 +592,7 @@ def cc_toolchain_config(
         cxx_flags = cxx_flags,
         link_flags = link_flags + select({str(Label("@toolchains_llvm//toolchain/config:use_libunwind")): libunwind_link_flags, "//conditions:default": []}) +
                      select({str(Label("@toolchains_llvm//toolchain/config:use_compiler_rt")): compiler_rt_link_flags, "//conditions:default": []}) +
-                     non_msan_link_flags,
+                     (non_msan_link_flags if use_toolchain_libcxx_paths else []),
         archive_flags = archive_flags,
         link_libs = link_libs,
         opt_link_flags = opt_link_flags,
