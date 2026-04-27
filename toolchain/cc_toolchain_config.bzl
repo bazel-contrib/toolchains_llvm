@@ -316,10 +316,9 @@ def cc_toolchain_config(
     if stdlib == "builtin-libc++":
         cxx_flags.extend([
             "-stdlib=libc++",
-            "-isystem",
         ])
         cxx_flags.extend([
-            "-isystem-after",
+            "-idirafter",
             target_toolchain_path_prefix + "lib/clang/{}/include".format(resource_dir_version),
         ])
         if is_darwin_exec_and_target:
@@ -427,7 +426,7 @@ def cc_toolchain_config(
             # Clang really wants C system header includes after C++ ones.
             compile_flags.extend([
                 "-nostdinc",
-                "-isystem-after",
+                "-idirafter",
                 target_toolchain_path_prefix + "lib/clang/{}/include".format(resource_dir_version),
             ])
 
