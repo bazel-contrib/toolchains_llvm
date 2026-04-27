@@ -98,6 +98,11 @@ def llvm_config_impl(rctx):
     use_absolute_paths_llvm = rctx.attr.absolute_paths
     use_absolute_paths_sysroot = use_absolute_paths_llvm
 
+    # Check if the toolchain root is a system path.
+    system_llvm = _is_absolute_path(toolchain_root)
+    if system_llvm:
+        use_absolute_paths_llvm = True
+
     # Make sure the toolchain root and target toolchain roots either are both absolute or both not.
     for target_toolchain_root in rctx.attr.target_toolchain_roots.values():
         if _is_absolute(toolchain_root) != _is_absolute(target_toolchain_root):
@@ -107,21 +112,22 @@ def llvm_config_impl(rctx):
     target_llvm_repo_paths = {}
     toolchain_path_prefix = None
     if use_absolute_paths_llvm:
-        llvm_repo_label = Label(toolchain_root + ":BUILD.bazel")  # Exact target does not matter.
-        toolchain_path_prefix = _canonical_dir_path(str(rctx.path(llvm_repo_label).dirname))
+        if _is_absolute_path(toolchain_root):
+            toolchain_path_prefix = _canonical_dir_path(toolchain_root)
+        else:
+            llvm_repo_label = Label(toolchain_root + ":BUILD.bazel")  # Exact target does not matter.
+            toolchain_path_prefix = _canonical_dir_path(str(rctx.path(llvm_repo_label).dirname))
         for a_key in rctx.attr.target_toolchain_roots:
-            target_llvm_repo_label = Label(rctx.attr.target_toolchain_roots[a_key] + ":BUILD.bazel")
-            target_llvm_repo_paths[a_key] = _canonical_dir_path(str(rctx.path(target_llvm_repo_label).dirname))
+            target_toolchain_root = rctx.attr.target_toolchain_roots[a_key]
+            if _is_absolute_path(target_toolchain_root):
+                target_llvm_repo_paths[a_key] = _canonical_dir_path(target_toolchain_root)
+            else:
+                target_llvm_repo_label = Label(target_toolchain_root + ":BUILD.bazel")
+                target_llvm_repo_paths[a_key] = _canonical_dir_path(str(rctx.path(target_llvm_repo_label).dirname))
     else:
         for a_key in rctx.attr.target_toolchain_roots:
             target_llvm_repo_label = Label(rctx.attr.target_toolchain_roots[a_key] + ":BUILD.bazel")
             target_llvm_repo_paths[a_key] = _pkg_path_from_label(target_llvm_repo_label)
-
-    # Check if the toolchain root is a system path.
-    system_llvm = False
-    if _is_absolute_path(toolchain_root):
-        use_absolute_paths_llvm = True
-        system_llvm = True
 
     # Paths for LLVM distribution:
     if system_llvm:
