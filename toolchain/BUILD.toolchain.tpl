@@ -37,6 +37,13 @@ filegroup(
     visibility = ["//visibility:private"],
 )
 
+filegroup(
+    name = "cc-wrapper",
+    srcs = [
+        "%{wrapper_bin_prefix}cc_wrapper.sh",
+    ],
+)
+
 %{cc_toolchains}
 
 # Convenience targets from the LLVM toolchain.
