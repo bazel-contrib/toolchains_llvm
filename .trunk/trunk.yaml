@@ -57,7 +57,6 @@ lint:
           batch: true
           in_place: true
   enabled:
-    - renovate@43.150.0
     - actionlint@1.7.12
     - buildifier@8.5.1
     - checkov@3.2.526
