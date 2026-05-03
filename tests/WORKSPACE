@@ -27,9 +27,9 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "bazel_features",
-    sha256 = "ccf85bbf0613d12bf6df2c8470ecec544a6fe8ceab684e970e8ed4dde4cb24ec",
-    strip_prefix = "bazel_features-1.44.0",
-    url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.44.0/bazel_features-v1.44.0.tar.gz",
+    sha256 = "5f7f87f50584df12bbfe5e461d358b16a8e15d245a7e596011bf39aaee5f58a9",
+    strip_prefix = "bazel_features-1.47.0",
+    url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.47.0/bazel_features-v1.47.0.tar.gz",
 )
 
 load("@bazel_features//:deps.bzl", "bazel_features_deps")
@@ -38,16 +38,16 @@ bazel_features_deps()
 
 http_archive(
     name = "aspect_bazel_lib",
-    sha256 = "3d62bf30b95b71a566d9ebca50ee78d370b12522d244235b41166f65b142705d",
-    strip_prefix = "bazel-lib-3.2.2",
-    url = "https://github.com/aspect-build/bazel-lib/releases/download/v3.2.2/bazel-lib-v3.2.2.tar.gz",
+    sha256 = "c6e2be1c7a30ef6de9d0e15cd3a4b6bc62fe156848117c0a1eeedf97561a4f6b",
+    strip_prefix = "bazel-lib-3.3.1",
+    url = "https://github.com/aspect-build/bazel-lib/releases/download/v3.3.1/bazel-lib-v3.3.1.tar.gz",
 )
 
 http_archive(
     name = "tar.bzl",
-    sha256 = "80d99a88c75efcb4e3a31661d53efbe9a6c50e497d9d033198b823868bc5434f",
-    strip_prefix = "tar.bzl-0.10.0",
-    url = "https://github.com/bazel-contrib/tar.bzl/releases/download/v0.10.0/tar.bzl-v0.10.0.tar.gz",
+    sha256 = "ffb7b48c43fb1be2132f8d1afbe0d44a15215ba4edd1dbacf171778c3c6edd82",
+    strip_prefix = "tar.bzl-0.10.2",
+    url = "https://github.com/bazel-contrib/tar.bzl/releases/download/v0.10.2/tar.bzl-v0.10.2.tar.gz",
 )
 
 load("@tar.bzl//tar:extensions.bzl", "create_repositories")
@@ -313,9 +313,9 @@ rust_register_toolchains()
 
 http_archive(
     name = "rules_python",
-    sha256 = "098ba13578e796c00c853a2161f382647f32eb9a77099e1c88bc5299333d0d6e",
-    strip_prefix = "rules_python-1.9.0",
-    url = "https://github.com/bazelbuild/rules_python/releases/download/1.9.0/rules_python-1.9.0.tar.gz",
+    sha256 = "f4f709b1e354b0089038001854400938962d60d749cd910e12d5883a084510d3",
+    strip_prefix = "rules_python-2.0.0",
+    url = "https://github.com/bazelbuild/rules_python/releases/download/2.0.0/rules_python-2.0.0.tar.gz",
 )
 
 load("@rules_python//python:repositories.bzl", "py_repositories")
@@ -386,9 +386,9 @@ http_archive(
 
 http_archive(
     name = "platforms",
-    sha256 = "3384eb1c30762704fbe38e440204e114154086c8fc8a8c2e3e28441028c019a8",
+    sha256 = "dbad4a23abcca6171e47b79edc53bd6a41067a3b75f9e8b104656b459ff25046",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/platforms/releases/download/1.0.0/platforms-1.0.0.tar.gz",
-        "https://github.com/bazelbuild/platforms/releases/download/1.0.0/platforms-1.0.0.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/platforms/releases/download/1.1.0/platforms-1.1.0.tar.gz",
+        "https://github.com/bazelbuild/platforms/releases/download/1.1.0/platforms-1.1.0.tar.gz",
     ],
 )
