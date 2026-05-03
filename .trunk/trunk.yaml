@@ -1,16 +1,16 @@
 version: 0.1
 cli:
-  version: 1.15.0
+  version: 1.25.0
 plugins:
   sources:
     - id: trunk
-      ref: v1.2.3
+      ref: v1.8.0
       uri: https://github.com/trunk-io/plugins
 runtimes:
   enabled:
     - go@1.21.0
-    - node@18.12.1
-    - python@3.10.8
+    - node@22.16.0
+    - python@3.14.4
 lint:
   definitions:
     - name: buildifier
@@ -57,17 +57,18 @@ lint:
           batch: true
           in_place: true
   enabled:
-    - actionlint@1.7.8
-    - buildifier@7.1.0
-    - checkov@2.4.9
+    - renovate@43.150.0
+    - actionlint@1.7.12
+    - buildifier@8.5.1
+    - checkov@3.2.526
     - git-diff-check
-    - markdownlint@0.36.0
-    - prettier@3.0.3
-    - shellcheck@0.9.0
+    - markdownlint@0.48.0
+    - prettier@3.8.3
+    - shellcheck@0.11.0
     - shfmt@3.6.0
-    - trivy@0.45.0
-    - trufflehog@3.55.1
-    - yamllint@1.32.0
+    - trivy@0.70.0
+    - trufflehog@3.95.2
+    - yamllint@1.38.0
 actions:
   enabled:
     - trunk-announce
