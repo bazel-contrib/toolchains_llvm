@@ -51,10 +51,12 @@ test_args=(
   "--sandbox_add_mount_pair=/tmp"
 )
 
+# shellcheck disable=SC2250
 if [[ "$OSTYPE" == "darwin"* ]]; then
+  MACOSX_VERSION_MIN="$(sw_vers -productVersion)"
   test_args+=(
-    "--cxxopt=-mmacosx-version-min=$(sw_vers -productVersion)"
-    "--linkopt=-mmacosx-version-min=$(sw_vers -productVersion)"
+    "--cxxopt=-mmacosx-version-min=${MACOSX_VERSION_MIN:-11.0.0}"
+    "--linkopt=-mmacosx-version-min=${MACOSX_VERSION_MIN:-11.0.0}"
   )
 fi
 echo "Bazel test args: ${test_args[*]}"
