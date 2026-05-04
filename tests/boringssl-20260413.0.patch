@@ -1,0 +1,20 @@
+diff --git a/crypto/fipsmodule/ec/p256_test.cc b/crypto/fipsmodule/ec/p256_test.cc
+index a8039c385..15eabb046 100644
+--- a/crypto/fipsmodule/ec/p256_test.cc
++++ b/crypto/fipsmodule/ec/p256_test.cc
+@@ -12,6 +12,7 @@
+ // See the License for the specific language governing permissions and
+ // limitations under the License.
+ 
++#include <assert.h>
+ #include <gtest/gtest.h>
+ #include "../../internal.h"
+ #include "../../test/abi_test.h"
+@@ -37,7 +38,6 @@ TEST(P256Test, AdxMulABI) {
+   }
+ }
+ 
+-#include <assert.h>
+ TEST(P256Test, AdxSquareABI) {
+   static const uint64_t in[4] = {0};
+   uint64_t out[4];
