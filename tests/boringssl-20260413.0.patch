@@ -2,7 +2,7 @@ diff --git a/crypto/fipsmodule/ec/p256_test.cc b/crypto/fipsmodule/ec/p256_test.
 index a8039c385..15eabb046 100644
 --- a/crypto/fipsmodule/ec/p256_test.cc
 +++ b/crypto/fipsmodule/ec/p256_test.cc
-@@ -12,6 +12,7 @@
+@@ -12,20 +12,20 @@
  // See the License for the specific language governing permissions and
  // limitations under the License.
  
@@ -10,7 +10,24 @@ index a8039c385..15eabb046 100644
  #include <gtest/gtest.h>
  #include "../../internal.h"
  #include "../../test/abi_test.h"
-@@ -37,7 +38,6 @@ TEST(P256Test, AdxMulABI) {
+ 
+-
+-BSSL_NAMESPACE_BEGIN
+-namespace {
+-
+ #if !defined(OPENSSL_NO_ASM) && defined(__GNUC__) && defined(__x86_64__) && \
+     defined(SUPPORTS_ABI_TEST)
+ extern "C" {
+ #include "../../../third_party/fiat/p256_field.c.inc"
+ }
+ 
++BSSL_NAMESPACE_BEGIN
++namespace {
++
+ TEST(P256Test, AdxMulABI) {
+   static const uint64_t in1[4] = {0}, in2[4] = {0};
+   uint64_t out[4];
+@@ -37,7 +37,6 @@ TEST(P256Test, AdxMulABI) {
    }
  }
  
