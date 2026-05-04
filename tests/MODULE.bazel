@@ -32,7 +32,7 @@ bazel_dep(name = "abseil-cpp", version = "20250814.2", repo_name = "com_google_a
 bazel_dep(name = "boringssl", version = "0.20260413.0")
 single_version_override(
     module_name = "boringssl",
-    patches = ["//:tests/boringssl-20260413.0.patch"],
+    patches = ["//:boringssl-20260413.0.patch"],
     patch_strip = 1,
 )
 
