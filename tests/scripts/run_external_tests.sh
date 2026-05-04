@@ -40,6 +40,7 @@ fi
 echo "Script: '${generate_imported_dylib_sh}'"
 echo "------------------------------------------------------"
 "${generate_imported_dylib_sh}" "${IMPORTED_C_PATH:-}" "${OUTPUT_DIR:-${output_base}}" || echo "ERROR: rules_go script 'tests/core/cgo/generate_imported_dylib.sh' failed."
+echo "------------------------------------------------------"
 
 test_args=(
   "${common_test_args[@]}"
@@ -49,6 +50,14 @@ test_args=(
   # TODO: Remove this once rules_foreign_cc is fully compatible with Bazel 7.
   "--sandbox_add_mount_pair=/tmp"
 )
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  test_args+=(
+    "--cxxopt=-mmacosx-version-min=$(sw_vers -productVersion)"
+    "--linkopt=-mmacosx-version-min=$(sw_vers -productVersion)"
+  )
+fi
+echo "Bazel test args: ${test_args[*]}"
 
 # We exclude the following targets:
 # - cc_libs_test from rules_go because it assumes that stdlibc++ has been dynamically linked, but we
