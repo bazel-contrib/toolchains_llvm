@@ -29,7 +29,12 @@ bazel_dep(name = "rules_license", version = "1.0.0")
 bazel_dep(name = "rules_rust", version = "0.67.0")
 bazel_dep(name = "rules_shell", version = "0.8.0")
 bazel_dep(name = "abseil-cpp", version = "20250814.2", repo_name = "com_google_absl")
-bazel_dep(name = "boringssl", version = "0.20251124.0")
+bazel_dep(name = "boringssl", version = "0.20260413.0")
+single_version_override(
+    module_name = "boringssl",
+    patches = ["//:boringssl-20260413.0.patch"],
+    patch_strip = 1,
+)
 
 # TODO: Remove when protobuf is released with a version of rules_python that supports 8.x
 bazel_dep(name = "rules_python", version = "2.0.0")
