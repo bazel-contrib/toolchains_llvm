@@ -61,13 +61,12 @@ absl_targets=($("${bazel}" query "${common_args[@]}" 'attr(timeout, short, tests
 "${bazel}" --bazelrc=/dev/null test "${test_args[@]}" -- \
   //foreign:pcre \
   @boringssl//... \
-  -@boringssl//:p256_test \
   @rules_rust//test/unit/{interleaved_cc_info,native_deps}:all \
   @io_bazel_rules_go//tests/core/cgo:all \
   -@io_bazel_rules_go//tests/core/cgo:cc_libs_test \
   -@io_bazel_rules_go//tests/core/cgo:cgo_abs_paths_test \
   -@io_bazel_rules_go//tests/core/cgo:external_includes_test \
   -@io_bazel_rules_go//tests/core/cgo:wrapped_cgo_test \
-  -@rules_rust//test/unit/native_deps:{cdylib,bin}_has_native_dep_and_alwayslink_test \
+  -@rules_rust//test/unit/native_deps:{cdylib,bin}_has_native_dep_and_alwayslink_cc_linker_test \
   "${absl_targets[@]}" \
   -@com_google_absl//absl/time/internal/cctz:time_zone_format_test
