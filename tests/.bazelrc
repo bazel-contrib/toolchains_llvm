@@ -2,3 +2,5 @@ common --incompatible_disallow_empty_glob
 common --nolegacy_external_runfiles
 build --features=layering_check
 common --repositories_without_autoloads=cc_compatibility_proxy
+build --cxxopt=-mmacosx-version-min=11.0
+build --linkopt=-mmacosx-version-min=11.0

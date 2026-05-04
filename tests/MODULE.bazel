@@ -67,7 +67,7 @@ llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
 # We also allow to override this with a environment LLVM_VERSION for testing.
 LLVM_VERSIONS = {
     "": "getenv(LLVM_VERSION,latest:>=17.0.0,<20)",
-    "darwin-x86_64": "15.0.7",  # Verify this works as opposed to using one version.
+    # "darwin-x86_64": "15.0.7",  # Verify this works as opposed to using one version.
 }
 
 llvm.toolchain(

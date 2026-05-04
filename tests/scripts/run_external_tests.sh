@@ -22,13 +22,14 @@ source "${scripts_dir}/bazel.sh"
 cd "${scripts_dir}"
 
 # Generate some files needed for the tests.
+echo "Bazel common args: ${common_args[*]}"
 "${bazel}" query "${common_args[@]}" @io_bazel_rules_go//tests/core/cgo:dylib_test >/dev/null
 
 output_base="$("${bazel}" info output_base)"
 echo "Output base: ${output_base}"
 
 # As of rules_go 0.51.0 the 'generate_imported_dylib.sh' expects 'cc' to be available through PATH.
-if [[ ${USE_BZLMOD} == "true" ]]; then
+if [[ "${USE_BZLMOD:-true}" == "true" ]]; then
   generate_imported_dylib_sh="${output_base}/external/rules_go~/tests/core/cgo/generate_imported_dylib.sh"
   if [[ ! -f "${generate_imported_dylib_sh}" ]]; then
     generate_imported_dylib_sh="${output_base}/external/rules_go+/tests/core/cgo/generate_imported_dylib.sh"
@@ -36,7 +37,9 @@ if [[ ${USE_BZLMOD} == "true" ]]; then
 else
   generate_imported_dylib_sh="${output_base}/external/io_bazel_rules_go/tests/core/cgo/generate_imported_dylib.sh"
 fi
-"${generate_imported_dylib_sh}" || echo "ERROR: rules_go script 'tests/core/cgo/generate_imported_dylib.sh' failed."
+echo "Script: '${generate_imported_dylib_sh}'"
+echo "------------------------------------------------------"
+"${generate_imported_dylib_sh}" "${IMPORTED_C_PATH:-}" "${OUTPUT_DIR:-${output_base}}" || echo "ERROR: rules_go script 'tests/core/cgo/generate_imported_dylib.sh' failed."
 
 test_args=(
   "${common_test_args[@]}"
@@ -54,7 +57,7 @@ test_args=(
 #   to run, and it is not particularly useful to us.
 # - time_zone_format_test from abseil-cpp because it assumes TZ is set to America/Los_Angeles, but
 #   we run the tests in UTC.
-# - {cdylib,bin}_has_native_dep_and_alwayslink_test from rules_rust because they assume the test is
+# - {cdylib,bin}_has_native_dep_and_alwayslink_{cc,rust}_linkertest from rules_rust because they assume the test is
 #    being run in the root module (use 'rules_rust' in the bazel-bin path instead of 'rules_rust~').
 # shellcheck disable=SC2207
 absl_targets=($("${bazel}" query "${common_args[@]}" 'attr(timeout, short, tests(@com_google_absl//absl/...) except attr(tags, benchmark, tests(@com_google_absl//absl/...)))'))
@@ -67,6 +70,6 @@ absl_targets=($("${bazel}" query "${common_args[@]}" 'attr(timeout, short, tests
   -@io_bazel_rules_go//tests/core/cgo:cgo_abs_paths_test \
   -@io_bazel_rules_go//tests/core/cgo:external_includes_test \
   -@io_bazel_rules_go//tests/core/cgo:wrapped_cgo_test \
-  -@rules_rust//test/unit/native_deps:{cdylib,bin}_has_native_dep_and_alwayslink_cc_linker_test \
+  -@rules_rust//test/unit/native_deps:{cdylib,bin}_has_native_dep_and_alwayslink_{cc,rust}_linker_test \
   "${absl_targets[@]}" \
   -@com_google_absl//absl/time/internal/cctz:time_zone_format_test
