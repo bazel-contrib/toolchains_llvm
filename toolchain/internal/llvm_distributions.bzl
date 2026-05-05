@@ -858,6 +858,7 @@ def download_llvm(rctx):
             update_sha256 = True
     if not urls:
         urls, sha256, strip_prefix = _distribution_urls(rctx)
+
         # The bundled distribution table provides its own sha256, so there
         # is nothing to record back into the rule's attrs. Leaving
         # update_sha256 set here would make `download_llvm` write
