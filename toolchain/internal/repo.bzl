@@ -141,6 +141,15 @@ _compiler_configuration_attrs = {
                "containing the files and the sysroot path will be taken as the path to the " +
                "package of this label."),
     ),
+    "cxx_lib": attr.string_dict(
+        mandatory = False,
+        doc = ("Cross-compile C++ standard library paths, keyed by target pair " +
+               "({}). ".format(_target_pairs) +
+               "Value is a label pointing to a repo containing prebuilt C++ standard " +
+               "library headers in include/ and libraries in lib/. The include/ directory " +
+               "will be added to cxx_builtin_include_directories and lib/ will be added to " +
+               "the linker search path via extra_link_flags for the specified target."),
+    ),
     "cxx_builtin_include_directories": attr.string_list_dict(
         mandatory = False,
         doc = ("Additional builtin include directories to be added to the default system " +

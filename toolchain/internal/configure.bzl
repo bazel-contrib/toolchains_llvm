@@ -150,6 +150,65 @@ def llvm_config_impl(rctx):
         use_absolute_paths_sysroot,
     )
 
+    # Resolve cross-compile C++ standard library paths.
+    cxx_lib_include_dirs = {}
+    cxx_lib_link_flags = {}
+    cxx_lib_cxx_flags = {}
+    exec_pair = _os_arch_pair(os, arch)
+    for target_pair, cxx_lib_label_str in rctx.attr.cxx_lib.items():
+        if target_pair == exec_pair:
+            continue
+        cxx_lib_label = Label(cxx_lib_label_str)
+        cxx_lib_path = _pkg_path_from_label(cxx_lib_label)
+        cxx_lib_rel_path = _canonical_dir_path("../../" + cxx_lib_path)
+
+        # Symlink the cxx_lib include/ and lib/ into the config repo
+        # so they are accessible without ../ paths.
+        local_include = "libcxx_libs_{}/include".format(target_pair.split("-")[1])
+        local_lib = "libcxx_libs_{}/lib".format(target_pair.split("-")[1])
+        rctx.symlink(cxx_lib_rel_path + "include", local_include)
+        rctx.symlink(cxx_lib_rel_path + "lib", local_lib)
+        cxx_lib_include_dirs[target_pair] = [
+            "%workspace%/" + cxx_lib_path + "/include",
+        ]
+        cxx_lib_link_flags[target_pair] = [
+            "-L" + cxx_lib_path + "/lib",
+            "-l:libc++.a",
+            "-l:libc++abi.a",
+        ]
+        cxx_lib_cxx_flags[target_pair] = [
+            "-nostdinc++",
+            "-isystem",
+            llvm_dist_path_prefix + "include/c++/v1",
+            "-isystem",
+            cxx_lib_path + "/include",
+        ]
+
+    # Merge cxx_lib paths into include dirs, link flags, and cxx flags.
+    merged_include_dirs = dict(rctx.attr.cxx_builtin_include_directories)
+    for k, v in cxx_lib_include_dirs.items():
+        merged_include_dirs[k] = merged_include_dirs.get(k, []) + v
+
+    merged_extra_link_flags = dict(rctx.attr.extra_link_flags)
+    for k, v in cxx_lib_link_flags.items():
+        merged_extra_link_flags[k] = merged_extra_link_flags.get(k, []) + v
+
+    merged_extra_cxx_flags = dict(rctx.attr.extra_cxx_flags)
+    for k, v in cxx_lib_cxx_flags.items():
+        merged_extra_cxx_flags[k] = merged_extra_cxx_flags.get(k, []) + v
+
+    # Auto-set stdlib to "libc++" for target pairs that have cxx_lib configured
+    # but no explicit stdlib override. This prevents the builtin-libc++ ->
+    # stdc++ cross-compile fallback in cc_toolchain_config.bzl from kicking in,
+    # since the user has provided the actual libc++ libraries via cxx_lib.
+    merged_stdlib = dict(rctx.attr.stdlib)
+    for target_pair in rctx.attr.cxx_lib.keys():
+        if target_pair not in merged_stdlib:
+            if target_pair == exec_pair:
+                merged_stdlib[target_pair] = "libc++"
+            else:
+                merged_stdlib[target_pair] = "libc"
+
     workspace_name = rctx.name
     toolchain_info = struct(
         os = os,
@@ -161,8 +220,8 @@ def llvm_config_impl(rctx):
         sysroot_paths_dict = sysroot_paths_dict,
         sysroot_labels_dict = sysroot_labels_dict,
         target_settings_dict = rctx.attr.target_settings,
-        additional_include_dirs_dict = rctx.attr.cxx_builtin_include_directories,
-        stdlib_dict = rctx.attr.stdlib,
+        additional_include_dirs_dict = merged_include_dirs,
+        stdlib_dict = merged_stdlib,
         cxx_standard_dict = rctx.attr.cxx_standard,
         compile_flags_dict = rctx.attr.compile_flags,
         conly_flags_dict = rctx.attr.conly_flags,
@@ -178,12 +237,13 @@ def llvm_config_impl(rctx):
         coverage_link_flags_dict = rctx.attr.coverage_link_flags,
         unfiltered_compile_flags_dict = rctx.attr.unfiltered_compile_flags,
         llvm_version = llvm_version,
+        cxx_lib_dict = rctx.attr.cxx_lib,
         extra_compiler_files = rctx.attr.extra_compiler_files,
         extra_exec_compatible_with = rctx.attr.extra_exec_compatible_with,
         extra_target_compatible_with = rctx.attr.extra_target_compatible_with,
         extra_compile_flags_dict = rctx.attr.extra_compile_flags,
-        extra_cxx_flags_dict = rctx.attr.extra_cxx_flags,
-        extra_link_flags_dict = rctx.attr.extra_link_flags,
+        extra_cxx_flags_dict = merged_extra_cxx_flags,
+        extra_link_flags_dict = merged_extra_link_flags,
         extra_archive_flags_dict = rctx.attr.extra_archive_flags,
         extra_link_libs_dict = rctx.attr.extra_link_libs,
         extra_opt_compile_flags_dict = rctx.attr.extra_opt_compile_flags,
@@ -359,6 +419,12 @@ def _cc_toolchain_str(
         "wasip1-wasm64": "wasm64-wasip1",
     }[target_pair]
 
+    cxx_lib_label = toolchain_info.cxx_lib_dict.get(target_pair)
+    if cxx_lib_label and not (exec_os == target_os and exec_arch == target_arch):
+        cxx_lib_label_str = "\"%s\"," % cxx_lib_label
+    else:
+        cxx_lib_label_str = ""
+
     cxx_builtin_include_directories = [
         toolchain_path_prefix + "include/c++/v1",
         toolchain_path_prefix + "lib/clang/{}/include".format(
@@ -482,6 +548,7 @@ filegroup(
     name = "compiler-components-{suffix}",
     srcs = [
         ":sysroot-components-{suffix}",
+        {cxx_lib_label_str}
         {extra_compiler_files}
     ],
 )
@@ -522,6 +589,7 @@ filegroup(
         ":sysroot-components-{suffix}",
         "{llvm_dist_label_prefix}extra_config_site",
         "{llvm_dist_label_prefix}clang",
+        {cxx_lib_label_str}
         {extra_compiler_files}
     ],
 )
@@ -534,6 +602,7 @@ filegroup(
         "{llvm_dist_label_prefix}ar",
         "{llvm_dist_label_prefix}{lib_label}",
         ":sysroot-components-{suffix}",
+        {cxx_lib_label_str}
     ],
 )
 
@@ -608,6 +677,7 @@ cc_toolchain(
         sysroot_label_str = sysroot_label_str,
         sysroot_path = sysroot_path,
         stdlib = _dict_value(toolchain_info.stdlib_dict, target_pair, "builtin-libc++"),
+        cxx_lib_label_str = cxx_lib_label_str,
         cxx_standard = _dict_value(toolchain_info.cxx_standard_dict, target_pair, "c++17"),
         compile_flags = _list_to_string(_dict_value(toolchain_info.compile_flags_dict, target_pair)),
         conly_flags = _list_to_string(toolchain_info.conly_flags_dict.get(target_pair, [])),
