@@ -27,9 +27,9 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "bazel_features",
-    sha256 = "497a10560c07b0478026f49766ebdb6fd07b4fba9767db4f1c25cb6ab2fa1cdb",
-    strip_prefix = "bazel_features-1.46.0",
-    url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.46.0/bazel_features-v1.46.0.tar.gz",
+    sha256 = "5f7f87f50584df12bbfe5e461d358b16a8e15d245a7e596011bf39aaee5f58a9",
+    strip_prefix = "bazel_features-1.47.0",
+    url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.47.0/bazel_features-v1.47.0.tar.gz",
 )
 
 load("@bazel_features//:deps.bzl", "bazel_features_deps")
@@ -45,9 +45,9 @@ http_archive(
 
 http_archive(
     name = "tar.bzl",
-    sha256 = "ffb7b48c43fb1be2132f8d1afbe0d44a15215ba4edd1dbacf171778c3c6edd82",
-    strip_prefix = "tar.bzl-0.10.2",
-    url = "https://github.com/bazel-contrib/tar.bzl/releases/download/v0.10.2/tar.bzl-v0.10.2.tar.gz",
+    sha256 = "fea07e17117bf264f78bd4fc522c6b07a843cdcd82c6dfbeafa5bdaff70ae198",
+    strip_prefix = "tar.bzl-0.10.4",
+    url = "https://github.com/bazel-contrib/tar.bzl/releases/download/v0.10.4/tar.bzl-v0.10.4.tar.gz",
 )
 
 load("@tar.bzl//tar:extensions.bzl", "create_repositories")
@@ -268,9 +268,9 @@ http_archive(
 
 http_archive(
     name = "boringssl",
-    sha256 = "6f64bf1e4af8d14144ca931f8881ff890d01c240add517357e8c54f4b8d79b65",
-    strip_prefix = "boringssl-0.20260204.0",
-    urls = ["https://github.com/google/boringssl/releases/download/0.20260204.0/boringssl-0.20260204.0.tar.gz"],
+    sha256 = "3560f7dd3f08e16b9f84d877a5be21ec62071564783009571af5fcc6fad734d2",
+    strip_prefix = "boringssl-0.20260413.0",
+    urls = ["https://github.com/google/boringssl/releases/download/0.20260413.0/boringssl-0.20260413.0.tar.gz"],
 )
 
 http_archive(

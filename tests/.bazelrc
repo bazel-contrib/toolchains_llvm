@@ -1,4 +1,11 @@
 common --incompatible_disallow_empty_glob
 common --nolegacy_external_runfiles
-build --features=layering_check
+common --features=layering_check
 common --repositories_without_autoloads=cc_compatibility_proxy
+common --enable_platform_specific_config
+# Where necessary specify the minimum macOS version to build and link against.
+# This is needed to avoid build errors on older versions of macOS, which don't
+# support some of the newer C++ features used in the tests.
+#   "--cxxopt=-mmacosx-version-min=$(sw_vers -productVersion)"
+#   "--linkopt=-mmacosx-version-min=$(sw_vers -productVersion)"
+common:macos --copt=-Wno-unused-command-line-argument

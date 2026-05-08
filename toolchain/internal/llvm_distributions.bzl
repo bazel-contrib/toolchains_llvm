@@ -859,6 +859,15 @@ def download_llvm(rctx):
     if not urls:
         urls, sha256, strip_prefix = _distribution_urls(rctx)
 
+        # The bundled distribution table provides its own sha256, so there
+        # is nothing to record back into the rule's attrs. Leaving
+        # update_sha256 set here would make `download_llvm` write
+        # `rctx.attr.sha256[""]` post-extract and put `llvm_repo_impl` on
+        # the `repo_metadata(attrs_for_reproducibility=...)` branch, which
+        # `--repo_contents_cache` does not symlink-share across output
+        # bases.
+        update_sha256 = False
+
     sha256, shaerr = _normalize_and_check_sha256(sha256)
     if shaerr:
         fail("ERROR: " + shaerr)
