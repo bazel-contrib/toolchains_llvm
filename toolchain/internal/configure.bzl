@@ -179,6 +179,7 @@ def llvm_config_impl(rctx):
         unfiltered_compile_flags_dict = rctx.attr.unfiltered_compile_flags,
         llvm_version = llvm_version,
         extra_compiler_files = rctx.attr.extra_compiler_files,
+        extra_linker_files = rctx.attr.extra_linker_files,
         extra_exec_compatible_with = rctx.attr.extra_exec_compatible_with,
         extra_target_compatible_with = rctx.attr.extra_target_compatible_with,
         extra_compile_flags_dict = rctx.attr.extra_compile_flags,
@@ -488,7 +489,10 @@ filegroup(
 
 filegroup(
     name = "linker-components-{suffix}",
-    srcs = [":sysroot-components-{suffix}"],
+    srcs = [
+        ":sysroot-components-{suffix}",
+        {extra_linker_files}
+    ],
 )
 
 filegroup(
@@ -534,6 +538,7 @@ filegroup(
         "{llvm_dist_label_prefix}ar",
         "{llvm_dist_label_prefix}{lib_label}",
         ":sysroot-components-{suffix}",
+        {extra_linker_files}
     ],
 )
 
@@ -640,6 +645,7 @@ cc_toolchain(
         cxx_builtin_include_label = "cxx_builtin_include" if bazel_features.rules.merkle_cache_v2 else "include",
         lib_label = "lib" if bazel_features.rules.merkle_cache_v2 else "lib_legacy",
         extra_compiler_files = ("\"%s\"," % str(toolchain_info.extra_compiler_files)) if toolchain_info.extra_compiler_files else "",
+        extra_linker_files = ("\"%s\"," % str(toolchain_info.extra_linker_files)) if toolchain_info.extra_linker_files else "",
         major_llvm_version = major_llvm_version,
         extra_exec_compatible_with_specific = toolchain_info.extra_exec_compatible_with.get(target_pair, []),
         extra_target_compatible_with_specific = toolchain_info.extra_target_compatible_with.get(target_pair, []),
