@@ -91,10 +91,13 @@ def _detect_gcc_cxx_headers(rctx, sysroot_path, target_system_name):
         # Find GCC version directories (e.g., "14", "13", "12")
         for entry in cxx_include_path.readdir():
             version = entry.basename
+
             # Add main C++ headers
             include_dirs.append("/usr/include/c++/" + version)
+
             # Add target-specific headers (for multi-arch)
             include_dirs.append("/usr/include/" + gnu_triple + "/c++/" + version)
+
             # Add backward compatibility headers
             include_dirs.append("/usr/include/c++/" + version + "/backward")
 
@@ -104,6 +107,7 @@ def _detect_gcc_cxx_headers(rctx, sysroot_path, target_system_name):
     if gcc_lib_path.exists:
         for entry in gcc_lib_path.readdir():
             version = entry.basename
+
             # Traditional GCC include path structure uses relative paths from gcc lib dir
             # e.g., /usr/lib/gcc/x86_64-linux-gnu/6/../../../../include/c++/6
             # which resolves to /usr/include/c++/6
@@ -448,6 +452,7 @@ def _cc_toolchain_str(
             _join(sysroot_prefix, "/usr/include"),
             _join(sysroot_prefix, "/usr/local/include"),
         ])
+
         # Add GCC C++ headers from sysroot when using libstdc++.
         # These paths are needed because clang doesn't automatically add them
         # to the include search path when cross-compiling with a sysroot.
