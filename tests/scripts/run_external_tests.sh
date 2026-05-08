@@ -16,6 +16,8 @@
 set -euo pipefail
 
 scripts_dir="$(dirname "${BASH_SOURCE[0]}")"
+
+# shellcheck source=./tests/scripts/bazel.sh
 source "${scripts_dir}/bazel.sh"
 "${bazel}" version
 
@@ -29,9 +31,9 @@ output_base="$("${bazel}" info output_base)"
 echo "Output base: ${output_base}"
 
 # As of rules_go 0.51.0 the 'generate_imported_dylib.sh' expects 'cc' to be available through PATH.
-if [[ "${USE_BZLMOD:-true}" == "true" ]]; then
+if [[ ${USE_BZLMOD:-true} == "true" ]]; then
   generate_imported_dylib_sh="${output_base}/external/rules_go~/tests/core/cgo/generate_imported_dylib.sh"
-  if [[ ! -f "${generate_imported_dylib_sh}" ]]; then
+  if [[ ! -f ${generate_imported_dylib_sh} ]]; then
     generate_imported_dylib_sh="${output_base}/external/rules_go+/tests/core/cgo/generate_imported_dylib.sh"
   fi
 else
@@ -39,7 +41,7 @@ else
 fi
 echo "Script: '${generate_imported_dylib_sh}'"
 echo "------------------------------------------------------"
-"${generate_imported_dylib_sh}" "${IMPORTED_C_PATH:-}" "${OUTPUT_DIR:-${output_base}}" || echo "ERROR: rules_go script 'tests/core/cgo/generate_imported_dylib.sh' failed."
+"${generate_imported_dylib_sh}" "${IMPORTED_C_PATH-}" "${OUTPUT_DIR:-${output_base}}" || echo "ERROR: rules_go script 'tests/core/cgo/generate_imported_dylib.sh' failed."
 echo "------------------------------------------------------"
 
 test_args=(
@@ -52,7 +54,7 @@ test_args=(
 )
 
 # shellcheck disable=SC2250
-if [[ "$OSTYPE" == "darwin"* ]]; then
+if [[ $OSTYPE == "darwin"* ]]; then
   MACOSX_VERSION_MIN="$(sw_vers -productVersion)"
   test_args+=(
     "--cxxopt=-mmacosx-version-min=${MACOSX_VERSION_MIN:-11.0.0}"
