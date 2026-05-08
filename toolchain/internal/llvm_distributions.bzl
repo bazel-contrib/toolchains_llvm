@@ -730,8 +730,47 @@ _llvm_distributions = {
     "LLVM-21.1.8-Linux-X64.tar.xz": "sha256:b3b7f2801d15d50736acea3c73982994d025b01c2f035b91ae3b49d1b575732b",
     "LLVM-21.1.8-macOS-ARM64.tar.xz": "sha256:b95bdd32a33a81ee4d40363aaeb26728a26783fcef26a4d80f65457433ea4669",
 
+    # 22.1.0
+    "clang+llvm-22.1.0-aarch64-pc-windows-msvc.tar.xz": "sha256:446081c8bed99c74eae17b2274f99a2edf37256efbbffe8b8078ac1212efc132",
+    "clang+llvm-22.1.0-armv7a-linux-gnueabihf.tar.gz": "sha256:de659a6f78fa438cef16fa2f4297818336ad6e0739cf5f07ecb0fe1a491c254b",
+    "clang+llvm-22.1.0-x86_64-pc-windows-msvc.tar.xz": "sha256:2dd6a6c990865f98766dec58cce1cbfba48e5affc0098e5b1fff96c2f1d23e81",
+    "LLVM-22.1.0-Linux-ARM64.tar.xz": "sha256:e3b4205fe45d5561dec9d46465873a79c26b25b028b310515b38c34f668c6aec",
+    "LLVM-22.1.0-Linux-X64.tar.xz": "sha256:8d662e425e46c48b45f5f970770b5e37f323607c8c2cbc371593fc9c4ba1e7b3",
+    "LLVM-22.1.0-macOS-ARM64.tar.xz": "sha256:cd5e615f4dab23d0239359cd343202c5f6ceeaf072c245a3c685d73afac09646",
+
+    # 22.1.1
+    "clang+llvm-22.1.1-aarch64-pc-windows-msvc.tar.xz": "sha256:54897a70f7c4fa9d66cd1cb280a3a223a0c70f7abaee1322c78beeeb89af4682",
+    "clang+llvm-22.1.1-armv7a-linux-gnueabihf.tar.gz": "sha256:0618593cfc36567c9b19f3d36b8bece9a2c91bf0d26f3115b4c6f8a9f6841dd4",
+    "clang+llvm-22.1.1-x86_64-pc-windows-msvc.tar.xz": "sha256:186f17ebedf13bae2835b2c0d5111a2a469ac241e7fc6387c9ce4585d6ef56ed",
+    "LLVM-22.1.1-Linux-ARM64.tar.xz": "sha256:a807a16a4dd9a288b6ad3d507df4eae47dfdfbccab118170ebd216b85370a065",
+    "LLVM-22.1.1-Linux-X64.tar.xz": "sha256:efc4d945744f951df00ec72c5b31da5d5a2eaf1d53cc7c9d0644f93f0f9e817d",
+    "LLVM-22.1.1-macOS-ARM64.tar.xz": "sha256:3839802601439300fc8d1d378bc26732e879e1ca80a220f7d6764ed229053e92",
+
+    # 22.1.2
+    "clang+llvm-22.1.2-aarch64-pc-windows-msvc.tar.xz": "sha256:16b9755d6335bfb54a51f6f676233df75f06d29ce627c2b402b90171b0e88456",
+    "clang+llvm-22.1.2-armv7a-linux-gnueabihf.tar.gz": "sha256:cb47f4b7cd3e2395b21074f00e642aa8b0d2b9a8547ca6b195d19b22e8f7e7d1",
+    "clang+llvm-22.1.2-x86_64-pc-windows-msvc.tar.xz": "sha256:6550bcc308bf972f7f956001b73f6478da3d22f1ebd4b01653c978a6c7ff3698",
+    "LLVM-22.1.2-Linux-ARM64.tar.xz": "sha256:cf2e84d965a95954971cafc71d18c0eb38e723c3ac7276286fd5636df4374b3a",
+    "LLVM-22.1.2-Linux-X64.tar.xz": "sha256:ff32497b6801267ee427bc69cdaeecfb2d19578af8c2a942e864c45215f9a2ac",
+    "LLVM-22.1.2-macOS-ARM64.tar.xz": "sha256:7b290ec4529c309b6b952d64a3513595c816dff1c217d54466a586d6e35dcec9",
+
+    # 22.1.3
+    "clang+llvm-22.1.3-aarch64-pc-windows-msvc.tar.xz": "sha256:b593bea1751c3c1825886743e2ee4ec9b63f3ca9b5b2aa1b467da69657681fe5",
+    "clang+llvm-22.1.3-armv7a-linux-gnueabihf.tar.gz": "sha256:6976851facdb878a05a7a466c6739568e7dbdac2d13ae65c026cfa7b6fa563e3",
+    "clang+llvm-22.1.3-x86_64-pc-windows-msvc.tar.xz": "sha256:f2d7d200f72c83880aa2c1c00f6b6a67d0ea607ea663dafbd0cb2db6e2819ed0",
+    "LLVM-22.1.3-Linux-ARM64.tar.xz": "sha256:4dc01fbb46084b3c3304a51e8412903da3735d5a276bcdd35333bc38bad8a8b6",
+    "LLVM-22.1.3-Linux-X64.tar.xz": "sha256:6e776c396895837a168a36d13e0b0e4552680eda58d8dab6aa5fb75e2c3d13ea",
+    "LLVM-22.1.3-macOS-ARM64.tar.xz": "sha256:881e524d374cd2befd95888db1846e3150b0728fa842b90bb15bafc0b19c075c",
+
+    # 22.1.4
+    "clang+llvm-22.1.4-aarch64-pc-windows-msvc.tar.xz": "sha256:958e314fc28968c3895a61c0b9ae54c9e4ec7a409ec4b59cc02c9c6a0ae90be4",
+    "clang+llvm-22.1.4-x86_64-pc-windows-msvc.tar.xz": "sha256:ed775bdaea7087c6c1aeac9498352cfcd8610d92dc4fe9eda9aecb15ce712a2c",
+    "LLVM-22.1.4-Linux-ARM64.tar.xz": "sha256:ac8bed48a6481ccc0e14af18f64d44fc1ca8c0ccf630c1d4dc5e97027e87e6fa",
+    "LLVM-22.1.4-Linux-X64.tar.xz": "sha256:cdf232e3bc5d9909ddcf8cb7016802c6745a01e69a596747c684caa894a11567",
+    "LLVM-22.1.4-macOS-ARM64.tar.xz": "sha256:45e0dfc0453624caed5e7b20e224ce8343af9c511c7f59803753a586620d6ad1",
+
     # Refer to variable declaration on how to update!
-    # Example update (without download): utils/llvm_checksums.sh -D -g -t /tmp/llvm -v 21.1.5
+    # Example update (without download): utils/llvm_checksums.sh -g -t /tmp/llvm -v 21.1.5
 }
 
 # Note: Unlike the user-specified llvm_mirror attribute, the URL prefixes in
@@ -820,6 +859,15 @@ def download_llvm(rctx):
     if not urls:
         urls, sha256, strip_prefix = _distribution_urls(rctx)
 
+        # The bundled distribution table provides its own sha256, so there
+        # is nothing to record back into the rule's attrs. Leaving
+        # update_sha256 set here would make `download_llvm` write
+        # `rctx.attr.sha256[""]` post-extract and put `llvm_repo_impl` on
+        # the `repo_metadata(attrs_for_reproducibility=...)` branch, which
+        # `--repo_contents_cache` does not symlink-share across output
+        # bases.
+        update_sha256 = False
+
     sha256, shaerr = _normalize_and_check_sha256(sha256)
     if shaerr:
         fail("ERROR: " + shaerr)
@@ -889,11 +937,13 @@ def _get_all_llvm_distributions(*, llvm_distributions, extra_llvm_distributions,
 
 _UBUNTU_NAMES = [
     "arch",
+    "chainguard",
     "linuxmint",
     "manjaro",
     "nixos",
     "pop",
     "ubuntu",
+    "wolfi",
 ]
 
 _UBUNTU_VERSIONS = [
@@ -1083,7 +1133,7 @@ def _find_llvm_basename_list(llvm_version, all_llvm_distributions, host_info):
                 "sparc64": ["sparc64", "sparcv9"],
                 "sparcv9": ["sparcv9", "sparc64"],
             }.get(arch, [arch])
-            os_name_list = _dist_to_os_names(dist)
+            os_name_list = _dist_to_os_names(dist, ["linux-gnu", "unknown-linux-gnu"])
             os_name_extra_list = []
             if _is_linux_dist(dist) and [os for os in os_name_list if "linux" in os]:
                 os_name_extra_list = ["linux-gnu", "unknown-linux-gnu"]
@@ -1122,7 +1172,7 @@ def _find_llvm_basename_list(llvm_version, all_llvm_distributions, host_info):
         }.get(arch, [arch])
 
         prefixes = []
-        for dist_name in _dist_to_os_names(dist, [dist.name]):
+        for dist_name in _dist_to_os_names(dist, ["linux-gnu", "unknown-linux-gnu"]):
             for arch_alias in arch_alias_list:
                 basenames = _find_llvm_basenames_by_stem(
                     prefixes = [
@@ -1399,6 +1449,7 @@ def _distributions_test_writer_impl(ctx):
             struct(name = "arch", version = ANY_VERSION),
             struct(name = "centos", version = "6"),
             struct(name = "centos", version = "7"),
+            struct(name = "chainguard", version = ANY_VERSION),
             struct(name = "debian", version = "0"),
             struct(name = "debian", version = "8"),
             struct(name = "debian", version = "9"),
@@ -1432,6 +1483,8 @@ def _distributions_test_writer_impl(ctx):
             struct(name = "ubuntu", version = "20.10"),
             struct(name = "ubuntu", version = "22.04"),
             struct(name = "ubuntu", version = "24.04"),
+            struct(name = "void", version = ANY_VERSION),
+            struct(name = "wolfi", version = ANY_VERSION),
         ],
     }
 

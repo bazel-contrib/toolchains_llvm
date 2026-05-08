@@ -19,13 +19,17 @@ local_repository(
     path = "..",
 )
 
+load("@toolchains_llvm//toolchain:deps.bzl", "bazel_toolchain_dependencies")
+
+bazel_toolchain_dependencies()
+
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "bazel_features",
-    sha256 = "966c211ec42c4deb2af4c6dd6948408100b752f61753c97055bdac9bfb5cc0c7",
-    strip_prefix = "bazel_features-1.41.0",
-    url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.41.0/bazel_features-v1.41.0.tar.gz",
+    sha256 = "5f7f87f50584df12bbfe5e461d358b16a8e15d245a7e596011bf39aaee5f58a9",
+    strip_prefix = "bazel_features-1.47.0",
+    url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.47.0/bazel_features-v1.47.0.tar.gz",
 )
 
 load("@bazel_features//:deps.bzl", "bazel_features_deps")
@@ -34,25 +38,21 @@ bazel_features_deps()
 
 http_archive(
     name = "aspect_bazel_lib",
-    sha256 = "06cbcd5b98af3f530d20b505a89fb6761f09950b780cdd7726df42ee84b49d04",
-    strip_prefix = "bazel-lib-3.1.1",
-    url = "https://github.com/aspect-build/bazel-lib/releases/download/v3.1.1/bazel-lib-v3.1.1.tar.gz",
+    sha256 = "c6e2be1c7a30ef6de9d0e15cd3a4b6bc62fe156848117c0a1eeedf97561a4f6b",
+    strip_prefix = "bazel-lib-3.3.1",
+    url = "https://github.com/aspect-build/bazel-lib/releases/download/v3.3.1/bazel-lib-v3.3.1.tar.gz",
 )
 
 http_archive(
     name = "tar.bzl",
-    sha256 = "8bac5a2b43f9988e4e69bb03a242b9cbed2c53f9cd4c989f879aaa441bda03f4",
-    strip_prefix = "tar.bzl-0.8.1",
-    url = "https://github.com/bazel-contrib/tar.bzl/releases/download/v0.8.1/tar.bzl-v0.8.1.tar.gz",
+    sha256 = "fea07e17117bf264f78bd4fc522c6b07a843cdcd82c6dfbeafa5bdaff70ae198",
+    strip_prefix = "tar.bzl-0.10.4",
+    url = "https://github.com/bazel-contrib/tar.bzl/releases/download/v0.10.4/tar.bzl-v0.10.4.tar.gz",
 )
 
 load("@tar.bzl//tar:extensions.bzl", "create_repositories")
 
 create_repositories()
-
-load("@toolchains_llvm//toolchain:deps.bzl", "bazel_toolchain_dependencies")
-
-bazel_toolchain_dependencies()
 
 load("@toolchains_llvm//toolchain:rules.bzl", "llvm_toolchain")
 
@@ -253,9 +253,9 @@ wasi_sdk_sysroots(name = "wasi_sdk_sysroots")
 
 http_archive(
     name = "com_google_absl",
-    sha256 = "1692f77d1739bacf3f94337188b78583cf09bab7e420d2dc6c5605a4f86785a1",
-    strip_prefix = "abseil-cpp-20250814.1",
-    urls = ["https://github.com/abseil/abseil-cpp/releases/download/20250814.1/abseil-cpp-20250814.1.tar.gz"],
+    sha256 = "f9148fb00ec98a2396bdf875c99a78e6a70afa662b107862d92b285d857a8320",
+    strip_prefix = "abseil-cpp-20250814.2",
+    urls = ["https://github.com/abseil/abseil-cpp/releases/download/20250814.2/abseil-cpp-20250814.2.tar.gz"],
 )
 
 # As a test dep of com_google_absl.
@@ -268,17 +268,17 @@ http_archive(
 
 http_archive(
     name = "boringssl",
-    sha256 = "d47f89b894bf534c82071d7426c5abf1e5bd044fee242def53cd5d3d0f656c09",
-    strip_prefix = "boringssl-0.20251124.0",
-    urls = ["https://github.com/google/boringssl/releases/download/0.20251124.0/boringssl-0.20251124.0.tar.gz"],
+    sha256 = "3560f7dd3f08e16b9f84d877a5be21ec62071564783009571af5fcc6fad734d2",
+    strip_prefix = "boringssl-0.20260413.0",
+    urls = ["https://github.com/google/boringssl/releases/download/0.20260413.0/boringssl-0.20260413.0.tar.gz"],
 )
 
 http_archive(
     name = "io_bazel_rules_go",
-    sha256 = "68af54cb97fbdee5e5e8fe8d210d15a518f9d62abfd71620c3eaff3b26a5ff86",
+    sha256 = "86d3dc8f59d253524f933aaf2f3c05896cb0b605fc35b460c0b4b039996124c6",
     urls = [
-        "https://mirror.bazel.build/github.com/bazel-contrib/rules_go/releases/download/v0.59.0/rules_go-v0.59.0.zip",
-        "https://github.com/bazel-contrib/rules_go/releases/download/v0.59.0/rules_go-v0.59.0.zip",
+        "https://mirror.bazel.build/github.com/bazel-contrib/rules_go/releases/download/v0.60.0/rules_go-v0.60.0.zip",
+        "https://github.com/bazel-contrib/rules_go/releases/download/v0.60.0/rules_go-v0.60.0.zip",
     ],
 )
 
@@ -313,9 +313,9 @@ rust_register_toolchains()
 
 http_archive(
     name = "rules_python",
-    sha256 = "94a2b4c5d9c45323a9737f8de8f841923bb628cace1e8e51fec5525ed9ccfb2d",
-    strip_prefix = "rules_python-1.8.3",
-    url = "https://github.com/bazelbuild/rules_python/releases/download/1.8.3/rules_python-1.8.3.tar.gz",
+    sha256 = "f4f709b1e354b0089038001854400938962d60d749cd910e12d5883a084510d3",
+    strip_prefix = "rules_python-2.0.0",
+    url = "https://github.com/bazelbuild/rules_python/releases/download/2.0.0/rules_python-2.0.0.tar.gz",
 )
 
 load("@rules_python//python:repositories.bzl", "py_repositories")
@@ -334,9 +334,9 @@ http_archive(
 
 http_archive(
     name = "com_google_protobuf",
-    sha256 = "e0c38d45da1bdcc998fcdb05d9dc7f11832a21207c733317f463a1b816ad0fce",
-    strip_prefix = "protobuf-33.4",
-    urls = ["https://github.com/protocolbuffers/protobuf/releases/download/v33.4/protobuf-33.4.zip"],
+    sha256 = "61e5e5b7f29c4a719d9691b97c2b8937b8bd5ab1b6b7586f3f55934011806280",
+    strip_prefix = "protobuf-34.1",
+    urls = ["https://github.com/protocolbuffers/protobuf/releases/download/v34.1/protobuf-34.1.zip"],
 )
 
 load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
@@ -345,8 +345,8 @@ protobuf_deps()
 
 http_archive(
     name = "rules_java",
-    sha256 = "6ef26d4f978e8b4cf5ce1d47532d70cb62cd18431227a1c8007c8f7843243c06",
-    urls = ["https://github.com/bazelbuild/rules_java/releases/download/9.3.0/rules_java-9.3.0.tar.gz"],
+    sha256 = "9de4e178c2c4f98d32aafe5194c3f2b717ae10405caa11bdcb460ac2a6f61516",
+    urls = ["https://github.com/bazelbuild/rules_java/releases/download/9.6.1/rules_java-9.6.1.tar.gz"],
 )
 
 load("@rules_java//java:rules_java_deps.bzl", "rules_java_dependencies")
@@ -386,9 +386,9 @@ http_archive(
 
 http_archive(
     name = "platforms",
-    sha256 = "3384eb1c30762704fbe38e440204e114154086c8fc8a8c2e3e28441028c019a8",
+    sha256 = "dbad4a23abcca6171e47b79edc53bd6a41067a3b75f9e8b104656b459ff25046",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/platforms/releases/download/1.0.0/platforms-1.0.0.tar.gz",
-        "https://github.com/bazelbuild/platforms/releases/download/1.0.0/platforms-1.0.0.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/platforms/releases/download/1.1.0/platforms-1.1.0.tar.gz",
+        "https://github.com/bazelbuild/platforms/releases/download/1.1.0/platforms-1.1.0.tar.gz",
     ],
 )

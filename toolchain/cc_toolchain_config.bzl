@@ -42,6 +42,8 @@ def cc_toolchain_config(
         wrapper_bin_prefix,
         compiler_configuration,
         cxx_builtin_include_directories,
+        extra_known_features,
+        extra_enabled_features,
         major_llvm_version):
     exec_os_arch_key = _os_arch_pair(exec_os, exec_arch)
     target_os_arch_key = _os_arch_pair(target_os, target_arch)
@@ -85,6 +87,14 @@ def cc_toolchain_config(
         "linux-armv7": (
             "clang-armv7-linux",
             "armv7",
+            "glibc_unknown",
+            "clang",
+            "clang",
+            "glibc_unknown",
+        ),
+        "linux-riscv64": (
+            "clang-riscv64-linux",
+            "riscv64",
             "glibc_unknown",
             "clang",
             "clang",
@@ -260,19 +270,30 @@ def cc_toolchain_config(
             # libc++abi, so static linking them becomes a problem. We need to
             # ensure that they are dynamic linked from the system sysroot and
             # not static linked from the toolchain, so explicitly have the
-            # sysroot directory on the search path and then add the toolchain
-            # directory back after we are done.
+            # sysroot directory on the search path.
+            #
+            # The toolchain lib directory is intentionally NOT added to the
+            # search path here. In sandboxed execution, the toolchain's lib/
+            # directory is empty (only declared outputs are present), so the
+            # previous -L flag was a harmless no-op. However, with
+            # --spawn_strategy=local, the full toolchain lib/ directory is
+            # visible to the linker, and ld64 discovers dylibs like
+            # libunwind.1.dylib via the -L search path. These get baked into
+            # the binary as LC_LOAD_DYLIB entries with @rpath install names
+            # that fail at runtime because the toolchain directory is not in
+            # the binary's @rpath search path.
+            #
+            # libunwind_link_flags is left empty on macOS because libunwind
+            # is unconditionally provided by libSystem.B.dylib (clang always
+            # passes -lSystem via Darwin.cpp). The toolchain's libunwind is
+            # redundant and its dylib causes the runtime failure described
+            # above, so the libunwind config flag has no effect on macOS.
             link_flags.extend([
                 "-L{}/usr/lib".format(sysroot_path),
                 "-lc++",
                 "-lc++abi",
                 "-Bdynamic",
-                "-L{}lib".format(toolchain_path_prefix),
             ])
-            libunwind_link_flags = [
-                "-Bstatic",
-                "-lunwind",
-            ]
         else:
             # For single-platform builds, we can statically link the bundled
             # libraries.
@@ -460,4 +481,6 @@ def cc_toolchain_config(
         coverage_link_flags = coverage_link_flags,
         supports_start_end_lib = supports_start_end_lib,
         builtin_sysroot = sysroot_path,
+        extra_enabled_features = extra_enabled_features,
+        extra_known_features = extra_known_features,
     )

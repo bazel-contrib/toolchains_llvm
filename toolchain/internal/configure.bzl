@@ -241,6 +241,7 @@ def llvm_config_impl(rctx):
         unfiltered_compile_flags_dict = rctx.attr.unfiltered_compile_flags,
         llvm_version = llvm_version,
         extra_compiler_files = rctx.attr.extra_compiler_files,
+        extra_linker_files = rctx.attr.extra_linker_files,
         extra_exec_compatible_with = rctx.attr.extra_exec_compatible_with,
         extra_target_compatible_with = rctx.attr.extra_target_compatible_with,
         extra_compile_flags_dict = rctx.attr.extra_compile_flags,
@@ -254,6 +255,8 @@ def llvm_config_impl(rctx):
         extra_coverage_compile_flags_dict = rctx.attr.extra_coverage_compile_flags,
         extra_coverage_link_flags_dict = rctx.attr.extra_coverage_link_flags,
         extra_unfiltered_compile_flags_dict = rctx.attr.extra_unfiltered_compile_flags,
+        extra_known_features = rctx.attr.extra_known_features,
+        extra_enabled_features = rctx.attr.extra_enabled_features,
     )
     exec_dl_ext = "dylib" if os == "darwin" else "so"
     cc_toolchains_str, toolchain_labels_str = _cc_toolchains_str(
@@ -410,6 +413,7 @@ def _cc_toolchain_str(
         "linux-aarch64": "aarch64-unknown-linux-gnu",
         "linux-armv7": "armv7-unknown-linux-gnueabihf",
         "linux-x86_64": "x86_64-unknown-linux-gnu",
+        "linux-riscv64": "riscv64-unknown-linux-gnu",
         "none-riscv32": "riscv32-unknown-none-elf",
         "none-x86_64": "x86_64-unknown-none",
         "wasm32": "wasm32-unknown-unknown",
@@ -512,6 +516,8 @@ cc_toolchain_config(
       "extra_coverage_link_flags": {extra_coverage_link_flags},
       "extra_unfiltered_compile_flags": {extra_unfiltered_compile_flags},
     }},
+    extra_known_features = {extra_known_features},
+    extra_enabled_features = {extra_enabled_features},
     cxx_builtin_include_directories = {cxx_builtin_include_directories},
     major_llvm_version = {major_llvm_version},
 )
@@ -556,7 +562,10 @@ filegroup(
 
 filegroup(
     name = "linker-components-{suffix}",
-    srcs = [":sysroot-components-{suffix}"],
+    srcs = [
+        ":sysroot-components-{suffix}",
+        {extra_linker_files}
+    ],
 )
 
 filegroup(
@@ -602,6 +611,7 @@ filegroup(
         "{llvm_dist_label_prefix}ar",
         "{llvm_dist_label_prefix}{lib_label}",
         ":sysroot-components-{suffix}",
+        {extra_linker_files}
     ],
 )
 
@@ -701,11 +711,14 @@ cc_toolchain(
         extra_coverage_compile_flags = _list_to_string(_dict_value(toolchain_info.extra_coverage_compile_flags_dict, target_pair)),
         extra_coverage_link_flags = _list_to_string(_dict_value(toolchain_info.extra_coverage_link_flags_dict, target_pair)),
         extra_unfiltered_compile_flags = _list_to_string(_dict_value(toolchain_info.extra_unfiltered_compile_flags_dict, target_pair)),
+        extra_known_features = _list_to_string(toolchain_info.extra_known_features),
+        extra_enabled_features = _list_to_string(toolchain_info.extra_enabled_features),
         extra_files_str = extra_files_str,
         cxx_builtin_include_directories = _list_to_string(filtered_cxx_builtin_include_directories),
         cxx_builtin_include_label = "cxx_builtin_include" if bazel_features.rules.merkle_cache_v2 else "include",
         lib_label = "lib" if bazel_features.rules.merkle_cache_v2 else "lib_legacy",
         extra_compiler_files = ("\"%s\"," % str(toolchain_info.extra_compiler_files)) if toolchain_info.extra_compiler_files else "",
+        extra_linker_files = ("\"%s\"," % str(toolchain_info.extra_linker_files)) if toolchain_info.extra_linker_files else "",
         major_llvm_version = major_llvm_version,
         extra_exec_compatible_with_specific = toolchain_info.extra_exec_compatible_with.get(target_pair, []),
         extra_target_compatible_with_specific = toolchain_info.extra_target_compatible_with.get(target_pair, []),
