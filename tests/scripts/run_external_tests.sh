@@ -73,8 +73,8 @@ if [[ "${_use_bazel_version}" != "8."* ]] && [[ "${USE_BZLMOD:-true}" == "true" 
   else
     generate_imported_dylib_sh="${output_base}/external/io_bazel_rules_go/tests/core/cgo/generate_imported_dylib.sh"
   fi
-  echo "Script: '${generate_imported_dylib_sh}'"
   echo "------------------------------------------------------"
+  echo "Script: '${generate_imported_dylib_sh}'"
   "${generate_imported_dylib_sh}" "${IMPORTED_C_PATH-}" "${OUTPUT_DIR:-${output_base}}" || echo "ERROR: rules_go script 'tests/core/cgo/generate_imported_dylib.sh' failed."
   echo "------------------------------------------------------"
 
@@ -116,10 +116,10 @@ echo "Bazel test args: ${test_args[*]}"
 # - time_zone_format_test from abseil-cpp because it assumes TZ is set to America/Los_Angeles, but
 #   we run the tests in UTC.
 # shellcheck disable=SC2207
-absl_targets=($("${bazel}" query "${common_args[@]}" 'attr(timeout, short, tests(@com_google_absl//absl/...) except attr(tags, benchmark, tests(@com_google_absl//absl/...)))'))
+targets+=($("${bazel}" query "${common_args[@]}" 'attr(timeout, short, tests(@com_google_absl//absl/...) except attr(tags, benchmark, tests(@com_google_absl//absl/...)))'))
+targets+=("-@com_google_absl//absl/time/internal/cctz:time_zone_format_test")
+
 "${bazel}" --bazelrc=/dev/null test "${test_args[@]}" -- \
   //foreign:pcre \
   @boringssl//... \
-  "${targets[@]}" \
-  "${absl_targets[@]}" \
-  -@com_google_absl//absl/time/internal/cctz:time_zone_format_test
+  "${targets[@]}"
