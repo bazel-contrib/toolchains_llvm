@@ -52,6 +52,72 @@ load(
 # workspace builds, there is never a @@ in labels.
 BZLMOD_ENABLED = "@@" in str(Label("//:unused"))
 
+def _detect_gcc_cxx_headers(rctx, sysroot_path, target_system_name):
+    """Detect GCC C++ header directories in a sysroot.
+
+    When using libstdc++ with a sysroot, clang needs to know where the GCC C++
+    headers are located. This function auto-detects these paths by scanning
+    the sysroot for installed GCC versions.
+
+    Args:
+        rctx: Repository context.
+        sysroot_path: Path to the sysroot (absolute or relative).
+        target_system_name: Target triple (e.g., x86_64-unknown-linux-gnu).
+
+    Returns:
+        List of C++ include directory paths relative to the sysroot root.
+    """
+    include_dirs = []
+
+    # For non-absolute paths (Bazel labels), we can't inspect the filesystem
+    # during repository rule execution. Return empty and let users specify
+    # additional include dirs manually via cxx_builtin_include_directories.
+    if not _is_absolute_path(sysroot_path):
+        return include_dirs
+
+    # Extract the GNU target triple from target_system_name
+    # e.g., "x86_64-unknown-linux-gnu" -> "x86_64-linux-gnu"
+    parts = target_system_name.split("-")
+    if len(parts) >= 3:
+        # Common GNU triple format: arch-linux-gnu or arch-linux-gnueabihf
+        gnu_triple = parts[0] + "-linux-" + parts[-1]
+    else:
+        gnu_triple = target_system_name
+
+    # Check for GCC C++ headers in common locations
+    # Modern distros (Debian 10+, Ubuntu 18.04+): /usr/include/c++/<version>
+    cxx_include_path = rctx.path(sysroot_path + "/usr/include/c++")
+    if cxx_include_path.exists:
+        # Find GCC version directories (e.g., "14", "13", "12")
+        for entry in cxx_include_path.readdir():
+            version = entry.basename
+
+            # Add main C++ headers
+            include_dirs.append("/usr/include/c++/" + version)
+
+            # Add target-specific headers (for multi-arch)
+            include_dirs.append("/usr/include/" + gnu_triple + "/c++/" + version)
+
+            # Add backward compatibility headers
+            include_dirs.append("/usr/include/c++/" + version + "/backward")
+
+    # Also check traditional GCC installation path: /usr/lib/gcc/<triple>/<version>/...
+    # This is the layout used by older distros and Chromium sysroots
+    gcc_lib_path = rctx.path(sysroot_path + "/usr/lib/gcc/" + gnu_triple)
+    if gcc_lib_path.exists:
+        for entry in gcc_lib_path.readdir():
+            version = entry.basename
+
+            # Traditional GCC include path structure uses relative paths from gcc lib dir
+            # e.g., /usr/lib/gcc/x86_64-linux-gnu/6/../../../../include/c++/6
+            # which resolves to /usr/include/c++/6
+            base = "/usr/lib/gcc/" + gnu_triple + "/" + version
+            include_dirs.append(base + "/../../../../include/c++/" + version)
+            include_dirs.append(base + "/../../../../include/" + gnu_triple + "/c++/" + version)
+            include_dirs.append(base + "/../../../../include/c++/" + version + "/backward")
+
+    return include_dirs
+
 def _empty_repository(rctx):
     rctx.file("BUILD.bazel")
     rctx.file("toolchains.bzl", """\
@@ -179,6 +245,7 @@ def llvm_config_impl(rctx):
         unfiltered_compile_flags_dict = rctx.attr.unfiltered_compile_flags,
         llvm_version = llvm_version,
         extra_compiler_files = rctx.attr.extra_compiler_files,
+        extra_linker_files = rctx.attr.extra_linker_files,
         extra_exec_compatible_with = rctx.attr.extra_exec_compatible_with,
         extra_target_compatible_with = rctx.attr.extra_target_compatible_with,
         extra_compile_flags_dict = rctx.attr.extra_compile_flags,
@@ -192,6 +259,8 @@ def llvm_config_impl(rctx):
         extra_coverage_compile_flags_dict = rctx.attr.extra_coverage_compile_flags,
         extra_coverage_link_flags_dict = rctx.attr.extra_coverage_link_flags,
         extra_unfiltered_compile_flags_dict = rctx.attr.extra_unfiltered_compile_flags,
+        extra_known_features = rctx.attr.extra_known_features,
+        extra_enabled_features = rctx.attr.extra_enabled_features,
     )
     exec_dl_ext = "dylib" if os == "darwin" else "so"
     cc_toolchains_str, toolchain_labels_str = _cc_toolchains_str(
@@ -348,6 +417,7 @@ def _cc_toolchain_str(
         "linux-aarch64": "aarch64-unknown-linux-gnu",
         "linux-armv7": "armv7-unknown-linux-gnueabihf",
         "linux-x86_64": "x86_64-unknown-linux-gnu",
+        "linux-riscv64": "riscv64-unknown-linux-gnu",
         "none-riscv32": "riscv32-unknown-none-elf",
         "none-x86_64": "x86_64-unknown-none",
         "wasm32": "wasm32-unknown-unknown",
@@ -382,6 +452,18 @@ def _cc_toolchain_str(
             _join(sysroot_prefix, "/usr/include"),
             _join(sysroot_prefix, "/usr/local/include"),
         ])
+
+        # Add GCC C++ headers from sysroot when using libstdc++.
+        # These paths are needed because clang doesn't automatically add them
+        # to the include search path when cross-compiling with a sysroot.
+        # See https://github.com/bazel-contrib/toolchains_llvm/issues/533
+        stdlib = _dict_value(toolchain_info.stdlib_dict, target_pair, "builtin-libc++")
+        if stdlib in ["stdc++", "dynamic-stdc++"] and sysroot_path:
+            # Common GCC C++ header locations in modern distros (Debian/Ubuntu)
+            # Pattern: /usr/include/c++/<version> and /usr/include/<triple>/c++/<version>
+            gcc_cxx_include_dirs = _detect_gcc_cxx_headers(rctx, sysroot_path, target_system_name)
+            for dir in gcc_cxx_include_dirs:
+                cxx_builtin_include_directories.append(_join(sysroot_prefix, dir))
     elif target_os == "darwin":
         cxx_builtin_include_directories.extend([
             _join(sysroot_prefix, "/usr/include"),
@@ -439,6 +521,8 @@ cc_toolchain_config(
       "extra_coverage_link_flags": {extra_coverage_link_flags},
       "extra_unfiltered_compile_flags": {extra_unfiltered_compile_flags},
     }},
+    extra_known_features = {extra_known_features},
+    extra_enabled_features = {extra_enabled_features},
     cxx_builtin_include_directories = {cxx_builtin_include_directories},
     major_llvm_version = {major_llvm_version},
 )
@@ -483,7 +567,10 @@ filegroup(
 
 filegroup(
     name = "linker-components-{suffix}",
-    srcs = [":sysroot-components-{suffix}"],
+    srcs = [
+        ":sysroot-components-{suffix}",
+        {extra_linker_files}
+    ],
 )
 
 filegroup(
@@ -529,6 +616,7 @@ filegroup(
         "{llvm_dist_label_prefix}ar",
         "{llvm_dist_label_prefix}{lib_label}",
         ":sysroot-components-{suffix}",
+        {extra_linker_files}
     ],
 )
 
@@ -628,11 +716,14 @@ cc_toolchain(
         extra_coverage_compile_flags = _list_to_string(_dict_value(toolchain_info.extra_coverage_compile_flags_dict, target_pair)),
         extra_coverage_link_flags = _list_to_string(_dict_value(toolchain_info.extra_coverage_link_flags_dict, target_pair)),
         extra_unfiltered_compile_flags = _list_to_string(_dict_value(toolchain_info.extra_unfiltered_compile_flags_dict, target_pair)),
+        extra_known_features = _list_to_string(toolchain_info.extra_known_features),
+        extra_enabled_features = _list_to_string(toolchain_info.extra_enabled_features),
         extra_files_str = extra_files_str,
         cxx_builtin_include_directories = _list_to_string(filtered_cxx_builtin_include_directories),
         cxx_builtin_include_label = "cxx_builtin_include" if bazel_features.rules.merkle_cache_v2 else "include",
         lib_label = "lib" if bazel_features.rules.merkle_cache_v2 else "lib_legacy",
         extra_compiler_files = ("\"%s\"," % str(toolchain_info.extra_compiler_files)) if toolchain_info.extra_compiler_files else "",
+        extra_linker_files = ("\"%s\"," % str(toolchain_info.extra_linker_files)) if toolchain_info.extra_linker_files else "",
         major_llvm_version = major_llvm_version,
         extra_exec_compatible_with_specific = toolchain_info.extra_exec_compatible_with.get(target_pair, []),
         extra_target_compatible_with_specific = toolchain_info.extra_target_compatible_with.get(target_pair, []),

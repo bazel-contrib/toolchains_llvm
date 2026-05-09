@@ -91,7 +91,7 @@ filegroup(
     ] + glob([
         "lib/**/libc++*.a",
         "lib/**/libunwind.a",
-    ]),
+    ], allow_empty = True),
 )
 
 filegroup(
@@ -103,7 +103,7 @@ filegroup(
         "lib/clang/{LLVM_VERSION}/lib/**",
         "lib/**/libc++*.a",
         "lib/**/libunwind.a",
-    ]),
+    ], allow_empty = True),
 )
 
 filegroup(

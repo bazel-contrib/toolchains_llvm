@@ -1,4 +1,5 @@
 load("@aspect_bazel_lib//lib:repo_utils.bzl", "repo_utils")
+load("@bazel_tools//tools/build_defs/repo:utils.bzl", "get_auth")
 
 def _sysroot_impl(rctx):
     urls = rctx.attr.urls
@@ -14,6 +15,7 @@ def _sysroot_impl(rctx):
         urls,
         archive,
         integrity = rctx.attr.integrity,
+        auth = get_auth(rctx, urls),
         sha256 = rctx.attr.sha256,
     )
 

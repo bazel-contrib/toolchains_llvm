@@ -16,6 +16,7 @@ SUPPORTED_TARGETS = [
     ("linux", "x86_64"),
     ("linux", "aarch64"),
     ("linux", "armv7"),
+    ("linux", "riscv64"),
     ("darwin", "x86_64"),
     ("darwin", "aarch64"),
     ("none", "riscv32"),
@@ -118,7 +119,7 @@ def host_info(rctx):
     if _os == "linux" and not rctx.attr.exec_os:
         dist_name, dist_version = _linux_dist(rctx)
     else:
-        dist_name = os
+        dist_name = _os
         dist_version = ""
     return struct(
         arch = _arch,
