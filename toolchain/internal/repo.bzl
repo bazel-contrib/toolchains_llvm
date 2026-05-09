@@ -368,6 +368,11 @@ _compiler_configuration_attrs = {
                "Mostly useful for providing files containing lists of flags, e.g. " +
                "sanitizer ignorelists."),
     ),
+    "extra_linker_files": attr.label(
+        mandatory = False,
+        doc = ("Files to be made available in the sandbox for link actions. " +
+               "Useful for providing files such as linker scripts."),
+    ),
     "extra_enabled_features": attr.label_list(
         mandatory = False,
         doc = ("Extra `cc_feature` features to add to this toolchain in an initially " +

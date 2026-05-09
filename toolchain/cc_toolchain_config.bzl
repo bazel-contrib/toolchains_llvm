@@ -380,7 +380,7 @@ def cc_toolchain_config(
             "-stdlib=libstdc++",
         ])
 
-        link_flags.extend([
+        link_libs.extend([
             "-lstdc++",
         ])
     elif stdlib.startswith("stdc++"):
@@ -397,8 +397,7 @@ def cc_toolchain_config(
             "-L{}lib/{}".format(target_toolchain_path_prefix, target_system_name),
         ])
 
-        # We expect to pick up these libraries from the sysroot.
-        link_flags.extend([
+        link_libs.extend([
             "-l:libstdc++.a",
         ])
         if stdlib == "stdc++":
