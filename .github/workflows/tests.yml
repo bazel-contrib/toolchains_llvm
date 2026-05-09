@@ -65,9 +65,15 @@ jobs:
         bzlmod: [true, false]
         stdlib: [default, libc++, stdc++, dynamic-stdc++]
         exclude:
-          - bazel_version: latest # bazel latest does not need bzlmod=false
+          - os: macos-latest
+            stdlib: libc++ # Needs to be installed first
+          - os: macos-latest
+            stdlib: stdc++ # Needs to be installed first
+          - os: macos-latest
+            stdlib: dynamic-stdc++ # Needs to be installed first
+          - bazel_version: latest
             bzlmod: false
-          - bzlmod: false # bzlmod=false only tests the default (builtin-libc++) stdlib
+          - bzlmod: false # Only test the default stdlib: builtin-libc++
             stdlib: libc++
           - bzlmod: false
             stdlib: stdc++
