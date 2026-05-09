@@ -86,6 +86,27 @@ llvm_toolchain(
     llvm_versions = LLVM_VERSIONS,
 )
 
+# Toolchain examples for testing different stdlib implementations on Linux.
+# These are used by run_external_tests.sh in CI to verify that the toolchain
+# works with system-hosted libc++ and libstdc++ instead of the builtin libc++.
+llvm_toolchain(
+    name = "llvm_toolchain_libcxx",
+    llvm_versions = LLVM_VERSIONS,
+    stdlib = {"": "libc++"},
+)
+
+llvm_toolchain(
+    name = "llvm_toolchain_stdcpp",
+    llvm_versions = LLVM_VERSIONS,
+    stdlib = {"": "stdc++"},
+)
+
+llvm_toolchain(
+    name = "llvm_toolchain_dynamic_stdcpp",
+    llvm_versions = LLVM_VERSIONS,
+    stdlib = {"": "dynamic-stdc++"},
+)
+
 # Example toolchain with user provided URLs.
 # TODO(siddharthab): Add test.
 llvm_toolchain(

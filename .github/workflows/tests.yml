@@ -61,17 +61,28 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, ubuntu-latest]
-        bazel_version: [latest] # rules_rust bzlmod support is experimental and needs latest version as of now (20230912).
+        bazel_version: [8.*, latest]
         bzlmod: [true, false]
+        stdlib: [default, libc++, stdc++, dynamic-stdc++]
+        exclude:
+          - bazel_version: latest # bazel latest does not need bzlmod=false
+            bzlmod: false
+          - bzlmod: false # bzlmod=false only tests the default (builtin-libc++) stdlib
+            stdlib: libc++
+          - bzlmod: false
+            stdlib: stdc++
+          - bzlmod: false
+            stdlib: dynamic-stdc++
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v6
       - if: startsWith(matrix.os, 'ubuntu')
         run: tests/scripts/ubuntu_install_libtinfo.sh
-      - name: Test
+      - name: Test (${{ matrix.stdlib }})
         env:
           USE_BAZEL_VERSION: ${{ matrix.bazel_version }}
           USE_BZLMOD: ${{ matrix.bzlmod }}
+          TEST_STDLIB: ${{ matrix.stdlib }}
         run: tests/scripts/run_external_tests.sh
   container_test:
     strategy:

@@ -15,6 +15,28 @@
 
 set -euo pipefail
 
+# Select the toolchain based on TEST_STDLIB (set by CI matrix).
+# "default" uses the registered llvm_toolchain (builtin-libc++).
+# "libc++", "stdc++", and "dynamic-stdc++" use the corresponding toolchains.
+case "${TEST_STDLIB:-default}" in
+default)
+  toolchain_name=""
+  ;;
+libc++)
+  toolchain_name="@llvm_toolchain_libcxx//:cc-toolchain-x86_64-linux"
+  ;;
+stdc++)
+  toolchain_name="@llvm_toolchain_stdcpp//:cc-toolchain-x86_64-linux"
+  ;;
+dynamic-stdc++)
+  toolchain_name="@llvm_toolchain_dynamic_stdcpp//:cc-toolchain-x86_64-linux"
+  ;;
+*)
+  echo >&2 "Unknown TEST_STDLIB: ${TEST_STDLIB}"
+  exit 1
+  ;;
+esac
+
 scripts_dir="$(dirname "${BASH_SOURCE[0]}")"
 
 # shellcheck source=./tests/scripts/bazel.sh
@@ -25,6 +47,10 @@ cd "${scripts_dir}"
 
 # Generate some files needed for the tests.
 echo "Bazel common args: ${common_args[*]}"
+if [[ -n "${toolchain_name}" ]]; then
+  common_test_args+=("--extra_toolchains=${toolchain_name}")
+fi
+
 "${bazel}" query "${common_args[@]}" @io_bazel_rules_go//tests/core/cgo:dylib_test >/dev/null
 
 output_base="$("${bazel}" info output_base)"
