@@ -15,6 +15,20 @@
 
 set -euo pipefail
 
+# Detect platform for toolchain label suffix.
+_host_os="$(uname -s | tr '[:upper:]' '[:lower:]')"
+_host_arch="$(uname -m)"
+if [[ "${_host_arch}" == "x86_64" ]]; then
+  _host_arch="x86_64"
+elif [[ "${_host_arch}" == "aarch64" ]] || [[ "${_host_arch}" == "arm64" ]]; then
+  _host_arch="aarch64"
+fi
+if [[ "${_host_os}" == "darwin" ]]; then
+  _toolchain_suffix="${_host_arch}-darwin"
+else
+  _toolchain_suffix="${_host_arch}-linux"
+fi
+
 # Select the toolchain based on TEST_STDLIB (set by CI matrix).
 # "default" uses the registered llvm_toolchain (builtin-libc++).
 # "libc++", "stdc++", and "dynamic-stdc++" use the corresponding toolchains.
@@ -23,13 +37,13 @@ default)
   toolchain_name=""
   ;;
 libc++)
-  toolchain_name="@llvm_toolchain_libcxx//:cc-toolchain-x86_64-linux"
+  toolchain_name="@llvm_toolchain_libcxx//:cc-toolchain-${_toolchain_suffix}"
   ;;
 stdc++)
-  toolchain_name="@llvm_toolchain_stdcpp//:cc-toolchain-x86_64-linux"
+  toolchain_name="@llvm_toolchain_stdcpp//:cc-toolchain-${_toolchain_suffix}"
   ;;
 dynamic-stdc++)
-  toolchain_name="@llvm_toolchain_dynamic_stdcpp//:cc-toolchain-x86_64-linux"
+  toolchain_name="@llvm_toolchain_dynamic_stdcpp//:cc-toolchain-${_toolchain_suffix}"
   ;;
 *)
   echo >&2 "Unknown TEST_STDLIB: ${TEST_STDLIB}"
@@ -52,7 +66,10 @@ if [[ -n "${toolchain_name}" ]]; then
 fi
 
 # Extra test targets (e.g. rules_rust) that require bazel >= 9 and bzlmod.
-targets=()
+targets=(
+  //foreign:pcre
+  @boringssl//...
+)
 
 # rules_rust bzlmod support is unreliable on older Bazel versions;
 # only run rust-related prep and tests on bazel 9+ with bzlmod enabled.
@@ -79,13 +96,13 @@ if [[ "${_use_bazel_version}" != "8."* ]] && [[ "${USE_BZLMOD:-true}" == "true" 
   echo "------------------------------------------------------"
 
   targets+=(
-    "@rules_rust//test/unit/{interleaved_cc_info,native_deps}:all"
+    @rules_rust//test/unit/{interleaved_cc_info,native_deps}:all
     "@io_bazel_rules_go//tests/core/cgo:all"
     "-@io_bazel_rules_go//tests/core/cgo:cc_libs_test"
     "-@io_bazel_rules_go//tests/core/cgo:cgo_abs_paths_test"
     "-@io_bazel_rules_go//tests/core/cgo:external_includes_test"
     "-@io_bazel_rules_go//tests/core/cgo:wrapped_cgo_test"
-    "-@rules_rust//test/unit/native_deps:{cdylib,bin}_has_native_dep_and_alwayslink_{cc,rust}_linker_test"
+    -@rules_rust//test/unit/native_deps:{cdylib,bin}_has_native_dep_and_alwayslink_{cc,rust}_linker_test
   )
 fi
 
@@ -119,7 +136,4 @@ echo "Bazel test args: ${test_args[*]}"
 targets+=($("${bazel}" query "${common_args[@]}" 'attr(timeout, short, tests(@com_google_absl//absl/...) except attr(tags, benchmark, tests(@com_google_absl//absl/...)))'))
 targets+=("-@com_google_absl//absl/time/internal/cctz:time_zone_format_test")
 
-"${bazel}" --bazelrc=/dev/null test "${test_args[@]}" -- \
-  //foreign:pcre \
-  @boringssl//... \
-  "${targets[@]}"
+"${bazel}" --bazelrc=/dev/null test "${test_args[@]}" -- "${targets[@]}"
