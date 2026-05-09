@@ -51,24 +51,43 @@ if [[ -n "${toolchain_name}" ]]; then
   common_test_args+=("--extra_toolchains=${toolchain_name}")
 fi
 
-"${bazel}" query "${common_args[@]}" @io_bazel_rules_go//tests/core/cgo:dylib_test >/dev/null
+# Extra test targets (e.g. rules_rust) that require bazel >= 9 and bzlmod.
+targets=()
 
-output_base="$("${bazel}" info output_base)"
-echo "Output base: ${output_base}"
+# rules_rust bzlmod support is unreliable on older Bazel versions;
+# only run rust-related prep and tests on bazel 9+ with bzlmod enabled.
+_use_bazel_version="${USE_BAZEL_VERSION:-latest}"
+if [[ "${_use_bazel_version}" != "8."* ]] && [[ "${USE_BZLMOD:-true}" == "true" ]]; then
+  # Generate files needed for rules_go cgo tests.
+  "${bazel}" query "${common_args[@]}" @io_bazel_rules_go//tests/core/cgo:dylib_test >/dev/null
 
-# As of rules_go 0.51.0 the 'generate_imported_dylib.sh' expects 'cc' to be available through PATH.
-if [[ ${USE_BZLMOD:-true} == "true" ]]; then
-  generate_imported_dylib_sh="${output_base}/external/rules_go~/tests/core/cgo/generate_imported_dylib.sh"
-  if [[ ! -f ${generate_imported_dylib_sh} ]]; then
-    generate_imported_dylib_sh="${output_base}/external/rules_go+/tests/core/cgo/generate_imported_dylib.sh"
+  output_base="$("${bazel}" info output_base)"
+  echo "Output base: ${output_base}"
+
+  # As of rules_go 0.51.0 the 'generate_imported_dylib.sh' expects 'cc' to be available through PATH.
+  if [[ ${USE_BZLMOD:-true} == "true" ]]; then
+    generate_imported_dylib_sh="${output_base}/external/rules_go~/tests/core/cgo/generate_imported_dylib.sh"
+    if [[ ! -f ${generate_imported_dylib_sh} ]]; then
+      generate_imported_dylib_sh="${output_base}/external/rules_go+/tests/core/cgo/generate_imported_dylib.sh"
+    fi
+  else
+    generate_imported_dylib_sh="${output_base}/external/io_bazel_rules_go/tests/core/cgo/generate_imported_dylib.sh"
   fi
-else
-  generate_imported_dylib_sh="${output_base}/external/io_bazel_rules_go/tests/core/cgo/generate_imported_dylib.sh"
+  echo "Script: '${generate_imported_dylib_sh}'"
+  echo "------------------------------------------------------"
+  "${generate_imported_dylib_sh}" "${IMPORTED_C_PATH-}" "${OUTPUT_DIR:-${output_base}}" || echo "ERROR: rules_go script 'tests/core/cgo/generate_imported_dylib.sh' failed."
+  echo "------------------------------------------------------"
+
+  targets+=(
+    "@rules_rust//test/unit/{interleaved_cc_info,native_deps}:all"
+    "@io_bazel_rules_go//tests/core/cgo:all"
+    "-@io_bazel_rules_go//tests/core/cgo:cc_libs_test"
+    "-@io_bazel_rules_go//tests/core/cgo:cgo_abs_paths_test"
+    "-@io_bazel_rules_go//tests/core/cgo:external_includes_test"
+    "-@io_bazel_rules_go//tests/core/cgo:wrapped_cgo_test"
+    "-@rules_rust//test/unit/native_deps:{cdylib,bin}_has_native_dep_and_alwayslink_{cc,rust}_linker_test"
+  )
 fi
-echo "Script: '${generate_imported_dylib_sh}'"
-echo "------------------------------------------------------"
-"${generate_imported_dylib_sh}" "${IMPORTED_C_PATH-}" "${OUTPUT_DIR:-${output_base}}" || echo "ERROR: rules_go script 'tests/core/cgo/generate_imported_dylib.sh' failed."
-echo "------------------------------------------------------"
 
 test_args=(
   "${common_test_args[@]}"
@@ -96,19 +115,11 @@ echo "Bazel test args: ${test_args[*]}"
 #   to run, and it is not particularly useful to us.
 # - time_zone_format_test from abseil-cpp because it assumes TZ is set to America/Los_Angeles, but
 #   we run the tests in UTC.
-# - {cdylib,bin}_has_native_dep_and_alwayslink_{cc,rust}_linkertest from rules_rust because they assume the test is
-#    being run in the root module (use 'rules_rust' in the bazel-bin path instead of 'rules_rust~').
 # shellcheck disable=SC2207
 absl_targets=($("${bazel}" query "${common_args[@]}" 'attr(timeout, short, tests(@com_google_absl//absl/...) except attr(tags, benchmark, tests(@com_google_absl//absl/...)))'))
 "${bazel}" --bazelrc=/dev/null test "${test_args[@]}" -- \
   //foreign:pcre \
   @boringssl//... \
-  @rules_rust//test/unit/{interleaved_cc_info,native_deps}:all \
-  @io_bazel_rules_go//tests/core/cgo:all \
-  -@io_bazel_rules_go//tests/core/cgo:cc_libs_test \
-  -@io_bazel_rules_go//tests/core/cgo:cgo_abs_paths_test \
-  -@io_bazel_rules_go//tests/core/cgo:external_includes_test \
-  -@io_bazel_rules_go//tests/core/cgo:wrapped_cgo_test \
-  -@rules_rust//test/unit/native_deps:{cdylib,bin}_has_native_dep_and_alwayslink_{cc,rust}_linker_test \
+  "${targets[@]}" \
   "${absl_targets[@]}" \
   -@com_google_absl//absl/time/internal/cctz:time_zone_format_test

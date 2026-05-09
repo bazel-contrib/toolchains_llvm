@@ -289,6 +289,8 @@ http_archive(
 
 http_archive(
     name = "boringssl",
+    patch_strip = 1,
+    patches = ["//:boringssl-20260413.0.patch"],
     sha256 = "de3371d3fe085afd34778a4c988fb7840b9c92cb21504e674f33ebefd98edc00",
     strip_prefix = "boringssl-0.20260508.0",
     urls = ["https://github.com/google/boringssl/releases/download/0.20260508.0/boringssl-0.20260508.0.tar.gz"],
