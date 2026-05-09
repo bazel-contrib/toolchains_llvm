@@ -75,6 +75,8 @@ targets=(
 # only run rust-related prep and tests on bazel 9+ with bzlmod enabled.
 _use_bazel_version="${USE_BAZEL_VERSION:-latest}"
 if [[ "${_use_bazel_version}" != "8."* ]] && [[ "${USE_BZLMOD:-true}" == "true" ]]; then
+  echo "------------------------------------------------------"
+  echo "Running extra prep steps for rules_rust tests (bazel ${_use_bazel_version} with bzlmod)..."
   # Generate files needed for rules_go cgo tests.
   "${bazel}" query "${common_args[@]}" @io_bazel_rules_go//tests/core/cgo:dylib_test >/dev/null
 
@@ -90,7 +92,6 @@ if [[ "${_use_bazel_version}" != "8."* ]] && [[ "${USE_BZLMOD:-true}" == "true" 
   else
     generate_imported_dylib_sh="${output_base}/external/io_bazel_rules_go/tests/core/cgo/generate_imported_dylib.sh"
   fi
-  echo "------------------------------------------------------"
   echo "Script: '${generate_imported_dylib_sh}'"
   "${generate_imported_dylib_sh}" "${IMPORTED_C_PATH-}" "${OUTPUT_DIR:-${output_base}}" || echo "ERROR: rules_go script 'tests/core/cgo/generate_imported_dylib.sh' failed."
   echo "------------------------------------------------------"
