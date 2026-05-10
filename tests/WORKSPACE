@@ -86,6 +86,27 @@ llvm_toolchain(
     llvm_versions = LLVM_VERSIONS,
 )
 
+# Toolchain examples for testing different stdlib implementations on Linux.
+# These are used by run_external_tests.sh in CI to verify that the toolchain
+# works with system-hosted libc++ and libstdc++ instead of the builtin libc++.
+llvm_toolchain(
+    name = "llvm_toolchain_libcxx",
+    llvm_versions = LLVM_VERSIONS,
+    stdlib = {"": "libc++"},
+)
+
+llvm_toolchain(
+    name = "llvm_toolchain_stdcpp",
+    llvm_versions = LLVM_VERSIONS,
+    stdlib = {"": "stdc++"},
+)
+
+llvm_toolchain(
+    name = "llvm_toolchain_dynamic_stdcpp",
+    llvm_versions = LLVM_VERSIONS,
+    stdlib = {"": "dynamic-stdc++"},
+)
+
 # Example toolchain with user provided URLs.
 # TODO(siddharthab): Add test.
 llvm_toolchain(
@@ -258,6 +279,13 @@ http_archive(
     urls = ["https://github.com/abseil/abseil-cpp/releases/download/20250814.2/abseil-cpp-20250814.2.tar.gz"],
 )
 
+http_archive(
+    name = "google_benchmark",
+    sha256 = "9631341c82bac4a288bef951f8b26b41f69021794184ece969f8473977eaa340",
+    strip_prefix = "benchmark-1.9.5",
+    urls = ["https://github.com/google/benchmark/archive/refs/tags/v1.9.5.tar.gz"],
+)
+
 # As a test dep of com_google_absl.
 http_archive(
     name = "googletest",
@@ -268,6 +296,8 @@ http_archive(
 
 http_archive(
     name = "boringssl",
+    patch_args = ["-p1"],
+    patches = ["//:boringssl-20260413.0.patch"],
     sha256 = "de3371d3fe085afd34778a4c988fb7840b9c92cb21504e674f33ebefd98edc00",
     strip_prefix = "boringssl-0.20260508.0",
     urls = ["https://github.com/google/boringssl/releases/download/0.20260508.0/boringssl-0.20260508.0.tar.gz"],

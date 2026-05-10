@@ -96,6 +96,30 @@ use_repo(llvm, "llvm_toolchain_cxx20")
 
 register_toolchains("@llvm_toolchain_cxx20//:all")
 
+# Toolchain examples for testing different stdlib implementations on Linux.
+# These are used by run_external_tests.sh in CI to verify that the toolchain
+# works with system-hosted libc++ and libstdc++ instead of the builtin libc++.
+llvm.toolchain(
+    name = "llvm_toolchain_libcxx",
+    stdlib = {"": "libc++"},
+    llvm_versions = LLVM_VERSIONS,
+)
+use_repo(llvm, "llvm_toolchain_libcxx")
+
+llvm.toolchain(
+    name = "llvm_toolchain_stdcpp",
+    stdlib = {"": "stdc++"},
+    llvm_versions = LLVM_VERSIONS,
+)
+use_repo(llvm, "llvm_toolchain_stdcpp")
+
+llvm.toolchain(
+    name = "llvm_toolchain_dynamic_stdcpp",
+    stdlib = {"": "dynamic-stdc++"},
+    llvm_versions = LLVM_VERSIONS,
+)
+use_repo(llvm, "llvm_toolchain_dynamic_stdcpp")
+
 # Example toolchain with user provided URLs.
 # TODO(siddharthab): Add test.
 llvm.toolchain(
