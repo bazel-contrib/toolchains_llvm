@@ -48,6 +48,17 @@ build_test(
     ],
 )
 
+build_test(
+    name = "gcc_toolchain_extension_test",
+    target_compatible_with = [
+        "@platforms//os:linux",
+    ],
+    targets = [
+        "@llvm_toolchain_gcc_context//:all-files-x86_64-linux",
+        "@llvm_toolchain_gcc_context//:cc-toolchain-x86_64-linux",
+    ],
+)
+
 # We want to test that `llvm-dwp` (used when assembling a `.dwp` file from
 # `.dwo` files) can be called.
 #

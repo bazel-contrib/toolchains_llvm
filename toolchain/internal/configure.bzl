@@ -39,6 +39,10 @@ load(
     _toolchain_tools = "toolchain_tools",
 )
 load(
+    "//toolchain/internal:gcc_toolchain.bzl",
+    _gcc_toolchain_paths_dict = "gcc_toolchain_paths_dict",
+)
+load(
     "//toolchain/internal:llvm_distributions.bzl",
     _required_llvm_version_rctx = "required_llvm_version_rctx",
 )
@@ -215,6 +219,11 @@ def llvm_config_impl(rctx):
         rctx.attr.sysroot,
         use_absolute_paths_sysroot,
     )
+    gcc_toolchain_paths_dict, gcc_toolchain_labels_dict = _gcc_toolchain_paths_dict(
+        rctx,
+        rctx.attr.gcc_toolchain,
+        use_absolute_paths_sysroot,
+    )
 
     workspace_name = rctx.name
     toolchain_info = struct(
@@ -224,6 +233,9 @@ def llvm_config_impl(rctx):
         llvm_dist_path_prefix = llvm_dist_path_prefix,
         tools_path_prefix = tools_path_prefix,
         wrapper_bin_prefix = wrapper_bin_prefix,
+        gcc_toolchain_paths_dict = gcc_toolchain_paths_dict,
+        gcc_toolchain_labels_dict = gcc_toolchain_labels_dict,
+        gcc_triple_dict = rctx.attr.gcc_triple,
         sysroot_paths_dict = sysroot_paths_dict,
         sysroot_labels_dict = sysroot_labels_dict,
         target_settings_dict = rctx.attr.target_settings,
@@ -309,6 +321,8 @@ def llvm_config_impl(rctx):
         "bin/cc_wrapper.sh",
         cc_wrapper_tpl,
         {
+            "%{fallback_gcc_toolchain}": gcc_toolchain_paths_dict.get(_os_arch_pair(os, arch), ""),
+            "%{fallback_gcc_triple}": rctx.attr.gcc_triple.get(_os_arch_pair(os, arch), rctx.attr.gcc_triple.get("", "")),
             "%{toolchain_path_prefix}": llvm_dist_path_prefix,
         },
     )
@@ -383,6 +397,9 @@ def _cc_toolchain_str(
 
     sysroot_path = toolchain_info.sysroot_paths_dict.get(target_pair)
     sysroot_label = toolchain_info.sysroot_labels_dict.get(target_pair)
+    gcc_toolchain_label = toolchain_info.gcc_toolchain_labels_dict.get(target_pair)
+    gcc_toolchain_path = toolchain_info.gcc_toolchain_paths_dict.get(target_pair, "")
+    gcc_triple = _dict_value(toolchain_info.gcc_triple_dict, target_pair, "")
     if sysroot_label:
         sysroot_label_str = repr(str(sysroot_label))
     else:
@@ -494,6 +511,8 @@ cc_toolchain_config(
     wrapper_bin_prefix = "{wrapper_bin_prefix}",
     compiler_configuration = {{
       "sysroot_path": "{sysroot_path}",
+      "gcc_toolchain_path": "{gcc_toolchain_path}",
+      "gcc_triple": "{gcc_triple}",
       "stdlib": "{stdlib}",
       "cxx_standard": "{cxx_standard}",
       "compile_flags": {compile_flags},
@@ -561,6 +580,7 @@ filegroup(
     name = "compiler-components-{suffix}",
     srcs = [
         ":sysroot-components-{suffix}",
+        {gcc_toolchain_files}
         {extra_compiler_files}
     ],
 )
@@ -569,6 +589,7 @@ filegroup(
     name = "linker-components-{suffix}",
     srcs = [
         ":sysroot-components-{suffix}",
+        {gcc_toolchain_files}
         {extra_linker_files}
     ],
 )
@@ -602,6 +623,7 @@ filegroup(
     srcs = [
         ":cxx_builtin_include_files-{suffix}",
         ":sysroot-components-{suffix}",
+        {gcc_toolchain_files}
         "{llvm_dist_label_prefix}extra_config_site",
         "{llvm_dist_label_prefix}clang",
         {extra_compiler_files}
@@ -616,6 +638,7 @@ filegroup(
         "{llvm_dist_label_prefix}ar",
         "{llvm_dist_label_prefix}{lib_label}",
         ":sysroot-components-{suffix}",
+        {gcc_toolchain_files}
         {extra_linker_files}
     ],
 )
@@ -690,6 +713,8 @@ cc_toolchain(
         wrapper_bin_prefix = toolchain_info.wrapper_bin_prefix,
         sysroot_label_str = sysroot_label_str,
         sysroot_path = sysroot_path,
+        gcc_toolchain_path = gcc_toolchain_path,
+        gcc_triple = gcc_triple,
         stdlib = _dict_value(toolchain_info.stdlib_dict, target_pair, "builtin-libc++"),
         cxx_standard = _dict_value(toolchain_info.cxx_standard_dict, target_pair, "c++17"),
         compile_flags = _list_to_string(_dict_value(toolchain_info.compile_flags_dict, target_pair)),
@@ -719,6 +744,7 @@ cc_toolchain(
         extra_known_features = _list_to_string(toolchain_info.extra_known_features),
         extra_enabled_features = _list_to_string(toolchain_info.extra_enabled_features),
         extra_files_str = extra_files_str,
+        gcc_toolchain_files = ("\"%s\"," % str(gcc_toolchain_label)) if gcc_toolchain_label else "",
         cxx_builtin_include_directories = _list_to_string(filtered_cxx_builtin_include_directories),
         cxx_builtin_include_label = "cxx_builtin_include" if bazel_features.rules.merkle_cache_v2 else "include",
         lib_label = "lib" if bazel_features.rules.merkle_cache_v2 else "lib_legacy",

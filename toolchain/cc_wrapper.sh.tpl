@@ -77,6 +77,8 @@ else
 fi
 script_dir=$(dirname_shim "${bash_source_rel}")
 toolchain_path_prefix="%{toolchain_path_prefix}"
+fallback_gcc_toolchain="%{fallback_gcc_toolchain}"
+fallback_gcc_triple="%{fallback_gcc_triple}"
 
 # Sometimes this path may be an absolute path in which case we dont do anything because
 # This is using the host toolchain to build.
@@ -91,6 +93,8 @@ if [[ ! -f ${toolchain_path_prefix}bin/clang ]]; then
 fi
 
 OUTPUT=
+HAVE_GCC_TRIPLE=0
+HAVE_GCC_TOOLCHAIN=0
 
 function parse_option() {
   local -r opt="$1"
@@ -99,6 +103,10 @@ function parse_option() {
   elif [[ "${opt}" = "-o" ]]; then
     # output is coming
     OUTPUT=1
+  elif [[ "${opt}" == --gcc-triple=* ]]; then
+    HAVE_GCC_TRIPLE=1
+  elif [[ "${opt}" == --gcc-toolchain=* ]]; then
+    HAVE_GCC_TOOLCHAIN=1
   fi
 }
 
@@ -140,6 +148,17 @@ for ((i = 0; i <= $#; i++)); do
     cmd+=("${opt}")
   fi
 done
+
+if [[ "${HAVE_GCC_TRIPLE}" = "0" && -n "${fallback_gcc_triple}" ]]; then
+  cmd+=("--gcc-triple=${fallback_gcc_triple}")
+fi
+gcc_toolchain="${fallback_gcc_toolchain}"
+if [[ -n "${gcc_toolchain}" && "${gcc_toolchain}" != /* ]]; then
+  gcc_toolchain="${script_dir}/../../${gcc_toolchain#external/}"
+fi
+if [[ "${HAVE_GCC_TOOLCHAIN}" = "0" && -n "${gcc_toolchain}" ]]; then
+  cmd+=("--gcc-toolchain=${gcc_toolchain}")
+fi
 
 # Call the C++ compiler.
 "${cmd[@]}"

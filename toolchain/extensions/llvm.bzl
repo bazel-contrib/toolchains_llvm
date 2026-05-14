@@ -49,6 +49,30 @@ def _constraint_dict(tags, name):
 
     return constraints
 
+def _label_dict(tags, cls, name):
+    labels = {}
+    for tag in tags:
+        targets = list(tag.targets)
+        if not targets:
+            targets = [""]
+        for target in targets:
+            if labels.get(target):
+                fail("duplicate target '%s' found for %s with name '%s'" % (target, cls, name))
+            labels[target] = str(tag.label)
+    return labels
+
+def _string_dict(tags, cls, name):
+    values = {}
+    for tag in tags:
+        targets = list(tag.targets)
+        if not targets:
+            targets = [""]
+        for target in targets:
+            if values.get(target):
+                fail("duplicate target '%s' found for %s with name '%s'" % (target, cls, name))
+            values[target] = tag.value
+    return values
+
 def _llvm_impl_(module_ctx):
     for mod in module_ctx.modules:
         if not mod.is_root:
@@ -64,6 +88,8 @@ def _llvm_impl_(module_ctx):
             }
             attrs["toolchain_roots"] = _root_dict([root for root in mod.tags.toolchain_root if root.name == name], "toolchain_root", name, True)
             attrs["sysroot"] = _root_dict([sysroot for sysroot in mod.tags.sysroot if sysroot.name == name], "sysroot", name, False)
+            attrs["gcc_toolchain"] = _label_dict([tag for tag in mod.tags.gcc_toolchain if tag.name == name], "gcc_toolchain", name)
+            attrs["gcc_triple"] = _string_dict([tag for tag in mod.tags.gcc_triple if tag.name == name], "gcc_triple", name)
             attrs["extra_exec_compatible_with"] = _constraint_dict(
                 [tag for tag in mod.tags.extra_exec_compatible_with if tag.name == name],
                 name,
@@ -84,6 +110,12 @@ def _llvm_impl_(module_ctx):
         for root in mod.tags.sysroot:
             if root.name not in toolchain_names:
                 fail("sysroot '%s' does not have a corresponding toolchain" % root.name)
+        for tag in mod.tags.gcc_toolchain:
+            if tag.name not in toolchain_names:
+                fail("gcc_toolchain '%s' does not have a corresponding toolchain" % tag.name)
+        for tag in mod.tags.gcc_triple:
+            if tag.name not in toolchain_names:
+                fail("gcc_triple '%s' does not have a corresponding toolchain" % tag.name)
 
     if bazel_features.external_deps.extension_metadata_has_reproducible:
         return module_ctx.extension_metadata(reproducible = True)
@@ -100,6 +132,8 @@ _attrs.update(_llvm_repo_attrs)
 
 _attrs.pop("toolchain_roots", None)
 _attrs.pop("sysroot", None)
+_attrs.pop("gcc_toolchain", None)
+_attrs.pop("gcc_triple", None)
 
 llvm = module_extension(
     implementation = _llvm_impl_,
@@ -121,6 +155,20 @@ llvm = module_extension(
                 "targets": attr.string_list(doc = "Specific targets, if any; empty list means this applies to all."),
                 "label": attr.label(doc = "Label containing the files with its package path as the sysroot path."),
                 "path": attr.string(doc = "Absolute path to the sysroot."),
+            },
+        ),
+        "gcc_toolchain": tag_class(
+            attrs = {
+                "name": attr.string(doc = "Same name as the toolchain tag.", default = "llvm_toolchain"),
+                "targets": attr.string_list(doc = "Specific targets, if any; empty list means this applies to all."),
+                "label": attr.label(doc = "Label whose package path is used as the default --gcc-toolchain root."),
+            },
+        ),
+        "gcc_triple": tag_class(
+            attrs = {
+                "name": attr.string(doc = "Same name as the toolchain tag.", default = "llvm_toolchain"),
+                "targets": attr.string_list(doc = "Specific targets, if any; empty list means this applies to all."),
+                "value": attr.string(doc = "GCC installation triple to pass as --gcc-triple."),
             },
         ),
         "extra_exec_compatible_with": tag_class(

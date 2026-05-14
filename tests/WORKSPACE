@@ -86,6 +86,18 @@ llvm_toolchain(
     llvm_versions = LLVM_VERSIONS,
 )
 
+llvm_toolchain(
+    name = "llvm_toolchain_gcc_context",
+    cxx_standard = {"": "c++17"},
+    gcc_toolchain = {
+        "": "@//gcc_root:all_files",
+    },
+    gcc_triple = {
+        "": "x86_64-linux-gnu",
+    },
+    llvm_versions = LLVM_VERSIONS,
+)
+
 # Toolchain examples for testing different stdlib implementations on Linux.
 # These are used by run_external_tests.sh in CI to verify that the toolchain
 # works with system-hosted libc++ and libstdc++ instead of the builtin libc++.
@@ -145,6 +157,10 @@ llvm_register_toolchains()
 load("@llvm_toolchain_cxx20//:toolchains.bzl", llvm_register_toolchains_cxx20 = "llvm_register_toolchains")
 
 llvm_register_toolchains_cxx20()
+
+load("@llvm_toolchain_gcc_context//:toolchains.bzl", llvm_register_toolchains_gcc_context = "llvm_register_toolchains")
+
+llvm_register_toolchains_gcc_context()
 
 ## Toolchain example with absolute paths; tested in GitHub CI.
 llvm_toolchain(

@@ -32,8 +32,8 @@ bazel_dep(name = "abseil-cpp", version = "20250814.2", repo_name = "com_google_a
 bazel_dep(name = "boringssl", version = "0.20260508.0")
 single_version_override(
     module_name = "boringssl",
-    patches = ["//:boringssl-20260413.0.patch"],
     patch_strip = 1,
+    patches = ["//:boringssl-20260413.0.patch"],
 )
 
 # TODO: Remove when protobuf is released with a version of rules_python that supports 8.x
@@ -96,27 +96,40 @@ use_repo(llvm, "llvm_toolchain_cxx20")
 
 register_toolchains("@llvm_toolchain_cxx20//:all")
 
+llvm.toolchain(
+    name = "llvm_toolchain_gcc_context",
+    cxx_standard = {"": "c++17"},
+    llvm_versions = LLVM_VERSIONS,
+)
+llvm.gcc_toolchain(
+    name = "llvm_toolchain_gcc_context",
+    label = "//gcc_root:all_files",
+)
+llvm.gcc_triple(
+    name = "llvm_toolchain_gcc_context",
+    value = "x86_64-linux-gnu",
+)
+use_repo(llvm, "llvm_toolchain_gcc_context")
+
 # Toolchain examples for testing different stdlib implementations on Linux.
 # These are used by run_external_tests.sh in CI to verify that the toolchain
 # works with system-hosted libc++ and libstdc++ instead of the builtin libc++.
 llvm.toolchain(
     name = "llvm_toolchain_libcxx",
-    stdlib = {"": "libc++"},
     llvm_versions = LLVM_VERSIONS,
+    stdlib = {"": "libc++"},
 )
 use_repo(llvm, "llvm_toolchain_libcxx")
-
 llvm.toolchain(
     name = "llvm_toolchain_stdcpp",
-    stdlib = {"": "stdc++"},
     llvm_versions = LLVM_VERSIONS,
+    stdlib = {"": "stdc++"},
 )
 use_repo(llvm, "llvm_toolchain_stdcpp")
-
 llvm.toolchain(
     name = "llvm_toolchain_dynamic_stdcpp",
-    stdlib = {"": "dynamic-stdc++"},
     llvm_versions = LLVM_VERSIONS,
+    stdlib = {"": "dynamic-stdc++"},
 )
 use_repo(llvm, "llvm_toolchain_dynamic_stdcpp")
 
@@ -202,7 +215,6 @@ llvm.sysroot(
     targets = ["linux-x86_64"],
 )
 use_repo(llvm, "llvm_toolchain_with_sysroot")
-
 llvm.toolchain(
     name = "llvm_toolchain_linux_exec",
     exec_arch = "amd64",
