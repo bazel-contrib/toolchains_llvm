@@ -769,8 +769,15 @@ _llvm_distributions = {
     "LLVM-22.1.4-Linux-X64.tar.xz": "sha256:cdf232e3bc5d9909ddcf8cb7016802c6745a01e69a596747c684caa894a11567",
     "LLVM-22.1.4-macOS-ARM64.tar.xz": "sha256:45e0dfc0453624caed5e7b20e224ce8343af9c511c7f59803753a586620d6ad1",
 
+    # 22.1.5
+    "clang+llvm-22.1.5-aarch64-pc-windows-msvc.tar.xz": "sha256:e1095a0ceafa13bc81bbbeff1cf2848c9e7a7933e4e4d57af89e650d47f00d4f",
+    "clang+llvm-22.1.5-x86_64-pc-windows-msvc.tar.xz": "sha256:52c15696665ec3010e100261cb2919d40712dbf871c9a2886a2e60b665bcd2c6",
+    "LLVM-22.1.5-Linux-ARM64.tar.xz": "sha256:05e303cf01a97ca2a11e42e75ade839e85af274f84573554c5e5c05f714be989",
+    "LLVM-22.1.5-Linux-X64.tar.xz": "sha256:04dfa3ab6f1c332dd73a057daeb8f48cdaacdef24178f8eccddf2cbfa8944aa4",
+    "LLVM-22.1.5-macOS-ARM64.tar.xz": "sha256:c4e5aa26d5bb9938237fa1626fe3b0506887b50026bac785b85dd3314be8d5e6",
+
     # Refer to variable declaration on how to update!
-    # Example update (without download): utils/llvm_checksums.sh -g -t /tmp/llvm -v 21.1.5
+    # Example update (without download): utils/llvm_checksums.sh -g -t /tmp/llvm -v 22.1.5
 }
 
 # Note: Unlike the user-specified llvm_mirror attribute, the URL prefixes in
