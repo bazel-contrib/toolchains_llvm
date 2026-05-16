@@ -13,8 +13,24 @@
 # limitations under the License.
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("//toolchain/internal:distributions_repo.bzl", "llvm_distributions_repo")
 
 def bazel_toolchain_dependencies():
+    # Materialize the merged LLVM distribution table. In bzlmod this is done
+    # by the `llvm_distributions` module extension; in WORKSPACE mode the
+    # consumer calls `bazel_toolchain_dependencies()` which invokes the
+    # repository rule directly here.
+    if not native.existing_rule("llvm_distributions_data"):
+        llvm_distributions_repo(
+            name = "llvm_distributions_data",
+            srcs = [
+                "@toolchains_llvm//toolchain/distributions:pre_github.jsonc",
+                "@toolchains_llvm//toolchain/distributions:github_legacy.jsonc",
+                "@toolchains_llvm//toolchain/distributions:github.jsonc",
+                "@toolchains_llvm//toolchain/distributions:extra.jsonc",
+            ],
+        )
+
     # Load rules_cc if the user has not defined them.
     if not native.existing_rule("rules_cc"):
         http_archive(

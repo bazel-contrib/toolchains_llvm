@@ -96,10 +96,53 @@ def _strip_jsonc(text):
         i += 1
     return "".join(out)
 
+def _strip_trailing_commas(text):
+    """Remove commas that immediately precede a `}` or `]` (with optional
+    whitespace between). Starlark's `json.decode` is strict JSON, but JSONC
+    and buildifier-formatted JSON both leave trailing commas in place.
+    """
+    out = []
+    in_string = False
+    escape = False
+    i = 0
+    n = len(text)
+    for _ in range(n + 1):
+        if i >= n:
+            break
+        c = text[i]
+        if in_string:
+            out.append(c)
+            if escape:
+                escape = False
+            elif c == "\\":
+                escape = True
+            elif c == "\"":
+                in_string = False
+            i += 1
+            continue
+        if c == "\"":
+            in_string = True
+            out.append(c)
+            i += 1
+            continue
+        if c == ",":
+            j = i + 1
+            for _ in range(n - i):
+                if j >= n or text[j] not in " \t\n\r":
+                    break
+                j += 1
+            if j < n and (text[j] == "}" or text[j] == "]"):
+                # Drop the comma; keep walking from after it.
+                i += 1
+                continue
+        out.append(c)
+        i += 1
+    return "".join(out)
+
 def _load_jsonc(rctx, label):
     path = rctx.path(label)
     raw = rctx.read(path)
-    return json.decode(_strip_jsonc(raw))
+    return json.decode(_strip_trailing_commas(_strip_jsonc(raw)))
 
 def _format_dict(name, mapping):
     if not mapping:
