@@ -50,8 +50,10 @@ We currently offer limited customizability through attributes of the
 [llvm_toolchain\_\* rules](toolchain/rules.bzl). You can send us a PR to add
 more configuration attributes.
 
-The `MODULE.bazel` example below demonstrates how to add new LLVM distributions before the toolchain has
-been updated. They can easily be computed using the provided checksum tool (see `llvm_checksums.sh -h`).
+The `MODULE.bazel` example below demonstrates how to use an LLVM release that
+is not yet present in the bundled distribution table. The required SHA-256s
+can be obtained with `utils/extra_distributions.sh -v <version>`
+(see [Distribution data and scripts](#distribution-data-and-scripts) below).
 
 ```starlark
 llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm", dev_dependency = True)
@@ -68,7 +70,8 @@ llvm.toolchain(
 ```
 
 The following `WORKSPACE` snippet shows how to add a specific version for a specific target before
-the version was added to [llvm_distributions.bzl](toolchain/internal/llvm_distributions.bzl).
+the version was added to the bundled distribution data under
+[`toolchain/distributions/`](toolchain/distributions).
 
 ```starlark
 llvm_toolchain(
@@ -333,6 +336,60 @@ The toolchain supports Bazel's `layering_check` feature, which relies on
 deps (also known as "depend on what you use") for `cc_*` rules. This feature
 can be enabled by enabling the `layering_check` feature on a per-target,
 per-package or global basis.
+
+## Distribution data and scripts
+
+The list of LLVM releases this toolchain knows about lives as JSONC data
+under [`toolchain/distributions/`](toolchain/distributions). A repository
+rule merges every JSONC file into a single lookup table at module-load time:
+
+| file                                                                 | role                                                                                                                                       |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| [`pre_github.jsonc`](toolchain/distributions/pre_github.jsonc)       | LLVM 6.x–9.x hosted on releases.llvm.org. Hand-maintained, frozen.                                                                         |
+| [`github_legacy.jsonc`](toolchain/distributions/github_legacy.jsonc) | LLVM 10.x–18.x with pre-19.x irregular naming. Hand-maintained, frozen.                                                                    |
+| [`github.jsonc`](toolchain/distributions/github.jsonc)               | LLVM 19.x and newer. Regenerated end-to-end by `utils/update_distributions.sh`.                                                            |
+| [`extra.jsonc`](toolchain/distributions/extra.jsonc)                 | Empty by default. Downstream slot for additional bundled releases; loaded last, so any key here overrides the same key in the other files. |
+
+Each file has the shape:
+
+```jsonc
+{
+  "_meta": {
+    "description": "...",
+    "base_url": { "<version>": "<url-prefix>" }   // optional
+  },
+  "<tarball-basename>": "<sha256>",
+  "<tarball-basename>": "<sha256>",
+  ...
+}
+```
+
+Comments are stripped before parsing.
+
+### Two helper scripts
+
+- **`utils/update_distributions.sh`** — refreshes
+  [`toolchain/distributions/github.jsonc`](toolchain/distributions/github.jsonc)
+  by paging through the GitHub releases API for `llvm/llvm-project` and
+  rewriting the file in place. Use this when contributing a new LLVM release
+  to the bundled list. The script also regenerates the test golden file so
+  the diff stays self-contained. No tarballs are downloaded — checksums come
+  from GitHub's release-asset `.digest` field, with existing values
+  preserved for older assets that predate that field. Set `GITHUB_TOKEN` to
+  avoid the unauthenticated API rate limit. See `-h` for details.
+
+- **`utils/extra_distributions.sh`** — prints checksums for a single LLVM
+  release, formatted to paste straight into the `extra_llvm_distributions`
+  attribute shown earlier. Use this only when the version you want is _not
+  yet bundled_ in `github.jsonc`; if it is, just bump `llvm_version` and let
+  the toolchain pick up the existing entries. Falls back to downloading
+  tarballs and computing SHA-256 locally for older assets that don't have a
+  `.digest`. See `-h` for details.
+
+Both scripts run on Linux, macOS, and on Windows under Git Bash / MSYS2 /
+WSL. They require `bash`, `curl`, `jq`, and `awk`;
+`utils/extra_distributions.sh` additionally needs `sha256sum` (Linux, Git
+Bash) or `shasum` (macOS).
 
 ## Prior Art
 
