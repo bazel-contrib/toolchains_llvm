@@ -13,8 +13,14 @@
 # limitations under the License.
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("//toolchain:setup_distributions.bzl", "setup_llvm_distributions")
 
 def bazel_toolchain_dependencies():
+    # Materialize the merged LLVM distribution table. In bzlmod this is done
+    # by the `llvm_distributions` module extension; in WORKSPACE mode the
+    # consumer calls `bazel_toolchain_dependencies()` which dispatches here.
+    setup_llvm_distributions()
+
     # Load rules_cc if the user has not defined them.
     if not native.existing_rule("rules_cc"):
         http_archive(
