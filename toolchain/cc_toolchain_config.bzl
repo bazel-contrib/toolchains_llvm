@@ -204,16 +204,6 @@ def cc_toolchain_config(
         "-fuse-ld=lld",
     ]
 
-    gcc_triple = compiler_configuration["gcc_triple"]
-    if gcc_triple:
-        compile_flags.append("--gcc-triple=" + gcc_triple)
-        link_flags.append("--gcc-triple=" + gcc_triple)
-
-    gcc_toolchain_path = compiler_configuration["gcc_toolchain_path"]
-    if gcc_toolchain_path:
-        compile_flags.append("--gcc-toolchain=" + gcc_toolchain_path)
-        link_flags.append("--gcc-toolchain=" + gcc_toolchain_path)
-
     if exec_os == "darwin":
         # These will get expanded by osx_cc_wrapper's `sanitize_option`
         link_flags.append("--ld-path=ld64.lld" if target_os == "darwin" else "--ld-path=ld.lld")

@@ -105,10 +105,6 @@ llvm.gcc_toolchain(
     name = "llvm_toolchain_gcc_context",
     label = "//gcc_root:all_files",
 )
-llvm.gcc_triple(
-    name = "llvm_toolchain_gcc_context",
-    value = "x86_64-linux-gnu",
-)
 use_repo(llvm, "llvm_toolchain_gcc_context")
 
 # Toolchain examples for testing different stdlib implementations on Linux.

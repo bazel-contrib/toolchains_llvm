@@ -92,9 +92,6 @@ llvm_toolchain(
     gcc_toolchain = {
         "": "@//gcc_root:all_files",
     },
-    gcc_triple = {
-        "": "x86_64-linux-gnu",
-    },
     llvm_versions = LLVM_VERSIONS,
 )
 

@@ -378,11 +378,6 @@ _compiler_configuration_attrs = {
         doc = ("Label strings keyed by target OS and architecture pair. The package path of each label is used as " +
                "the default --gcc-toolchain root. Empty key overrides all targets {}.".format(_target_pairs)),
     ),
-    "gcc_triple": attr.string_dict(
-        mandatory = False,
-        doc = ("GCC installation triple keyed by target OS and architecture pair. " +
-               "Empty key overrides all targets {}.".format(_target_pairs)),
-    ),
     "extra_enabled_features": attr.label_list(
         mandatory = False,
         doc = ("Extra `cc_feature` features to add to this toolchain in an initially " +

@@ -235,7 +235,6 @@ def llvm_config_impl(rctx):
         wrapper_bin_prefix = wrapper_bin_prefix,
         gcc_toolchain_paths_dict = gcc_toolchain_paths_dict,
         gcc_toolchain_labels_dict = gcc_toolchain_labels_dict,
-        gcc_triple_dict = rctx.attr.gcc_triple,
         sysroot_paths_dict = sysroot_paths_dict,
         sysroot_labels_dict = sysroot_labels_dict,
         target_settings_dict = rctx.attr.target_settings,
@@ -321,8 +320,6 @@ def llvm_config_impl(rctx):
         "bin/cc_wrapper.sh",
         cc_wrapper_tpl,
         {
-            "%{fallback_gcc_toolchain}": gcc_toolchain_paths_dict.get(_os_arch_pair(os, arch), ""),
-            "%{fallback_gcc_triple}": rctx.attr.gcc_triple.get(_os_arch_pair(os, arch), rctx.attr.gcc_triple.get("", "")),
             "%{toolchain_path_prefix}": llvm_dist_path_prefix,
         },
     )
@@ -399,7 +396,6 @@ def _cc_toolchain_str(
     sysroot_label = toolchain_info.sysroot_labels_dict.get(target_pair)
     gcc_toolchain_label = toolchain_info.gcc_toolchain_labels_dict.get(target_pair)
     gcc_toolchain_path = toolchain_info.gcc_toolchain_paths_dict.get(target_pair, "")
-    gcc_triple = _dict_value(toolchain_info.gcc_triple_dict, target_pair, "")
     if sysroot_label:
         sysroot_label_str = repr(str(sysroot_label))
     else:
@@ -512,7 +508,6 @@ cc_toolchain_config(
     compiler_configuration = {{
       "sysroot_path": "{sysroot_path}",
       "gcc_toolchain_path": "{gcc_toolchain_path}",
-      "gcc_triple": "{gcc_triple}",
       "stdlib": "{stdlib}",
       "cxx_standard": "{cxx_standard}",
       "compile_flags": {compile_flags},
@@ -714,7 +709,6 @@ cc_toolchain(
         sysroot_label_str = sysroot_label_str,
         sysroot_path = sysroot_path,
         gcc_toolchain_path = gcc_toolchain_path,
-        gcc_triple = gcc_triple,
         stdlib = _dict_value(toolchain_info.stdlib_dict, target_pair, "builtin-libc++"),
         cxx_standard = _dict_value(toolchain_info.cxx_standard_dict, target_pair, "c++17"),
         compile_flags = _list_to_string(_dict_value(toolchain_info.compile_flags_dict, target_pair)),
