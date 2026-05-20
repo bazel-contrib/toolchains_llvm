@@ -27,9 +27,9 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "bazel_features",
-    sha256 = "5f7f87f50584df12bbfe5e461d358b16a8e15d245a7e596011bf39aaee5f58a9",
-    strip_prefix = "bazel_features-1.47.0",
-    url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.47.0/bazel_features-v1.47.0.tar.gz",
+    sha256 = "6a727a78c0134b1b912c97c0937e1c956f35775934ae3e1f4af4156f8d5d1ff4",
+    strip_prefix = "bazel_features-1.47.1",
+    url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.47.1/bazel_features-v1.47.1.tar.gz",
 )
 
 load("@bazel_features//:deps.bzl", "bazel_features_deps")
@@ -45,9 +45,9 @@ http_archive(
 
 http_archive(
     name = "tar.bzl",
-    sha256 = "fea07e17117bf264f78bd4fc522c6b07a843cdcd82c6dfbeafa5bdaff70ae198",
-    strip_prefix = "tar.bzl-0.10.4",
-    url = "https://github.com/bazel-contrib/tar.bzl/releases/download/v0.10.4/tar.bzl-v0.10.4.tar.gz",
+    sha256 = "2799dfd43131e872c8f9fed41a547a8c5afd571c5df6b809eab6219d44403872",
+    strip_prefix = "tar.bzl-0.10.5",
+    url = "https://github.com/bazel-contrib/tar.bzl/releases/download/v0.10.5/tar.bzl-v0.10.5.tar.gz",
 )
 
 http_archive(
@@ -383,9 +383,9 @@ http_archive(
 
 http_archive(
     name = "com_google_protobuf",
-    sha256 = "61e5e5b7f29c4a719d9691b97c2b8937b8bd5ab1b6b7586f3f55934011806280",
-    strip_prefix = "protobuf-34.1",
-    urls = ["https://github.com/protocolbuffers/protobuf/releases/download/v34.1/protobuf-34.1.zip"],
+    sha256 = "20f10bb6ba69c391add381310d10747d4b0c32660ad651932ffcb9d04b748845",
+    strip_prefix = "protobuf-35.0",
+    urls = ["https://github.com/protocolbuffers/protobuf/releases/download/v35.0/protobuf-35.0.zip"],
 )
 
 load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")

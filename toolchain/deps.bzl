@@ -13,8 +13,14 @@
 # limitations under the License.
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("//toolchain:setup_distributions.bzl", "setup_llvm_distributions")
 
 def bazel_toolchain_dependencies():
+    # Materialize the merged LLVM distribution table. In bzlmod this is done
+    # by the `llvm_distributions` module extension; in WORKSPACE mode the
+    # consumer calls `bazel_toolchain_dependencies()` which dispatches here.
+    setup_llvm_distributions()
+
     # Load rules_cc if the user has not defined them.
     if not native.existing_rule("rules_cc"):
         http_archive(
@@ -39,9 +45,9 @@ def bazel_toolchain_dependencies():
     if not native.existing_rule("bazel_features"):
         http_archive(
             name = "bazel_features",
-            sha256 = "5f7f87f50584df12bbfe5e461d358b16a8e15d245a7e596011bf39aaee5f58a9",
-            strip_prefix = "bazel_features-1.47.0",
-            url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.47.0/bazel_features-v1.47.0.tar.gz",
+            sha256 = "6a727a78c0134b1b912c97c0937e1c956f35775934ae3e1f4af4156f8d5d1ff4",
+            strip_prefix = "bazel_features-1.47.1",
+            url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.47.1/bazel_features-v1.47.1.tar.gz",
         )
 
     # Load helly25_bzl for version comparisons.

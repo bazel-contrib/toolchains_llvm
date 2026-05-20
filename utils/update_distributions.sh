@@ -1,0 +1,229 @@
+#!/bin/bash
+# Copyright 2022 The Bazel Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# --- BEGIN HELP ---
+# Refreshes toolchain/distributions/github.bzl with every
+# llvm/llvm-project GitHub release at or above the configured minimum major
+# version. Hand-maintained data for older releases lives in
+# `toolchain/distributions/{pre_github,github_legacy}.bzl` and is not touched.
+#
+# Usage: utils/update_distributions.sh [-h]
+#
+# The script reads checksums from the GitHub release asset `.digest` field
+# (no tarballs are downloaded). GitHub only began populating `.digest` in
+# 2024, so for older assets the script preserves the checksum already
+# present in `github.bzl`. Set GITHUB_TOKEN to a personal access token to
+# avoid the unauthenticated API rate limit (60 requests/hour).
+#
+# For one-off lookups of a single version's checksums (e.g. to paste into
+# `extra_llvm_distributions`), use `utils/extra_distributions.sh` instead.
+#
+# Requires: bash, curl, jq, and awk. Runs in Git Bash / MSYS2 / WSL on
+# Windows; native cmd/PowerShell is not supported.
+# --- END HELP ---
+
+set -euo pipefail
+
+# Extract the help block (lines between the BEGIN/END HELP markers above),
+# strip the leading "# " from each line, and emit to stderr.
+usage() {
+  awk '
+    /^# --- BEGIN HELP ---/ { flag = 1; next }
+    /^# --- END HELP ---/   { flag = 0; next }
+    flag                    { sub(/^# ?/, ""); print }
+  ' "${BASH_SOURCE[0]}" >&2
+  exit "${1:-2}"
+}
+
+while getopts "h" opt; do
+  case "${opt}" in
+  "h") usage 0 ;;
+  *) usage ;;
+  esac
+done
+
+# Versions below this major use the pre-19.x irregular naming scheme and
+# remain in `github_legacy.bzl` / `pre_github.bzl`. Keep in sync with the
+# docstring in `toolchain/distributions/github.bzl`.
+MIN_MAJOR=19
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+output="${repo_root}/toolchain/distributions/github.jsonc"
+
+tmp_dir="$(mktemp -d)"
+trap 'rm -rf "${tmp_dir}"' EXIT INT HUP QUIT TERM
+
+curl_args=(--fail --silent --show-error)
+if [[ -n "${GITHUB_TOKEN-}" ]]; then
+  curl_args+=(-H "Authorization: Bearer ${GITHUB_TOKEN}")
+fi
+
+echo "Fetching llvm-project releases from GitHub..." >&2
+all="${tmp_dir}/releases.jsonl"
+: >"${all}"
+page=1
+while :; do
+  body="${tmp_dir}/page-${page}.json"
+  curl "${curl_args[@]}" \
+    "https://api.github.com/repos/llvm/llvm-project/releases?per_page=100&page=${page}" \
+    >"${body}"
+  count="$(jq 'length' "${body}")"
+  if [[ "${count}" -eq 0 ]]; then
+    break
+  fi
+  jq -c '.[]' "${body}" >>"${all}"
+  if [[ "${count}" -lt 100 ]]; then
+    break
+  fi
+  page=$((page + 1))
+done
+
+# Extract existing entries from github.jsonc so we can preserve checksums for
+# assets whose `.digest` field is missing on GitHub. We parse via jq after
+# stripping JSONC `//` comments -- much sturdier than line-pattern matching.
+# Top-level keys are distribution basenames; `_meta` is skipped.
+existing="${tmp_dir}/existing.tsv"
+if [[ -f "${output}" ]]; then
+  # Drop full-line `//` comments. We never use inline `//` comments on data
+  # lines, and stripping mid-line `//` would risk corrupting string values
+  # like `"http://..."` or `(the "License");`.
+  sed -E '/^[[:space:]]*\/\//d' "${output}" |
+    jq -r 'to_entries[] | select(.key != "_meta") | "\(.key)\t\(.value)"' \
+      >"${existing}"
+else
+  : >"${existing}"
+fi
+
+echo "Extracting matching assets..." >&2
+jq -r '
+  select(.prerelease | not)
+  | select(.tag_name | test("^llvmorg-[0-9]+\\.[0-9]+\\.[0-9]+$"))
+  | (.tag_name | ltrimstr("llvmorg-")) as $version
+  | .assets[]
+  | select(.name | test("^(clang[+]llvm|LLVM)-.*tar.(xz|gz)$"))
+  | [$version, .name, ((.digest // "") | sub("^sha256:"; ""))] | @tsv
+' "${all}" >"${tmp_dir}/entries.raw.tsv"
+
+# Merge in existing checksums for entries whose .digest is missing, drop
+# entries below MIN_MAJOR, then sort by (version, name).
+awk -F'\t' -v min="${MIN_MAJOR}" -v existing="${existing}" '
+  BEGIN {
+    while ((getline line < existing) > 0) {
+      n = index(line, "\t")
+      if (n == 0) continue
+      prev[substr(line, 1, n - 1)] = substr(line, n + 1)
+    }
+    close(existing)
+  }
+  {
+    version = $1; name = $2; digest = $3
+    split(version, v, ".")
+    if (v[1]+0 < min) next
+    if (digest == "") {
+      if (name in prev) digest = prev[name]
+      else missing[name] = 1
+    }
+    key = sprintf("%05d.%05d.%05d", v[1]+0, v[2]+0, v[3]+0)
+    print key "\t" version "\t" name "\t" digest
+  }
+  END {
+    for (n in missing) print "MISSING\t" n > "/dev/stderr"
+  }
+' "${tmp_dir}/entries.raw.tsv" 2>"${tmp_dir}/missing.txt" |
+  sort -t $'\t' -k1,1r -k3,3 |
+  cut -f2- >"${tmp_dir}/entries.tsv"
+
+if [[ -s "${tmp_dir}/missing.txt" ]]; then
+  echo "ERROR: new GitHub release assets are missing a .digest field and have no" >&2
+  echo "       existing entry to preserve. Add them to github.jsonc by hand, then" >&2
+  echo "       rerun this script:" >&2
+  cut -f2 "${tmp_dir}/missing.txt" | sed 's/^/  /' >&2
+  exit 1
+fi
+
+entries_total="$(wc -l <"${tmp_dir}/entries.tsv" | tr -d ' ')"
+versions_total="$(cut -f1 "${tmp_dir}/entries.tsv" | sort -u | wc -l | tr -d ' ')"
+echo "Writing ${entries_total} entries across ${versions_total} versions to ${output}..." >&2
+
+{
+  cat <<'HEAD'
+// Copyright 2018 The Bazel Authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// This file is generated end-to-end by `utils/update_distributions.sh`.
+// Do not edit by hand. To add a new release, run the script with no
+// arguments to fetch all known GitHub releases and rewrite this file.
+
+{
+  "_meta": {
+    "description": "GitHub-hosted LLVM distributions (version 19.x and newer). Regenerated by utils/update_distributions.sh.",
+    "base_url": {}
+  },
+
+HEAD
+  awk -F'\t' '
+    { entries[NR] = $0 }
+    END {
+      n = NR
+      for (i = 1; i <= n; i++) {
+        split(entries[i], f, "\t")
+        version = f[1]
+        name    = f[2]
+        digest  = f[3]
+        if (version != prev) {
+          if (prev != "") print ""
+          printf("  // %s\n", version)
+          prev = version
+        }
+        comma = (i < n) ? "," : ""
+        printf("  \"%s\": \"%s\"%s\n", name, digest, comma)
+      }
+    }
+  ' "${tmp_dir}/entries.tsv"
+  echo "}"
+} >"${output}"
+
+# Regenerate the golden file consumed by `llvm_distributions_output_test`. The
+# golden enumerates every known distribution (so adding entries to github.bzl
+# invariably changes it). We invoke the `distributions_test_writer` rule
+# directly and copy its output -- running `bazel test` would just fail with a
+# diff, which is exactly what we are fixing.
+golden="${repo_root}/toolchain/internal/llvm_distributions.golden.out.txt"
+echo "Updating ${golden}..." >&2
+if ! command -v bazel >/dev/null 2>&1; then
+  echo "ERROR: bazel not on PATH; cannot regenerate the golden file." >&2
+  echo "       github.bzl has been written; rerun under bazel to refresh" >&2
+  echo "       the golden." >&2
+  exit 1
+fi
+(
+  cd "${repo_root}"
+  bazel build //toolchain/internal:llvm_distributions >&2
+  bazel_bin="$(bazel info bazel-bin)"
+  cp -f "${bazel_bin}/toolchain/internal/llvm_distributions.out.txt" "${golden}"
+)
+
+echo "Done." >&2

@@ -1,0 +1,29 @@
+// Slot for additional bundled LLVM distributions.
+//
+// Empty in the upstream repository. Downstream consumers can patch
+// this file (via single_version_override / archive_override in
+// MODULE.bazel, or by editing it in a fork) to inject extra entries:
+// private mirrors, internal builds, back-ported releases, vendor-
+// patched tarballs, custom Windows builds, etc.
+//
+// Entries are merged into the same lookup table as `pre_github.jsonc`,
+// `github_legacy.jsonc`, and `github.jsonc`, and participate in the
+// normal version / host / arch selection logic.
+//
+// `extra.jsonc` is loaded LAST, so any key here overrides the same key in
+// the other three files. This is the intended way to pin a custom SHA-256
+// for an existing tarball name (e.g. a vendor-rebuilt copy) without
+// forking the rest of the distribution table.
+//
+// Each entry's key is the tarball basename (for example
+// `LLVM-19.1.0-Linux-X64.tar.xz`); the value is the SHA-256 of the
+// tarball, optionally prefixed with `sha256:`. The basename's version
+// and host substring drive selection -- see `_find_llvm_basename_list`
+// in `//toolchain/internal:llvm_distributions.bzl`.
+
+{
+  "_meta": {
+    "description": "Downstream slot for additional bundled LLVM distributions. Empty in the upstream repository.",
+    "base_url": {},
+  },
+}
