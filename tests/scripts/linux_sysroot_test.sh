@@ -39,5 +39,6 @@ apt-get -qq -y install curl libtinfo5 libxml2 zlib1g-dev >/dev/null
 # Run tests
 cd /src
 tests/scripts/run_tests.sh -t '@llvm_toolchain_with_sysroot//:cc-toolchain-x86_64-linux' -v '${LLVM_VERSION}'
+tests/scripts/run_tests.sh -O -t '@llvm_toolchain_with_sysroot_stdcpp//:cc-toolchain-x86_64-linux' -v '${LLVM_VERSION}'
 """
 done

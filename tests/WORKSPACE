@@ -50,6 +50,13 @@ http_archive(
     url = "https://github.com/bazel-contrib/tar.bzl/releases/download/v0.10.4/tar.bzl-v0.10.4.tar.gz",
 )
 
+http_archive(
+    name = "rules_shell",
+    sha256 = "20721f63908879c083f94869e618ea8d4ff5edb91ff9a72a2ebee357fdbc352d",
+    strip_prefix = "rules_shell-0.8.0",
+    url = "https://github.com/bazelbuild/rules_shell/releases/download/v0.8.0/rules_shell-v0.8.0.tar.gz",
+)
+
 load("@tar.bzl//tar:extensions.bzl", "create_repositories")
 
 create_repositories()
@@ -184,6 +191,18 @@ llvm_toolchain(
         "linux-x86_64": "@org_chromium_sysroot_linux_x64//sysroot",
     },
     # We can share the downloaded LLVM distribution with the first configuration.
+    toolchain_roots = {
+        "": "@llvm_toolchain_llvm//",
+    },
+)
+
+llvm_toolchain(
+    name = "llvm_toolchain_with_sysroot_stdcpp",
+    llvm_versions = LLVM_VERSIONS,
+    stdlib = {"": "stdc++"},
+    sysroot = {
+        "linux-x86_64": "@org_chromium_sysroot_linux_x64//sysroot",
+    },
     toolchain_roots = {
         "": "@llvm_toolchain_llvm//",
     },
