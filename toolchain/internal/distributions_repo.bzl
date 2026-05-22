@@ -27,7 +27,14 @@ Schema:
       // free-form header comments are stripped before parsing
       "_meta": {
         "base_url": {
-          "<version>": "<url-prefix>"
+          // "" is the per-file default, applied to every version whose
+          // distributions appear in this file. URLs may contain the
+          // `{version}` placeholder, which is substituted at materialization
+          // time, and should end with `/` -- the basename is appended
+          // directly.
+          "": "<url-template>",
+          // Explicit per-version override (rare).
+          "<version>": "<url-template>"
         }
         // future: description, frozen, source, ...
       },
@@ -39,8 +46,15 @@ The rule strips `//` line comments and `/* ... */` block comments outside of
 strings, decodes the result as JSON, merges every input, and emits a
 generated `data.bzl` exporting:
 
-    LLVM_DISTRIBUTIONS           # tarball basename -> sha256
-    LLVM_DISTRIBUTIONS_BASE_URL  # version -> URL prefix
+    LLVM_DISTRIBUTIONS      # tarball basename -> sha256
+    LLVM_DISTRIBUTION_URLS  # tarball basename -> full download URL
+
+URLs are fully expanded at load time: the `""` per-file default and any
+explicit per-version override are substituted with `{version}` and joined
+with the basename, so the runtime only does a basename->URL dict lookup. The
+`""` key is scoped to the versions whose distributions appear in that file,
+so pre_github's `releases.llvm.org` default does not bleed into 19.x+
+versions in github.jsonc.
 
 Inputs are merged in the order they appear in `srcs`; later entries overwrite
 earlier ones on key collisions. The standard ordering is `pre_github.jsonc`,
@@ -156,23 +170,52 @@ def _format_dict(name, mapping):
     lines.append("}")
     return "\n".join(lines)
 
+def _basename_version(basename):
+    # `basename` is `LLVM-<version>-...` or `clang+llvm-<version>-...`.
+    # Mirrors `_distribution_version_string` in `llvm_distributions.bzl`,
+    # duplicated here to avoid a dependency cycle (this is a repository rule
+    # that runs at fetch time, before the runtime module loads).
+    return basename.split("-", 2)[1]
+
 def _impl(rctx):
     distributions = {}
-    base_url = {}
+    distribution_urls = {}
     sources = []
     for src in rctx.attr.srcs:
         data = _load_jsonc(rctx, src)
+
+        # Pull `_meta.base_url` (the `""` default + per-version overrides).
+        # Currently only `base_url` is recognized inside `_meta`; ignore
+        # unknown keys so the schema can grow without breaking older versions
+        # of this rule.
+        file_default = None
+        file_overrides = {}
+        meta = data.get(_META_KEY, {})
+        for k, v in meta.get("base_url", {}).items():
+            if k == "":
+                file_default = v
+            else:
+                file_overrides[k] = v
+
+        # Process each distribution, computing a full per-basename URL from
+        # the applicable template (version-specific override > file default).
+        # Distributions without a covering template get no URL entry; if a
+        # later file (typically extra.jsonc) overrides this basename's
+        # sha256 but not its URL, the URL from the earlier file persists.
         for key, value in data.items():
             if key == _META_KEY:
-                # Currently only `base_url` is recognized; ignore unknown
-                # meta keys so the schema can grow without breaking older
-                # versions of this rule.
-                for k, v in value.get("base_url", {}).items():
-                    base_url[k] = v
                 continue
-
-            # Anything else is a distribution entry.
             distributions[key] = value
+            version = _basename_version(key)
+            template = file_overrides.get(version, file_default)
+            if template != None:
+                if "{version}" not in template:
+                    fail(
+                        "base_url template in %s is missing the {version} placeholder: %s" %
+                        (str(src), template),
+                    )
+                distribution_urls[key] = template.format(version = version) + key.replace("+", "%2B")
+
         sources.append(str(src))
 
     header = "\n".join([
@@ -181,7 +224,7 @@ def _impl(rctx):
     ] + ["#   - " + s for s in sources]) + "\n\n"
 
     body = header + _format_dict("LLVM_DISTRIBUTIONS", distributions) + "\n\n" + \
-           _format_dict("LLVM_DISTRIBUTIONS_BASE_URL", base_url) + "\n"
+           _format_dict("LLVM_DISTRIBUTION_URLS", distribution_urls) + "\n"
 
     rctx.file("data.bzl", body)
     rctx.file("BUILD.bazel", "exports_files([\"data.bzl\"])\n")

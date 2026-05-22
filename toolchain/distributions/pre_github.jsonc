@@ -16,12 +16,7 @@
   "_meta": {
     "description": "Pre-GitHub LLVM distributions (6.x-9.x) hosted on releases.llvm.org. Hand-maintained, frozen.",
     "base_url": {
-      "6.0.0": "https://releases.llvm.org/",
-      "6.0.1": "https://releases.llvm.org/",
-      "7.0.0": "https://releases.llvm.org/",
-      "8.0.0": "https://releases.llvm.org/",
-      "8.0.1": "https://releases.llvm.org/",
-      "9.0.0": "https://releases.llvm.org/",
+      "": "https://releases.llvm.org/{version}/",
     },
   },
 

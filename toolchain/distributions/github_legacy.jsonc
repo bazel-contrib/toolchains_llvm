@@ -15,7 +15,9 @@
 {
   "_meta": {
     "description": "GitHub-hosted LLVM distributions with pre-19.x irregular naming (10.x-18.x). Hand-maintained, frozen.",
-    "base_url": {},
+    "base_url": {
+      "": "https://github.com/llvm/llvm-project/releases/download/llvmorg-{version}/",
+    },
   },
 
   // 18.1.8
