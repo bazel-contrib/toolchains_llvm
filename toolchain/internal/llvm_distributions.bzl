@@ -201,8 +201,13 @@ def _get_all_llvm_distributions(*, llvm_distributions, extra_llvm_distributions,
         version = _distribution_version(basename)
         if parsed_llvm_version and parsed_llvm_version != version:
             continue
+
+        # `distribution` carries the original key verbatim so the runtime can
+        # detect URL/path keys (basename != distribution) and use them
+        # directly. For bundled entries the key is always the basename, so
+        # `distribution == basename`.
         distributions[basename] = struct(
-            distribution = basename,
+            distribution = dist,
             sha256 = sha256,
             version = version,
         )
