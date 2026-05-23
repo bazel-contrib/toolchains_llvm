@@ -37,7 +37,7 @@ single_version_override(
 )
 
 # TODO: Remove when protobuf is released with a version of rules_python that supports 8.x
-bazel_dep(name = "rules_python", version = "2.0.1")
+bazel_dep(name = "rules_python", version = "2.0.2")
 
 go_sdk = use_extension("@io_bazel_rules_go//go:extensions.bzl", "go_sdk")
 go_sdk.download(
