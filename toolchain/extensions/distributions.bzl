@@ -15,7 +15,7 @@
 """Module extension that materializes `@llvm_distributions_data//:data.bzl`.
 
 The generated data.bzl exports the merged `LLVM_DISTRIBUTIONS` and
-`LLVM_DISTRIBUTIONS_BASE_URL` maps consumed by
+`LLVM_DISTRIBUTION_URLS` maps consumed by
 `//toolchain/internal:llvm_distributions.bzl`. Source JSONC files are listed
 explicitly below so Bazel knows to re-run the rule when any of them changes.
 Adding a new bundled distribution file = drop the JSONC in

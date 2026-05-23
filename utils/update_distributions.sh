@@ -24,8 +24,9 @@
 # The script reads checksums from the GitHub release asset `.digest` field
 # (no tarballs are downloaded). GitHub only began populating `.digest` in
 # 2024, so for older assets the script preserves the checksum already
-# present in `github.bzl`. Set GITHUB_TOKEN to a personal access token to
-# avoid the unauthenticated API rate limit (60 requests/hour).
+# present in `github.bzl`. To avoid the 60/hour unauthenticated API rate
+# limit, the script uses (in order): the `GITHUB_TOKEN` env var, or the
+# token from the `gh` CLI if it is installed and authenticated.
 #
 # For one-off lookups of a single version's checksums (e.g. to paste into
 # `extra_llvm_distributions`), use `utils/extra_distributions.sh` instead.
@@ -54,6 +55,17 @@ while getopts "h" opt; do
   esac
 done
 
+missing=()
+for cmd in curl jq awk; do
+  if ! command -v "${cmd}" >/dev/null 2>&1; then
+    missing+=("${cmd}")
+  fi
+done
+if ((${#missing[@]} > 0)); then
+  echo "ERROR: required commands not found in PATH: ${missing[*]}" >&2
+  exit 1
+fi
+
 # Versions below this major use the pre-19.x irregular naming scheme and
 # remain in `github_legacy.bzl` / `pre_github.bzl`. Keep in sync with the
 # docstring in `toolchain/distributions/github.bzl`.
@@ -65,9 +77,24 @@ output="${repo_root}/toolchain/distributions/github.jsonc"
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "${tmp_dir}"' EXIT INT HUP QUIT TERM
 
+# Pick up a GitHub token: explicit env var wins; otherwise fall back to the
+# `gh` CLI if it's installed and authenticated. Unauthenticated requests are
+# capped at 60/hour, which is not enough to finish a full release scan.
+token="${GITHUB_TOKEN-}"
+if [[ -z "${token}" ]] && command -v gh >/dev/null 2>&1; then
+  token="$(gh auth token 2>/dev/null || true)"
+  if [[ -n "${token}" ]]; then
+    echo "Using GitHub token from gh CLI." >&2
+  fi
+fi
+
 curl_args=(--fail --silent --show-error)
-if [[ -n "${GITHUB_TOKEN-}" ]]; then
-  curl_args+=(-H "Authorization: Bearer ${GITHUB_TOKEN}")
+if [[ -n "${token}" ]]; then
+  curl_args+=(-H "Authorization: Bearer ${token}")
+else
+  echo "WARNING: no GITHUB_TOKEN set and no authenticated gh CLI found." >&2
+  echo "         Unauthenticated GitHub API is capped at 60 requests/hour." >&2
+  echo "         Set GITHUB_TOKEN or run 'gh auth login' to authenticate." >&2
 fi
 
 echo "Fetching llvm-project releases from GitHub..." >&2
@@ -76,9 +103,14 @@ all="${tmp_dir}/releases.jsonl"
 page=1
 while :; do
   body="${tmp_dir}/page-${page}.json"
-  curl "${curl_args[@]}" \
+  if ! curl "${curl_args[@]}" \
     "https://api.github.com/repos/llvm/llvm-project/releases?per_page=100&page=${page}" \
-    >"${body}"
+    >"${body}" 2>"${tmp_dir}/curl.err"; then
+    cat "${tmp_dir}/curl.err" >&2
+    echo "Hint: if this is a 403, the token is missing/expired or you hit the" >&2
+    echo "      GitHub API rate limit. Set GITHUB_TOKEN or run 'gh auth login'." >&2
+    exit 1
+  fi
   count="$(jq 'length' "${body}")"
   if [[ "${count}" -eq 0 ]]; then
     break
@@ -91,19 +123,40 @@ while :; do
 done
 
 # Extract existing entries from github.jsonc so we can preserve checksums for
-# assets whose `.digest` field is missing on GitHub. We parse via jq after
+# assets whose `.digest` field is missing on GitHub, and preserve any
+# maintainer-set `_meta.base_url` overrides verbatim. We parse via jq after
 # stripping JSONC `//` comments -- much sturdier than line-pattern matching.
-# Top-level keys are distribution basenames; `_meta` is skipped.
 existing="${tmp_dir}/existing.tsv"
+existing_base_url="${tmp_dir}/existing_base_url.tsv"
 if [[ -f "${output}" ]]; then
-  # Drop full-line `//` comments. We never use inline `//` comments on data
-  # lines, and stripping mid-line `//` would risk corrupting string values
-  # like `"http://..."` or `(the "License");`.
-  sed -E '/^[[:space:]]*\/\//d' "${output}" |
-    jq -r 'to_entries[] | select(.key != "_meta") | "\(.key)\t\(.value)"' \
-      >"${existing}"
+  # Convert JSONC to strict JSON for jq. We must (a) drop full-line `//`
+  # comments and (b) strip trailing commas before `}`/`]`. The runtime JSONC
+  # parser tolerates trailing commas, but jq does not. We deliberately do not
+  # strip mid-line `//` -- that would corrupt string values like
+  # `"http://..."` or `(the "License");`.
+  stripped="${tmp_dir}/stripped.json"
+  awk '
+    /^[[:space:]]*\/\// { next }
+    { lines[++n] = $0 }
+    END {
+      for (i = 1; i <= n; i++) {
+        line = lines[i]
+        j = i + 1
+        while (j <= n && lines[j] ~ /^[[:space:]]*$/) j++
+        if (j <= n && lines[j] ~ /^[[:space:]]*[}\]]/) {
+          sub(/,[[:space:]]*$/, "", line)
+        }
+        print line
+      }
+    }
+  ' "${output}" >"${stripped}"
+  jq -r 'to_entries[] | select(.key != "_meta") | "\(.key)\t\(.value)"' \
+    "${stripped}" >"${existing}"
+  jq -r '._meta.base_url // {} | to_entries[] | "\(.key)\t\(.value)"' \
+    "${stripped}" >"${existing_base_url}"
 else
   : >"${existing}"
+  : >"${existing_base_url}"
 fi
 
 echo "Extracting matching assets..." >&2
@@ -157,6 +210,22 @@ entries_total="$(wc -l <"${tmp_dir}/entries.tsv" | tr -d ' ')"
 versions_total="$(cut -f1 "${tmp_dir}/entries.tsv" | sort -u | wc -l | tr -d ' ')"
 echo "Writing ${entries_total} entries across ${versions_total} versions to ${output}..." >&2
 
+# The GitHub release URL template used as the per-file default. The runtime
+# substitutes `{version}` at materialization time and appends the basename.
+GITHUB_URL_TEMPLATE='https://github.com/llvm/llvm-project/releases/download/llvmorg-{version}/'
+
+# Filter preserved per-version overrides to versions still present in the new
+# entries, sorted newest-first to match the data section. The `""` default key
+# is emitted unconditionally below, so it's stripped here.
+cut -f1 "${tmp_dir}/entries.tsv" | sort -u >"${tmp_dir}/versions_kept.txt"
+awk -F'\t' -v versions_file="${tmp_dir}/versions_kept.txt" '
+  BEGIN {
+    while ((getline v < versions_file) > 0) kept[v] = 1
+    close(versions_file)
+  }
+  $1 != "" && ($1 in kept)
+' "${existing_base_url}" | sort -t $'\t' -k1,1Vr >"${tmp_dir}/base_url_kept.tsv"
+
 {
   cat <<'HEAD'
 // Copyright 2018 The Bazel Authors.
@@ -180,10 +249,30 @@ echo "Writing ${entries_total} entries across ${versions_total} versions to ${ou
 {
   "_meta": {
     "description": "GitHub-hosted LLVM distributions (version 19.x and newer). Regenerated by utils/update_distributions.sh.",
-    "base_url": {}
+    "base_url": {
+HEAD
+  # Default `""` template applies to every entry whose version lacks an
+  # explicit per-version override below.
+  if [[ -s "${tmp_dir}/base_url_kept.tsv" ]]; then
+    printf '      "": "%s",\n' "${GITHUB_URL_TEMPLATE}"
+    awk -F'\t' '
+      { entries[NR] = $0 }
+      END {
+        for (i = 1; i <= NR; i++) {
+          split(entries[i], f, "\t")
+          comma = (i < NR) ? "," : ""
+          printf("      \"%s\": \"%s\"%s\n", f[1], f[2], comma)
+        }
+      }
+    ' "${tmp_dir}/base_url_kept.tsv"
+  else
+    printf '      "": "%s"\n' "${GITHUB_URL_TEMPLATE}"
+  fi
+  cat <<'MID'
+    }
   },
 
-HEAD
+MID
   awk -F'\t' '
     { entries[NR] = $0 }
     END {

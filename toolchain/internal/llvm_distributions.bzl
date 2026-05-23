@@ -17,7 +17,7 @@ load("@helly25_bzl//bzl/versions:versions.bzl", "versions")
 load(
     "@llvm_distributions_data//:data.bzl",
     "LLVM_DISTRIBUTIONS",
-    "LLVM_DISTRIBUTIONS_BASE_URL",
+    "LLVM_DISTRIBUTION_URLS",
 )
 load(
     "//toolchain/internal:common.bzl",
@@ -32,9 +32,7 @@ load(
 # under `//toolchain/distributions/` and writes a generated `data.bzl`. Source
 # files in that directory:
 #   - pre_github.jsonc    - pre-GitHub releases (6.x-9.x) hosted on
-#                           releases.llvm.org. Hand-maintained, frozen. This
-#                           file is also the source of the per-version
-#                           base_url overrides.
+#                           releases.llvm.org. Hand-maintained, frozen.
 #   - github_legacy.jsonc - GitHub releases with the pre-19.x irregular naming
 #                           (10.x-18.x). Hand-maintained, frozen.
 #   - github.jsonc        - GitHub releases with the current consistent naming
@@ -45,13 +43,21 @@ load(
 #                           builds, etc.).
 _llvm_distributions = LLVM_DISTRIBUTIONS
 
-# Per-version base URL override map. Lookups in `_distribution_urls` fall back
-# to `_llvm_distributions_base_url_default` when a version is absent. Unlike
-# the user-facing llvm_mirror attribute, these URL prefixes are not appended
-# with "/" because the pre-GitHub `releases.llvm.org` URLs use a per-version
-# path.
-_llvm_distributions_base_url_default = "https://github.com/llvm/llvm-project/releases/download/llvmorg-"
-_llvm_distributions_base_url = LLVM_DISTRIBUTIONS_BASE_URL
+# Per-basename download URL map, fully expanded from the `_meta.base_url`
+# templates at JSONC load time (see `//toolchain/internal:distributions_repo.bzl`).
+# Bundled distributions always have an entry here. User-injected
+# `extra_llvm_distributions` entries fall back to `_EXTRA_DEFAULT_URL_TEMPLATE`
+# below if their bare basename is not covered by any .jsonc file -- this
+# preserves the "use a future toolchain version" pattern documented on the
+# rule attr (see `//toolchain/internal:repo.bzl`).
+_llvm_distribution_urls = LLVM_DISTRIBUTION_URLS
+
+# Fallback URL template for `extra_llvm_distributions` entries that pass a
+# bare basename (not a full URL/path) and that are not covered by any bundled
+# `.jsonc` file. Resolves to the standard GitHub release path. Users who need
+# a non-default URL should pass a full URL as the dict key, or add the entry
+# to `extra.jsonc` with a `base_url` template.
+_EXTRA_DEFAULT_URL_TEMPLATE = "https://github.com/llvm/llvm-project/releases/download/llvmorg-{version}/"
 
 def _parse_version(v):
     return tuple([int(s) for s in v.split(".")])
@@ -195,8 +201,13 @@ def _get_all_llvm_distributions(*, llvm_distributions, extra_llvm_distributions,
         version = _distribution_version(basename)
         if parsed_llvm_version and parsed_llvm_version != version:
             continue
+
+        # `distribution` carries the original key verbatim so the runtime can
+        # detect URL/path keys (basename != distribution) and use them
+        # directly. For bundled entries the key is always the basename, so
+        # `distribution == basename`.
         distributions[basename] = struct(
-            distribution = basename,
+            distribution = dist,
             sha256 = sha256,
             version = version,
         )
@@ -659,8 +670,17 @@ def _distribution_urls(rctx):
     if rctx.attr.alternative_llvm_sources:
         for pattern in rctx.attr.alternative_llvm_sources:
             urls.append(pattern.format(llvm_version = llvm_version, basename = basename))
-    url_base = _llvm_distributions_base_url.get(llvm_version, _llvm_distributions_base_url_default)
-    urls.append(url_base + url_suffix)
+    if basename in _llvm_distribution_urls:
+        urls.append(_llvm_distribution_urls[basename])
+    else:
+        # `extra_llvm_distributions` escape hatch: the user passed a bare
+        # basename not covered by any bundled `.jsonc` file. Use the standard
+        # GitHub release URL so the documented "future toolchain version"
+        # pattern keeps working without extra configuration.
+        urls.append(
+            _EXTRA_DEFAULT_URL_TEMPLATE.format(version = llvm_version) +
+            basename.replace("+", "%2B"),
+        )
 
     return urls, sha256, strip_prefix
 
@@ -763,9 +783,6 @@ def _distributions_test_writer_impl(ctx):
     version_dict = {
         _distribution_version(basename): None
         for basename in use_llvm_distributions.keys() + extra_llvm_distributions.keys()
-    } | {
-        _parse_version(v): None
-        for v in _llvm_distributions_base_url.keys()
     }
     versions = sorted(version_dict.keys())
 
