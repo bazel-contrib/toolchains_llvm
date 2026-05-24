@@ -495,27 +495,31 @@ def _cc_toolchain_str(
             target_toolchain_include_path_prefix + "lib64/clang/{}/include".format(major_llvm_version),
         ])
 
+    stdlib = _dict_value(toolchain_info.stdlib_dict, target_pair, "builtin-libc++")
+    add_cxx_builtin_include_dirs_before_sysroot = target_os == "linux" and stdlib in ["stdc++", "dynamic-stdc++"]
     sysroot_prefix = ""
     if sysroot_path:
         sysroot_prefix = "%sysroot%"
     if target_os == "linux":
+        if add_cxx_builtin_include_dirs_before_sysroot:
+            cxx_builtin_include_directories.extend(toolchain_info.additional_include_dirs_dict.get(target_pair, []))
+
+            # Add GCC C++ headers from sysroot when using libstdc++.
+            # These paths are needed because clang doesn't automatically add them
+            # to the include search path when cross-compiling with a sysroot.
+            # See https://github.com/bazel-contrib/toolchains_llvm/issues/533
+            if sysroot_path:
+                # Common GCC C++ header locations in modern distros (Debian/Ubuntu)
+                # Pattern: /usr/include/c++/<version> and /usr/include/<triple>/c++/<version>
+                gcc_cxx_include_dirs = _detect_gcc_cxx_headers(rctx, sysroot_path, target_system_name)
+                for dir in gcc_cxx_include_dirs:
+                    cxx_builtin_include_directories.append(_join(sysroot_prefix, dir))
+
         cxx_builtin_include_directories.extend([
             _join(sysroot_prefix, "/include"),
             _join(sysroot_prefix, "/usr/include"),
             _join(sysroot_prefix, "/usr/local/include"),
         ])
-
-        # Add GCC C++ headers from sysroot when using libstdc++.
-        # These paths are needed because clang doesn't automatically add them
-        # to the include search path when cross-compiling with a sysroot.
-        # See https://github.com/bazel-contrib/toolchains_llvm/issues/533
-        stdlib = _dict_value(toolchain_info.stdlib_dict, target_pair, "builtin-libc++")
-        if stdlib in ["stdc++", "dynamic-stdc++"] and sysroot_path:
-            # Common GCC C++ header locations in modern distros (Debian/Ubuntu)
-            # Pattern: /usr/include/c++/<version> and /usr/include/<triple>/c++/<version>
-            gcc_cxx_include_dirs = _detect_gcc_cxx_headers(rctx, sysroot_path, target_system_name)
-            for dir in gcc_cxx_include_dirs:
-                cxx_builtin_include_directories.append(_join(sysroot_prefix, dir))
     elif target_os == "darwin":
         cxx_builtin_include_directories.extend([
             _join(sysroot_prefix, "/usr/include"),
@@ -529,7 +533,8 @@ def _cc_toolchain_str(
     else:
         fail("Unreachable")
 
-    cxx_builtin_include_directories.extend(toolchain_info.additional_include_dirs_dict.get(target_pair, []))
+    if not add_cxx_builtin_include_dirs_before_sysroot:
+        cxx_builtin_include_directories.extend(toolchain_info.additional_include_dirs_dict.get(target_pair, []))
 
     template = """
 # CC toolchain for cc-clang-{suffix}.
@@ -746,7 +751,7 @@ cc_toolchain(
         wrapper_bin_prefix = toolchain_info.wrapper_bin_prefix,
         sysroot_label_str = sysroot_label_str,
         sysroot_path = sysroot_path,
-        stdlib = _dict_value(toolchain_info.stdlib_dict, target_pair, "builtin-libc++"),
+        stdlib = stdlib,
         cxx_standard = _dict_value(toolchain_info.cxx_standard_dict, target_pair, "c++17"),
         compile_flags = _list_to_string(_dict_value(toolchain_info.compile_flags_dict, target_pair)),
         conly_flags = _list_to_string(toolchain_info.conly_flags_dict.get(target_pair, [])),

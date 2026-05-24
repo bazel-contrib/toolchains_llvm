@@ -27,9 +27,9 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "bazel_features",
-    sha256 = "5f7f87f50584df12bbfe5e461d358b16a8e15d245a7e596011bf39aaee5f58a9",
-    strip_prefix = "bazel_features-1.47.0",
-    url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.47.0/bazel_features-v1.47.0.tar.gz",
+    sha256 = "6a727a78c0134b1b912c97c0937e1c956f35775934ae3e1f4af4156f8d5d1ff4",
+    strip_prefix = "bazel_features-1.47.1",
+    url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.47.1/bazel_features-v1.47.1.tar.gz",
 )
 
 load("@bazel_features//:deps.bzl", "bazel_features_deps")
@@ -45,9 +45,16 @@ http_archive(
 
 http_archive(
     name = "tar.bzl",
-    sha256 = "fea07e17117bf264f78bd4fc522c6b07a843cdcd82c6dfbeafa5bdaff70ae198",
-    strip_prefix = "tar.bzl-0.10.4",
-    url = "https://github.com/bazel-contrib/tar.bzl/releases/download/v0.10.4/tar.bzl-v0.10.4.tar.gz",
+    sha256 = "2799dfd43131e872c8f9fed41a547a8c5afd571c5df6b809eab6219d44403872",
+    strip_prefix = "tar.bzl-0.10.5",
+    url = "https://github.com/bazel-contrib/tar.bzl/releases/download/v0.10.5/tar.bzl-v0.10.5.tar.gz",
+)
+
+http_archive(
+    name = "rules_shell",
+    sha256 = "20721f63908879c083f94869e618ea8d4ff5edb91ff9a72a2ebee357fdbc352d",
+    strip_prefix = "rules_shell-0.8.0",
+    url = "https://github.com/bazelbuild/rules_shell/releases/download/v0.8.0/rules_shell-v0.8.0.tar.gz",
 )
 
 load("@tar.bzl//tar:extensions.bzl", "create_repositories")
@@ -84,6 +91,27 @@ llvm_toolchain(
         "": ["@//:cxx20"],
     },
     llvm_versions = LLVM_VERSIONS,
+)
+
+# Toolchain examples for testing different stdlib implementations on Linux.
+# These are used by run_external_tests.sh in CI to verify that the toolchain
+# works with system-hosted libc++ and libstdc++ instead of the builtin libc++.
+llvm_toolchain(
+    name = "llvm_toolchain_libcxx",
+    llvm_versions = LLVM_VERSIONS,
+    stdlib = {"": "libc++"},
+)
+
+llvm_toolchain(
+    name = "llvm_toolchain_stdcpp",
+    llvm_versions = LLVM_VERSIONS,
+    stdlib = {"": "stdc++"},
+)
+
+llvm_toolchain(
+    name = "llvm_toolchain_dynamic_stdcpp",
+    llvm_versions = LLVM_VERSIONS,
+    stdlib = {"": "dynamic-stdc++"},
 )
 
 # Example toolchain with user provided URLs.
@@ -163,6 +191,18 @@ llvm_toolchain(
         "linux-x86_64": "@org_chromium_sysroot_linux_x64//sysroot",
     },
     # We can share the downloaded LLVM distribution with the first configuration.
+    toolchain_roots = {
+        "": "@llvm_toolchain_llvm//",
+    },
+)
+
+llvm_toolchain(
+    name = "llvm_toolchain_with_sysroot_stdcpp",
+    llvm_versions = LLVM_VERSIONS,
+    stdlib = {"": "stdc++"},
+    sysroot = {
+        "linux-x86_64": "@org_chromium_sysroot_linux_x64//sysroot",
+    },
     toolchain_roots = {
         "": "@llvm_toolchain_llvm//",
     },
@@ -258,6 +298,13 @@ http_archive(
     urls = ["https://github.com/abseil/abseil-cpp/releases/download/20250814.2/abseil-cpp-20250814.2.tar.gz"],
 )
 
+http_archive(
+    name = "google_benchmark",
+    sha256 = "9631341c82bac4a288bef951f8b26b41f69021794184ece969f8473977eaa340",
+    strip_prefix = "benchmark-1.9.5",
+    urls = ["https://github.com/google/benchmark/archive/refs/tags/v1.9.5.tar.gz"],
+)
+
 # As a test dep of com_google_absl.
 http_archive(
     name = "googletest",
@@ -268,6 +315,8 @@ http_archive(
 
 http_archive(
     name = "boringssl",
+    patch_args = ["-p1"],
+    patches = ["//:boringssl-20260413.0.patch"],
     sha256 = "de3371d3fe085afd34778a4c988fb7840b9c92cb21504e674f33ebefd98edc00",
     strip_prefix = "boringssl-0.20260508.0",
     urls = ["https://github.com/google/boringssl/releases/download/0.20260508.0/boringssl-0.20260508.0.tar.gz"],
@@ -313,9 +362,9 @@ rust_register_toolchains()
 
 http_archive(
     name = "rules_python",
-    sha256 = "f4f709b1e354b0089038001854400938962d60d749cd910e12d5883a084510d3",
-    strip_prefix = "rules_python-2.0.0",
-    url = "https://github.com/bazelbuild/rules_python/releases/download/2.0.0/rules_python-2.0.0.tar.gz",
+    sha256 = "2119ca04726066c53b8f1ff42dffa090ea7f3e42a75679f1cfda937406cf7753",
+    strip_prefix = "rules_python-2.0.2",
+    url = "https://github.com/bazelbuild/rules_python/releases/download/2.0.2/rules_python-2.0.2.tar.gz",
 )
 
 load("@rules_python//python:repositories.bzl", "py_repositories")
@@ -334,9 +383,9 @@ http_archive(
 
 http_archive(
     name = "com_google_protobuf",
-    sha256 = "61e5e5b7f29c4a719d9691b97c2b8937b8bd5ab1b6b7586f3f55934011806280",
-    strip_prefix = "protobuf-34.1",
-    urls = ["https://github.com/protocolbuffers/protobuf/releases/download/v34.1/protobuf-34.1.zip"],
+    sha256 = "20f10bb6ba69c391add381310d10747d4b0c32660ad651932ffcb9d04b748845",
+    strip_prefix = "protobuf-35.0",
+    urls = ["https://github.com/protocolbuffers/protobuf/releases/download/v35.0/protobuf-35.0.zip"],
 )
 
 load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")

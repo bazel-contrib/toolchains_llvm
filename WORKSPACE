@@ -24,3 +24,11 @@ http_archive(
     strip_prefix = "bzl-0.3.1",
     url = "https://github.com/helly25/bzl/releases/download/0.3.1/bzl-0.3.1.tar.gz",
 )
+
+# Materialize the merged LLVM distribution table for WORKSPACE-mode builds
+# of this repo (toolchain_test in CI runs //toolchain/... with
+# --enable_bzlmod=false). In bzlmod, the same repo is materialized by the
+# `llvm_distributions` module extension declared in MODULE.bazel.
+load("//toolchain:setup_distributions.bzl", "setup_llvm_distributions")
+
+setup_llvm_distributions()
