@@ -50,6 +50,18 @@ def cc_toolchain_config(
     target_os_arch_key = _os_arch_pair(target_os, target_arch)
     _check_os_arch_keys([exec_os_arch_key, target_os_arch_key])
 
+    # All `*_path_prefix` arguments are concatenated with relative paths (e.g.
+    # `"{}lib/clang/...".format(prefix)`) and so must end in '/'. Verify it
+    # explicitly rather than silently producing malformed flags.
+    for arg_name, arg_value in (
+        ("toolchain_path_prefix", toolchain_path_prefix),
+        ("target_toolchain_path_prefix", target_toolchain_path_prefix),
+        ("tools_path_prefix", tools_path_prefix),
+        ("wrapper_bin_prefix", wrapper_bin_prefix),
+    ):
+        if not arg_value.endswith("/"):
+            fail("{} must end with '/', got: {}".format(arg_name, repr(arg_value)))
+
     # A bunch of variables that get passed straight through to
     # `create_cc_toolchain_config_info`.
     # TODO: What do these values mean, and are they actually all correct?
@@ -322,6 +334,17 @@ def cc_toolchain_config(
             target_toolchain_path_prefix + "lib/clang/{}/include".format(resource_dir_version),
         ])
         if is_darwin_exec_and_target:
+            # On macOS, use the SDK's libc++ entirely (headers + linking).
+            # Clang's driver would otherwise auto-include the toolchain's
+            # bundled libc++ headers (which are the LLVM version we built),
+            # creating an ABI mismatch with the SDK's libc++.tbd that gets
+            # picked up via the sysroot. -nostdinc++ disables Clang's default
+            # libc++ header search and we explicitly point at the SDK's headers.
+            cxx_flags.extend([
+                "-nostdinc++",
+                "-isystem",
+                sysroot_path + "/usr/include/c++/v1",
+            ])
             # Several system libraries on macOS dynamically link libc++ and
             # libc++abi, so static linking them becomes a problem. We need to
             # ensure that they are dynamic linked from the system sysroot and

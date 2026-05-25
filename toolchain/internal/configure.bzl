@@ -135,8 +135,14 @@ def _is_absolute(path):
     return path[0] == "/" and (len(path) == 1 or path[1] != "/")
 
 def llvm_config_impl(rctx):
+    # When `target_toolchain_roots` is not explicitly set, default it to
+    # `toolchain_roots` so the per-target dict lookups in `cc_toolchain_config_info`
+    # still find the right roots. Keeping this in the rule impl (rather than the
+    # macro) lets us tell "unset" apart from "explicitly set".
+    target_toolchain_roots = rctx.attr.target_toolchain_roots or rctx.attr.toolchain_roots
+
     _check_os_arch_keys(rctx.attr.toolchain_roots)
-    _check_os_arch_keys(rctx.attr.target_toolchain_roots)
+    _check_os_arch_keys(target_toolchain_roots)
     _check_os_arch_keys(rctx.attr.sysroot)
     _check_os_arch_keys(rctx.attr.cxx_builtin_include_directories)
     _check_os_arch_keys(rctx.attr.extra_exec_compatible_with)
@@ -170,7 +176,7 @@ def llvm_config_impl(rctx):
         use_absolute_paths_llvm = True
 
     # Make sure the toolchain root and target toolchain roots either are both absolute or both not.
-    for target_toolchain_root in rctx.attr.target_toolchain_roots.values():
+    for target_toolchain_root in target_toolchain_roots.values():
         if _is_absolute(toolchain_root) != _is_absolute(target_toolchain_root):
             fail("Host and target toolchain roots must both be absolute or not")
 
@@ -183,16 +189,16 @@ def llvm_config_impl(rctx):
         else:
             llvm_repo_label = Label(toolchain_root + ":BUILD.bazel")  # Exact target does not matter.
             toolchain_path_prefix = _canonical_dir_path(str(rctx.path(llvm_repo_label).dirname))
-        for a_key in rctx.attr.target_toolchain_roots:
-            target_toolchain_root = rctx.attr.target_toolchain_roots[a_key]
+        for a_key in target_toolchain_roots:
+            target_toolchain_root = target_toolchain_roots[a_key]
             if _is_absolute_path(target_toolchain_root):
                 target_llvm_repo_paths[a_key] = _canonical_dir_path(target_toolchain_root)
             else:
                 target_llvm_repo_label = Label(target_toolchain_root + ":BUILD.bazel")
                 target_llvm_repo_paths[a_key] = _canonical_dir_path(str(rctx.path(target_llvm_repo_label).dirname))
     else:
-        for a_key in rctx.attr.target_toolchain_roots:
-            target_llvm_repo_label = Label(rctx.attr.target_toolchain_roots[a_key] + ":BUILD.bazel")
+        for a_key in target_toolchain_roots:
+            target_llvm_repo_label = Label(target_toolchain_roots[a_key] + ":BUILD.bazel")
             target_llvm_repo_paths[a_key] = _pkg_path_from_label(target_llvm_repo_label)
 
     # Paths for LLVM distribution:
@@ -277,7 +283,7 @@ def llvm_config_impl(rctx):
         coverage_compile_flags_dict = rctx.attr.coverage_compile_flags,
         coverage_link_flags_dict = rctx.attr.coverage_link_flags,
         target_toolchain_path_prefixes_dict = target_llvm_repo_paths,
-        target_toolchain_roots_dict = rctx.attr.target_toolchain_roots,
+        target_toolchain_roots_dict = target_toolchain_roots,
         toolchain_path_prefix = toolchain_path_prefix,
         toolchain_root = toolchain_root,
         unfiltered_compile_flags_dict = rctx.attr.unfiltered_compile_flags,
@@ -796,8 +802,15 @@ def _is_remote(rctx, exec_os, exec_arch):
     return not (_os_from_rctx(rctx) == exec_os and _arch_from_rctx(rctx) == exec_arch)
 
 def _convenience_targets_str(rctx, use_absolute_paths, llvm_dist_rel_path, llvm_dist_label_prefix, exec_dl_ext):
-    # TODO: This doesn't really deal with cross compilation very well.  There can be multiple
-    # targets for 1 toolchain, and the target platform matters, not the exec platform.
+    """Generate `cc_import`/`native_binary` aliases for the exec-platform LLVM distribution.
+
+    These aliases (`clang`, `llvm-cov`, host `libc++`, ...) reference only the
+    exec-platform LLVM distribution -- i.e. the binaries you `bazel run` and the
+    libraries you might link host tools against. They are intentionally not
+    parameterised over the target platform: when cross-compiling, the matching
+    target-platform libraries live under the corresponding entry in
+    `target_toolchain_roots` and should be referenced from there directly.
+    """
     if use_absolute_paths:
         llvm_dist_label_prefix = ":"
         filenames = []

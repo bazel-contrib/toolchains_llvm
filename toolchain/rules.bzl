@@ -53,9 +53,6 @@ def llvm_toolchain(name, **kwargs):
         }
         llvm(name = name + "_llvm", **llvm_args)
 
-    if not kwargs.get("target_toolchain_roots"):
-        kwargs["target_toolchain_roots"] = kwargs.get("toolchain_roots", {})
-
     toolchain_args = {
         k: v
         for k, v in kwargs.items()
