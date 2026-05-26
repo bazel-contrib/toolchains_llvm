@@ -334,17 +334,6 @@ def cc_toolchain_config(
             target_toolchain_path_prefix + "lib/clang/{}/include".format(resource_dir_version),
         ])
         if is_darwin_exec_and_target:
-            # On macOS, use the SDK's libc++ entirely (headers + linking).
-            # Clang's driver would otherwise auto-include the toolchain's
-            # bundled libc++ headers (which are the LLVM version we built),
-            # creating an ABI mismatch with the SDK's libc++.tbd that gets
-            # picked up via the sysroot. -nostdinc++ disables Clang's default
-            # libc++ header search and we explicitly point at the SDK's headers.
-            cxx_flags.extend([
-                "-nostdinc++",
-                "-isystem",
-                sysroot_path + "/usr/include/c++/v1",
-            ])
             # Several system libraries on macOS dynamically link libc++ and
             # libc++abi, so static linking them becomes a problem. We need to
             # ensure that they are dynamic linked from the system sysroot and
