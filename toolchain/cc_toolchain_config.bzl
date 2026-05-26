@@ -244,8 +244,19 @@ def cc_toolchain_config(
         "-fuse-ld=lld",
     ] + resource_dir
 
-    # Use the standard libc++ location when not using msan
+    # Use the standard libc++ location when not using msan.
+    #
+    # -nostdinc++ disables Clang's automatic detection of libc++ headers
+    # (which finds them adjacent to the clang binary using an absolute path
+    # via getcwd()+argv[0]). Without this, our explicit -cxx-isystem with a
+    # relative path and Clang's auto-detected absolute path both point to the
+    # same directory but appear as separate entries in the include search list.
+    # That breaks `#include_next` from libc++ wrappers like <stdlib.h>: the
+    # "next" stdlib.h is found at the duplicate path (empty due to its own
+    # header guard) instead of the C library's stdlib.h, leaving types like
+    # `ldiv_t` and `size_t` undeclared.
     non_msan_compile_flags = [
+        "-nostdinc++",
         "-cxx-isystem",
         target_toolchain_path_prefix + "include/c++/v1/",
         "-cxx-isystem",
