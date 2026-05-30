@@ -32,6 +32,7 @@ llvm_distributions_ext = use_extension(
 use_repo(llvm_distributions_ext, "llvm_distributions_data")
 
 bazel_dep(name = "tar.bzl", version = "0.6.0")
+
 tar_toolchains = use_extension("@tar.bzl//tar:extensions.bzl", "toolchains")
 use_repo(
     tar_toolchains,

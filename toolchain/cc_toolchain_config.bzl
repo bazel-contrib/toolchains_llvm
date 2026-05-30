@@ -38,16 +38,29 @@ def cc_toolchain_config(
         target_os,
         target_system_name,
         toolchain_path_prefix,
+        target_toolchain_path_prefix,
         tools_path_prefix,
         wrapper_bin_prefix,
         compiler_configuration,
         cxx_builtin_include_directories,
         extra_known_features,
         extra_enabled_features,
-        major_llvm_version):
+        llvm_version):
     exec_os_arch_key = _os_arch_pair(exec_os, exec_arch)
     target_os_arch_key = _os_arch_pair(target_os, target_arch)
     _check_os_arch_keys([exec_os_arch_key, target_os_arch_key])
+
+    # All `*_path_prefix` arguments are concatenated with relative paths (e.g.
+    # `"{}lib/clang/...".format(prefix)`) and so must end in '/'. Verify it
+    # explicitly rather than silently producing malformed flags.
+    for arg_name, arg_value in (
+        ("toolchain_path_prefix", toolchain_path_prefix),
+        ("target_toolchain_path_prefix", target_toolchain_path_prefix),
+        ("tools_path_prefix", tools_path_prefix),
+        ("wrapper_bin_prefix", wrapper_bin_prefix),
+    ):
+        if not arg_value.endswith("/"):
+            fail("{} must end with '/', got: {}".format(arg_name, repr(arg_value)))
 
     # A bunch of variables that get passed straight through to
     # `create_cc_toolchain_config_info`.
@@ -59,6 +72,7 @@ def cc_toolchain_config(
         compiler,
         abi_version,
         abi_libc_version,
+        multiarch,
     ) = {
         "darwin-x86_64": (
             "clang-x86_64-darwin",
@@ -67,6 +81,7 @@ def cc_toolchain_config(
             "clang",
             "darwin_x86_64",
             "darwin_x86_64",
+            None,
         ),
         "darwin-aarch64": (
             "clang-aarch64-darwin",
@@ -75,6 +90,7 @@ def cc_toolchain_config(
             "clang",
             "darwin_aarch64",
             "darwin_aarch64",
+            None,
         ),
         "linux-aarch64": (
             "clang-aarch64-linux",
@@ -83,6 +99,7 @@ def cc_toolchain_config(
             "clang",
             "clang",
             "glibc_unknown",
+            "aarch64-linux-gnu",
         ),
         "linux-armv7": (
             "clang-armv7-linux",
@@ -91,6 +108,7 @@ def cc_toolchain_config(
             "clang",
             "clang",
             "glibc_unknown",
+            "arm-linux-gnueabihf",
         ),
         "linux-riscv64": (
             "clang-riscv64-linux",
@@ -99,6 +117,7 @@ def cc_toolchain_config(
             "clang",
             "clang",
             "glibc_unknown",
+            "riscv64-linux-gnu",
         ),
         "linux-x86_64": (
             "clang-x86_64-linux",
@@ -107,6 +126,7 @@ def cc_toolchain_config(
             "clang",
             "clang",
             "glibc_unknown",
+            "x86_64-linux-gnu",
         ),
         "none-riscv32": (
             "clang-riscv32-none",
@@ -115,6 +135,7 @@ def cc_toolchain_config(
             "clang",
             "unknown",
             "unknown",
+            None,
         ),
         "none-x86_64": (
             "clang-x86_64-none",
@@ -123,6 +144,7 @@ def cc_toolchain_config(
             "clang",
             "unknown",
             "unknown",
+            None,
         ),
         "wasm32": (
             "clang-wasm32",
@@ -131,6 +153,7 @@ def cc_toolchain_config(
             "clang",
             "unknown",
             "unknown",
+            None,
         ),
         "wasm64": (
             "clang-wasm64",
@@ -139,6 +162,7 @@ def cc_toolchain_config(
             "clang",
             "unknown",
             "unknown",
+            None,
         ),
         "wasip1-wasm32": (
             "clang-wasm32",
@@ -147,6 +171,7 @@ def cc_toolchain_config(
             "clang",
             "unknown",
             "unknown",
+            None,
         ),
         "wasip1-wasm64": (
             "clang-wasm64",
@@ -155,6 +180,7 @@ def cc_toolchain_config(
             "clang",
             "unknown",
             "unknown",
+            None,
         ),
     }[target_os_arch_key]
 
@@ -171,9 +197,23 @@ def cc_toolchain_config(
         "-D__TIME__=\"redacted\"",
     ]
 
-    # Default compiler flags:
-    compile_flags = [
+    major_llvm_version = int(llvm_version.split(".")[0])
+
+    external_include_paths = None
+
+    resource_dir_version = llvm_version if major_llvm_version < 16 else major_llvm_version
+
+    resource_dir = [
+        "-resource-dir",
+        "{}lib/clang/{}".format(target_toolchain_path_prefix, resource_dir_version),
+    ]
+
+    target_flags = [
         "--target=" + target_system_name,
+    ]
+
+    # Default compiler flags:
+    compile_flags = target_flags + [
         # Security
         "-U_FORTIFY_SOURCE",  # https://github.com/google/sanitizers/issues/247
         "-fstack-protector",
@@ -183,7 +223,8 @@ def cc_toolchain_config(
         "-Wall",
         "-Wthread-safety",
         "-Wself-assign",
-    ]
+        "-B{}bin/".format(toolchain_path_prefix),
+    ] + resource_dir
 
     dbg_compile_flags = ["-g", "-fstandalone-debug"]
 
@@ -198,10 +239,33 @@ def cc_toolchain_config(
         "-fdata-sections",
     ]
 
-    link_flags = [
-        "--target=" + target_system_name,
+    link_flags = target_flags + [
         "-no-canonical-prefixes",
         "-fuse-ld=lld",
+    ] + resource_dir
+
+    # Use the standard libc++ location when not using msan.
+    #
+    # -nostdinc++ disables Clang's automatic detection of libc++ headers
+    # (which finds them adjacent to the clang binary using an absolute path
+    # via getcwd()+argv[0]). Without this, our explicit -cxx-isystem with a
+    # relative path and Clang's auto-detected absolute path both point to the
+    # same directory but appear as separate entries in the include search list.
+    # That breaks `#include_next` from libc++ wrappers like <stdlib.h>: the
+    # "next" stdlib.h is found at the duplicate path (empty due to its own
+    # header guard) instead of the C library's stdlib.h, leaving types like
+    # `ldiv_t` and `size_t` undeclared.
+    non_msan_compile_flags = [
+        "-nostdinc++",
+        "-cxx-isystem",
+        target_toolchain_path_prefix + "include/c++/v1/",
+        "-cxx-isystem",
+        target_toolchain_path_prefix + "include/" + target_system_name + "/c++/v1/",
+    ]
+
+    non_msan_link_flags = [
+        "-L{}lib".format(target_toolchain_path_prefix),
+        "-L{}lib/{}".format(target_toolchain_path_prefix, target_system_name),
     ]
 
     if exec_os == "darwin":
@@ -254,17 +318,32 @@ def cc_toolchain_config(
     conly_flags = compiler_configuration["conly_flags"]
     sysroot_path = compiler_configuration["sysroot_path"]
 
+    # Flags related to C++ standard.
+    cxx_flags = [
+        "-std=" + cxx_standard,
+    ]
+
     is_xcompile = not (exec_os == target_os and exec_arch == target_arch)
+
+    # We only support getting libc++ from the toolchain for now. Is it worth
+    # supporting libc++ from the sysroot? Or maybe just part of a LLVM distribution
+    # that's built for the target?
+    if not stdlib and is_xcompile:
+        # buildifier: disable=print
+        print("WARNING: Using libc++ for host architecture while cross compiling, this is " +
+              "probably not what you want. Explicitly set standard_libraries to libc++ to silence.")
 
     # Darwin has a universal sysroot so the builtin can compile cross-arch.
     if stdlib == "builtin-libc++" and is_xcompile and not is_darwin_exec_and_target:
         stdlib = "stdc++"
     if stdlib == "builtin-libc++":
-        cxx_flags = [
-            "-std=" + cxx_standard,
+        cxx_flags.extend([
             "-stdlib=libc++",
-        ]
-
+        ])
+        cxx_flags.extend([
+            "-idirafter",
+            target_toolchain_path_prefix + "lib/clang/{}/include".format(resource_dir_version),
+        ])
         if is_darwin_exec_and_target:
             # Several system libraries on macOS dynamically link libc++ and
             # libc++abi, so static linking them becomes a problem. We need to
@@ -310,37 +389,76 @@ def cc_toolchain_config(
             ]
 
     elif stdlib == "libc++":
-        cxx_flags = [
-            "-std=" + cxx_standard,
+        cxx_flags.extend([
             "-stdlib=libc++",
-        ]
+        ])
 
         link_libs.extend([
             "-l:libc++.a",
             "-l:libc++abi.a",
         ])
     elif stdlib == "dynamic-stdc++":
-        cxx_flags = [
+        cxx_flags.extend([
             "-std=" + cxx_standard,
             "-stdlib=libstdc++",
-        ]
+        ])
 
         link_libs.extend([
             "-lstdc++",
         ])
-    elif stdlib == "stdc++":
-        cxx_flags = [
-            "-std=" + cxx_standard,
-            "-stdlib=libstdc++",
-        ]
+    elif stdlib.startswith("stdc++"):
+        # We use libgcc when using libstdc++ from a sysroot. Most libstdc++
+        # builds link to libgcc, which means we need to use libgcc's exception
+        # handling implementation, not the separate one in compiler-rt.
+        # Unfortunately, clang sometimes emits code incompatible with libgcc,
+        # see <https://bugs.llvm.org/show_bug.cgi?id=27455> and
+        # <https://lists.llvm.org/pipermail/cfe-dev/2016-April/048466.html> for
+        # example. This seems to be a commonly-used configuration with clang
+        # though, so it's probably good enough for most people.
+        link_flags.extend([
+            "-L{}lib".format(target_toolchain_path_prefix),
+            "-L{}lib/{}".format(target_toolchain_path_prefix, target_system_name),
+        ])
 
         link_libs.extend([
             "-l:libstdc++.a",
         ])
+        if stdlib == "stdc++":
+            cxx_flags.extend([
+                "-stdlib=libstdc++",
+            ])
+        elif stdlib.startswith("stdc++-"):
+            if sysroot_path == None:
+                fail("Need a sysroot to link against stdc++")
+
+            # -stdlib does nothing when using -nostdinc besides produce a warning
+            # that it's unused, so don't use it here.
+            libstdcxx_version = stdlib[len("stdc++-"):]
+
+            cxx_flags.extend([
+                "-nostdinc++",
+                "-cxx-isystem",
+                sysroot_path + "/usr/include/c++/" + libstdcxx_version,
+                "-cxx-isystem",
+                sysroot_path + "/usr/include/" + multiarch + "/c++/" + libstdcxx_version,
+                "-cxx-isystem",
+                sysroot_path + "/usr/include/c++/" + libstdcxx_version + "/backward",
+            ])
+
+            # Clang really wants C system header includes after C++ ones.
+            compile_flags.extend([
+                "-nostdinc",
+                "-idirafter",
+                target_toolchain_path_prefix + "lib/clang/{}/include".format(resource_dir_version),
+            ])
+
+            link_flags.extend([
+                "-L" + sysroot_path + "/usr/lib/gcc/" + multiarch + "/" + libstdcxx_version,
+            ])
+        else:
+            fail("Invalid stdlib: " + stdlib)
     elif stdlib == "libc":
-        cxx_flags = [
-            "-std=" + cxx_standard,
-        ]
+        pass
     elif stdlib == "none":
         cxx_flags = [
             "-nostdlib",
@@ -350,6 +468,8 @@ def cc_toolchain_config(
         ])
     else:
         fail("Unknown value passed for stdlib: {stdlib}".format(stdlib = stdlib))
+
+    use_toolchain_libcxx_paths = stdlib in ["builtin-libc++", "libc++"]
 
     if major_llvm_version >= 14:
         # With C++20, Clang defaults to using C++ rather than Clang modules,
@@ -405,29 +525,49 @@ def cc_toolchain_config(
 
     # Replace flags with any user-provided overrides.
     if compiler_configuration["compile_flags"] != None:
-        compile_flags = _fmt_flags(compiler_configuration["compile_flags"], toolchain_path_prefix)
+        compile_flags.extend(_fmt_flags(compiler_configuration["compile_flags"], toolchain_path_prefix))
     if compiler_configuration["cxx_flags"] != None:
-        cxx_flags = _fmt_flags(compiler_configuration["cxx_flags"], toolchain_path_prefix)
+        cxx_flags.extend(_fmt_flags(compiler_configuration["cxx_flags"], toolchain_path_prefix))
     if compiler_configuration["link_flags"] != None:
-        link_flags = _fmt_flags(compiler_configuration["link_flags"], toolchain_path_prefix)
+        link_flags.extend(_fmt_flags(compiler_configuration["link_flags"], toolchain_path_prefix))
     if compiler_configuration["archive_flags"] != None:
-        archive_flags = _fmt_flags(compiler_configuration["archive_flags"], toolchain_path_prefix)
+        archive_flags.extend(_fmt_flags(compiler_configuration["archive_flags"], toolchain_path_prefix))
     if compiler_configuration["link_libs"] != None:
-        link_libs = _fmt_flags(compiler_configuration["link_libs"], toolchain_path_prefix)
+        link_libs.extend(_fmt_flags(compiler_configuration["link_libs"], toolchain_path_prefix))
     if compiler_configuration["opt_compile_flags"] != None:
-        opt_compile_flags = _fmt_flags(compiler_configuration["opt_compile_flags"], toolchain_path_prefix)
+        opt_compile_flags.extend(_fmt_flags(compiler_configuration["opt_compile_flags"], toolchain_path_prefix))
     if compiler_configuration["opt_link_flags"] != None:
-        opt_link_flags = _fmt_flags(compiler_configuration["opt_link_flags"], toolchain_path_prefix)
+        opt_link_flags.extend(_fmt_flags(compiler_configuration["opt_link_flags"], toolchain_path_prefix))
     if compiler_configuration["dbg_compile_flags"] != None:
-        dbg_compile_flags = _fmt_flags(compiler_configuration["dbg_compile_flags"], toolchain_path_prefix)
+        dbg_compile_flags.extend(_fmt_flags(compiler_configuration["dbg_compile_flags"], toolchain_path_prefix))
     if compiler_configuration["fastbuild_compile_flags"] != None:
-        fastbuild_compile_flags = _fmt_flags(compiler_configuration["fastbuild_compile_flags"], toolchain_path_prefix)
+        fastbuild_compile_flags.extend(_fmt_flags(compiler_configuration["fastbuild_compile_flags"], toolchain_path_prefix))
     if compiler_configuration["coverage_compile_flags"] != None:
-        coverage_compile_flags = _fmt_flags(compiler_configuration["coverage_compile_flags"], toolchain_path_prefix)
+        coverage_compile_flags.extend(_fmt_flags(compiler_configuration["coverage_compile_flags"], toolchain_path_prefix))
     if compiler_configuration["coverage_link_flags"] != None:
-        coverage_link_flags = _fmt_flags(compiler_configuration["coverage_link_flags"], toolchain_path_prefix)
+        coverage_link_flags.extend(_fmt_flags(compiler_configuration["coverage_link_flags"], toolchain_path_prefix))
     if compiler_configuration["unfiltered_compile_flags"] != None:
-        unfiltered_compile_flags = _fmt_flags(compiler_configuration["unfiltered_compile_flags"], toolchain_path_prefix)
+        unfiltered_compile_flags.extend(_fmt_flags(compiler_configuration["unfiltered_compile_flags"], toolchain_path_prefix))
+
+    # TODO(AustinSchuh): Add msan support and make this conditional.
+    if use_toolchain_libcxx_paths:
+        cxx_flags = non_msan_compile_flags + cxx_flags
+
+    # Add the sysroot flags here, as we want to check these last
+    if sysroot_path != None:
+        external_include_paths = [
+            sysroot_path + "usr/local/include",
+        ]
+        if multiarch != None:
+            external_include_paths.extend([
+                sysroot_path + "usr/" + multiarch + "/include",
+                sysroot_path + "usr/include/" + multiarch,
+            ])
+
+        external_include_paths.extend([
+            sysroot_path + "usr/include",
+            sysroot_path + "include",
+        ])
 
     if compiler_configuration["extra_compile_flags"] != None:
         compile_flags.extend(_fmt_flags(compiler_configuration["extra_compile_flags"], toolchain_path_prefix))
@@ -472,7 +612,8 @@ def cc_toolchain_config(
         conly_flags = conly_flags,
         cxx_flags = cxx_flags,
         link_flags = link_flags + select({str(Label("@toolchains_llvm//toolchain/config:use_libunwind")): libunwind_link_flags, "//conditions:default": []}) +
-                     select({str(Label("@toolchains_llvm//toolchain/config:use_compiler_rt")): compiler_rt_link_flags, "//conditions:default": []}),
+                     select({str(Label("@toolchains_llvm//toolchain/config:use_compiler_rt")): compiler_rt_link_flags, "//conditions:default": []}) +
+                     (non_msan_link_flags if use_toolchain_libcxx_paths else []),
         archive_flags = archive_flags,
         link_libs = link_libs,
         opt_link_flags = opt_link_flags,

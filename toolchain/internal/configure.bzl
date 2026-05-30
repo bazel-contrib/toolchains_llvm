@@ -131,11 +131,23 @@ def _join(path1, path2):
     else:
         return path2
 
+def _is_absolute(path):
+    return path[0] == "/" and (len(path) == 1 or path[1] != "/")
+
 def llvm_config_impl(rctx):
+    # When `target_toolchain_roots` is not explicitly set, default it to
+    # `toolchain_roots` so the per-target dict lookups in `cc_toolchain_config_info`
+    # still find the right roots. Keeping this in the rule impl (rather than the
+    # macro) lets us tell "unset" apart from "explicitly set".
+    target_toolchain_roots = rctx.attr.target_toolchain_roots or rctx.attr.toolchain_roots
+
+    _check_os_arch_keys(rctx.attr.toolchain_roots)
+    _check_os_arch_keys(target_toolchain_roots)
     _check_os_arch_keys(rctx.attr.sysroot)
     _check_os_arch_keys(rctx.attr.cxx_builtin_include_directories)
     _check_os_arch_keys(rctx.attr.extra_exec_compatible_with)
     _check_os_arch_keys(rctx.attr.extra_target_compatible_with)
+    _check_os_arch_keys(rctx.attr.stdlib)
 
     os = _os(rctx)
     if os == "windows":
@@ -159,10 +171,35 @@ def llvm_config_impl(rctx):
     use_absolute_paths_sysroot = use_absolute_paths_llvm
 
     # Check if the toolchain root is a system path.
-    system_llvm = False
-    if _is_absolute_path(toolchain_root):
+    system_llvm = _is_absolute_path(toolchain_root)
+    if system_llvm:
         use_absolute_paths_llvm = True
-        system_llvm = True
+
+    # Make sure the toolchain root and target toolchain roots either are both absolute or both not.
+    for target_toolchain_root in target_toolchain_roots.values():
+        if _is_absolute(toolchain_root) != _is_absolute(target_toolchain_root):
+            fail("Host and target toolchain roots must both be absolute or not")
+
+    # Compute the repo paths for each of the target toolchains.
+    target_llvm_repo_paths = {}
+    toolchain_path_prefix = None
+    if use_absolute_paths_llvm:
+        if _is_absolute_path(toolchain_root):
+            toolchain_path_prefix = _canonical_dir_path(toolchain_root)
+        else:
+            llvm_repo_label = Label(toolchain_root + ":BUILD.bazel")  # Exact target does not matter.
+            toolchain_path_prefix = _canonical_dir_path(str(rctx.path(llvm_repo_label).dirname))
+        for a_key in target_toolchain_roots:
+            target_toolchain_root = target_toolchain_roots[a_key]
+            if _is_absolute_path(target_toolchain_root):
+                target_llvm_repo_paths[a_key] = _canonical_dir_path(target_toolchain_root)
+            else:
+                target_llvm_repo_label = Label(target_toolchain_root + ":BUILD.bazel")
+                target_llvm_repo_paths[a_key] = _canonical_dir_path(str(rctx.path(target_llvm_repo_label).dirname))
+    else:
+        for a_key in target_toolchain_roots:
+            target_llvm_repo_label = Label(target_toolchain_roots[a_key] + ":BUILD.bazel")
+            target_llvm_repo_paths[a_key] = _pkg_path_from_label(target_llvm_repo_label)
 
     # Paths for LLVM distribution:
     if system_llvm:
@@ -173,6 +210,9 @@ def llvm_config_impl(rctx):
             llvm_dist_path_prefix = _canonical_dir_path(str(rctx.path(llvm_dist_label).dirname))
         else:
             llvm_dist_path_prefix = _pkg_path_from_label(llvm_dist_label)
+
+    if not toolchain_path_prefix:
+        toolchain_path_prefix = llvm_dist_path_prefix
 
     if not use_absolute_paths_llvm:
         llvm_dist_rel_path = _canonical_dir_path("../../" + llvm_dist_path_prefix)
@@ -242,6 +282,10 @@ def llvm_config_impl(rctx):
         dbg_compile_flags_dict = rctx.attr.dbg_compile_flags,
         coverage_compile_flags_dict = rctx.attr.coverage_compile_flags,
         coverage_link_flags_dict = rctx.attr.coverage_link_flags,
+        target_toolchain_path_prefixes_dict = target_llvm_repo_paths,
+        target_toolchain_roots_dict = target_toolchain_roots,
+        toolchain_path_prefix = toolchain_path_prefix,
+        toolchain_root = toolchain_root,
         unfiltered_compile_flags_dict = rctx.attr.unfiltered_compile_flags,
         llvm_version = llvm_version,
         extra_compiler_files = rctx.attr.extra_compiler_files,
@@ -408,7 +452,6 @@ def _cc_toolchain_str(
     # visible via the "built_in_include_directories" attribute of CcToolchainInfo as well as to keep
     # them in sync with the directories included in the system module map generated for the stricter
     # "layering_check" feature.
-    toolchain_path_prefix = "%workspace%/" + toolchain_info.llvm_dist_path_prefix
     llvm_version = toolchain_info.llvm_version
     major_llvm_version = int(llvm_version.split(".")[0])
     target_system_name = {
@@ -426,21 +469,36 @@ def _cc_toolchain_str(
         "wasip1-wasm64": "wasm64-wasip1",
     }[target_pair]
 
+    target_toolchain_root = toolchain_info.toolchain_root
+    if target_pair in toolchain_info.target_toolchain_roots_dict:
+        target_toolchain_root = toolchain_info.target_toolchain_roots_dict[target_pair]
+    elif "" in toolchain_info.target_toolchain_roots_dict:
+        target_toolchain_root = toolchain_info.target_toolchain_roots_dict[""]
+    target_toolchain_path_prefix = toolchain_info.toolchain_path_prefix
+    if target_pair in toolchain_info.target_toolchain_path_prefixes_dict:
+        target_toolchain_path_prefix = toolchain_info.target_toolchain_path_prefixes_dict[target_pair]
+    elif "" in toolchain_info.target_toolchain_roots_dict:
+        target_toolchain_path_prefix = toolchain_info.target_toolchain_path_prefixes_dict[""]
+
+    target_toolchain_include_path_prefix = target_toolchain_path_prefix
+    if not use_absolute_paths_llvm:
+        target_toolchain_include_path_prefix = "%workspace%/" + target_toolchain_include_path_prefix
+
+    # C++ built-in include directories:
+    resource_dir_version = llvm_version if major_llvm_version < 16 else major_llvm_version
     cxx_builtin_include_directories = [
-        toolchain_path_prefix + "include/c++/v1",
-        toolchain_path_prefix + "lib/clang/{}/include".format(
-            major_llvm_version if major_llvm_version >= 16 else llvm_version,
-        ),
+        target_toolchain_include_path_prefix + "include/c++/v1",
+        target_toolchain_include_path_prefix + "lib/clang/{}/include".format(resource_dir_version),
         # Note(zbarsky): We could avoid this path if we renamed `include/{target_system_name}/c++/v1/__config_site` to `include/c++/v1/__config_site` in the LLVM repo.
         # However, that would preclude sharing it across multiple toolchain definitions.
-        toolchain_path_prefix + "include/{}/c++/v1".format(target_system_name),
+        target_toolchain_include_path_prefix + "include/{}/c++/v1".format(target_system_name),
     ]
 
     # TODO(zbarsky): Not sure if these lib64 paths are actually needed for system toolchains?
     if use_absolute_paths_llvm:
         cxx_builtin_include_directories.extend([
-            toolchain_path_prefix + "lib64/clang/{}/include".format(llvm_version),
-            toolchain_path_prefix + "lib64/clang/{}/include".format(major_llvm_version),
+            target_toolchain_include_path_prefix + "lib64/clang/{}/include".format(llvm_version),
+            target_toolchain_include_path_prefix + "lib64/clang/{}/include".format(major_llvm_version),
         ])
 
     stdlib = _dict_value(toolchain_info.stdlib_dict, target_pair, "builtin-libc++")
@@ -495,6 +553,7 @@ cc_toolchain_config(
     target_os = "{target_os}",
     target_system_name = "{target_system_name}",
     toolchain_path_prefix = "{llvm_dist_path_prefix}",
+    target_toolchain_path_prefix = "{target_toolchain_path_prefix}",
     tools_path_prefix = "{tools_path_prefix}",
     wrapper_bin_prefix = "{wrapper_bin_prefix}",
     compiler_configuration = {{
@@ -529,7 +588,7 @@ cc_toolchain_config(
     extra_known_features = {extra_known_features},
     extra_enabled_features = {extra_enabled_features},
     cxx_builtin_include_directories = {cxx_builtin_include_directories},
-    major_llvm_version = {major_llvm_version},
+    llvm_version = "{llvm_version}",
 )
 
 toolchain(
@@ -599,7 +658,7 @@ filegroup(name = "strip-files-{suffix}", srcs = [{extra_files_str}])
         template = template + """
 filegroup(
     name = "cxx_builtin_include_files-{suffix}",
-    srcs = ["{llvm_dist_label_prefix}{cxx_builtin_include_label}"],
+    srcs = ["{target_toolchain_root}:{cxx_builtin_include_label}"],
 )
 
 filegroup(
@@ -608,7 +667,7 @@ filegroup(
         ":cxx_builtin_include_files-{suffix}",
         ":sysroot-components-{suffix}",
         "{llvm_dist_label_prefix}extra_config_site",
-        "{llvm_dist_label_prefix}clang",
+        "{toolchain_root}:clang",
         {extra_compiler_files}
     ],
 )
@@ -616,11 +675,11 @@ filegroup(
 filegroup(
     name = "linker-components-{suffix}",
     srcs = [
-        "{llvm_dist_label_prefix}clang",
-        "{llvm_dist_label_prefix}ld",
-        "{llvm_dist_label_prefix}ar",
-        "{llvm_dist_label_prefix}{lib_label}",
         ":sysroot-components-{suffix}",
+        "{toolchain_root}:clang",
+        "{toolchain_root}:ld",
+        "{toolchain_root}:ar",
+        "{target_toolchain_root}:{lib_label}",
         {extra_linker_files}
     ],
 )
@@ -628,7 +687,7 @@ filegroup(
 filegroup(
     name = "all-components-{suffix}",
     srcs = [
-        "{llvm_dist_label_prefix}bin",
+        "{toolchain_root}:bin",
         ":compiler-components-{suffix}",
         ":linker-components-{suffix}",
     ],
@@ -691,6 +750,9 @@ cc_toolchain(
         exec_os_bzl = exec_os_bzl,
         llvm_dist_label_prefix = toolchain_info.llvm_dist_label_prefix,
         llvm_dist_path_prefix = toolchain_info.llvm_dist_path_prefix,
+        toolchain_root = toolchain_info.toolchain_root,
+        target_toolchain_root = target_toolchain_root,
+        target_toolchain_path_prefix = target_toolchain_path_prefix,
         tools_path_prefix = toolchain_info.tools_path_prefix,
         wrapper_bin_prefix = toolchain_info.wrapper_bin_prefix,
         sysroot_label_str = sysroot_label_str,
@@ -728,8 +790,8 @@ cc_toolchain(
         cxx_builtin_include_label = "cxx_builtin_include" if bazel_features.rules.merkle_cache_v2 else "include",
         lib_label = "lib" if bazel_features.rules.merkle_cache_v2 else "lib_legacy",
         extra_compiler_files = ("\"%s\"," % str(toolchain_info.extra_compiler_files)) if toolchain_info.extra_compiler_files else "",
+        llvm_version = llvm_version,
         extra_linker_files = ("\"%s\"," % str(toolchain_info.extra_linker_files)) if toolchain_info.extra_linker_files else "",
-        major_llvm_version = major_llvm_version,
         extra_exec_compatible_with_specific = toolchain_info.extra_exec_compatible_with.get(target_pair, []),
         extra_target_compatible_with_specific = toolchain_info.extra_target_compatible_with.get(target_pair, []),
         extra_exec_compatible_with_all_targets = toolchain_info.extra_exec_compatible_with.get("", []),
@@ -740,6 +802,15 @@ def _is_remote(rctx, exec_os, exec_arch):
     return not (_os_from_rctx(rctx) == exec_os and _arch_from_rctx(rctx) == exec_arch)
 
 def _convenience_targets_str(rctx, use_absolute_paths, llvm_dist_rel_path, llvm_dist_label_prefix, exec_dl_ext):
+    """Generate `cc_import`/`native_binary` aliases for the exec-platform LLVM distribution.
+
+    These aliases (`clang`, `llvm-cov`, host `libc++`, ...) reference only the
+    exec-platform LLVM distribution -- i.e. the binaries you `bazel run` and the
+    libraries you might link host tools against. They are intentionally not
+    parameterised over the target platform: when cross-compiling, the matching
+    target-platform libraries live under the corresponding entry in
+    `target_toolchain_roots` and should be referenced from there directly.
+    """
     if use_absolute_paths:
         llvm_dist_label_prefix = ":"
         filenames = []
