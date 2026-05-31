@@ -356,15 +356,26 @@ Each file has the shape:
 {
   "_meta": {
     "description": "...",
-    "base_url": { "<version>": "<url-prefix>" }   // optional
+    "base_url": {
+      "": "https://example.com/llvm-{version}/",
+      "<version>": "https://override/{version}/", // optional per-version
+    },
   },
   "<tarball-basename>": "<sha256>",
-  "<tarball-basename>": "<sha256>",
-  ...
+  "<full-url-or-path>": "<sha256>",
 }
 ```
 
-Comments are stripped before parsing.
+`base_url` is optional. Its `""` key sets a per-file default URL template;
+the optional `"<version>"` keys override individual releases. Templates may
+contain `{version}` (substituted at materialization time) and should end
+with `/` — the basename is appended directly. Files that omit `base_url`
+fall back to the standard GitHub release URL
+(`https://github.com/llvm/llvm-project/releases/download/llvmorg-{version}/`).
+
+Entry keys are either a tarball **basename** (URL derived via `base_url`)
+or a **full URL/path** (used verbatim, bypassing `base_url`). Comments are
+stripped before parsing, and trailing commas are tolerated.
 
 ### Two helper scripts
 
