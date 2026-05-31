@@ -86,7 +86,7 @@ def _detect_gcc_cxx_headers(rctx, sysroot_path, target_system_name):
 
     # Check for GCC C++ headers in common locations
     # Modern distros (Debian 10+, Ubuntu 18.04+): /usr/include/c++/<version>
-    cxx_include_path = rctx.path(sysroot_path + "/usr/include/c++")
+    cxx_include_path = rctx.path(sysroot_path + "usr/include/c++")
     if cxx_include_path.exists:
         # Find GCC version directories (e.g., "14", "13", "12")
         for entry in cxx_include_path.readdir():
@@ -103,7 +103,7 @@ def _detect_gcc_cxx_headers(rctx, sysroot_path, target_system_name):
 
     # Also check traditional GCC installation path: /usr/lib/gcc/<triple>/<version>/...
     # This is the layout used by older distros and Chromium sysroots
-    gcc_lib_path = rctx.path(sysroot_path + "/usr/lib/gcc/" + gnu_triple)
+    gcc_lib_path = rctx.path(sysroot_path + "usr/lib/gcc/" + gnu_triple)
     if gcc_lib_path.exists:
         for entry in gcc_lib_path.readdir():
             version = entry.basename
@@ -442,6 +442,13 @@ def _cc_toolchain_str(
             # We are trying to cross-compile without a sysroot, let's bail.
             # TODO: Are there other situations where we can continue?
             return ""
+
+    # Normalize the sysroot to a canonical directory path ending in "/", the
+    # same convention used by the `*_path_prefix` arguments. cc_toolchain_config
+    # concatenates relative subpaths (no leading slash) and asserts the
+    # convention, rather than silently producing malformed flags.
+    if sysroot_path:
+        sysroot_path = _canonical_dir_path(sysroot_path)
 
     extra_files_str = repr(":internal-use-tools" if bazel_features.rules.merkle_cache_v2 else ":internal-use-tools-legacy")
 
