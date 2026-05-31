@@ -318,6 +318,13 @@ def cc_toolchain_config(
     conly_flags = compiler_configuration["conly_flags"]
     sysroot_path = compiler_configuration["sysroot_path"]
 
+    # Follow the same convention as the `*_path_prefix` arguments: a non-empty
+    # sysroot path is a canonical directory path ending in '/', concatenated
+    # with relative subpaths (no leading slash). Error out rather than silently
+    # producing malformed flags.
+    if sysroot_path and not sysroot_path.endswith("/"):
+        fail("sysroot_path must end with '/', got: {}".format(repr(sysroot_path)))
+
     # Flags related to C++ standard.
     cxx_flags = [
         "-std=" + cxx_standard,
@@ -368,7 +375,7 @@ def cc_toolchain_config(
             # redundant and its dylib causes the runtime failure described
             # above, so the libunwind config flag has no effect on macOS.
             link_flags.extend([
-                "-L{}/usr/lib".format(sysroot_path),
+                "-L{}usr/lib".format(sysroot_path),
                 "-lc++",
                 "-lc++abi",
                 "-Bdynamic",
@@ -438,11 +445,11 @@ def cc_toolchain_config(
             cxx_flags.extend([
                 "-nostdinc++",
                 "-cxx-isystem",
-                sysroot_path + "/usr/include/c++/" + libstdcxx_version,
+                sysroot_path + "usr/include/c++/" + libstdcxx_version,
                 "-cxx-isystem",
-                sysroot_path + "/usr/include/" + multiarch + "/c++/" + libstdcxx_version,
+                sysroot_path + "usr/include/" + multiarch + "/c++/" + libstdcxx_version,
                 "-cxx-isystem",
-                sysroot_path + "/usr/include/c++/" + libstdcxx_version + "/backward",
+                sysroot_path + "usr/include/c++/" + libstdcxx_version + "/backward",
             ])
 
             # Clang really wants C system header includes after C++ ones.
@@ -453,7 +460,7 @@ def cc_toolchain_config(
             ])
 
             link_flags.extend([
-                "-L" + sysroot_path + "/usr/lib/gcc/" + multiarch + "/" + libstdcxx_version,
+                "-L" + sysroot_path + "usr/lib/gcc/" + multiarch + "/" + libstdcxx_version,
             ])
         else:
             fail("Invalid stdlib: " + stdlib)
