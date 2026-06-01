@@ -1,0 +1,1 @@
+# Sanitizer ignorelist — used to verify extra_compiler_files reach the compile sandbox.

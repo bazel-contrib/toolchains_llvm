@@ -373,6 +373,18 @@ _compiler_configuration_attrs = {
         doc = ("Files to be made available in the sandbox for link actions. " +
                "Useful for providing files such as linker scripts."),
     ),
+    "extra_compiler_files_dict": attr.string_dict(
+        mandatory = False,
+        doc = ("Per-target files to be made available in the sandbox for compile actions. " +
+               "Keys are target OS-arch pairs (e.g. 'linux-x86_64') or empty string for all targets. " +
+               "Values are label strings. Intended for use via the bzlmod `llvm.extra_compiler_files` tag."),
+    ),
+    "extra_linker_files_dict": attr.string_dict(
+        mandatory = False,
+        doc = ("Per-target files to be made available in the sandbox for link actions. " +
+               "Keys are target OS-arch pairs (e.g. 'linux-x86_64') or empty string for all targets. " +
+               "Values are label strings. Intended for use via the bzlmod `llvm.extra_linker_files` tag."),
+    ),
     "extra_enabled_features": attr.label_list(
         mandatory = False,
         doc = ("Extra `cc_feature` features to add to this toolchain in an initially " +

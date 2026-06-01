@@ -79,6 +79,14 @@ llvm.extra_target_compatible_with(
     name = "llvm_toolchain",
     constraints = ["@//:cxx17"],
 )
+llvm.extra_compiler_files(
+    name = "llvm_toolchain",
+    label = "//extra_files:all_files",
+)
+llvm.extra_linker_files(
+    name = "llvm_toolchain",
+    label = "//extra_files:all_files",
+)
 use_repo(llvm, "llvm_toolchain", "llvm_toolchain_llvm")
 
 register_toolchains("@llvm_toolchain//:all")
