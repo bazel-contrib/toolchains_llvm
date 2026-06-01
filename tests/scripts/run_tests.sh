@@ -68,6 +68,11 @@ targets=(
 # toolchain won't work so :test_cxx_standard_is_20 won't build.
 if [[ -z "${toolchain_name}" ]]; then
   targets+=("//:test_cxx_standard_is_20")
+  # :extra_files_compile_test depends on extra_compiler_files on @llvm_toolchain;
+  # restricted to linux because the cc_test target uses linux-only constraints.
+  if [[ ${OSTYPE} == 'linux'* ]]; then
+    targets+=("//:extra_files_compile_test")
+  fi
 fi
 
 if [[ -n "${enable_omp_targets}" ]]; then
