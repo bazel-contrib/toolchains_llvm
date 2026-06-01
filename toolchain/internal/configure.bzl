@@ -290,6 +290,8 @@ def llvm_config_impl(rctx):
         llvm_version = llvm_version,
         extra_compiler_files = rctx.attr.extra_compiler_files,
         extra_linker_files = rctx.attr.extra_linker_files,
+        extra_compiler_files_dict = rctx.attr.extra_compiler_files_dict,
+        extra_linker_files_dict = rctx.attr.extra_linker_files_dict,
         extra_exec_compatible_with = rctx.attr.extra_exec_compatible_with,
         extra_target_compatible_with = rctx.attr.extra_target_compatible_with,
         extra_compile_flags_dict = rctx.attr.extra_compile_flags,
@@ -431,6 +433,17 @@ def _cc_toolchain_str(
         sysroot_label_str = repr(str(sysroot_label))
     else:
         sysroot_label_str = ""
+
+    _extra_compiler_label = (
+        toolchain_info.extra_compiler_files_dict.get(target_pair) or
+        toolchain_info.extra_compiler_files_dict.get("") or
+        (str(toolchain_info.extra_compiler_files) if toolchain_info.extra_compiler_files else None)
+    )
+    _extra_linker_label = (
+        toolchain_info.extra_linker_files_dict.get(target_pair) or
+        toolchain_info.extra_linker_files_dict.get("") or
+        (str(toolchain_info.extra_linker_files) if toolchain_info.extra_linker_files else None)
+    )
 
     if not sysroot_path:
         if exec_os == target_os and exec_arch == target_arch:
@@ -796,9 +809,9 @@ cc_toolchain(
         cxx_builtin_include_directories = _list_to_string(filtered_cxx_builtin_include_directories),
         cxx_builtin_include_label = "cxx_builtin_include" if bazel_features.rules.merkle_cache_v2 else "include",
         lib_label = "lib" if bazel_features.rules.merkle_cache_v2 else "lib_legacy",
-        extra_compiler_files = ("\"%s\"," % str(toolchain_info.extra_compiler_files)) if toolchain_info.extra_compiler_files else "",
+        extra_compiler_files = ("\"%s\"," % _extra_compiler_label) if _extra_compiler_label else "",
         llvm_version = llvm_version,
-        extra_linker_files = ("\"%s\"," % str(toolchain_info.extra_linker_files)) if toolchain_info.extra_linker_files else "",
+        extra_linker_files = ("\"%s\"," % _extra_linker_label) if _extra_linker_label else "",
         extra_exec_compatible_with_specific = toolchain_info.extra_exec_compatible_with.get(target_pair, []),
         extra_target_compatible_with_specific = toolchain_info.extra_target_compatible_with.get(target_pair, []),
         extra_exec_compatible_with_all_targets = toolchain_info.extra_exec_compatible_with.get("", []),

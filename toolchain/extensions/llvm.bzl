@@ -21,12 +21,13 @@ def _root_dict(roots, cls, name, strip_target):
         for target in targets:
             if res.get(target):
                 fail("duplicate target '%s' found for %s with name '%s'" % (target, cls, name))
-            if bool(root.path) == (root.label):
+            path = getattr(root, "path", "")
+            if bool(path) == bool(root.label):
                 fail("target '%s' for %s with name '%s' must have either path or label, but not both" % (target, cls, name))
-            if root.path:
-                if not _is_absolute_path(root.path):
+            if path:
+                if not _is_absolute_path(path):
                     fail("target '%s' for %s with name '%s' must have an absolute path value" % (target, cls, name))
-                res.update([(target, root.path)])
+                res.update([(target, path)])
                 continue
             label_str = str(root.label)
             if strip_target:
@@ -64,6 +65,8 @@ def _llvm_impl_(module_ctx):
             }
             attrs["toolchain_roots"] = _root_dict([root for root in mod.tags.toolchain_root if root.name == name], "toolchain_root", name, True)
             attrs["sysroot"] = _root_dict([sysroot for sysroot in mod.tags.sysroot if sysroot.name == name], "sysroot", name, False)
+            attrs["extra_compiler_files_dict"] = _root_dict([tag for tag in mod.tags.extra_compiler_files if tag.name == name], "extra_compiler_files", name, False)
+            attrs["extra_linker_files_dict"] = _root_dict([tag for tag in mod.tags.extra_linker_files if tag.name == name], "extra_linker_files", name, False)
             attrs["extra_exec_compatible_with"] = _constraint_dict(
                 [tag for tag in mod.tags.extra_exec_compatible_with if tag.name == name],
                 name,
@@ -84,6 +87,12 @@ def _llvm_impl_(module_ctx):
         for root in mod.tags.sysroot:
             if root.name not in toolchain_names:
                 fail("sysroot '%s' does not have a corresponding toolchain" % root.name)
+        for tag in mod.tags.extra_compiler_files:
+            if tag.name not in toolchain_names:
+                fail("extra_compiler_files '%s' does not have a corresponding toolchain" % tag.name)
+        for tag in mod.tags.extra_linker_files:
+            if tag.name not in toolchain_names:
+                fail("extra_linker_files '%s' does not have a corresponding toolchain" % tag.name)
 
     if bazel_features.external_deps.extension_metadata_has_reproducible:
         return module_ctx.extension_metadata(reproducible = True)
@@ -100,6 +109,8 @@ _attrs.update(_llvm_repo_attrs)
 
 _attrs.pop("toolchain_roots", None)
 _attrs.pop("sysroot", None)
+_attrs.pop("extra_compiler_files_dict", None)
+_attrs.pop("extra_linker_files_dict", None)
 
 llvm = module_extension(
     implementation = _llvm_impl_,
@@ -121,6 +132,20 @@ llvm = module_extension(
                 "targets": attr.string_list(doc = "Specific targets, if any; empty list means this applies to all."),
                 "label": attr.label(doc = "Label containing the files with its package path as the sysroot path."),
                 "path": attr.string(doc = "Absolute path to the sysroot."),
+            },
+        ),
+        "extra_compiler_files": tag_class(
+            attrs = {
+                "name": attr.string(doc = "Same name as the toolchain tag.", default = "llvm_toolchain"),
+                "targets": attr.string_list(doc = "Specific targets, if any; empty list means this applies to all."),
+                "label": attr.label(doc = "Label containing files to be made available in the sandbox for compile actions."),
+            },
+        ),
+        "extra_linker_files": tag_class(
+            attrs = {
+                "name": attr.string(doc = "Same name as the toolchain tag.", default = "llvm_toolchain"),
+                "targets": attr.string_list(doc = "Specific targets, if any; empty list means this applies to all."),
+                "label": attr.label(doc = "Label containing files to be made available in the sandbox for link actions."),
             },
         ),
         "extra_exec_compatible_with": tag_class(

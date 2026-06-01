@@ -53,6 +53,30 @@ build_test(
     ],
 )
 
+build_test(
+    name = "extra_files_extension_test",
+    target_compatible_with = [
+        "@platforms//os:linux",
+    ],
+    targets = [
+        "@llvm_toolchain//:all-files-x86_64-linux",
+    ],
+)
+
+# Verifies that extra_compiler_files actually makes the file available in the
+# compile action sandbox. Uses -fsanitize-ignorelist pointing at the provisioned
+# file; clang errors at compile time if the file is absent from the sandbox.
+cc_test(
+    name = "extra_files_compile_test",
+    srcs = ["stdlib_test.cc"],
+    copts = ["-fsanitize-ignorelist=$(execpath //extra_files:all_files)"],
+    data = ["//extra_files:all_files"],
+    linkstatic = True,
+    tags = ["manual"],
+    target_compatible_with = ["@platforms//os:linux"],
+    deps = [":stdlib"],
+)
+
 # We want to test that `llvm-dwp` (used when assembling a `.dwp` file from
 # `.dwo` files) can be called.
 #
