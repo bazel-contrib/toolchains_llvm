@@ -45,19 +45,19 @@ _llvm_distributions = LLVM_DISTRIBUTIONS
 
 # Per-basename download URL map, fully expanded from the `_meta.base_url`
 # templates at JSONC load time (see `//toolchain/internal:distributions_repo.bzl`).
-# Bundled distributions always have an entry here. User-injected
-# `extra_llvm_distributions` entries fall back to `_EXTRA_DEFAULT_URL_TEMPLATE`
-# below if their bare basename is not covered by any .jsonc file -- this
-# preserves the "use a future toolchain version" pattern documented on the
-# rule attr (see `//toolchain/internal:repo.bzl`).
+# Any basename not covered here -- whether from a bundled `.jsonc` file with
+# no `_meta.base_url`, or from a user-injected `extra_llvm_distributions`
+# entry with a bare basename -- falls back to `_DEFAULT_URL_TEMPLATE` below.
 _llvm_distribution_urls = LLVM_DISTRIBUTION_URLS
 
-# Fallback URL template for `extra_llvm_distributions` entries that pass a
-# bare basename (not a full URL/path) and that are not covered by any bundled
-# `.jsonc` file. Resolves to the standard GitHub release path. Users who need
-# a non-default URL should pass a full URL as the dict key, or add the entry
-# to `extra.jsonc` with a `base_url` template.
-_EXTRA_DEFAULT_URL_TEMPLATE = "https://github.com/llvm/llvm-project/releases/download/llvmorg-{version}/"
+# Fallback URL template for basenames not present in `_llvm_distribution_urls`.
+# Resolves to the standard GitHub release path so the common cases work
+# without configuration: a bundled `.jsonc` may omit `_meta.base_url`
+# entirely, and `extra_llvm_distributions` may pass a bare basename for a
+# release not yet bundled. Users who need a non-default URL should pass a
+# full URL/path as the dict key, or declare a `_meta.base_url` template in
+# their `.jsonc` file.
+_DEFAULT_URL_TEMPLATE = "https://github.com/llvm/llvm-project/releases/download/llvmorg-{version}/"
 
 def _parse_version(v):
     return tuple([int(s) for s in v.split(".")])
@@ -673,12 +673,12 @@ def _distribution_urls(rctx):
     if basename in _llvm_distribution_urls:
         urls.append(_llvm_distribution_urls[basename])
     else:
-        # `extra_llvm_distributions` escape hatch: the user passed a bare
-        # basename not covered by any bundled `.jsonc` file. Use the standard
-        # GitHub release URL so the documented "future toolchain version"
-        # pattern keeps working without extra configuration.
+        # Basename not covered by any `_meta.base_url` template: fall back to
+        # the standard GitHub release URL. Covers both bundled `.jsonc` files
+        # that omit `_meta.base_url` and `extra_llvm_distributions` entries
+        # passed as bare basenames.
         urls.append(
-            _EXTRA_DEFAULT_URL_TEMPLATE.format(version = llvm_version) +
+            _DEFAULT_URL_TEMPLATE.format(version = llvm_version) +
             basename.replace("+", "%2B"),
         )
 
