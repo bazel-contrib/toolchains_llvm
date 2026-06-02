@@ -141,6 +141,24 @@ _compiler_configuration_attrs = {
                "containing the files and the sysroot path will be taken as the path to the " +
                "package of this label."),
     ),
+    "multiarch": attr.string_dict(
+        mandatory = False,
+        doc = ("Multiarch triple used to construct sysroot include and library paths " +
+               "(e.g. `<sysroot>/usr/include/<multiarch>` or, for Yocto-style sysroots, " +
+               "`<sysroot>/usr/include/c++/<ver>/<multiarch>`), for each target OS and arch pair " +
+               "({}). ".format(_target_pairs) +
+               "If unset, a default is chosen per target. Useful when the sysroot uses a " +
+               "non-standard multiarch tuple, e.g. Yocto `aarch64-oe4t-linux`."),
+    ),
+    "cxx_include_layout": attr.string_dict(
+        mandatory = False,
+        doc = ("How libstdc++ headers and gcc runtime libraries are laid out in the " +
+               "sysroot. Allowed values per target OS/arch pair " +
+               "({}): ".format(_target_pairs) +
+               "`debian` (default): `/usr/include/<multiarch>/c++/<ver>` and " +
+               "`/usr/lib/gcc/<multiarch>/<ver>`; `yocto`: " +
+               "`/usr/include/c++/<ver>/<multiarch>` and `/usr/lib/<multiarch>/<ver>`."),
+    ),
     "cxx_builtin_include_directories": attr.string_list_dict(
         mandatory = False,
         doc = ("Additional builtin include directories to be added to the default system " +

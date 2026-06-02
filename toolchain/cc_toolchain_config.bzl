@@ -341,6 +341,15 @@ def cc_toolchain_config(
     system_includes = []
     nostdinc = False
 
+    # Allow callers to override the sysroot multiarch tuple (e.g. for
+    # Yocto-style sysroots where libstdc++ headers live under
+    # /usr/include/c++/<ver>/<multiarch> instead of the Debian
+    # /usr/include/<multiarch>/c++/<ver> layout).
+    multiarch_override = compiler_configuration.get("multiarch", "")
+    if multiarch_override:
+        multiarch = multiarch_override
+    cxx_include_layout = compiler_configuration.get("cxx_include_layout", "") or "debian"
+
     is_xcompile = not (exec_os == target_os and exec_arch == target_arch)
 
     # We only support getting libc++ from the toolchain for now. Is it worth
@@ -354,6 +363,18 @@ def cc_toolchain_config(
     # Darwin has a universal sysroot so the builtin can compile cross-arch.
     if stdlib == "builtin-libc++" and is_xcompile and not is_darwin_exec_and_target:
         stdlib = "stdc++"
+
+    # "dynamic-stdc++"[-<ver>] is libstdc++ linked dynamically rather than
+    # statically. Normalize it back to the equivalent "stdc++" stdlib and
+    # remember the choice so the linker picks libstdc++.so over libstdc++.a.
+    dynamic_stdcxx = False
+    if stdlib == "dynamic-stdc++":
+        dynamic_stdcxx = True
+        stdlib = "stdc++"
+    elif stdlib.startswith("dynamic-stdc++-"):
+        dynamic_stdcxx = True
+        stdlib = "stdc++-" + stdlib[len("dynamic-stdc++-"):]
+
     if stdlib == "builtin-libc++":
         cxx_flags.extend([
             "-stdlib=libc++",
@@ -423,15 +444,6 @@ def cc_toolchain_config(
             "-l:libc++.a",
             "-l:libc++abi.a",
         ])
-    elif stdlib == "dynamic-stdc++":
-        cxx_flags.extend([
-            "-std=" + cxx_standard,
-            "-stdlib=libstdc++",
-        ])
-
-        link_libs.extend([
-            "-lstdc++",
-        ])
     elif stdlib.startswith("stdc++"):
         # We use libgcc when using libstdc++ from a sysroot. Most libstdc++
         # builds link to libgcc, which means we need to use libgcc's exception
@@ -446,9 +458,17 @@ def cc_toolchain_config(
             "-L{}lib/{}".format(target_toolchain_path_prefix, target_system_name),
         ])
 
-        link_libs.extend([
-            "-l:libstdc++.a",
-        ])
+        # Place the libstdc++ link in `link_libs` (after the object files) so
+        # `--gc-sections` does not strip otherwise-unreferenced symbols (see
+        # upstream #625). `dynamic_stdcxx` selects the shared variant.
+        if dynamic_stdcxx:
+            link_libs.extend([
+                "-l:libstdc++.so",
+            ])
+        else:
+            link_libs.extend([
+                "-l:libstdc++.a",
+            ])
         if stdlib == "stdc++":
             cxx_flags.extend([
                 "-stdlib=libstdc++",
@@ -461,9 +481,21 @@ def cc_toolchain_config(
             # that it's unused, so don't use it here.
             libstdcxx_version = stdlib[len("stdc++-"):]
 
+            # libstdc++ headers live at /usr/include/c++/<ver> plus a
+            # multiarch-specific directory whose layout differs between
+            # Debian-style and Yocto-style sysroots.
+            if cxx_include_layout == "yocto":
+                multiarch_cpp_include = sysroot_path + "usr/include/c++/" + libstdcxx_version + "/" + multiarch
+                link_flags.extend([
+                    "-B{}usr/lib/{}/{}/".format(sysroot_path, multiarch, libstdcxx_version),
+                    "-Wl,-L{}usr/lib/{}/{}/".format(sysroot_path, multiarch, libstdcxx_version),
+                ])
+            else:
+                multiarch_cpp_include = sysroot_path + "usr/include/" + multiarch + "/c++/" + libstdcxx_version
+
             cpp_system_includes = [
                 sysroot_path + "usr/include/c++/" + libstdcxx_version,
-                sysroot_path + "usr/include/" + multiarch + "/c++/" + libstdcxx_version,
+                multiarch_cpp_include,
                 sysroot_path + "usr/include/c++/" + libstdcxx_version + "/backward",
             ]
 
