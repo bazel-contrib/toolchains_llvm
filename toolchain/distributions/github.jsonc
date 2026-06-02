@@ -24,6 +24,13 @@
     },
   },
 
+  // 22.1.7
+  "LLVM-22.1.7-Linux-ARM64.tar.xz": "118ca2d3ad9da34367e05735317854e7977db45dc4c02a32af58da64c23b8789",
+  "LLVM-22.1.7-Linux-X64.tar.xz": "edb0522b41e261819c06ea437d249f9b8acfa413d3805bc9920eec6fb76ff830",
+  "LLVM-22.1.7-macOS-ARM64.tar.xz": "4177245188b0a30a6539c96b361dea56f253485756bfd8927a6a59e7301e7806",
+  "clang+llvm-22.1.7-aarch64-pc-windows-msvc.tar.xz": "9957fee5aeba5f88369c37e127a07034eaa806c2e9e996b14ce5a32a9320653f",
+  "clang+llvm-22.1.7-x86_64-pc-windows-msvc.tar.xz": "3b568b5be1443d1a04c63261fa3a7aed16e126a8ed2196a1032aa8ed602144bd",
+
   // 22.1.6
   "LLVM-22.1.6-Linux-ARM64.tar.xz": "b67817634e8e1c2632dfc056af14d61b94f8e6502f4e557560eea227aa22ce37",
   "LLVM-22.1.6-Linux-X64.tar.xz": "c5ac8ef89ca39d30cb32e9b83772f995dd891c685ebc188d593c943a64d5f8b5",
