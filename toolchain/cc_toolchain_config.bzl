@@ -199,14 +199,16 @@ def cc_toolchain_config(
 
     major_llvm_version = int(llvm_version.split(".")[0])
 
-    external_include_paths = None
-
     resource_dir_version = llvm_version if major_llvm_version < 16 else major_llvm_version
 
     resource_dir = [
         "-resource-dir",
         "{}lib/clang/{}".format(target_toolchain_path_prefix, resource_dir_version),
     ]
+
+    # Clang's builtin headers (stddef.h, stdarg.h, intrinsics, ...). Searched
+    # after the C++ standard library headers (see system_includes below).
+    toolchain_builtin_include = target_toolchain_path_prefix + "lib/clang/{}/include".format(resource_dir_version)
 
     target_flags = [
         "--target=" + target_system_name,
@@ -244,22 +246,21 @@ def cc_toolchain_config(
         "-fuse-ld=lld",
     ] + resource_dir
 
-    # Use the standard libc++ location when not using msan.
+    # libc++ headers shipped with the toolchain, used when not building with
+    # msan.
     #
-    # -nostdinc++ disables Clang's automatic detection of libc++ headers
-    # (which finds them adjacent to the clang binary using an absolute path
-    # via getcwd()+argv[0]). Without this, our explicit -cxx-isystem with a
-    # relative path and Clang's auto-detected absolute path both point to the
-    # same directory but appear as separate entries in the include search list.
-    # That breaks `#include_next` from libc++ wrappers like <stdlib.h>: the
-    # "next" stdlib.h is found at the duplicate path (empty due to its own
-    # header guard) instead of the C library's stdlib.h, leaving types like
-    # `ldiv_t` and `size_t` undeclared.
-    non_msan_compile_flags = [
-        "-nostdinc++",
-        "-cxx-isystem",
+    # These feed cpp_system_includes (emitted as -cxx-isystem) along with a
+    # single -nostdinc++ at the end. -nostdinc++ disables Clang's automatic
+    # detection of libc++ headers (which finds them adjacent to the clang
+    # binary using an absolute path via getcwd()+argv[0]). Without this, our
+    # explicit -cxx-isystem with a relative path and Clang's auto-detected
+    # absolute path both point to the same directory but appear as separate
+    # entries in the include search list. That breaks `#include_next` from
+    # libc++ wrappers like <stdlib.h>: the "next" stdlib.h is found at the
+    # duplicate path (empty due to its own header guard) instead of the C
+    # library's stdlib.h, leaving types like `ldiv_t` and `size_t` undeclared.
+    toolchain_cpp_system_includes = [
         target_toolchain_path_prefix + "include/c++/v1/",
-        "-cxx-isystem",
         target_toolchain_path_prefix + "include/" + target_system_name + "/c++/v1/",
     ]
 
@@ -330,6 +331,16 @@ def cc_toolchain_config(
         "-std=" + cxx_standard,
     ]
 
+    # System include directories accumulated per-stdlib below and turned into
+    # search-path flags at the very end. C++ standard library dirs go into
+    # cpp_system_includes (emitted as -cxx-isystem, plus a single -nostdinc++);
+    # C/compiler system dirs go into system_includes (emitted as -idirafter so
+    # they are searched after the C++ headers, which Clang requires). nostdinc
+    # additionally drops Clang's default C system include paths.
+    cpp_system_includes = []
+    system_includes = []
+    nostdinc = False
+
     is_xcompile = not (exec_os == target_os and exec_arch == target_arch)
 
     # We only support getting libc++ from the toolchain for now. Is it worth
@@ -347,11 +358,19 @@ def cc_toolchain_config(
         cxx_flags.extend([
             "-stdlib=libc++",
         ])
-        cxx_flags.extend([
-            "-idirafter",
-            target_toolchain_path_prefix + "lib/clang/{}/include".format(resource_dir_version),
-        ])
+        system_includes.append(toolchain_builtin_include)
         if is_darwin_exec_and_target:
+            # On macOS, use the SDK's libc++ entirely (headers + linking).
+            # Clang's driver would otherwise auto-include the toolchain's
+            # bundled libc++ headers (the LLVM version we built), creating an
+            # ABI mismatch with the SDK's libc++.tbd that gets picked up via
+            # the sysroot. The -nostdinc++ emitted with cpp_system_includes
+            # disables Clang's default libc++ header search; here we point at
+            # the SDK's headers instead of the toolchain's.
+            cpp_system_includes = [
+                sysroot_path + "usr/include/c++/v1",
+            ]
+
             # Several system libraries on macOS dynamically link libc++ and
             # libc++abi, so static linking them becomes a problem. We need to
             # ensure that they are dynamic linked from the system sysroot and
@@ -442,22 +461,17 @@ def cc_toolchain_config(
             # that it's unused, so don't use it here.
             libstdcxx_version = stdlib[len("stdc++-"):]
 
-            cxx_flags.extend([
-                "-nostdinc++",
-                "-cxx-isystem",
+            cpp_system_includes = [
                 sysroot_path + "usr/include/c++/" + libstdcxx_version,
-                "-cxx-isystem",
                 sysroot_path + "usr/include/" + multiarch + "/c++/" + libstdcxx_version,
-                "-cxx-isystem",
                 sysroot_path + "usr/include/c++/" + libstdcxx_version + "/backward",
-            ])
+            ]
 
-            # Clang really wants C system header includes after C++ ones.
-            compile_flags.extend([
-                "-nostdinc",
-                "-idirafter",
-                target_toolchain_path_prefix + "lib/clang/{}/include".format(resource_dir_version),
-            ])
+            # Clang really wants C system header includes after C++ ones, so
+            # drop the default C system paths and add the toolchain's builtin
+            # headers via system_includes (-idirafter).
+            nostdinc = True
+            system_includes.append(toolchain_builtin_include)
 
             link_flags.extend([
                 "-L" + sysroot_path + "usr/lib/gcc/" + multiarch + "/" + libstdcxx_version,
@@ -476,7 +490,11 @@ def cc_toolchain_config(
     else:
         fail("Unknown value passed for stdlib: {stdlib}".format(stdlib = stdlib))
 
-    use_toolchain_libcxx_paths = stdlib in ["builtin-libc++", "libc++"]
+    # On macOS the libc++ headers come from the SDK (see above), not the
+    # toolchain, so do not add the toolchain's libc++ include paths.
+    use_toolchain_libcxx_paths = stdlib in ["builtin-libc++", "libc++"] and target_os != "darwin"
+    if use_toolchain_libcxx_paths:
+        cpp_system_includes = toolchain_cpp_system_includes
 
     if major_llvm_version >= 14:
         # With C++20, Clang defaults to using C++ rather than Clang modules,
@@ -556,9 +574,23 @@ def cc_toolchain_config(
     if compiler_configuration["unfiltered_compile_flags"] != None:
         unfiltered_compile_flags.extend(_fmt_flags(compiler_configuration["unfiltered_compile_flags"], toolchain_path_prefix))
 
+    # Turn the accumulated include directories into search-path flags. The C++
+    # standard library dirs are searched first (-cxx-isystem) and the C/system
+    # dirs after them (-idirafter), which is what Clang expects.
     # TODO(AustinSchuh): Add msan support and make this conditional.
-    if use_toolchain_libcxx_paths:
-        cxx_flags = non_msan_compile_flags + cxx_flags
+    if cpp_system_includes:
+        cxx_flags = ["-nostdinc++"] + [
+            flag
+            for include in cpp_system_includes
+            for flag in ("-cxx-isystem", include)
+        ] + cxx_flags
+    if nostdinc:
+        compile_flags.append("-nostdinc")
+    compile_flags += [
+        flag
+        for include in system_includes
+        for flag in ("-idirafter", include)
+    ]
 
     # Add the sysroot flags here, as we want to check these last
     if sysroot_path != None:
@@ -575,6 +607,22 @@ def cc_toolchain_config(
             sysroot_path + "usr/include",
             sysroot_path + "include",
         ])
+
+        if nostdinc:
+            # With -nostdinc Clang no longer derives the sysroot's C system
+            # include paths from --sysroot, so add them explicitly. Emit them
+            # as -idirafter so they are searched after the compiler builtin
+            # headers (system_includes, above) and the C++ standard library
+            # headers (cpp_system_includes, via -cxx-isystem). Clang orders the
+            # -cxx-isystem (CXXSystem) group after the -isystem (System) group,
+            # so the C library headers must land in the later -idirafter (After)
+            # group for #include_next from libstdc++ wrappers like <cstdlib> to
+            # resolve to them.
+            compile_flags += [
+                flag
+                for p in external_include_paths
+                for flag in ("-idirafter", p)
+            ]
 
     if compiler_configuration["extra_compile_flags"] != None:
         compile_flags.extend(_fmt_flags(compiler_configuration["extra_compile_flags"], toolchain_path_prefix))
