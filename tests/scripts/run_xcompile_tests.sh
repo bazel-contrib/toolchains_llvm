@@ -21,37 +21,78 @@ source "${scripts_dir}/bazel.sh"
 
 cd "${scripts_dir}"
 
-binpath="$("${bazel}" info "${common_args[@]}" bazel-bin)/stdlib_test"
+# Returns the path of the //:stdlib_test binary as built with the given
+# configuration. The output path is configuration-specific (it depends on the
+# target platform and flags), so we resolve it with cquery rather than assuming
+# the default bazel-bin.
+binpath_for() {
+  "${bazel}" --bazelrc=/dev/null cquery "$@" --output=files //:stdlib_test 2>/dev/null
+}
 
+# Runs the cross-compiled binary inside a container for the matching platform.
+# Skipped in CI because the macOS GitHub Action runners do not have docker.
 check_with_image() {
   if "${CI:-false}"; then
-    # macOS GitHub Action Runners do not have docker installed on them.
     return
   fi
-  local image="$1"
-  docker run --rm -it --platform=linux/amd64 \
+  local docker_platform="$1"
+  local image="$2"
+  local binpath="$3"
+  docker run --rm -it --platform="${docker_platform}" \
     --mount "type=bind,source=${binpath},target=/stdlib_test" "${image}" /stdlib_test
 }
 
-echo ""
-echo "Testing static linked user libraries and dynamic linked system libraries"
-build_args=(
-  "${common_args[@]}"
-  --platforms=@toolchains_llvm//platforms:linux-x86_64
-  --extra_toolchains=@llvm_toolchain_with_sysroot//:cc-toolchain-x86_64-linux
-  --symlink_prefix=/
-  --color=yes
-  --show_progress_rate_limit=30
-)
-"${bazel}" --bazelrc=/dev/null build "${build_args[@]}" //:stdlib_test
-file "${binpath}" | tee /dev/stderr | grep -q ELF
-check_with_image "gcr.io/distroless/cc-debian11" # Need glibc image for system libraries.
+# Cross-compiles //:stdlib_test for a target and verifies the produced binary is
+# an ELF for the expected architecture, both with dynamically and statically
+# linked system libraries.
+#
+# Args:
+#   1: bazel target platform label
+#   2: cc toolchain label for the sysroot toolchain
+#   3: regex matched against `file` output to assert the ELF architecture
+#   4: docker --platform value used to smoke-test the binary
+xcompile_test() {
+  local platform="$1"
+  local toolchain="$2"
+  local arch_regex="$3"
+  local docker_platform="$4"
 
-echo ""
-echo "Testing static linked user and system libraries"
-build_args+=(
-  --features=fully_static_link
-)
-"${bazel}" --bazelrc=/dev/null build "${build_args[@]}" //:stdlib_test
-file "${binpath}" | tee /dev/stderr | grep -q ELF
-check_with_image "gcr.io/distroless/static-debian11"
+  local build_args=(
+    "${common_args[@]}"
+    --platforms="${platform}"
+    --extra_toolchains="${toolchain}"
+    --symlink_prefix=/
+    --color=yes
+    --show_progress_rate_limit=30
+  )
+
+  echo ""
+  echo "Testing ${platform}: static linked user libraries and dynamic linked system libraries"
+  "${bazel}" --bazelrc=/dev/null build "${build_args[@]}" //:stdlib_test
+  local binpath
+  binpath="$(binpath_for "${build_args[@]}")"
+  file "${binpath}" | tee /dev/stderr | grep -qE "${arch_regex}"
+  check_with_image "${docker_platform}" "gcr.io/distroless/cc-debian11" "${binpath}" # Need glibc image for system libraries.
+
+  echo ""
+  echo "Testing ${platform}: static linked user and system libraries"
+  build_args+=(
+    --features=fully_static_link
+  )
+  "${bazel}" --bazelrc=/dev/null build "${build_args[@]}" //:stdlib_test
+  binpath="$(binpath_for "${build_args[@]}")"
+  file "${binpath}" | tee /dev/stderr | grep -qE "${arch_regex}"
+  check_with_image "${docker_platform}" "gcr.io/distroless/static-debian11" "${binpath}"
+}
+
+xcompile_test \
+  "@toolchains_llvm//platforms:linux-x86_64" \
+  "@llvm_toolchain_with_sysroot//:cc-toolchain-x86_64-linux" \
+  "ELF.*x86-64" \
+  "linux/amd64"
+
+xcompile_test \
+  "@toolchains_llvm//platforms:linux-aarch64" \
+  "@llvm_toolchain_with_sysroot//:cc-toolchain-aarch64-linux" \
+  "ELF.*(aarch64|ARM aarch64)" \
+  "linux/arm64"
