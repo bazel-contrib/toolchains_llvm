@@ -64,6 +64,7 @@ def _llvm_impl_(module_ctx):
                 if not key.startswith("_")
             }
             attrs["toolchain_roots"] = _root_dict([root for root in mod.tags.toolchain_root if root.name == name], "toolchain_root", name, True)
+            attrs["target_toolchain_roots"] = _root_dict([root for root in mod.tags.target_toolchain_root if root.name == name], "target_toolchain_root", name, True)
             attrs["sysroot"] = _root_dict([sysroot for sysroot in mod.tags.sysroot if sysroot.name == name], "sysroot", name, False)
             attrs["extra_compiler_files_dict"] = _root_dict([tag for tag in mod.tags.extra_compiler_files if tag.name == name], "extra_compiler_files", name, False)
             attrs["extra_linker_files_dict"] = _root_dict([tag for tag in mod.tags.extra_linker_files if tag.name == name], "extra_linker_files", name, False)
@@ -84,6 +85,9 @@ def _llvm_impl_(module_ctx):
         for root in mod.tags.toolchain_root:
             if root.name not in toolchain_names:
                 fail("toolchain_root '%s' does not have a corresponding toolchain" % root.name)
+        for root in mod.tags.target_toolchain_root:
+            if root.name not in toolchain_names:
+                fail("target_toolchain_root '%s' does not have a corresponding toolchain" % root.name)
         for root in mod.tags.sysroot:
             if root.name not in toolchain_names:
                 fail("sysroot '%s' does not have a corresponding toolchain" % root.name)
@@ -108,6 +112,7 @@ _attrs.update(_llvm_config_attrs)
 _attrs.update(_llvm_repo_attrs)
 
 _attrs.pop("toolchain_roots", None)
+_attrs.pop("target_toolchain_roots", None)
 _attrs.pop("sysroot", None)
 _attrs.pop("extra_compiler_files_dict", None)
 _attrs.pop("extra_linker_files_dict", None)
@@ -124,6 +129,14 @@ llvm = module_extension(
                 "targets": attr.string_list(doc = "Specific targets, if any; empty list means this applies to all."),
                 "label": attr.label(doc = "Dummy label whose package path is the toolchain root package."),
                 "path": attr.string(doc = "Absolute path to the toolchain root."),
+            },
+        ),
+        "target_toolchain_root": tag_class(
+            attrs = {
+                "name": attr.string(doc = "Same name as the toolchain tag.", default = "llvm_toolchain"),
+                "targets": attr.string_list(doc = "Specific targets, if any; empty list means this applies to all."),
+                "label": attr.label(doc = "Dummy label whose package path is the target toolchain root package."),
+                "path": attr.string(doc = "Absolute path to the target toolchain root."),
             },
         ),
         "sysroot": tag_class(

@@ -197,12 +197,29 @@ use_repo(llvm, "llvm_toolchain_with_system_llvm")
 llvm.toolchain(
     name = "llvm_toolchain_with_sysroot",
     llvm_versions = LLVM_VERSIONS,
+    # The chromium sysroots use the Debian libstdc++ header/library layout.
+    cxx_include_layout = {
+        "linux-x86_64": "debian",
+        "linux-aarch64": "debian",
+    },
 )
 
 # We can share the downloaded LLVM distribution with the first configuration.
 llvm.toolchain_root(
     name = "llvm_toolchain_with_sysroot",
     label = "@llvm_toolchain_llvm//:BUILD",
+)
+
+# Exercise per-target target_toolchain_roots: the target's toolchain comes from
+# the same shared LLVM distribution as the host. Specified via a tag (rather
+# than the string_dict attr) so the label resolves under bzlmod.
+llvm.target_toolchain_root(
+    name = "llvm_toolchain_with_sysroot",
+    label = "@llvm_toolchain_llvm//:BUILD",
+    targets = [
+        "linux-x86_64",
+        "linux-aarch64",
+    ],
 )
 llvm.sysroot(
     name = "llvm_toolchain_with_sysroot",

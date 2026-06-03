@@ -195,10 +195,21 @@ sysroot(
 
 llvm_toolchain(
     name = "llvm_toolchain_with_sysroot",
+    # The chromium sysroots use the Debian libstdc++ header/library layout.
+    cxx_include_layout = {
+        "linux-x86_64": "debian",
+        "linux-aarch64": "debian",
+    },
     llvm_versions = LLVM_VERSIONS,
     sysroot = {
         "linux-x86_64": "@org_chromium_sysroot_linux_x64//sysroot",
         "linux-aarch64": "@org_chromium_sysroot_linux_arm64//sysroot",
+    },
+    # Exercise per-target target_toolchain_roots: the target's toolchain comes
+    # from the same shared LLVM distribution as the host.
+    target_toolchain_roots = {
+        "linux-x86_64": "@llvm_toolchain_llvm//",
+        "linux-aarch64": "@llvm_toolchain_llvm//",
     },
     # We can share the downloaded LLVM distribution with the first configuration.
     toolchain_roots = {
