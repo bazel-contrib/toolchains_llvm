@@ -118,10 +118,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        os: [macos-latest, ubuntu-latest]
         bzlmod: [true, false]
-    runs-on: macos-latest
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v6
+      - if: startsWith(matrix.os, 'ubuntu')
+        run: tests/scripts/ubuntu_install_libtinfo.sh
       - name: Test
         env:
           USE_BZLMOD: ${{ matrix.bzlmod }}
