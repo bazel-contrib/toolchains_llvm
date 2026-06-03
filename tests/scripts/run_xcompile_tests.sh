@@ -30,7 +30,9 @@ cd "${scripts_dir}"
 # relative to the workspace root, which breaks since this script runs from a
 # subdirectory.
 binpath_for() {
-  echo "$("${bazel}" --bazelrc=/dev/null info "${common_args[@]}" bazel-bin)/stdlib_test"
+  local bazel_bin
+  bazel_bin="$("${bazel}" --bazelrc=/dev/null info "${common_args[@]}" bazel-bin)"
+  echo "${bazel_bin}/stdlib_test"
 }
 
 # Runs the cross-compiled binary inside a container for the matching platform.
