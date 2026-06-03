@@ -21,12 +21,16 @@ source "${scripts_dir}/bazel.sh"
 
 cd "${scripts_dir}"
 
-# Returns the path of the //:stdlib_test binary as built with the given
-# configuration. The output path is configuration-specific (it depends on the
-# target platform and flags), so we resolve it with cquery rather than assuming
-# the default bazel-bin.
+# Returns the absolute path of the //:stdlib_test binary. The cross-compiled
+# output lands in the host-configuration bazel-bin (the `--platforms` flag does
+# not change the output directory mnemonic here), so we resolve it with
+# `bazel info bazel-bin` using only common_args. We must not pass `--platforms`
+# to `info`, as it resolves the label against the wrong repo mapping and fails.
+# `info bazel-bin` returns an absolute path; cquery's --output=files would be
+# relative to the workspace root, which breaks since this script runs from a
+# subdirectory.
 binpath_for() {
-  "${bazel}" --bazelrc=/dev/null cquery "$@" --output=files //:stdlib_test 2>/dev/null
+  echo "$("${bazel}" --bazelrc=/dev/null info "${common_args[@]}" bazel-bin)/stdlib_test"
 }
 
 # Runs the cross-compiled binary inside a container for the matching platform.
@@ -70,7 +74,7 @@ xcompile_test() {
   echo "Testing ${platform}: static linked user libraries and dynamic linked system libraries"
   "${bazel}" --bazelrc=/dev/null build "${build_args[@]}" //:stdlib_test
   local binpath
-  binpath="$(binpath_for "${build_args[@]}")"
+  binpath="$(binpath_for)"
   file "${binpath}" | tee /dev/stderr | grep -qE "${arch_regex}"
   check_with_image "${docker_platform}" "gcr.io/distroless/cc-debian11" "${binpath}" # Need glibc image for system libraries.
 
@@ -80,7 +84,7 @@ xcompile_test() {
     --features=fully_static_link
   )
   "${bazel}" --bazelrc=/dev/null build "${build_args[@]}" //:stdlib_test
-  binpath="$(binpath_for "${build_args[@]}")"
+  binpath="$(binpath_for)"
   file "${binpath}" | tee /dev/stderr | grep -qE "${arch_regex}"
   check_with_image "${docker_platform}" "gcr.io/distroless/static-debian11" "${binpath}"
 }
