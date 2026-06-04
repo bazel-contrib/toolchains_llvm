@@ -54,7 +54,7 @@ def bazel_toolchain_dependencies():
     if not native.existing_rule("helly25_bzl"):
         http_archive(
             name = "helly25_bzl",
-            url = "https://github.com/helly25/bzl/releases/download/v0.4.1/bzl-v0.4.1.tar.gz",
-            sha256 = "172666fe4c4a78c49ad3bd6de1fc27d4111cd8b64740c1b860765fc41b890740",
-            strip_prefix = "bzl-v0.4.1",
+            url = "https://github.com/helly25/bzl/releases/download/0.4.2/bzl-0.4.2.tar.gz",
+            sha256 = "91857eaa56fd0013cb9d82ef5c1c8a996d23ee3d8f40fddf125bb15f5d4f3164",
+            strip_prefix = "bzl-0.4.2",
         )
