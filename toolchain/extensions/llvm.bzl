@@ -124,19 +124,56 @@ llvm = module_extension(
             attrs = _attrs,
         ),
         "toolchain_root": tag_class(
+            doc = """\
+Selects the LLVM distribution (the "toolchain root") used for the build's
+*exec* configuration, i.e. the clang/lld binaries that actually run.
+
+This is the bzlmod equivalent of the `toolchain_roots` attribute of the
+`llvm_toolchain` repository rule. Specify the root with exactly one of
+`label` or `path`:
+
+- `label`: a label whose *package* is the toolchain root. The label target
+  itself is not used; only its package path is read (e.g.
+  `@llvm_toolchain_llvm//:BUILD`). Use this for a toolchain vendored into a
+  Bazel repository, laid out like `@toolchains_llvm//toolchain:BUILD.llvm_repo`.
+- `path`: an absolute path to a system install of LLVM. Setting a `path`
+  configures the toolchain to use absolute paths.
+
+Use the `targets` attribute to scope a root to specific host OS/arch pairs;
+an empty `targets` list applies to all. Emit one tag per distinct root.
+""",
             attrs = {
-                "name": attr.string(doc = "Same name as the toolchain tag.", default = "llvm_toolchain"),
-                "targets": attr.string_list(doc = "Specific targets, if any; empty list means this applies to all."),
-                "label": attr.label(doc = "Dummy label whose package path is the toolchain root package."),
-                "path": attr.string(doc = "Absolute path to the toolchain root."),
+                "name": attr.string(doc = "Must match the `name` of the corresponding `toolchain` tag.", default = "llvm_toolchain"),
+                "targets": attr.string_list(doc = "Host OS/arch pairs this root applies to (e.g. `linux-x86_64`); an empty list applies to all."),
+                "label": attr.label(doc = "Label whose package path is the toolchain root package. Mutually exclusive with `path`."),
+                "path": attr.string(doc = "Absolute path to a system LLVM distribution to use as the toolchain root. Mutually exclusive with `label`."),
             },
         ),
         "target_toolchain_root": tag_class(
+            doc = """\
+Selects the LLVM distribution (the "toolchain root") used for the build's
+*target* configuration when cross-compiling, i.e. the libraries and headers
+that get linked into the produced binaries.
+
+This is the bzlmod equivalent of the `target_toolchain_roots` attribute of
+the `llvm_toolchain` repository rule, and the per-target counterpart of the
+`toolchain_root` tag. When unset for a given target, the toolchain falls
+back to the (exec) `toolchain_root`, which is the common single-distribution
+case. Set this when the target needs a different LLVM distribution than the
+exec tools, e.g. a target-arch build of libc++/compiler-rt.
+
+The `label`/`path` semantics are identical to `toolchain_root` (specify
+exactly one): `label` points at the *package* holding a
+`BUILD.llvm_repo`-style layout, while `path` is an absolute system path that
+switches the toolchain to absolute paths. Host and target roots must agree
+on absolute-vs-package form. Use `targets` to scope to specific target
+OS/arch pairs; an empty list applies to all.
+""",
             attrs = {
-                "name": attr.string(doc = "Same name as the toolchain tag.", default = "llvm_toolchain"),
-                "targets": attr.string_list(doc = "Specific targets, if any; empty list means this applies to all."),
-                "label": attr.label(doc = "Dummy label whose package path is the target toolchain root package."),
-                "path": attr.string(doc = "Absolute path to the target toolchain root."),
+                "name": attr.string(doc = "Must match the `name` of the corresponding `toolchain` tag.", default = "llvm_toolchain"),
+                "targets": attr.string_list(doc = "Target OS/arch pairs this root applies to (e.g. `linux-aarch64`); an empty list applies to all."),
+                "label": attr.label(doc = "Label whose package path is the target toolchain root package. Mutually exclusive with `path`."),
+                "path": attr.string(doc = "Absolute path to a system LLVM distribution to use as the target toolchain root. Mutually exclusive with `label`."),
             },
         ),
         "sysroot": tag_class(

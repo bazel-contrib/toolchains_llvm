@@ -173,8 +173,10 @@ _compiler_configuration_attrs = {
                "linked to the compiled binaries. An empty key can be used to specify a " +
                "value for all target pairs. Possible values are `builtin-libc++` (default) " +
                "which uses the libc++ shipped with clang, `libc++` which uses libc++ available on " +
-               "the host or sysroot, `stdc++` which uses libstdc++ available on the host or " +
-               "sysroot, and `none` which uses `-nostdlib` with the compiler."),
+               "the host or sysroot, `stdc++` which uses (static) libstdc++ available on the host " +
+               "or sysroot, `dynamic-stdc++` (optionally `dynamic-stdc++-<ver>`) which is like " +
+               "`stdc++` but links `libstdc++.so` instead of `libstdc++.a`, and `none` which uses " +
+               "`-nostdlib` with the compiler."),
     ),
     "cxx_standard": attr.string_dict(
         mandatory = False,
