@@ -359,6 +359,13 @@ def llvm_config_impl(rctx):
         },
     )
 
+    rctx.file(
+        "redacted_dates.h",
+        "#define __DATE__      \"redacted\"\n" +
+        "#define __TIME__      \"redacted\"\n" +
+        "#define __TIMESTAMP__ \"redacted\"\n",
+    )
+
     if hasattr(rctx, "repo_metadata"):
         return rctx.repo_metadata(reproducible = True)
     else:
@@ -576,6 +583,7 @@ cc_toolchain_config(
     target_toolchain_path_prefix = "{target_toolchain_path_prefix}",
     tools_path_prefix = "{tools_path_prefix}",
     wrapper_bin_prefix = "{wrapper_bin_prefix}",
+    redacted_dates_path = "{redacted_dates_path}",
     compiler_configuration = {{
       "sysroot_path": "{sysroot_path}",
       "stdlib": "{stdlib}",
@@ -645,6 +653,7 @@ filegroup(
     name = "compiler-components-{suffix}",
     srcs = [
         ":sysroot-components-{suffix}",
+        "redacted_dates.h",
         {extra_compiler_files}
     ],
 )
@@ -688,6 +697,7 @@ filegroup(
         ":sysroot-components-{suffix}",
         "{llvm_dist_label_prefix}extra_config_site",
         "{toolchain_root}:clang",
+        "redacted_dates.h",
         {extra_compiler_files}
     ],
 )
@@ -728,6 +738,7 @@ system_module_map(
     name = "module-{suffix}",
     cxx_builtin_include_files = ":cxx_builtin_include_files-{suffix}",
     cxx_builtin_include_directories = {cxx_builtin_include_directories},
+    extra_textual_headers = "redacted_dates.h",
     sysroot_files = ":sysroot-components-{suffix}",
     sysroot_path = "{sysroot_path}",
 )
@@ -775,6 +786,7 @@ cc_toolchain(
         target_toolchain_path_prefix = target_toolchain_path_prefix,
         tools_path_prefix = toolchain_info.tools_path_prefix,
         wrapper_bin_prefix = toolchain_info.wrapper_bin_prefix,
+        redacted_dates_path = "external/{}/redacted_dates.h".format(rctx.name),
         sysroot_label_str = sysroot_label_str,
         sysroot_path = sysroot_path,
         stdlib = stdlib,
