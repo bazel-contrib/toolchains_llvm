@@ -180,6 +180,27 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v6
+      - name: Ensure every job is wired into this gate
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+        run: |
+          # Parse the workflow with a real YAML reader (yq) and fail if any
+          # declared job (other than this gate) is absent from `needs` above, so
+          # a newly added job cannot silently escape the required gate.
+          declared="$(yq '.jobs | keys | .[]' .github/workflows/tests.yml |
+            grep -vx required_checks_done | sort)"
+          wired="$(jq -r 'keys[]' <<<"${NEEDS_JSON}" | sort)"
+          missing="$(comm -23 <(printf '%s\n' "${declared}") <(printf '%s\n' "${wired}"))"
+          if [[ -n "${missing}" ]]; then
+            echo "Jobs declared in the workflow but missing from required_checks_done.needs:"
+            while read -r job; do
+              echo "  - ${job}"
+              echo "::error title=Gate is missing a job::${job} not in required_checks_done.needs"
+            done <<<"${missing}"
+            exit 1
+          fi
+          echo "required_checks_done covers all $(grep -c . <<<"${declared}") workflow jobs."
       - name: Verify required jobs succeeded
         env:
           NEEDS_JSON: ${{ toJSON(needs) }}
