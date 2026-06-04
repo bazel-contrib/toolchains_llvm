@@ -160,3 +160,47 @@ jobs:
         env:
           USE_BZLMOD: ${{ matrix.bzlmod }}
         run: tests/scripts/run_tests.sh -t @llvm_toolchain_with_system_llvm//:cc-toolchain-x86_64-linux -v 16.0.0
+  # Single aggregating gate for branch protection. It depends on every job that
+  # must pass, so "required_checks_done" is the only status check that needs to
+  # be marked "required" on the master branch -- adding or renaming a job above
+  # no longer means editing branch protection, only this job's `needs` list.
+  # When any dependency fails or is cancelled, this job fails and names the
+  # offending jobs in its log and in the run summary.
+  required_checks_done:
+    name: required_checks_done
+    needs:
+      - lint
+      - test
+      - toolchain_test
+      - external_test
+      - container_test
+      - xcompile_test
+      - abs_paths_test
+      - sys_paths_test
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify required jobs succeeded
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+        run: |
+          {
+            echo "| Required job | Result |"
+            echo "| --- | --- |"
+            jq -r 'to_entries[] | "| \(.key) | \(.value.result) |"' <<<"${NEEDS_JSON}"
+          } >>"${GITHUB_STEP_SUMMARY}"
+
+          failed="$(jq -r 'to_entries[]
+            | select(.value.result != "success" and .value.result != "skipped")
+            | .key' <<<"${NEEDS_JSON}")"
+
+          if [[ -n "${failed}" ]]; then
+            echo "The following required jobs did not succeed:"
+            while read -r job; do
+              echo "  - ${job}"
+              echo "::error title=Required job failed::${job} did not succeed"
+            done <<<"${failed}"
+            exit 1
+          fi
+
+          echo "All required jobs succeeded."
