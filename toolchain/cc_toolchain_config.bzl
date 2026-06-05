@@ -41,6 +41,7 @@ def cc_toolchain_config(
         target_toolchain_path_prefix,
         tools_path_prefix,
         wrapper_bin_prefix,
+        redacted_dates_path,
         compiler_configuration,
         cxx_builtin_include_directories,
         extra_known_features,
@@ -190,11 +191,12 @@ def cc_toolchain_config(
     unfiltered_compile_flags = [
         # Do not resolve our symlinked resource prefixes to real paths.
         "-no-canonical-prefixes",
-        # Reproducibility
+        # Reproducibility: redact date macros via an -imacros header rather than
+        # -D__DATE__="redacted" on the command line, whose quotes are lost when
+        # passed through sub-build flag strings.
         "-Wno-builtin-macro-redefined",
-        "-D__DATE__=\"redacted\"",
-        "-D__TIMESTAMP__=\"redacted\"",
-        "-D__TIME__=\"redacted\"",
+        "-imacros",
+        redacted_dates_path,
     ]
 
     major_llvm_version = int(llvm_version.split(".")[0])
