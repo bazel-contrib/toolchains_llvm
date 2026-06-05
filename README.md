@@ -253,6 +253,39 @@ bazel build \
   //...
 ```
 
+#### Per-target toolchain root
+
+By default a single LLVM distribution (the "toolchain root") provides both the
+clang/lld binaries that run (the _exec_ configuration) and the libraries that
+get linked into the produced binaries (the _target_ configuration). When the
+target needs a different distribution than the exec tools (for example a
+target-arch build of libc++ or compiler-rt), specify it separately through the
+`target_toolchain_roots` attribute (without bzlmod) or the
+`target_toolchain_root` module extension tag (with bzlmod). It is the
+per-target counterpart of `toolchain_roots` / `toolchain_root`, and falls back
+to the exec toolchain root when unset.
+
+#### libstdc++ and Yocto sysroot layouts
+
+When linking against libstdc++ from a sysroot, three attributes (each keyed by
+target OS/arch pair) tune how it is found and linked:
+
+- `stdlib`: in addition to the values described under
+  [Sysroots](#sysroots), `dynamic-stdc++` (optionally `dynamic-stdc++-<ver>`)
+  behaves like `stdc++` but links `libstdc++.so` instead of the default static
+  `libstdc++.a`.
+- `multiarch`: overrides the multiarch tuple used to construct the sysroot
+  include and library paths. Useful when the sysroot uses a non-standard tuple,
+  e.g. Yocto's `aarch64-oe4t-linux`.
+- `cxx_include_layout`: selects how libstdc++ headers and the gcc runtime libs
+  are laid out in the sysroot. `debian` (the default) expects
+  `/usr/include/<multiarch>/c++/<ver>` and `/usr/lib/gcc/<multiarch>/<ver>`;
+  `yocto` expects `/usr/include/c++/<ver>/<multiarch>` and
+  `/usr/lib/<multiarch>/<ver>`.
+
+All three are optional: omit them to get static libstdc++ linking, the builtin
+multiarch tuple, and the `debian` layout.
+
 ### Multi-platform builds
 
 The toolchain supports multi-platform builds through the combination of the
