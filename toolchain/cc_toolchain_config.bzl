@@ -54,18 +54,14 @@ def cc_toolchain_config(
     _check_os_arch_keys([exec_os_arch_key, target_os_arch_key])
 
     # The `*_path_prefix` arguments are substituted into flag templates (e.g.
-    # `"-B{}bin/".format(prefix)`, `"-L{}lib"`) and into user-supplied flag
-    # templates via _fmt_flags, so they must end in '/'. Verify it explicitly
-    # rather than silently producing malformed flags. (Pure path *values* are
-    # built with paths.join(), which does not depend on this.)
-    for arg_name, arg_value in (
-        ("toolchain_path_prefix", toolchain_path_prefix),
-        ("target_toolchain_path_prefix", target_toolchain_path_prefix),
-        ("tools_path_prefix", tools_path_prefix),
-        ("wrapper_bin_prefix", wrapper_bin_prefix),
-    ):
-        if not arg_value.endswith("/"):
-            fail("{} must end with '/', got: {}".format(arg_name, repr(arg_value)))
+    # `"-L{}lib".format(prefix)`) and into user-supplied flag templates via
+    # _fmt_flags, so they must be directory paths ending in '/'. Normalize them
+    # here so callers need not be precise. (Pure path *values* are built with
+    # paths.join(), which does not depend on this.)
+    toolchain_path_prefix = paths.ensure_trailing_slash(toolchain_path_prefix)
+    target_toolchain_path_prefix = paths.ensure_trailing_slash(target_toolchain_path_prefix)
+    tools_path_prefix = paths.ensure_trailing_slash(tools_path_prefix)
+    wrapper_bin_prefix = paths.ensure_trailing_slash(wrapper_bin_prefix)
 
     # A bunch of variables that get passed straight through to
     # `create_cc_toolchain_config_info`.
@@ -231,7 +227,7 @@ def cc_toolchain_config(
         "-Wall",
         "-Wthread-safety",
         "-Wself-assign",
-        "-B{}bin/".format(toolchain_path_prefix),
+        "-B" + paths.ensure_trailing_slash(paths.join(toolchain_path_prefix, "bin")),
     ] + resource_dir
 
     dbg_compile_flags = ["-g", "-fstandalone-debug"]
@@ -326,11 +322,11 @@ def cc_toolchain_config(
     sysroot_path = compiler_configuration["sysroot_path"]
 
     # Follow the same convention as the `*_path_prefix` arguments: a non-empty
-    # sysroot path is a canonical directory path ending in '/', concatenated
-    # with relative subpaths (no leading slash). Error out rather than silently
-    # producing malformed flags.
-    if sysroot_path and not sysroot_path.endswith("/"):
-        fail("sysroot_path must end with '/', got: {}".format(repr(sysroot_path)))
+    # sysroot path is a directory path ending in '/' (the sysroot flag templates
+    # below substitute it directly). Normalize it here so callers need not be
+    # precise; leave None/empty untouched to preserve the "no sysroot" case.
+    if sysroot_path:
+        sysroot_path = paths.ensure_trailing_slash(sysroot_path)
 
     # Flags related to C++ standard.
     cxx_flags = [
