@@ -247,7 +247,7 @@ def llvm_config_impl(rctx):
         # Path to individual tool binaries.
         # No symlinking necessary when using absolute paths.
         wrapper_bin_prefix = "bin/"
-        tools_path_prefix = llvm_dist_path_prefix + "bin/"
+        tools_path_prefix = paths.ensure_trailing_slash(paths.join(llvm_dist_path_prefix, "bin"))
         symlinked_tools_str = ""
 
     sysroot_paths_dict, sysroot_labels_dict = _sysroot_paths_dict(

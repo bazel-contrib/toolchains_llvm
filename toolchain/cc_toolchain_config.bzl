@@ -53,11 +53,11 @@ def cc_toolchain_config(
     target_os_arch_key = _os_arch_pair(target_os, target_arch)
     _check_os_arch_keys([exec_os_arch_key, target_os_arch_key])
 
-    # The `*_path_prefix` arguments are substituted into flag templates (e.g.
-    # `"-L{}lib".format(prefix)`) and into user-supplied flag templates via
-    # _fmt_flags, so they must be directory paths ending in '/'. Normalize them
-    # here so callers need not be precise. (Pure path *values* are built with
-    # paths.join(), which does not depend on this.)
+    # User-supplied flag templates substitute `{toolchain_path_prefix}` (and
+    # friends) directly via _fmt_flags and expect a directory path ending in
+    # '/'. Normalize the prefixes here so callers need not be precise. Internal
+    # flags and path values use paths.join()/ensure_trailing_slash() and do not
+    # depend on this.
     toolchain_path_prefix = paths.ensure_trailing_slash(toolchain_path_prefix)
     target_toolchain_path_prefix = paths.ensure_trailing_slash(target_toolchain_path_prefix)
     tools_path_prefix = paths.ensure_trailing_slash(tools_path_prefix)
@@ -267,8 +267,8 @@ def cc_toolchain_config(
     ]
 
     non_msan_link_flags = [
-        "-L{}lib".format(target_toolchain_path_prefix),
-        "-L{}lib/{}".format(target_toolchain_path_prefix, target_system_name),
+        "-L" + paths.join(target_toolchain_path_prefix, "lib"),
+        "-L" + paths.join(target_toolchain_path_prefix, "lib", target_system_name),
     ]
 
     if exec_os == "darwin":
@@ -396,7 +396,7 @@ def cc_toolchain_config(
             # redundant and its dylib causes the runtime failure described
             # above, so the libunwind config flag has no effect on macOS.
             link_flags.extend([
-                "-L{}usr/lib".format(sysroot_path),
+                "-L" + paths.join(sysroot_path, "usr/lib"),
                 "-lc++",
                 "-lc++abi",
                 "-Bdynamic",
@@ -444,8 +444,8 @@ def cc_toolchain_config(
         # example. This seems to be a commonly-used configuration with clang
         # though, so it's probably good enough for most people.
         link_flags.extend([
-            "-L{}lib".format(target_toolchain_path_prefix),
-            "-L{}lib/{}".format(target_toolchain_path_prefix, target_system_name),
+            "-L" + paths.join(target_toolchain_path_prefix, "lib"),
+            "-L" + paths.join(target_toolchain_path_prefix, "lib", target_system_name),
         ])
 
         link_libs.extend([
@@ -476,7 +476,7 @@ def cc_toolchain_config(
             system_includes.append(toolchain_builtin_include)
 
             link_flags.extend([
-                "-L{}usr/lib/gcc/{}/{}".format(sysroot_path, multiarch, libstdcxx_version),
+                "-L" + paths.join(sysroot_path, "usr/lib/gcc", multiarch, libstdcxx_version),
             ])
         else:
             fail("Invalid stdlib: " + stdlib)
