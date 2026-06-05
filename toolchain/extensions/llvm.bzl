@@ -162,18 +162,14 @@ back to the (exec) `toolchain_root`, which is the common single-distribution
 case. Set this when the target needs a different LLVM distribution than the
 exec tools, e.g. a target-arch build of libc++/compiler-rt.
 
-The `label`/`path` semantics are identical to `toolchain_root` (specify
-exactly one): `label` points at the *package* holding a
-`BUILD.llvm_repo`-style layout, while `path` is an absolute system path that
-switches the toolchain to absolute paths. Host and target roots must agree
-on absolute-vs-package form. Use `targets` to scope to specific target
+Specify the root with `label`, which points at the *package* holding a
+`BUILD.llvm_repo`-style layout. Use `targets` to scope to specific target
 OS/arch pairs; an empty list applies to all.
 """,
             attrs = {
                 "name": attr.string(doc = "Must match the `name` of the corresponding `toolchain` tag.", default = "llvm_toolchain"),
                 "targets": attr.string_list(doc = "Target OS/arch pairs this root applies to (e.g. `linux-aarch64`); an empty list applies to all."),
-                "label": attr.label(doc = "Label whose package path is the target toolchain root package. Mutually exclusive with `path`."),
-                "path": attr.string(doc = "Absolute path to a system LLVM distribution to use as the target toolchain root. Mutually exclusive with `label`."),
+                "label": attr.label(doc = "Label whose package path is the target toolchain root package."),
             },
         ),
         "sysroot": tag_class(
