@@ -256,8 +256,8 @@ bazel build \
 #### Per-target toolchain root
 
 By default a single LLVM distribution (the "toolchain root") provides both the
-clang/lld binaries that run (the *exec* configuration) and the libraries that
-get linked into the produced binaries (the *target* configuration). When the
+clang/lld binaries that run (the _exec_ configuration) and the libraries that
+get linked into the produced binaries (the _target_ configuration). When the
 target needs a different distribution than the exec tools (for example a
 target-arch build of libc++ or compiler-rt), specify it separately through the
 `target_toolchain_roots` attribute (without bzlmod) or the
