@@ -691,7 +691,10 @@ filegroup(name = "strip-files-{suffix}", srcs = [{extra_files_str}])
         template = template + """
 filegroup(
     name = "cxx_builtin_include_files-{suffix}",
-    srcs = ["{target_toolchain_root}:{cxx_builtin_include_label}"],
+    srcs = [
+        "{target_toolchain_root}:{cxx_builtin_include_label}",
+        {extra_compiler_files}
+    ],
 )
 
 filegroup(
