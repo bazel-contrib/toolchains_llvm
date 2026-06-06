@@ -118,10 +118,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        os: [macos-latest, ubuntu-latest]
         bzlmod: [true, false]
-    runs-on: macos-latest
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v6
+      - if: startsWith(matrix.os, 'ubuntu')
+        run: tests/scripts/ubuntu_install_libtinfo.sh
       - name: Test
         env:
           USE_BZLMOD: ${{ matrix.bzlmod }}
@@ -160,3 +163,68 @@ jobs:
         env:
           USE_BZLMOD: ${{ matrix.bzlmod }}
         run: tests/scripts/run_tests.sh -t @llvm_toolchain_with_system_llvm//:cc-toolchain-x86_64-linux -v 16.0.0
+  # Single aggregating gate for branch protection. It depends on every job that
+  # must pass, so "required_checks_done" is the only status check that needs to
+  # be marked "required" on the master branch -- adding or renaming a job above
+  # no longer means editing branch protection, only this job's `needs` list.
+  # When any dependency fails or is cancelled, this job fails and names the
+  # offending jobs in its log and in the run summary.
+  required_checks_done:
+    name: required_checks_done
+    needs:
+      - lint
+      - test
+      - toolchain_test
+      - external_test
+      - container_test
+      - xcompile_test
+      - abs_paths_test
+      - sys_paths_test
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Ensure every job is wired into this gate
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+        run: |
+          # Parse the workflow with a real YAML reader (yq) and fail if any
+          # declared job (other than this gate) is absent from `needs` above, so
+          # a newly added job cannot silently escape the required gate.
+          declared="$(yq '.jobs | keys | .[]' .github/workflows/tests.yml |
+            grep -vx required_checks_done | sort)"
+          wired="$(jq -r 'keys[]' <<<"${NEEDS_JSON}" | sort)"
+          missing="$(comm -23 <(printf '%s\n' "${declared}") <(printf '%s\n' "${wired}"))"
+          if [[ -n "${missing}" ]]; then
+            echo "Jobs declared in the workflow but missing from required_checks_done.needs:"
+            while read -r job; do
+              echo "  - ${job}"
+              echo "::error title=Gate is missing a job::${job} not in required_checks_done.needs"
+            done <<<"${missing}"
+            exit 1
+          fi
+          echo "required_checks_done covers all $(grep -c . <<<"${declared}") workflow jobs."
+      - name: Verify required jobs succeeded
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+        run: |
+          {
+            echo "| Required job | Result |"
+            echo "| --- | --- |"
+            jq -r 'to_entries[] | "| \(.key) | \(.value.result) |"' <<<"${NEEDS_JSON}"
+          } >>"${GITHUB_STEP_SUMMARY}"
+
+          failed="$(jq -r 'to_entries[]
+            | select(.value.result != "success" and .value.result != "skipped")
+            | .key' <<<"${NEEDS_JSON}")"
+
+          if [[ -n "${failed}" ]]; then
+            echo "The following required jobs did not succeed:"
+            while read -r job; do
+              echo "  - ${job}"
+              echo "::error title=Required job failed::${job} did not succeed"
+            done <<<"${failed}"
+            exit 1
+          fi
+
+          echo "All required jobs succeeded."

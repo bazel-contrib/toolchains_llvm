@@ -266,6 +266,8 @@ def llvm_config_impl(rctx):
         wrapper_bin_prefix = wrapper_bin_prefix,
         sysroot_paths_dict = sysroot_paths_dict,
         sysroot_labels_dict = sysroot_labels_dict,
+        multiarch_dict = rctx.attr.multiarch,
+        cxx_include_layout_dict = rctx.attr.cxx_include_layout,
         target_settings_dict = rctx.attr.target_settings,
         additional_include_dirs_dict = rctx.attr.cxx_builtin_include_directories,
         stdlib_dict = rctx.attr.stdlib,
@@ -357,6 +359,13 @@ def llvm_config_impl(rctx):
         {
             "%{toolchain_path_prefix}": llvm_dist_path_prefix,
         },
+    )
+
+    rctx.file(
+        "redacted_dates.h",
+        "#define __DATE__      \"redacted\"\n" +
+        "#define __TIME__      \"redacted\"\n" +
+        "#define __TIMESTAMP__ \"redacted\"\n",
     )
 
     if hasattr(rctx, "repo_metadata"):
@@ -576,9 +585,12 @@ cc_toolchain_config(
     target_toolchain_path_prefix = "{target_toolchain_path_prefix}",
     tools_path_prefix = "{tools_path_prefix}",
     wrapper_bin_prefix = "{wrapper_bin_prefix}",
+    redacted_dates_path = "{redacted_dates_path}",
     compiler_configuration = {{
       "sysroot_path": "{sysroot_path}",
       "stdlib": "{stdlib}",
+      "multiarch": "{multiarch_override}",
+      "cxx_include_layout": "{cxx_include_layout}",
       "cxx_standard": "{cxx_standard}",
       "compile_flags": {compile_flags},
       "conly_flags": {conly_flags},
@@ -645,6 +657,7 @@ filegroup(
     name = "compiler-components-{suffix}",
     srcs = [
         ":sysroot-components-{suffix}",
+        "redacted_dates.h",
         {extra_compiler_files}
     ],
 )
@@ -691,6 +704,7 @@ filegroup(
         ":sysroot-components-{suffix}",
         "{llvm_dist_label_prefix}extra_config_site",
         "{toolchain_root}:clang",
+        "redacted_dates.h",
         {extra_compiler_files}
     ],
 )
@@ -731,6 +745,7 @@ system_module_map(
     name = "module-{suffix}",
     cxx_builtin_include_files = ":cxx_builtin_include_files-{suffix}",
     cxx_builtin_include_directories = {cxx_builtin_include_directories},
+    extra_textual_headers = "redacted_dates.h",
     sysroot_files = ":sysroot-components-{suffix}",
     sysroot_path = "{sysroot_path}",
 )
@@ -778,9 +793,12 @@ cc_toolchain(
         target_toolchain_path_prefix = target_toolchain_path_prefix,
         tools_path_prefix = toolchain_info.tools_path_prefix,
         wrapper_bin_prefix = toolchain_info.wrapper_bin_prefix,
+        redacted_dates_path = "external/{}/redacted_dates.h".format(rctx.name),
         sysroot_label_str = sysroot_label_str,
         sysroot_path = sysroot_path,
         stdlib = stdlib,
+        multiarch_override = toolchain_info.multiarch_dict.get(target_pair, ""),
+        cxx_include_layout = toolchain_info.cxx_include_layout_dict.get(target_pair, ""),
         cxx_standard = _dict_value(toolchain_info.cxx_standard_dict, target_pair, "c++17"),
         compile_flags = _list_to_string(_dict_value(toolchain_info.compile_flags_dict, target_pair)),
         conly_flags = _list_to_string(toolchain_info.conly_flags_dict.get(target_pair, [])),
