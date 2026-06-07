@@ -42,7 +42,10 @@ filegroup(
     srcs = [
         "bin/ld.lld",
         "bin/ld64.lld",
-    ] + glob(["bin/wasm-ld"], allow_empty = True),
+    ] + glob(
+        ["bin/wasm-ld"],
+        allow_empty = True,
+    ),
 )
 
 filegroup(
@@ -50,7 +53,18 @@ filegroup(
     srcs = glob([
         "include/**",
         "lib/clang/*/include/**",
-    ]),
+    ]) + glob(
+        [
+            # Sanitizer ignorelists (e.g. msan_ignorelist.txt) that Clang
+            # auto-loads from the resource directory when a sanitizer is
+            # enabled; they must be available as compiler inputs.
+            "lib/clang/*/share/**",
+            # msan-instrumented libc++ headers, present only when the
+            # distribution was configured with the `libcxx_url` attribute.
+            "libcxx-msan/include/**",
+        ],
+        allow_empty = True,
+    ),
 )
 
 filegroup(
@@ -68,12 +82,32 @@ filegroup(
     srcs = [
         "include/c++",
         "lib/clang/{LLVM_VERSION}/include",
-    ],
+    ] + glob(
+        # Sanitizer ignorelists (e.g. msan_ignorelist.txt) auto-loaded by Clang
+        # from the resource directory when a sanitizer is enabled.
+        ["lib/clang/{LLVM_VERSION}/share"],
+        allow_empty = True,
+    ) + glob(
+        # msan-instrumented libc++ headers, present only when the distribution
+        # was configured with the `libcxx_url` attribute. Matched as source
+        # directories (exclude_directories = 0) so they are emitted as umbrella
+        # submodules in the system module map and are available as compiler
+        # inputs, matching the `include/c++` entry above.
+        [
+            "libcxx-msan/include/c++",
+            "libcxx-msan/include/*/c++",
+        ],
+        exclude_directories = 0,
+        allow_empty = True,
+    ),
 )
 
 filegroup(
     name = "extra_config_site",
-    srcs = glob(["include/*/c++/v1/__config_site"], allow_empty = True)
+    srcs = glob(
+        ["include/*/c++/v1/__config_site"],
+        allow_empty = True,
+    ),
 )
 
 filegroup(
@@ -88,22 +122,37 @@ filegroup(
         # not be available at runtime to allow sanitizers to work locally.
         # Any library linked from the toolchain to be released should be linked statically.
         "lib/clang/{LLVM_VERSION}/lib",
-    ] + glob([
-        "lib/**/libc++*.a",
-        "lib/**/libunwind.a",
-    ], allow_empty = True),
+    ] + glob(
+        [
+            "lib/**/libc++*.a",
+            "lib/**/libunwind.a",
+            # msan-instrumented libc++ libraries, present only when the
+            # distribution was configured with the `libcxx_url` attribute.
+            "libcxx-msan/lib/**/lib*.a",
+        ],
+        allow_empty = True,
+    ),
 )
 
 filegroup(
     name = "lib_legacy",
-    srcs = glob([
-        # Include the .dylib files in the linker sandbox even though they will
-        # not be available at runtime to allow sanitizers to work locally.
-        # Any library linked from the toolchain to be released should be linked statically.
-        "lib/clang/{LLVM_VERSION}/lib/**",
-        "lib/**/libc++*.a",
-        "lib/**/libunwind.a",
-    ], allow_empty = True),
+    srcs = glob(
+        [
+            # Include the .dylib files in the linker sandbox even though they will
+            # not be available at runtime to allow sanitizers to work locally.
+            # Any library linked from the toolchain to be released should be linked statically.
+            "lib/clang/{LLVM_VERSION}/lib/**",
+            "lib/**/libc++*.a",
+            "lib/**/libunwind.a",
+            # msan-instrumented libc++ libraries, present only when the
+            # distribution was configured with the `libcxx_url` attribute.
+            # These must be linker-sandbox inputs; otherwise `-l:libc++.a`
+            # silently falls back to the uninstrumented base libc++.a and
+            # produces MSan false positives.
+            "libcxx-msan/lib/**/lib*.a",
+        ],
+        allow_empty = True,
+    ),
 )
 
 filegroup(

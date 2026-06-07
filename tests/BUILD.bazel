@@ -15,7 +15,7 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
-load(":transitions.bzl", "dwp_file", "transition_library_to_platform")
+load(":transitions.bzl", "dwp_file", "msan_flags_test", "sanitizer_test", "transition_library_to_platform")
 
 cc_library(
     name = "stdlib",
@@ -75,6 +75,58 @@ cc_test(
     tags = ["manual"],
     target_compatible_with = ["@platforms//os:linux"],
     deps = [":stdlib"],
+)
+
+# Sanitizer support (rules_cc's stock asan/ubsan/tsan features, augmented by the
+# toolchain with the C++ sanitizer runtime). The transition enables a single
+# sanitizer via `--features` for the wrapped binary so the test runs regardless
+# of the global build flags. Restricted to Linux, where the toolchain ships the
+# sanitizer runtimes.
+sanitizer_test(
+    name = "asan_test",
+    src = ":stdlib_bin",
+    sanitizer = "asan",
+    target_compatible_with = ["@platforms//os:linux"],
+)
+
+sanitizer_test(
+    name = "ubsan_test",
+    src = ":stdlib_bin",
+    sanitizer = "ubsan",
+    target_compatible_with = ["@platforms//os:linux"],
+)
+
+sanitizer_test(
+    name = "tsan_test",
+    src = ":stdlib_bin",
+    sanitizer = "tsan",
+    target_compatible_with = ["@platforms//os:linux"],
+)
+
+# Analysis-only msan check: verifies the msan flags and instrumented-libc++
+# include path are wired into the compile action. Runs against the default
+# toolchain, so it does not need the instrumented libc++ overlay.
+msan_flags_test(
+    name = "msan_flags_test",
+    target_compatible_with = ["@platforms//os:linux"],
+    target_under_test = ":stdlib_bin",
+)
+
+# End-to-end msan test. Built and run with the instrumented-libc++ toolchain
+# (@llvm_toolchain_msan) and --features=msan by tests/scripts/run_msan_tests.sh
+# (the `msan` CI job). Tagged manual so the default `bazel test //...` does not
+# build it with a non-msan toolchain; the script targets it explicitly. This
+# links and runs an instrumented libc++, so it catches a non-instrumented
+# libc++ being linked under msan, which msan_flags_test (analysis only) cannot.
+cc_test(
+    name = "msan_libcxx_test",
+    srcs = ["msan_libcxx_test.cc"],
+    linkstatic = True,
+    tags = ["manual"],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
 )
 
 # We want to test that `llvm-dwp` (used when assembling a `.dwp` file from

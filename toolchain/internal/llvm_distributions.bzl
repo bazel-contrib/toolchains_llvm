@@ -160,6 +160,16 @@ def download_llvm(rctx):
                 lib_path = clang_version.get_child("lib", lib_name)
                 rctx.file(lib_path, libclang_rt_content, legacy_utf8 = False)
 
+    # Optionally overlay a memory-sanitizer-instrumented libc++ used by msan
+    # builds (enabled with `--features=msan`; see cc_toolchain_config.bzl).
+    if rctx.attr.libcxx_url:
+        rctx.download_and_extract(
+            [_full_url(rctx.attr.libcxx_url)],
+            sha256 = rctx.attr.libcxx_sha256,
+            output = "libcxx-msan",
+            auth = _get_auth(rctx, [rctx.attr.libcxx_url]),
+        )
+
     updated_attrs = attr_dict(rctx.attr)
     if update_sha256:
         updated_attrs["sha256"].update([(key, res.sha256)])

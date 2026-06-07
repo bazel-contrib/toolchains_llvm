@@ -518,9 +518,23 @@ def _cc_toolchain_str(
     cxx_builtin_include_directories = [
         target_toolchain_include_path_prefix + "include/c++/v1",
         target_toolchain_include_path_prefix + "lib/clang/{}/include".format(resource_dir_version),
+        # Sanitizer ignorelists (e.g. msan_ignorelist.txt) that Clang auto-loads
+        # from the resource directory when a sanitizer is enabled; declared here
+        # so Bazel's include validation accepts them as builtin toolchain files.
+        target_toolchain_include_path_prefix + "lib/clang/{}/share".format(resource_dir_version),
         # Note(zbarsky): We could avoid this path if we renamed `include/{target_system_name}/c++/v1/__config_site` to `include/c++/v1/__config_site` in the LLVM repo.
         # However, that would preclude sharing it across multiple toolchain definitions.
         target_toolchain_include_path_prefix + "include/{}/c++/v1".format(target_system_name),
+        # MSan-instrumented libc++ headers (present only when the distribution
+        # was configured with `libcxx_url`). msan builds compile against these
+        # via -cxx-isystem (see msan_cpp_system_includes in
+        # cc_toolchain_config.bzl), so they must be declared builtin includes
+        # for both Bazel's include validation and the generated system module
+        # map. Without this, `layering_check` fails for libraries (e.g. abseil)
+        # that include standard headers under msan. Non-existent when no msan
+        # overlay is configured; the module map generator filters absent dirs.
+        target_toolchain_include_path_prefix + "libcxx-msan/include/c++/v1",
+        target_toolchain_include_path_prefix + "libcxx-msan/include/{}/c++/v1".format(target_system_name),
     ]
 
     # TODO(zbarsky): Not sure if these lib64 paths are actually needed for system toolchains?
