@@ -45,16 +45,16 @@ def bazel_toolchain_dependencies():
     if not native.existing_rule("bazel_features"):
         http_archive(
             name = "bazel_features",
-            sha256 = "6a727a78c0134b1b912c97c0937e1c956f35775934ae3e1f4af4156f8d5d1ff4",
-            strip_prefix = "bazel_features-1.47.1",
-            url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.47.1/bazel_features-v1.47.1.tar.gz",
+            sha256 = "ebb168e7779d14ee565ef3b706b259076393d4aedeb20f13f9af03029d7326ec",
+            strip_prefix = "bazel_features-1.48.0",
+            url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.48.0/bazel_features-v1.48.0.tar.gz",
         )
 
     # Load helly25_bzl for version comparisons.
     if not native.existing_rule("helly25_bzl"):
         http_archive(
             name = "helly25_bzl",
-            url = "https://github.com/helly25/bzl/releases/download/0.4.2/bzl-0.4.2.tar.gz",
-            sha256 = "91857eaa56fd0013cb9d82ef5c1c8a996d23ee3d8f40fddf125bb15f5d4f3164",
-            strip_prefix = "bzl-0.4.2",
+            url = "https://github.com/helly25/bzl/releases/download/0.4.3/bzl-0.4.3.tar.gz",
+            sha256 = "8846d5363ed05dfe242af692759c9b7439c1b7ce47b9720c3338e254651cbe99",
+            strip_prefix = "bzl-0.4.3",
         )
