@@ -45,9 +45,9 @@ def bazel_toolchain_dependencies():
     if not native.existing_rule("bazel_features"):
         http_archive(
             name = "bazel_features",
-            sha256 = "ebb168e7779d14ee565ef3b706b259076393d4aedeb20f13f9af03029d7326ec",
-            strip_prefix = "bazel_features-1.48.0",
-            url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.48.0/bazel_features-v1.48.0.tar.gz",
+            sha256 = "89eca73d4c334cf664f84920365d2ce04e2c98099b89f7c5b676b5f377c8e754",
+            strip_prefix = "bazel_features-1.48.1",
+            url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.48.1/bazel_features-v1.48.1.tar.gz",
         )
 
     # Load helly25_bzl for version comparisons.
