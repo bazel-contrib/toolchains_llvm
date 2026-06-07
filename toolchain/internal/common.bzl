@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@helly25_bzl//bzl/paths:paths.bzl", "paths")
+
 SUPPORTED_TARGETS = [
     ("linux", "x86_64"),
     ("linux", "aarch64"),
@@ -217,9 +219,7 @@ def exec_os_arch_dict_value(rctx, attr_name, debug = False):
     return ("", d.get(""))  # Fallback to empty key.
 
 def canonical_dir_path(path):
-    if not path.endswith("/"):
-        return path + "/"
-    return path
+    return paths.ensure_trailing_slash(path)
 
 def is_absolute_path(val):
     return val and val[0] == "/" and (len(val) == 1 or val[1] != "/")
@@ -229,10 +229,9 @@ def pkg_name_from_label(label):
     return s[:s.index(":")]
 
 def pkg_path_from_label(label):
-    if label.workspace_root:
-        return label.workspace_root + "/" + label.package
-    else:
-        return label.package
+    # A label's package is a directory; return it as a canonical dir path so
+    # callers can use it directly as a path prefix.
+    return paths.ensure_trailing_slash(paths.join(label.workspace_root, label.package))
 
 def list_to_string(ls):
     if ls == None:
