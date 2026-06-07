@@ -82,10 +82,18 @@ cc_test(
 # sanitizer via `--features` for the wrapped binary so the test runs regardless
 # of the global build flags. Restricted to Linux, where the toolchain ships the
 # sanitizer runtimes.
+#
+# Tagged `manual` so the default `bazel test //...`/`//:all` does not pick them
+# up: the `container_test` job runs `//:all` against the pinned LLVM 13.0.0
+# toolchain, whose sanitizer runtimes are too old for modern glibc (the asan
+# dlsym alloc pool overflows: `asan_malloc_linux.cpp` CHECK on rolling-release
+# distros). tests/scripts/run_tests.sh lists them explicitly for the default
+# (modern) toolchain instead.
 sanitizer_test(
     name = "asan_test",
     src = ":stdlib_bin",
     sanitizer = "asan",
+    tags = ["manual"],
     target_compatible_with = ["@platforms//os:linux"],
 )
 
@@ -93,6 +101,7 @@ sanitizer_test(
     name = "ubsan_test",
     src = ":stdlib_bin",
     sanitizer = "ubsan",
+    tags = ["manual"],
     target_compatible_with = ["@platforms//os:linux"],
 )
 
@@ -100,6 +109,7 @@ sanitizer_test(
     name = "tsan_test",
     src = ":stdlib_bin",
     sanitizer = "tsan",
+    tags = ["manual"],
     target_compatible_with = ["@platforms//os:linux"],
 )
 

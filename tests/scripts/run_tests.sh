@@ -72,6 +72,11 @@ if [[ -z "${toolchain_name}" ]]; then
   # restricted to linux because the cc_test target uses linux-only constraints.
   if [[ ${OSTYPE} == 'linux'* ]]; then
     targets+=("//:extra_files_compile_test")
+    # Runtime sanitizer tests. Tagged `manual` (so they stay out of `//:all`)
+    # and listed here only for the default toolchain: they require a sanitizer
+    # runtime new enough for the host glibc, which the pinned LLVM 13.0.0
+    # toolchain used by the container tests is not.
+    targets+=("//:asan_test" "//:ubsan_test" "//:tsan_test")
   fi
 fi
 
