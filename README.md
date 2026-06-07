@@ -370,6 +370,70 @@ deps (also known as "depend on what you use") for `cc_*` rules. This feature
 can be enabled by enabling the `layering_check` feature on a per-target,
 per-package or global basis.
 
+### Sanitizers
+
+The toolchain can build with AddressSanitizer, UndefinedBehaviorSanitizer,
+ThreadSanitizer, or MemorySanitizer. Enable at most one at a time, via Bazel
+features:
+
+```sh
+bazel build //... --features=asan
+bazel build //... --features=ubsan
+bazel build //... --features=tsan
+bazel build //... --features=msan   # Linux only; see below
+```
+
+`asan`, `ubsan`, and `tsan` are rules_cc's stock sanitizer features and work
+with the regular standard library. Enabling sanitizers as features means Bazel
+resets them to `--host_features` in the exec configuration, so build tools stay
+uninstrumented. For finer-grained control, combine with
+`--copt=-fsanitize-ignorelist=...` (the provided file is made available to
+compile actions via the `extra_compiler_files` attribute).
+
+MemorySanitizer additionally swaps in an instrumented libc++ (see below).
+
+#### MemorySanitizer and the instrumented libc++
+
+MemorySanitizer is Linux-only and is enabled with `--features=msan`. A feature
+is used so Bazel resets it to `--host_features` in the exec configuration,
+keeping build tools uninstrumented.
+
+MemorySanitizer reports false positives unless the C++ standard library is also
+instrumented, so `msan` swaps the toolchain's libc++ for an instrumented build
+(headers under `libcxx-msan/include`, libraries under `libcxx-msan/lib`).
+There is no official prebuilt instrumented libc++; you must build one from the
+matching LLVM sources and point the distribution at it with the `libcxx_url`
+and `libcxx_sha256` attributes (`llvm`/`llvm_toolchain` rules, or the
+`llvm.toolchain` module extension tag):
+
+```python
+llvm(
+    name = "llvm_toolchain_llvm",
+    llvm_version = "20.1.0",
+    libcxx_url = "https://example.com/libcxx-msan-20.1.0-x86_64-linux-gnu.tar.zst",
+    libcxx_sha256 = "<sha256>",
+)
+```
+
+Build the instrumented libc++ following the [MemorySanitizer libc++
+how-to](https://github.com/google/sanitizers/wiki/MemorySanitizerLibcxxHowTo),
+e.g.:
+
+```sh
+cmake -GNinja <llvm-src>/runtimes \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi;libunwind" \
+  -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
+  -DLLVM_USE_SANITIZER=MemoryWithOrigins \
+  -DLLVM_ENABLE_PIC=ON \
+  -DCMAKE_INSTALL_PREFIX=<prefix>
+ninja && ninja install
+# Archive the resulting <prefix>/lib and <prefix>/include directories; that is
+# the layout extracted into libcxx-msan/. libunwind itself is too low-level to
+# instrument, so overwrite the instrumented libunwind.* with the uninstrumented
+# one from your clang distribution before archiving.
+```
+
 ## Distribution data and scripts
 
 The list of LLVM releases this toolchain knows about lives as JSONC data

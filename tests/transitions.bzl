@@ -19,6 +19,7 @@
 #
 # These three Bazel flags influence whether or not `.dwo` and `.dwp` are
 # created.
+load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts")
 load("@rules_cc//cc:defs.bzl", "CcInfo", "DebugPackageInfo")
 
 def _fission_transition_impl(settings, attr):
@@ -141,5 +142,79 @@ transition_binary_to_platform = rule(
         "_allowlist_function_transition": attr.label(
             default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
         ),
+    },
+)
+
+_FEATURES = "//command_line_option:features"
+
+def _sanitizer_transition_impl(settings, attr):
+    # Enable the requested sanitizer via `--features`, matching how sanitizers
+    # are turned on in normal builds (rules_cc's stock asan/ubsan/tsan
+    # features). Using a feature means Bazel resets it to `--host_features` in
+    # the exec configuration, so build tools stay uninstrumented.
+    features = [f for f in settings[_FEATURES] if f != attr.sanitizer]
+    return {_FEATURES: features + [attr.sanitizer]}
+
+_sanitizer_transition = transition(
+    implementation = _sanitizer_transition_impl,
+    inputs = [_FEATURES],
+    outputs = [_FEATURES],
+)
+
+def _sanitizer_test_impl(ctx):
+    # Re-expose the (sanitizer-enabled) binary as this test's executable.
+    exe = ctx.attr.src[0][DefaultInfo].files_to_run.executable
+    out = ctx.actions.declare_file(ctx.label.name)
+    ctx.actions.symlink(output = out, target_file = exe, is_executable = True)
+    return [DefaultInfo(
+        executable = out,
+        runfiles = ctx.attr.src[0][DefaultInfo].default_runfiles,
+    )]
+
+# Builds and runs `src` with a single sanitizer enabled via `--features`,
+# exercising the sanitizer compile/link flags and runtime end to end. Used for
+# asan/ubsan/tsan (msan needs an instrumented libc++).
+sanitizer_test = rule(
+    implementation = _sanitizer_test_impl,
+    test = True,
+    attrs = {
+        "src": attr.label(mandatory = True, cfg = _sanitizer_transition),
+        "sanitizer": attr.string(mandatory = True, values = ["asan", "ubsan", "tsan"]),
+        "_allowlist_function_transition": attr.label(
+            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
+        ),
+    },
+)
+
+def _msan_flags_test_impl(ctx):
+    env = analysistest.begin(ctx)
+    cpp_actions = [
+        a
+        for a in analysistest.target_actions(env)
+        if a.mnemonic == "CppCompile"
+    ]
+    asserts.true(env, len(cpp_actions) > 0, "expected a CppCompile action")
+    argv = cpp_actions[0].argv
+    asserts.true(
+        env,
+        "-fsanitize=memory" in argv,
+        "expected -fsanitize=memory on the compile command line, got: %s" % argv,
+    )
+    asserts.true(
+        env,
+        [a for a in argv if "libcxx-msan" in a],
+        "expected the instrumented libc++ include path on the compile command line, got: %s" % argv,
+    )
+    return analysistest.end(env)
+
+# Analysis-only test: verifies the msan flags and instrumented-libc++ include
+# path are wired into the C++ compile action. This does not link or run, so it
+# does not require an actual instrumented libc++ build. msan is enabled through
+# the `msan` cc_feature (--features=msan), so it is reset in the exec
+# configuration and build tools stay uninstrumented.
+msan_flags_test = analysistest.make(
+    _msan_flags_test_impl,
+    config_settings = {
+        "//command_line_option:features": ["msan"],
     },
 )

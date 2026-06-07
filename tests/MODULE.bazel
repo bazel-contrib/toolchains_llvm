@@ -104,6 +104,30 @@ use_repo(llvm, "llvm_toolchain_cxx20")
 
 register_toolchains("@llvm_toolchain_cxx20//:all")
 
+# MemorySanitizer end-to-end toolchain. Pinned to the exact LLVM build that the
+# instrumented libc++ overlay (libcxx_url) was compiled against, so the linked
+# libc++ is itself instrumented and ABI-compatible. Used only by the msan tests
+# via --extra_toolchains (see tests/scripts/run_msan_tests.sh); deliberately not
+# registered globally. Linux x86_64 only.
+MSAN_LLVM_VERSION = "21.1.8"
+
+MSAN_DISTRIBUTION = "clang+llvm-%s-x86_64-linux-gnu-ubuntu-22.04.tar.zst" % MSAN_LLVM_VERSION
+
+llvm.toolchain(
+    name = "llvm_toolchain_msan",
+    alternative_llvm_sources = [
+        "https://github.com/RealtimeRoboticsGroup/toolchains/releases/download/{llvm_version}/{basename}",
+    ],
+    distribution = MSAN_DISTRIBUTION,
+    extra_llvm_distributions = {
+        MSAN_DISTRIBUTION: "3e9ab559182f45143c36d761fcee6818935187a8f54354ecb043643b642769f0",
+    },
+    libcxx_sha256 = "56e33981bb71aba8704026534093f81ba9783cff0bf701681f1781d2ecb50a87",
+    libcxx_url = "https://github.com/RealtimeRoboticsGroup/toolchains/releases/download/%s/libcxx-msan-%s-x86_64-linux-gnu-ubuntu-22.04.tar.zst" % (MSAN_LLVM_VERSION, MSAN_LLVM_VERSION),
+    llvm_versions = {"": MSAN_LLVM_VERSION},
+)
+use_repo(llvm, "llvm_toolchain_msan")
+
 # Toolchain examples for testing different stdlib implementations on Linux.
 # These are used by run_external_tests.sh in CI to verify that the toolchain
 # works with system-hosted libc++ and libstdc++ instead of the builtin libc++.

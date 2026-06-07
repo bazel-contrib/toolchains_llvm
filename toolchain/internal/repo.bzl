@@ -120,6 +120,18 @@ llvm_repo_attrs.update({
                "distribution. The key is the label of a libclang_rt library, " +
                "and the value is `\"{llvm_target_name}/{library_name}.a\"`."),
     ),
+    "libcxx_url": attr.string(
+        mandatory = False,
+        doc = ("URL of an archive containing a memory-sanitizer-instrumented build of " +
+               "libc++ (headers under `include/` and libraries under `lib/`). When set, " +
+               "it is extracted into `libcxx-msan/` in the distribution and used in place " +
+               "of the regular libc++ for builds with MemorySanitizer enabled " +
+               "(`--features=msan`, Linux only)."),
+    ),
+    "libcxx_sha256": attr.string(
+        mandatory = False,
+        doc = "The expected SHA-256 of the archive downloaded as per the `libcxx_url` attribute.",
+    ),
     "netrc": attr.string(
         mandatory = False,
         doc = "Path to the netrc file for authenticated LLVM URL downloads.",

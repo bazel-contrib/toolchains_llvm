@@ -37,3 +37,41 @@ config_setting(
     flag_values = {":compiler-rt": "True"},
     visibility = ["//visibility:public"],
 )
+
+# Sanitizers are enabled via Bazel features, not //toolchain/config flags:
+#
+#   --features=asan      (AddressSanitizer)
+#   --features=ubsan     (UndefinedBehaviorSanitizer)
+#   --features=tsan      (ThreadSanitizer)
+#   --features=msan      (MemorySanitizer; Linux only)
+#
+# asan/ubsan/tsan are rules_cc's stock sanitizer cc_features. msan is wired up
+# in cc_toolchain_config.bzl because it must swap in an instrumented libc++
+# (supplied via the `libcxx_url`/`libcxx_sha256` attributes of the LLVM
+# distribution repo). Using features (rather than flags) lets Bazel reset them
+# to `--host_features` in the exec configuration, so build tools stay
+# uninstrumented.
+#
+# The config_settings below match `--features=asan|ubsan|tsan` so
+# cc_toolchain_config.bzl can `select()` extra flags onto the stock features
+# (the C++ sanitizer runtime, and ubsan's bounds/nullability checks). Matching
+# on `--features` keeps the exec-configuration reset: the extra flags are
+# dropped for build tools just like the stock features are.
+
+config_setting(
+    name = "use_asan",
+    values = {"features": "asan"},
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "use_ubsan",
+    values = {"features": "ubsan"},
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "use_tsan",
+    values = {"features": "tsan"},
+    visibility = ["//visibility:public"],
+)

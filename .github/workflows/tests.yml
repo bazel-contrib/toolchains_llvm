@@ -163,6 +163,27 @@ jobs:
         env:
           USE_BZLMOD: ${{ matrix.bzlmod }}
         run: tests/scripts/run_tests.sh -t @llvm_toolchain_with_system_llvm//:cc-toolchain-x86_64-linux -v 16.0.0
+  msan_test:
+    # End-to-end MemorySanitizer test. Downloads a full clang + an
+    # instrumented-libc++ overlay and builds/runs an msan binary, exercising the
+    # instrumented-libc++ swap end to end. Linux/x86_64 and bzlmod only (the
+    # overlay toolchain is defined via bzlmod). The bazel-version matrix covers
+    # both filegroup layouts: <9 uses lib_legacy/include, 9+ uses
+    # lib/cxx_builtin_include (merkle_cache_v2).
+    strategy:
+      fail-fast: false
+      matrix:
+        bazel_version: [7.*, 8.*, 9.*, latest]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: tests/scripts/ubuntu_install_libtinfo.sh
+      - run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android
+      - name: Test
+        env:
+          USE_BAZEL_VERSION: ${{ matrix.bazel_version }}
+          USE_BZLMOD: true
+        run: tests/scripts/run_msan_tests.sh
   # Single aggregating gate for branch protection. It depends on every job that
   # must pass, so "required_checks_done" is the only status check that needs to
   # be marked "required" on the master branch -- adding or renaming a job above
@@ -180,6 +201,7 @@ jobs:
       - xcompile_test
       - abs_paths_test
       - sys_paths_test
+      - msan_test
     if: always()
     runs-on: ubuntu-latest
     steps:
