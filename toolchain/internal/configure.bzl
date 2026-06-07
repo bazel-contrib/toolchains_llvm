@@ -13,7 +13,7 @@
 # limitations under the License.
 
 load("@bazel_features//:features.bzl", "bazel_features")
-load("@bazel_skylib//lib:paths.bzl", "paths")
+load("@helly25_bzl//bzl/paths:paths.bzl", "paths")
 load(
     "//toolchain:aliases.bzl",
     _aliased_libs = "aliased_libs",
@@ -86,24 +86,24 @@ def _detect_gcc_cxx_headers(rctx, sysroot_path, target_system_name):
 
     # Check for GCC C++ headers in common locations
     # Modern distros (Debian 10+, Ubuntu 18.04+): /usr/include/c++/<version>
-    cxx_include_path = rctx.path(sysroot_path + "usr/include/c++")
+    cxx_include_path = rctx.path(paths.join(sysroot_path, "usr/include/c++"))
     if cxx_include_path.exists:
         # Find GCC version directories (e.g., "14", "13", "12")
         for entry in cxx_include_path.readdir():
             version = entry.basename
 
             # Add main C++ headers
-            include_dirs.append("/usr/include/c++/" + version)
+            include_dirs.append(paths.join("/usr/include/c++", version))
 
             # Add target-specific headers (for multi-arch)
-            include_dirs.append("/usr/include/" + gnu_triple + "/c++/" + version)
+            include_dirs.append(paths.join("/usr/include", gnu_triple, "c++", version))
 
             # Add backward compatibility headers
-            include_dirs.append("/usr/include/c++/" + version + "/backward")
+            include_dirs.append(paths.join("/usr/include/c++", version, "backward"))
 
     # Also check traditional GCC installation path: /usr/lib/gcc/<triple>/<version>/...
     # This is the layout used by older distros and Chromium sysroots
-    gcc_lib_path = rctx.path(sysroot_path + "usr/lib/gcc/" + gnu_triple)
+    gcc_lib_path = rctx.path(paths.join(sysroot_path, "usr/lib/gcc", gnu_triple))
     if gcc_lib_path.exists:
         for entry in gcc_lib_path.readdir():
             version = entry.basename
@@ -111,10 +111,10 @@ def _detect_gcc_cxx_headers(rctx, sysroot_path, target_system_name):
             # Traditional GCC include path structure uses relative paths from gcc lib dir
             # e.g., /usr/lib/gcc/x86_64-linux-gnu/6/../../../../include/c++/6
             # which resolves to /usr/include/c++/6
-            base = "/usr/lib/gcc/" + gnu_triple + "/" + version
-            include_dirs.append(base + "/../../../../include/c++/" + version)
-            include_dirs.append(base + "/../../../../include/" + gnu_triple + "/c++/" + version)
-            include_dirs.append(base + "/../../../../include/c++/" + version + "/backward")
+            base = paths.join("/usr/lib/gcc", gnu_triple, version)
+            include_dirs.append(paths.join(base, "../../../../include/c++", version))
+            include_dirs.append(paths.join(base, "../../../../include", gnu_triple, "c++", version))
+            include_dirs.append(paths.join(base, "../../../../include/c++", version, "backward"))
 
     return include_dirs
 
@@ -215,7 +215,7 @@ def llvm_config_impl(rctx):
         toolchain_path_prefix = llvm_dist_path_prefix
 
     if not use_absolute_paths_llvm:
-        llvm_dist_rel_path = _canonical_dir_path("../../" + llvm_dist_path_prefix)
+        llvm_dist_rel_path = _canonical_dir_path(paths.join("../..", llvm_dist_path_prefix))
         llvm_dist_label_prefix = toolchain_root + ":"
 
         # tools can only be defined as absolute paths or in a subdirectory of
@@ -235,9 +235,9 @@ def llvm_config_impl(rctx):
         tools_path_prefix = "bin/"
         tools = _toolchain_tools(os)
         for tool_name, symlink_name in tools.items():
-            rctx.symlink(llvm_dist_rel_path + "bin/" + tool_name, tools_path_prefix + symlink_name)
+            rctx.symlink(paths.join(llvm_dist_rel_path, "bin", tool_name), paths.join(tools_path_prefix, symlink_name))
         symlinked_tools_str = "".join([
-            "\n" + (" " * 8) + "\"" + tools_path_prefix + symlink_name + "\","
+            "\n" + (" " * 8) + "\"" + paths.join(tools_path_prefix, symlink_name) + "\","
             for symlink_name in tools.values()
         ])
     else:
@@ -247,7 +247,7 @@ def llvm_config_impl(rctx):
         # Path to individual tool binaries.
         # No symlinking necessary when using absolute paths.
         wrapper_bin_prefix = "bin/"
-        tools_path_prefix = llvm_dist_path_prefix + "bin/"
+        tools_path_prefix = paths.ensure_trailing_slash(paths.join(llvm_dist_path_prefix, "bin"))
         symlinked_tools_str = ""
 
     sysroot_paths_dict, sysroot_labels_dict = _sysroot_paths_dict(
@@ -516,15 +516,15 @@ def _cc_toolchain_str(
     # C++ built-in include directories:
     resource_dir_version = llvm_version if major_llvm_version < 16 else major_llvm_version
     cxx_builtin_include_directories = [
-        target_toolchain_include_path_prefix + "include/c++/v1",
-        target_toolchain_include_path_prefix + "lib/clang/{}/include".format(resource_dir_version),
+        paths.join(target_toolchain_include_path_prefix, "include/c++/v1"),
+        paths.join(target_toolchain_include_path_prefix, "lib/clang", str(resource_dir_version), "include"),
         # Sanitizer ignorelists (e.g. msan_ignorelist.txt) that Clang auto-loads
         # from the resource directory when a sanitizer is enabled; declared here
         # so Bazel's include validation accepts them as builtin toolchain files.
-        target_toolchain_include_path_prefix + "lib/clang/{}/share".format(resource_dir_version),
+        paths.join(target_toolchain_include_path_prefix, "lib/clang", str(resource_dir_version), "share"),
         # Note(zbarsky): We could avoid this path if we renamed `include/{target_system_name}/c++/v1/__config_site` to `include/c++/v1/__config_site` in the LLVM repo.
         # However, that would preclude sharing it across multiple toolchain definitions.
-        target_toolchain_include_path_prefix + "include/{}/c++/v1".format(target_system_name),
+        paths.join(target_toolchain_include_path_prefix, "include", target_system_name, "c++/v1"),
         # MSan-instrumented libc++ headers (present only when the distribution
         # was configured with `libcxx_url`). msan builds compile against these
         # via -cxx-isystem (see msan_cpp_system_includes in
@@ -533,15 +533,15 @@ def _cc_toolchain_str(
         # map. Without this, `layering_check` fails for libraries (e.g. abseil)
         # that include standard headers under msan. Non-existent when no msan
         # overlay is configured; the module map generator filters absent dirs.
-        target_toolchain_include_path_prefix + "libcxx-msan/include/c++/v1",
-        target_toolchain_include_path_prefix + "libcxx-msan/include/{}/c++/v1".format(target_system_name),
+        paths.join(target_toolchain_include_path_prefix, "libcxx-msan/include/c++/v1"),
+        paths.join(target_toolchain_include_path_prefix, "libcxx-msan/include", target_system_name, "c++/v1"),
     ]
 
     # TODO(zbarsky): Not sure if these lib64 paths are actually needed for system toolchains?
     if use_absolute_paths_llvm:
         cxx_builtin_include_directories.extend([
-            target_toolchain_include_path_prefix + "lib64/clang/{}/include".format(llvm_version),
-            target_toolchain_include_path_prefix + "lib64/clang/{}/include".format(major_llvm_version),
+            paths.join(target_toolchain_include_path_prefix, "lib64/clang", str(llvm_version), "include"),
+            paths.join(target_toolchain_include_path_prefix, "lib64/clang", str(major_llvm_version), "include"),
         ])
 
     stdlib = _dict_value(toolchain_info.stdlib_dict, target_pair, "builtin-libc++")
@@ -877,7 +877,7 @@ def _convenience_targets_str(rctx, use_absolute_paths, llvm_dist_rel_path, llvm_
             filenames.append(filename)
 
         for filename in filenames:
-            rctx.symlink(llvm_dist_rel_path + filename, filename)
+            rctx.symlink(paths.join(llvm_dist_rel_path, filename), filename)
 
     lib_target_strs = []
     for name in _aliased_libs:

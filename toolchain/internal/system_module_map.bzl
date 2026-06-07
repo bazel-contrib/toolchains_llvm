@@ -13,13 +13,13 @@
 # limitations under the License.
 
 load("@bazel_features//:features.bzl", "bazel_features")
-load("@bazel_skylib//lib:paths.bzl", "paths")
+load("@helly25_bzl//bzl/paths:paths.bzl", "paths")
 
 def _textual_header(file, *, include_prefixes, execroot_prefix):
     path = file.path
     for include_prefix in include_prefixes:
         if path.startswith(include_prefix):
-            return "  textual header \"{}{}\"".format(execroot_prefix, path)
+            return "  textual header \"{}\"".format(paths.join(execroot_prefix, path))
 
     # The file is not under any of the include prefixes,
     return None
@@ -37,14 +37,14 @@ def _system_module_map(ctx):
     relative_include_prefixes = []
     for include_dir in ctx.attr.cxx_builtin_include_directories:
         if ctx.attr.sysroot_path and include_dir.startswith("%sysroot%"):
-            include_dir = ctx.attr.sysroot_path + include_dir[len("%sysroot%"):]
+            include_dir = paths.join(ctx.attr.sysroot_path, include_dir[len("%sysroot%"):])
         if include_dir.startswith("%workspace%/"):
             include_dir = include_dir.removeprefix("%workspace%/")
-        include_dir = paths.normalize(include_dir).replace("//", "/")
+        include_dir = paths.normalize(include_dir)
         if include_dir.startswith("/"):
             absolute_path_dirs.append(include_dir)
         else:
-            relative_include_prefixes.append(include_dir + "/")
+            relative_include_prefixes.append(paths.ensure_trailing_slash(include_dir))
 
     # The builtin include directories are relative to the execroot, but the
     # paths in the module map must be relative to the directory that contains
@@ -57,15 +57,14 @@ def _system_module_map(ctx):
     )
 
     umbrella_submodule_closure = lambda file: _umbrella_submodule(
-        execroot_prefix + paths.normalize(file.path).replace("//", "/"),
+        paths.join(execroot_prefix, file.path),
     )
 
     # Unlike cxx_builtin_include_files, whose entries are source directories
     # emitted as umbrella submodules, these are individual headers (e.g. a
     # force-included header) that must always be emitted as textual headers.
-    forced_textual_header_closure = lambda file: "  textual header \"{}{}\"".format(
-        execroot_prefix,
-        paths.normalize(file.path).replace("//", "/"),
+    forced_textual_header_closure = lambda file: "  textual header \"{}\"".format(
+        paths.join(execroot_prefix, file.path),
     )
 
     template_dict = ctx.actions.template_dict()

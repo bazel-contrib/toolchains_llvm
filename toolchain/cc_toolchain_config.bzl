@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@helly25_bzl//bzl/paths:paths.bzl", "paths")
+
 # buildifier: disable=bzl-visibility
 load(
     "@rules_cc//cc/private/toolchain:unix_cc_toolchain_config.bzl",
@@ -75,17 +77,15 @@ def cc_toolchain_config(
     target_os_arch_key = _os_arch_pair(target_os, target_arch)
     _check_os_arch_keys([exec_os_arch_key, target_os_arch_key])
 
-    # All `*_path_prefix` arguments are concatenated with relative paths (e.g.
-    # `"{}lib/clang/...".format(prefix)`) and so must end in '/'. Verify it
-    # explicitly rather than silently producing malformed flags.
-    for arg_name, arg_value in (
-        ("toolchain_path_prefix", toolchain_path_prefix),
-        ("target_toolchain_path_prefix", target_toolchain_path_prefix),
-        ("tools_path_prefix", tools_path_prefix),
-        ("wrapper_bin_prefix", wrapper_bin_prefix),
-    ):
-        if not arg_value.endswith("/"):
-            fail("{} must end with '/', got: {}".format(arg_name, repr(arg_value)))
+    # User-supplied flag templates substitute `{toolchain_path_prefix}` (and
+    # friends) directly via _fmt_flags and expect a directory path ending in
+    # '/'. Normalize the prefixes here so callers need not be precise. Internal
+    # flags and path values use paths.join()/ensure_trailing_slash() and do not
+    # depend on this.
+    toolchain_path_prefix = paths.ensure_trailing_slash(toolchain_path_prefix)
+    target_toolchain_path_prefix = paths.ensure_trailing_slash(target_toolchain_path_prefix)
+    tools_path_prefix = paths.ensure_trailing_slash(tools_path_prefix)
+    wrapper_bin_prefix = paths.ensure_trailing_slash(wrapper_bin_prefix)
 
     # A bunch of variables that get passed straight through to
     # `create_cc_toolchain_config_info`.
@@ -229,12 +229,12 @@ def cc_toolchain_config(
 
     resource_dir = [
         "-resource-dir",
-        "{}lib/clang/{}".format(target_toolchain_path_prefix, resource_dir_version),
+        paths.join(target_toolchain_path_prefix, "lib/clang", str(resource_dir_version)),
     ]
 
     # Clang's builtin headers (stddef.h, stdarg.h, intrinsics, ...). Searched
     # after the C++ standard library headers (see system_includes below).
-    toolchain_builtin_include = target_toolchain_path_prefix + "lib/clang/{}/include".format(resource_dir_version)
+    toolchain_builtin_include = paths.join(target_toolchain_path_prefix, "lib/clang", str(resource_dir_version), "include")
 
     target_flags = [
         "--target=" + target_system_name,
@@ -251,7 +251,7 @@ def cc_toolchain_config(
         "-Wall",
         "-Wthread-safety",
         "-Wself-assign",
-        "-B{}bin/".format(toolchain_path_prefix),
+        "-B" + paths.ensure_trailing_slash(paths.join(toolchain_path_prefix, "bin")),
     ] + resource_dir
 
     dbg_compile_flags = ["-g", "-fstandalone-debug"]
@@ -286,13 +286,13 @@ def cc_toolchain_config(
     # duplicate path (empty due to its own header guard) instead of the C
     # library's stdlib.h, leaving types like `ldiv_t` and `size_t` undeclared.
     toolchain_cpp_system_includes = [
-        target_toolchain_path_prefix + "include/c++/v1/",
-        target_toolchain_path_prefix + "include/" + target_system_name + "/c++/v1/",
+        paths.join(target_toolchain_path_prefix, "include/c++/v1"),
+        paths.join(target_toolchain_path_prefix, "include", target_system_name, "c++/v1"),
     ]
 
     non_msan_link_flags = [
-        "-L{}lib".format(target_toolchain_path_prefix),
-        "-L{}lib/{}".format(target_toolchain_path_prefix, target_system_name),
+        "-L" + paths.join(target_toolchain_path_prefix, "lib"),
+        "-L" + paths.join(target_toolchain_path_prefix, "lib", target_system_name),
     ]
 
     # When building with memory sanitizer, the C++ standard library must be
@@ -386,11 +386,11 @@ def cc_toolchain_config(
     sysroot_path = compiler_configuration["sysroot_path"]
 
     # Follow the same convention as the `*_path_prefix` arguments: a non-empty
-    # sysroot path is a canonical directory path ending in '/', concatenated
-    # with relative subpaths (no leading slash). Error out rather than silently
-    # producing malformed flags.
-    if sysroot_path and not sysroot_path.endswith("/"):
-        fail("sysroot_path must end with '/', got: {}".format(repr(sysroot_path)))
+    # sysroot path is a directory path ending in '/' (the sysroot flag templates
+    # below substitute it directly). Normalize it here so callers need not be
+    # precise; leave None/empty untouched to preserve the "no sysroot" case.
+    if sysroot_path:
+        sysroot_path = paths.ensure_trailing_slash(sysroot_path)
 
     # Flags related to C++ standard.
     cxx_flags = [
@@ -455,7 +455,7 @@ def cc_toolchain_config(
             # disables Clang's default libc++ header search; here we point at
             # the SDK's headers instead of the toolchain's.
             cpp_system_includes = [
-                sysroot_path + "usr/include/c++/v1",
+                paths.join(sysroot_path, "usr/include/c++/v1"),
             ]
 
             # Several system libraries on macOS dynamically link libc++ and
@@ -481,7 +481,7 @@ def cc_toolchain_config(
             # redundant and its dylib causes the runtime failure described
             # above, so the libunwind config flag has no effect on macOS.
             link_flags.extend([
-                "-L{}usr/lib".format(sysroot_path),
+                "-L" + paths.join(sysroot_path, "usr/lib"),
                 "-lc++",
                 "-lc++abi",
                 "-Bdynamic",
@@ -520,8 +520,8 @@ def cc_toolchain_config(
         # example. This seems to be a commonly-used configuration with clang
         # though, so it's probably good enough for most people.
         stdlib_link_flags.extend([
-            "-L{}lib".format(target_toolchain_path_prefix),
-            "-L{}lib/{}".format(target_toolchain_path_prefix, target_system_name),
+            "-L" + paths.join(target_toolchain_path_prefix, "lib"),
+            "-L" + paths.join(target_toolchain_path_prefix, "lib", target_system_name),
         ])
 
         # Place the libstdc++ link in `link_libs` (after the object files) so
@@ -551,18 +551,18 @@ def cc_toolchain_config(
             # multiarch-specific directory whose layout differs between
             # Debian-style and Yocto-style sysroots.
             if cxx_include_layout == "yocto":
-                multiarch_cpp_include = sysroot_path + "usr/include/c++/" + libstdcxx_version + "/" + multiarch
+                multiarch_cpp_include = paths.join(sysroot_path, "usr/include/c++", libstdcxx_version, multiarch)
                 stdlib_link_flags.extend([
-                    "-B{}usr/lib/{}/{}/".format(sysroot_path, multiarch, libstdcxx_version),
-                    "-Wl,-L{}usr/lib/{}/{}/".format(sysroot_path, multiarch, libstdcxx_version),
+                    "-B" + paths.ensure_trailing_slash(paths.join(sysroot_path, "usr/lib", multiarch, libstdcxx_version)),
+                    "-Wl,-L" + paths.ensure_trailing_slash(paths.join(sysroot_path, "usr/lib", multiarch, libstdcxx_version)),
                 ])
             else:
-                multiarch_cpp_include = sysroot_path + "usr/include/" + multiarch + "/c++/" + libstdcxx_version
+                multiarch_cpp_include = paths.join(sysroot_path, "usr/include", multiarch, "c++", libstdcxx_version)
 
             cpp_system_includes = [
-                sysroot_path + "usr/include/c++/" + libstdcxx_version,
+                paths.join(sysroot_path, "usr/include/c++", libstdcxx_version),
                 multiarch_cpp_include,
-                sysroot_path + "usr/include/c++/" + libstdcxx_version + "/backward",
+                paths.join(sysroot_path, "usr/include/c++", libstdcxx_version, "backward"),
             ]
 
             # Clang really wants C system header includes after C++ ones, so
@@ -572,7 +572,7 @@ def cc_toolchain_config(
             system_includes.append(toolchain_builtin_include)
 
             stdlib_link_flags.extend([
-                "-L" + sysroot_path + "usr/lib/gcc/" + multiarch + "/" + libstdcxx_version,
+                "-L" + paths.join(sysroot_path, "usr/lib/gcc", multiarch, libstdcxx_version),
             ])
         else:
             fail("Invalid stdlib: " + stdlib)
@@ -624,19 +624,19 @@ def cc_toolchain_config(
     # https://github.com/bazelbuild/rules_cc/blob/fe41fc4ea219c9d3680ee536bba6681f3baf838e/cc/private/toolchain/unix_cc_toolchain_config.bzl#L1887
     # NOTE: Ensure these are listed in toolchain_tools in toolchain/internal/common.bzl.
     tool_paths = {
-        "ar": tools_path_prefix + ("llvm-ar" if not use_libtool else "libtool"),
-        "cpp": tools_path_prefix + "clang-cpp",
-        "dwp": tools_path_prefix + "llvm-dwp",
-        "gcc": wrapper_bin_prefix + "cc_wrapper.sh",
-        "gcov": tools_path_prefix + "llvm-profdata",
-        "ld": tools_path_prefix + "ld.lld",
-        "llvm-cov": tools_path_prefix + "llvm-cov",
-        "llvm-profdata": tools_path_prefix + "llvm-profdata",
-        "nm": tools_path_prefix + "llvm-nm",
-        "objcopy": tools_path_prefix + "llvm-objcopy",
-        "objdump": tools_path_prefix + "llvm-objdump",
-        "strip": tools_path_prefix + "llvm-strip",
-        "parse_headers": wrapper_bin_prefix + "cc_wrapper.sh",
+        "ar": paths.join(tools_path_prefix, "llvm-ar" if not use_libtool else "libtool"),
+        "cpp": paths.join(tools_path_prefix, "clang-cpp"),
+        "dwp": paths.join(tools_path_prefix, "llvm-dwp"),
+        "gcc": paths.join(wrapper_bin_prefix, "cc_wrapper.sh"),
+        "gcov": paths.join(tools_path_prefix, "llvm-profdata"),
+        "ld": paths.join(tools_path_prefix, "ld.lld"),
+        "llvm-cov": paths.join(tools_path_prefix, "llvm-cov"),
+        "llvm-profdata": paths.join(tools_path_prefix, "llvm-profdata"),
+        "nm": paths.join(tools_path_prefix, "llvm-nm"),
+        "objcopy": paths.join(tools_path_prefix, "llvm-objcopy"),
+        "objdump": paths.join(tools_path_prefix, "llvm-objdump"),
+        "strip": paths.join(tools_path_prefix, "llvm-strip"),
+        "parse_headers": paths.join(wrapper_bin_prefix, "cc_wrapper.sh"),
     }
 
     # Start-end group linker support:
@@ -688,16 +688,16 @@ def cc_toolchain_config(
     external_include_paths = []
     if sysroot_path != None:
         external_include_paths = [
-            sysroot_path + "usr/local/include",
+            paths.join(sysroot_path, "usr/local/include"),
         ]
         if multiarch != None:
             external_include_paths.extend([
-                sysroot_path + "usr/" + multiarch + "/include",
-                sysroot_path + "usr/include/" + multiarch,
+                paths.join(sysroot_path, "usr", multiarch, "include"),
+                paths.join(sysroot_path, "usr/include", multiarch),
             ])
         external_include_paths.extend([
-            sysroot_path + "usr/include",
-            sysroot_path + "include",
+            paths.join(sysroot_path, "usr/include"),
+            paths.join(sysroot_path, "include"),
         ])
 
     # Configured-stdlib include flags. With -nostdinc (libstdc++) Clang no
