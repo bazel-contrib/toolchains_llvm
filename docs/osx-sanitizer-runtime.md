@@ -173,6 +173,16 @@ config_setting). They compose without interference — with both active,
 static-mode binaries resolve via A's rpath and dynamic-mode links prefer the
 runfiles copy.
 
+**Verified on branch `osx-sanitizer-combined`** (this branch + #767
+cherry-picked; the two touch disjoint files): **74/74** mbo asan tests pass
+with default consumer settings on macOS 26 / Apple Silicon / LLVM 22.1.7.
+Spot-checks confirm each mechanism handles its own case: the static-mode
+`cc_binary` (`mbo/file/glob`) carries only A's `@loader_path/.../external/...`
+rpath (no solib rpaths — B stays inactive in static mode), while `cc_test`
+binaries get B's solib rpaths with the dylib physically present in runfiles.
+One cell remains uncovered by the combination: static-mode binaries under
+remote execution still need the consumer-side `linkstatic = False`.
+
 ## Outlook: libc++
 
 `static_link_cpp_runtimes` + `{static,dynamic}_runtime_lib` is the _designed_
