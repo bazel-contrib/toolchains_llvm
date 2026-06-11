@@ -491,6 +491,7 @@ def _cc_toolchain_str(
         "linux-x86_64": "x86_64-unknown-linux-gnu",
         "linux-riscv64": "riscv64-unknown-linux-gnu",
         "none-riscv32": "riscv32-unknown-none-elf",
+        "none-riscv64": "riscv64-unknown-none-elf",
         "none-x86_64": "x86_64-unknown-none",
         "wasm32": "wasm32-unknown-unknown",
         "wasm64": "wasm64-unknown-unknown",
