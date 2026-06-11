@@ -155,6 +155,37 @@ filegroup(
     ),
 )
 
+# Sanitizer runtime dylibs on macOS. Unlike Linux (where the runtimes are
+# static archives linked into the binary), Clang on macOS links sanitized
+# binaries against `@rpath/libclang_rt.<san>_osx_dynamic.dylib`, so the dylib
+# must be locatable at runtime. These filegroups let the darwin cc_toolchain
+# expose the matching runtime as `dynamic_runtime_lib`, which Bazel links via
+# the solib directory and ships in the binary's runfiles. Empty on non-darwin
+# distributions.
+filegroup(
+    name = "libclang_rt-asan-darwin",
+    srcs = glob(
+        ["lib/clang/{LLVM_VERSION}/lib/darwin/libclang_rt.asan_osx_dynamic.dylib"],
+        allow_empty = True,
+    ),
+)
+
+filegroup(
+    name = "libclang_rt-tsan-darwin",
+    srcs = glob(
+        ["lib/clang/{LLVM_VERSION}/lib/darwin/libclang_rt.tsan_osx_dynamic.dylib"],
+        allow_empty = True,
+    ),
+)
+
+filegroup(
+    name = "libclang_rt-ubsan-darwin",
+    srcs = glob(
+        ["lib/clang/{LLVM_VERSION}/lib/darwin/libclang_rt.ubsan_osx_dynamic.dylib"],
+        allow_empty = True,
+    ),
+)
+
 filegroup(
     name = "ar",
     srcs = ["bin/llvm-ar"],

@@ -878,6 +878,33 @@ def cc_toolchain_config(
         "//conditions:default": [],
     })
 
+    # On macOS the sanitizer runtimes are dynamic-only: Clang links sanitized
+    # binaries against `@rpath/libclang_rt.<san>_osx_dynamic.dylib`, which must
+    # be locatable when the binary runs from its runfiles (e.g. `bazel test`).
+    # The darwin cc_toolchain exposes the matching runtime dylib through
+    # `dynamic_runtime_lib` (see the BUILD template in internal/configure.bzl),
+    # but Bazel only consults that attribute when the `static_link_cpp_runtimes`
+    # feature is enabled. The stock feature is defined (disabled) inside
+    # unix_cc_toolchain_config and cannot be enabled there directly, so enable
+    # it transitively: a tiny always-empty feature that `implies` it, wired into
+    # `extra_enabled_features` only when a sanitizer feature is on (the same
+    # `--features`-matching config_settings as the flag augmentation above, so
+    # exec-configuration builds stay unaffected).
+    sanitizer_runtime_features = []
+    if target_os == "darwin":
+        cc_feature(
+            name = name + "_sanitizer_runtime_runfiles",
+            feature_name = name + "_sanitizer_runtime_runfiles",
+            implies = ["@rules_cc//cc/toolchains/features:static_link_cpp_runtimes"],
+        )
+        runfiles_feature_label = ":" + name + "_sanitizer_runtime_runfiles"
+        sanitizer_runtime_features = select({
+            str(Label("@toolchains_llvm//toolchain/config:use_asan")): [runfiles_feature_label],
+            str(Label("@toolchains_llvm//toolchain/config:use_ubsan")): [runfiles_feature_label],
+            str(Label("@toolchains_llvm//toolchain/config:use_tsan")): [runfiles_feature_label],
+            "//conditions:default": [],
+        })
+
     if compiler_configuration["extra_compile_flags"] != None:
         compile_flags.extend(_fmt_flags(compiler_configuration["extra_compile_flags"], toolchain_path_prefix))
     if compiler_configuration["extra_cxx_flags"] != None:
@@ -941,6 +968,6 @@ def cc_toolchain_config(
         coverage_link_flags = coverage_link_flags,
         supports_start_end_lib = supports_start_end_lib,
         builtin_sysroot = sysroot_path,
-        extra_enabled_features = nomsan_feature_labels + extra_enabled_features,
+        extra_enabled_features = nomsan_feature_labels + extra_enabled_features + sanitizer_runtime_features,
         extra_known_features = msan_feature_labels + extra_known_features,
     )

@@ -765,6 +765,8 @@ system_module_map(
     sysroot_path = "{sysroot_path}",
 )
 
+filegroup(name = "runtime-libs-empty-{suffix}", srcs = [])
+
 cc_toolchain(
     name = "cc-clang-{suffix}",
     all_files = "all-files-{suffix}",
@@ -777,7 +779,7 @@ cc_toolchain(
     strip_files = "strip-files-{suffix}",
     toolchain_config = "local-{suffix}",
     module_map = "module-{suffix}",
-    supports_header_parsing = True,
+    supports_header_parsing = True,{runtime_lib_attrs}
 )
 """
 
@@ -790,6 +792,34 @@ cc_toolchain(
         for dir in cxx_builtin_include_directories
         if _is_hermetic_or_exists(rctx, dir, sysroot_path)
     ]
+
+    # On macOS the sanitizer runtimes are dynamic-only and referenced as
+    # `@rpath/libclang_rt.<san>_osx_dynamic.dylib`, so the dylib must travel
+    # with sanitized binaries. Expose the matching runtime through
+    # `dynamic_runtime_lib`: Bazel links it via the solib directory (with an
+    # `@loader_path` rpath) and ships it in the binary's runfiles. Bazel only
+    # consults these attributes when the `static_link_cpp_runtimes` feature is
+    # enabled, which cc_toolchain_config.bzl arranges whenever a sanitizer
+    # feature is on. Scoped to the hermetic toolchain; the host toolchain's
+    # runtime is found at its absolute location. The computed text is passed as
+    # a format argument (not inlined in the template) so its select() braces
+    # are not re-interpreted by the outer format().
+    runtime_lib_attrs = ""
+    if target_os == "darwin" and not use_absolute_paths_llvm:
+        runtime_lib_attrs = """
+    static_runtime_lib = ":runtime-libs-empty-{suffix}",
+    dynamic_runtime_lib = select({{
+        "{use_asan}": "{root}:libclang_rt-asan-darwin",
+        "{use_ubsan}": "{root}:libclang_rt-ubsan-darwin",
+        "{use_tsan}": "{root}:libclang_rt-tsan-darwin",
+        "//conditions:default": ":runtime-libs-empty-{suffix}",
+    }}),""".format(
+            suffix = suffix,
+            root = target_toolchain_root,
+            use_asan = str(Label("//toolchain/config:use_asan")),
+            use_ubsan = str(Label("//toolchain/config:use_ubsan")),
+            use_tsan = str(Label("//toolchain/config:use_tsan")),
+        )
 
     return template.format(
         suffix = suffix,
@@ -852,6 +882,7 @@ cc_toolchain(
         extra_target_compatible_with_specific = toolchain_info.extra_target_compatible_with.get(target_pair, []),
         extra_exec_compatible_with_all_targets = toolchain_info.extra_exec_compatible_with.get("", []),
         extra_target_compatible_with_all_targets = toolchain_info.extra_target_compatible_with.get("", []),
+        runtime_lib_attrs = runtime_lib_attrs,
     )
 
 def _is_remote(rctx, exec_os, exec_arch):
