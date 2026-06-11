@@ -154,15 +154,15 @@ macOS asan on LLVM ≥ 21. Any macOS asan testing must use 21.1.8+/22.1.7.
 
 ## Comparison
 
-|                                                                    | A: wrapper rpath (#767)               | B: `dynamic_runtime_lib`                                        |
-| ------------------------------------------------------------------ | ------------------------------------- | --------------------------------------------------------------- |
-| `cc_test` (default linkstatic=0)                                   | ✅                                    | ✅                                                              |
-| `cc_binary` (default linkstatic=1), incl. run via `sh_test`/`data` | ✅                                    | ⚠️ needs `linkstatic = False` (no static asan runtime on macOS) |
-| Binary copied out of bazel-out / deployed                          | ❌                                    | ✅ (dylib travels in runfiles)                                  |
-| Remote execution / `--remote_download_minimal`                     | ❌                                    | ✅ (dylib rides runfiles, incl. via `data` deps)                |
-| Mechanism                                                          | post-link `install_name_tool` surgery | Bazel's designed runtime-lib channel                            |
-| Non-sanitized builds affected                                      | no                                    | no (feature select-gated)                                       |
-| mbo asan suite                                                     | 74/74                                 | 73/74 (74/74 with `linkstatic = False` on the one binary)       |
+|                                                                    | A: wrapper rpath (#767)               | B: `dynamic_runtime_lib`                                        | A+B combined (`osx-sanitizer-combined`)                 |
+| ------------------------------------------------------------------ | ------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------- |
+| `cc_test` (default linkstatic=0)                                   | ✅                                    | ✅                                                              | ✅ (via B's runfiles dylib)                             |
+| `cc_binary` (default linkstatic=1), incl. run via `sh_test`/`data` | ✅                                    | ⚠️ needs `linkstatic = False` (no static asan runtime on macOS) | ✅ (via A's rpath)                                      |
+| Binary copied out of bazel-out / deployed                          | ❌                                    | ✅ (dylib travels in runfiles)                                  | ✅ dynamic-mode; static-mode needs `linkstatic = False` |
+| Remote execution / `--remote_download_minimal`                     | ❌                                    | ✅ (dylib rides runfiles, incl. via `data` deps)                | ✅ dynamic-mode; static-mode needs `linkstatic = False` |
+| Mechanism                                                          | post-link `install_name_tool` surgery | Bazel's designed runtime-lib channel                            | both, on disjoint files; no interference                |
+| Non-sanitized builds affected                                      | no                                    | no (feature select-gated)                                       | no                                                      |
+| mbo asan suite                                                     | 74/74                                 | 73/74 (74/74 with `linkstatic = False` on the one binary)       | 74/74 (default consumer settings)                       |
 
 The approaches are **complementary**: A covers static-mode binaries on local
 machines with no consumer changes; B makes the runtime travel with the binary
