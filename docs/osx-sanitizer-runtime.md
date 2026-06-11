@@ -29,7 +29,7 @@ relative to the process's working directory, so it only works when the binary
 runs from the execroot — true at link time, false when `bazel test` runs the
 binary from its runfiles:
 
-```
+```text
 dyld: Library not loaded: @rpath/libclang_rt.asan_osx_dynamic.dylib
 ```
 
@@ -109,7 +109,7 @@ The resulting `cc_test` binary gets exactly the right structure — three
 `@loader_path` rpaths covering both execution contexts, plus the dylib
 physically present in runfiles:
 
-```
+```console
 $ otool -l no_destruct_test | grep -A2 LC_RPATH | grep path
   @loader_path/../../_solib_<toolchain>/                                 # from bazel-bin
   @loader_path/no_destruct_test.runfiles/_main/_solib_<toolchain>/      # as test
