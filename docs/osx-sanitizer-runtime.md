@@ -103,7 +103,7 @@ Properties:
    darwin hermetic toolchains; the host toolchain finds its runtime at its
    absolute location.
 
-### Validation: 73/74 mbo asan tests pass
+### Validation: 73/74 mbo asan tests pass (74/74 with one consumer-side change)
 
 The resulting `cc_test` binary gets exactly the right structure — three
 `@loader_path` rpaths covering both execution contexts, plus the dylib
@@ -125,9 +125,21 @@ The **one failure** is structural, not a bug: `//mbo/file:glob_sh_test` is an
 `sh_test` that runs a `cc_binary` (`mbo/file/glob`) from its runfiles. The
 binary links in static mode (`linkstatic = 1` default) → takes the
 `static_runtime_lib` branch (empty — macOS has **no static asan runtime**) →
-keeps only Clang's cwd-relative rpath → `Abort trap: 6` at load. Approach A
-covers this case; approach B cannot, short of requiring `linkstatic = 0` on
-sanitized binaries.
+keeps only Clang's cwd-relative rpath → `Abort trap: 6` at load.
+
+That case **is fixable on the consumer side**: setting `linkstatic = False` on
+the `cc_binary` flips it into dynamic linking mode, and the full mechanism
+kicks in — verified: `glob_sh_test` **passes**, the binary gets the same three
+`@loader_path` solib rpaths as tests, and the dylib propagates into the
+`sh_test`'s runfiles through the data-dep runfiles merge (so this also holds
+for remote execution). Because the toolchain does not advertise
+`supports_dynamic_linker`, `linkstatic = False` does _not_ switch the deps to
+shared libraries — only the runtime-lib channel changes. The attribute accepts
+`select()`, so it can be scoped to sanitizer builds (e.g. on a `san`
+config_setting). No `no_san`-style tag is needed.
+
+Without that per-target change, approach A covers the default-`linkstatic`
+case instead.
 
 ## Side finding: LLVM 20.1.8 asan deadlocks at init on macOS 26
 
@@ -142,21 +154,24 @@ macOS asan on LLVM ≥ 21. Any macOS asan testing must use 21.1.8+/22.1.7.
 
 ## Comparison
 
-|                                                                    | A: wrapper rpath (#767)               | B: `dynamic_runtime_lib`             |
-| ------------------------------------------------------------------ | ------------------------------------- | ------------------------------------ |
-| `cc_test` (default linkstatic=0)                                   | ✅                                    | ✅                                   |
-| `cc_binary` (default linkstatic=1), incl. run via `sh_test`/`data` | ✅                                    | ❌ (no static asan runtime on macOS) |
-| Binary copied out of bazel-out / deployed                          | ❌                                    | ✅ (dylib travels in runfiles)       |
-| Remote execution / `--remote_download_minimal`                     | ❌                                    | ✅ for tests                         |
-| Mechanism                                                          | post-link `install_name_tool` surgery | Bazel's designed runtime-lib channel |
-| Non-sanitized builds affected                                      | no                                    | no (feature select-gated)            |
-| mbo asan suite                                                     | 74/74                                 | 73/74                                |
+|                                                                    | A: wrapper rpath (#767)               | B: `dynamic_runtime_lib`                                        |
+| ------------------------------------------------------------------ | ------------------------------------- | --------------------------------------------------------------- |
+| `cc_test` (default linkstatic=0)                                   | ✅                                    | ✅                                                              |
+| `cc_binary` (default linkstatic=1), incl. run via `sh_test`/`data` | ✅                                    | ⚠️ needs `linkstatic = False` (no static asan runtime on macOS) |
+| Binary copied out of bazel-out / deployed                          | ❌                                    | ✅ (dylib travels in runfiles)                                  |
+| Remote execution / `--remote_download_minimal`                     | ❌                                    | ✅ (dylib rides runfiles, incl. via `data` deps)                |
+| Mechanism                                                          | post-link `install_name_tool` surgery | Bazel's designed runtime-lib channel                            |
+| Non-sanitized builds affected                                      | no                                    | no (feature select-gated)                                       |
+| mbo asan suite                                                     | 74/74                                 | 73/74 (74/74 with `linkstatic = False` on the one binary)       |
 
 The approaches are **complementary**: A covers static-mode binaries on local
-machines; B makes the runtime travel with tests (correct for remote execution
-and moved binaries) using the supported Bazel mechanism. They compose without
-interference — with both active, static-mode binaries resolve via A's rpath
-and dynamic-mode tests prefer the runfiles copy.
+machines with no consumer changes; B makes the runtime travel with the binary
+(correct for remote execution and moved binaries) using the supported Bazel
+mechanism, and covers everything on its own once sanitized `cc_binary` targets
+set `linkstatic = False` (e.g. via a `select()` on a sanitizer
+config_setting). They compose without interference — with both active,
+static-mode binaries resolve via A's rpath and dynamic-mode links prefer the
+runfiles copy.
 
 ## Outlook: libc++
 
