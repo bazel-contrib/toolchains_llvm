@@ -226,3 +226,30 @@ for rpath in ${RPATHS}; do
     fi
   done
 done
+
+# Sanitizer runtimes (e.g. libclang_rt.asan_osx_dynamic.dylib) are linked with an
+# `@rpath/<name>` install name, and Clang adds a *toolchain-relative* LC_RPATH
+# (`external/.../lib/clang/<v>/lib/darwin`) that only resolves when the process's
+# working directory is the execroot -- true at link time, but not when a test
+# runs from its runfiles, so the dylib is "not loaded" at runtime. Add an
+# `@loader_path`-relative LC_RPATH to the toolchain's compiler-rt darwin dir so
+# `@rpath` resolves regardless of the working directory -- no absolute paths
+# (which break the sandbox) and no copying the dylib into runfiles. Only for the
+# hermetic (relative-prefix) toolchain; the host toolchain finds it normally.
+if [[ ${toolchain_path_prefix} != /* ]] && [[ -n ${OUTPUT} && ${OUTPUT} != "1" && -f ${OUTPUT} ]]; then
+  if /usr/bin/otool -L "${OUTPUT}" 2>/dev/null | grep -q '@rpath/libclang_rt\.'; then
+    output_dir="$(dirname_shim "${OUTPUT}")"
+    # One `../` per component of OUTPUT's dir climbs from `@loader_path` back to
+    # the execroot, which is also where `external/...` (the toolchain) lives.
+    loader_to_execroot=""
+    IFS='/' read -ra output_parts <<<"${output_dir}"
+    for _part in "${output_parts[@]}"; do
+      loader_to_execroot="../${loader_to_execroot}"
+    done
+    for darwin_dir in "${toolchain_path_prefix}"lib/clang/*/lib/darwin; do
+      [[ -d ${darwin_dir} ]] || continue
+      "${INSTALL_NAME_TOOL}" -add_rpath \
+        "@loader_path/${loader_to_execroot}${darwin_dir}" "${OUTPUT}" 2>/dev/null || true
+    done
+  fi
+fi
