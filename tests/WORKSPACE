@@ -404,9 +404,9 @@ http_archive(
 
 http_archive(
     name = "com_google_protobuf",
-    sha256 = "20f10bb6ba69c391add381310d10747d4b0c32660ad651932ffcb9d04b748845",
-    strip_prefix = "protobuf-35.0",
-    urls = ["https://github.com/protocolbuffers/protobuf/releases/download/v35.0/protobuf-35.0.zip"],
+    sha256 = "bf89df2fa0088de9c9890fbfba0076263a36c2f84847a7b54e7e32effd6201c7",
+    strip_prefix = "protobuf-35.1",
+    urls = ["https://github.com/protocolbuffers/protobuf/releases/download/v35.1/protobuf-35.1.zip"],
 )
 
 load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
