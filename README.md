@@ -392,7 +392,7 @@ cc_binary(
 )
 ```
 
-```
+```text
 # Or per-config in .bazelrc.
 common --features=-date_redaction
 ```
