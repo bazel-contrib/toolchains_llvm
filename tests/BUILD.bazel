@@ -15,7 +15,7 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
-load(":transitions.bzl", "dwp_file", "msan_flags_test", "sanitizer_test", "transition_library_to_platform")
+load(":transitions.bzl", "date_redaction_default_test", "date_redaction_disabled_test", "dwp_file", "msan_flags_test", "sanitizer_test", "transition_library_to_platform")
 
 cc_library(
     name = "stdlib",
@@ -120,6 +120,21 @@ msan_flags_test(
     name = "msan_flags_test",
     target_compatible_with = ["@platforms//os:linux"],
     target_under_test = ":stdlib_bin",
+)
+
+# Analysis-only checks for the date_redaction cc_feature (#771): redaction flags
+# are on the compile command by default, and `--features=-date_redaction` turns
+# them off. Cross-platform, so no target_compatible_with restriction.
+date_redaction_default_test(
+    name = "date_redaction_default_test",
+    target_under_test = ":stdlib_bin",
+    want_redaction = True,
+)
+
+date_redaction_disabled_test(
+    name = "date_redaction_disabled_test",
+    target_under_test = ":stdlib_bin",
+    want_redaction = False,
 )
 
 # End-to-end msan test. Built and run with the instrumented-libc++ toolchain

@@ -362,6 +362,46 @@ then they can be referenced as:
 - `@llvm_toolchain//:clang-format`
 - `@llvm_toolchain//:llvm-cov`
 
+### Date-macro redaction
+
+For reproducible builds the toolchain redacts the `__DATE__`, `__TIME__`, and
+`__TIMESTAMP__` preprocessor macros, replacing them with a constant. This is
+done by force-including a generated header with `-imacros`, which is wired
+through the `date_redaction` feature that is **enabled by default** — no
+configuration is needed for the common case.
+
+A small number of consumers re-serialize the toolchain's compile flags and run
+the compiler outside Bazel's sandbox — for example `rules_rust`
+`cargo_build_script` with `--strategy=CargoBuildScriptRun=local`, or some
+`rules_foreign_cc` make/cmake builds. There the sandbox-relative path of the
+force-included header cannot be resolved and the compile fails. For those cases
+the redaction can be turned off like any other Bazel feature, on a per-target,
+per-package, or global/`.bazelrc` basis:
+
+```sh
+# Disable globally (note the leading "-", which means "disable the feature").
+bazel build //... --features=-date_redaction
+```
+
+```python
+# Or disable for a single target.
+cc_binary(
+    name = "uses_local_cargo_build_script",
+    features = ["-date_redaction"],
+    # ...
+)
+```
+
+```
+# Or per-config in .bazelrc.
+common --features=-date_redaction
+```
+
+Disabling it only drops the redaction flags; nothing else about the toolchain
+changes. Note that build-tool (exec-configuration) actions reset `--features`
+to `--host_features`, so to also disable redaction for them use
+`--host_features=-date_redaction`.
+
 ### Strict header deps (Linux only)
 
 The toolchain supports Bazel's `layering_check` feature, which relies on

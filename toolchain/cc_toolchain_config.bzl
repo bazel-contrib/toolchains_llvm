@@ -224,9 +224,20 @@ def cc_toolchain_config(
     unfiltered_compile_flags = [
         # Do not resolve our symlinked resource prefixes to real paths.
         "-no-canonical-prefixes",
-        # Reproducibility: redact date macros via an -imacros header rather than
-        # -D__DATE__="redacted" on the command line, whose quotes are lost when
-        # passed through sub-build flag strings.
+    ]
+
+    # Reproducibility: redact the __DATE__/__TIME__/__TIMESTAMP__ macros via an
+    # -imacros header rather than -D__DATE__="redacted" on the command line,
+    # whose quotes are lost when passed through sub-build flag strings. These
+    # flags live in the `date_redaction` cc_feature (enabled by default, see
+    # below) rather than the always-on unfiltered_compile_flags so consumers
+    # can disable them with `--features=-date_redaction` (e.g. in .bazelrc) or
+    # `features = ["-date_redaction"]`. This is needed by actions that
+    # re-serialize the toolchain's compile flags into out-of-sandbox compiler
+    # invocations -- rules_rust `cargo_build_script` with
+    # `--strategy=CargoBuildScriptRun=local`, rules_foreign_cc make/cmake --
+    # where the sandbox-relative redacted_dates.h path cannot resolve (#771).
+    date_redaction_flags = [
         "-Wno-builtin-macro-redefined",
         "-imacros",
         redacted_dates_path,
@@ -928,6 +939,24 @@ def cc_toolchain_config(
     if compiler_configuration["extra_unfiltered_compile_flags"] != None:
         unfiltered_compile_flags.extend(_fmt_flags(compiler_configuration["extra_unfiltered_compile_flags"], toolchain_path_prefix))
 
+    # Date-macro redaction (see date_redaction_flags above). Carried by a
+    # cc_feature that is enabled by default (wired through extra_enabled_features
+    # below), so the redaction applies unchanged out of the box but can be turned
+    # off per-config with `--features=-date_redaction` or per-target with
+    # `features = ["-date_redaction"]`. cc_feature rules always declare the
+    # feature disabled; the default-enabled state comes from extra_enabled_features.
+    cc_args(
+        name = name + "_date_redaction_args",
+        actions = ["@rules_cc//cc/toolchains/actions:compile_actions"],
+        args = date_redaction_flags,
+    )
+    cc_feature(
+        name = name + "_date_redaction",
+        feature_name = "date_redaction",
+        args = [":" + name + "_date_redaction_args"],
+    )
+    date_redaction_feature_labels = [":" + name + "_date_redaction"]
+
     # Source: https://cs.opensource.google/bazel/bazel/+/master:tools/cpp/unix_cc_toolchain_config.bzl
     unix_cc_toolchain_config(
         name = name,
@@ -968,6 +997,6 @@ def cc_toolchain_config(
         coverage_link_flags = coverage_link_flags,
         supports_start_end_lib = supports_start_end_lib,
         builtin_sysroot = sysroot_path,
-        extra_enabled_features = nomsan_feature_labels + extra_enabled_features + sanitizer_runtime_features,
+        extra_enabled_features = nomsan_feature_labels + date_redaction_feature_labels + extra_enabled_features + sanitizer_runtime_features,
         extra_known_features = msan_feature_labels + extra_known_features,
     )

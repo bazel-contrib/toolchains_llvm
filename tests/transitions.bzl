@@ -218,3 +218,56 @@ msan_flags_test = analysistest.make(
         "//command_line_option:features": ["msan"],
     },
 )
+
+def _date_redaction_flags_test_impl(ctx):
+    env = analysistest.begin(ctx)
+    cpp_actions = [
+        a
+        for a in analysistest.target_actions(env)
+        if a.mnemonic == "CppCompile"
+    ]
+    asserts.true(env, len(cpp_actions) > 0, "expected a CppCompile action")
+    argv = cpp_actions[0].argv
+
+    # The date_redaction feature force-includes the generated redacted_dates.h
+    # via `-imacros`; that header path is the unambiguous on/off signal.
+    has_redaction = [a for a in argv if a.endswith("redacted_dates.h")]
+    if ctx.attr.want_redaction:
+        asserts.true(
+            env,
+            has_redaction,
+            "expected -imacros redacted_dates.h on the compile command line " +
+            "(date_redaction is enabled by default), got: %s" % argv,
+        )
+    else:
+        asserts.false(
+            env,
+            has_redaction,
+            "expected no redacted_dates.h on the compile command line with " +
+            "--features=-date_redaction, got: %s" % argv,
+        )
+    return analysistest.end(env)
+
+_date_redaction_attrs = {
+    "want_redaction": attr.bool(mandatory = True),
+}
+
+# Analysis-only test: the date_redaction cc_feature is enabled by default, so
+# the `-imacros redacted_dates.h` reproducibility flags must be on the compile
+# command line out of the box.
+date_redaction_default_test = analysistest.make(
+    _date_redaction_flags_test_impl,
+    attrs = _date_redaction_attrs,
+)
+
+# Same action, but with `--features=-date_redaction`: the redaction flags must
+# be gone. This guards the opt-out that consumers whose actions re-serialize
+# toolchain flags out of the sandbox (rules_rust cargo_build_script with
+# --strategy=CargoBuildScriptRun=local, rules_foreign_cc) rely on -- see #771.
+date_redaction_disabled_test = analysistest.make(
+    _date_redaction_flags_test_impl,
+    attrs = _date_redaction_attrs,
+    config_settings = {
+        "//command_line_option:features": ["-date_redaction"],
+    },
+)
