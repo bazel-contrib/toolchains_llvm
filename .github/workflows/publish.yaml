@@ -1,0 +1,43 @@
+# Publish a new release to the Bazel Central Registry (BCR).
+#
+# Called by release.yaml after a release is cut. Can also be run manually from
+# the GitHub Actions UI ("Run workflow") -- select the release tag as the ref
+# and it will (re)publish that tag, e.g. to retry a failed run.
+name: Publish to BCR
+
+on:
+  # Triggered from the release.yaml workflow after a successful release.
+  workflow_call:
+    inputs:
+      tag_name:
+        required: true
+        type: string
+    secrets:
+      BCR_PUBLISH_TOKEN:
+        required: true
+  # Manual retry. No inputs: run it against the release tag as the ref.
+  workflow_dispatch: {}
+
+permissions: read-all
+
+jobs:
+  publish:
+    permissions:
+      contents: write
+    uses: bazel-contrib/publish-to-bcr/.github/workflows/publish.yaml@v1.4.1
+    with:
+      # No input on manual dispatch; fall back to the selected ref.
+      tag_name: ${{ inputs.tag_name || github.ref_name }}
+      # Fork of bazelbuild/bazel-central-registry the PR branch is pushed to.
+      registry_fork: bazel-contrib/bazel-central-registry
+      # Open a normal (non-draft) PR so maintainers can review and merge it.
+      draft: false
+      # This repo uses a custom release workflow that does not emit SLSA
+      # attestations or upload the release archive as a workflow artifact, so
+      # disable both. publish-to-bcr computes the integrity by downloading the
+      # release tarball from the URL in .bcr/source.template.json.
+      attest: false
+      download_default_release_artifacts: false
+    secrets:
+      # Pushes the branch to the registry fork and opens the pull request.
+      publish_token: ${{ secrets.BCR_PUBLISH_TOKEN }}
