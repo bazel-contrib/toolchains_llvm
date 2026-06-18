@@ -20,7 +20,7 @@ jobs:
       contents: read # For repo checkout
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Trunk Check
         uses: trunk-io/trunk-action@v1
   test:
@@ -32,7 +32,7 @@ jobs:
         bzlmod: [true, false]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - if: startsWith(matrix.os, 'ubuntu')
         run: tests/scripts/ubuntu_install_libtinfo.sh
       - run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android
@@ -50,7 +50,7 @@ jobs:
         bzlmod: [true, false]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Test
         env:
           USE_BAZEL_VERSION: ${{ matrix.bazel_version }}
@@ -81,7 +81,7 @@ jobs:
             stdlib: dynamic-stdc++
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - if: startsWith(matrix.os, 'ubuntu')
         run: tests/scripts/ubuntu_install_libtinfo.sh
       - name: Test (${{ matrix.stdlib }})
@@ -108,7 +108,7 @@ jobs:
         bzlmod: [true, false]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android
       - name: Test
         env:
@@ -122,7 +122,7 @@ jobs:
         bzlmod: [true, false]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - if: startsWith(matrix.os, 'ubuntu')
         run: tests/scripts/ubuntu_install_libtinfo.sh
       - name: Test
@@ -136,7 +136,7 @@ jobs:
         bzlmod: [true, false]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - run: tests/scripts/ubuntu_install_libtinfo.sh
       - name: Test
         env:
@@ -149,7 +149,7 @@ jobs:
         bzlmod: [true, false]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - run: tests/scripts/ubuntu_install_libtinfo.sh
       - name: Download and Extract LLVM distribution
         # The downloaded version here must match version specified as '-v' arg to run_tests.sh below.
@@ -176,7 +176,7 @@ jobs:
         bazel_version: [7.*, 8.*, 9.*, latest]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - run: tests/scripts/ubuntu_install_libtinfo.sh
       - run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android
       - name: Test
@@ -205,7 +205,7 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Ensure every job is wired into this gate
         env:
           NEEDS_JSON: ${{ toJSON(needs) }}
