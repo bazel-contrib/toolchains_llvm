@@ -24,6 +24,6 @@
 {
   "_meta": {
     "description": "Downstream slot for additional bundled LLVM distributions. Empty in the upstream repository.",
-    "base_url": {},
-  },
+    "base_url": {}
+  }
 }
