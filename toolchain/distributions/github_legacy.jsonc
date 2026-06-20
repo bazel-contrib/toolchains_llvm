@@ -16,8 +16,8 @@
   "_meta": {
     "description": "GitHub-hosted LLVM distributions with pre-19.x irregular naming (10.x-18.x). Hand-maintained, frozen.",
     "base_url": {
-      "": "https://github.com/llvm/llvm-project/releases/download/llvmorg-{version}/",
-    },
+      "": "https://github.com/llvm/llvm-project/releases/download/llvmorg-{version}/"
+    }
   },
 
   // 18.1.8
@@ -451,5 +451,5 @@
   "clang+llvm-10.0.0-sparcv9-sun-solaris2.11.tar.xz": "725c9205550cabb6d8e0d8b1029176113615809dcc880b347c1577aecdf2af4c",
   "clang+llvm-10.0.0-x86_64-apple-darwin.tar.xz": "633a833396bf2276094c126b072d52b59aca6249e7ce8eae14c728016edb5e61",
   "clang+llvm-10.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz": "b25f592a0c00686f03e3b7db68ca6dc87418f681f4ead4df4745a01d9be63843",
-  "clang+llvm-10.0.0-x86_64-linux-sles11.3.tar.xz": "a7a3c2a7aff813bb10932636a6f1612e308256a5e6b5a5655068d5c5b7f80e86",
+  "clang+llvm-10.0.0-x86_64-linux-sles11.3.tar.xz": "a7a3c2a7aff813bb10932636a6f1612e308256a5e6b5a5655068d5c5b7f80e86"
 }

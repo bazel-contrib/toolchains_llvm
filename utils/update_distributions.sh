@@ -295,6 +295,20 @@ MID
   echo "}"
 } >"${output}"
 
+# Format the freshly written file with `trunk fmt`. The generator emits a fixed
+# style, but the repository's canonical formatter (prettier via trunk) owns the
+# final layout -- notably the JSONC trailing-comma policy in
+# `.trunk/configs/.prettierrc.json`, which keeps the file reducible to plain
+# JSON by stripping comments. Running it here stops the generated file from
+# drifting from `trunk fmt` and failing `trunk check` / the pre-commit hook.
+if command -v trunk >/dev/null 2>&1; then
+  echo "Formatting ${output}..." >&2
+  (cd "${repo_root}" && trunk fmt "${output#"${repo_root}/"}") >&2 || true
+else
+  echo "WARNING: trunk not on PATH; '${output}' was not reformatted." >&2
+  echo "         Run 'trunk fmt ${output}' before committing." >&2
+fi
+
 # Regenerate the golden file consumed by `llvm_distributions_output_test`. The
 # golden enumerates every known distribution (so adding entries to github.bzl
 # invariably changes it). We invoke the `distributions_test_writer` rule
