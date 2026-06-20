@@ -451,9 +451,6 @@ def cc_toolchain_config(
         stdlib = "stdc++-" + stdlib[len("dynamic-stdc++-"):]
 
     if stdlib == "builtin-libc++":
-        cxx_flags.extend([
-            "-stdlib=libc++",
-        ])
         system_includes.append(toolchain_builtin_include)
         if is_darwin_exec_and_target:
             # On macOS, use the SDK's libc++ entirely (headers + linking).
@@ -511,10 +508,6 @@ def cc_toolchain_config(
             ]
 
     elif stdlib == "libc++":
-        cxx_flags.extend([
-            "-stdlib=libc++",
-        ])
-
         stdlib_link_libs.extend([
             "-l:libc++.a",
             "-l:libc++abi.a",
@@ -602,6 +595,16 @@ def cc_toolchain_config(
     use_toolchain_libcxx_paths = stdlib in ["builtin-libc++", "libc++"] and target_os != "darwin"
     if use_toolchain_libcxx_paths:
         cpp_system_includes = toolchain_cpp_system_includes
+
+    # -stdlib=libc++ only affects the C++ header search path at compile time,
+    # which -nostdinc++ overrides (emitted by _cxx_isystem whenever
+    # cpp_system_includes is non-empty). libc++ is linked explicitly via
+    # -l:libc++.a / -lc++, and cxx_flags never reach the link action. So only
+    # pass it when we are NOT emitting -nostdinc++; otherwise it produces a
+    # spurious -Wunused-command-line-argument on every compile (cf. the
+    # stdc++-<version> branch, which omits -stdlib for the same reason).
+    if stdlib in ["builtin-libc++", "libc++"] and not cpp_system_includes:
+        cxx_flags.append("-stdlib=libc++")
 
     if major_llvm_version >= 14:
         # With C++20, Clang defaults to using C++ rather than Clang modules,
