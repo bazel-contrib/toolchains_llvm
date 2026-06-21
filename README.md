@@ -348,6 +348,17 @@ repo with the suffix `_llvm` appended to the name you used for the
 `llvm_toolchain` rule. For example, `@llvm_toolchain_llvm//:bin/clang-format`
 is a valid and visible target in the quickstart example above.
 
+The distribution also exposes `@llvm_toolchain_llvm//:clang_cpp`, a `cc_library`
+that links libclang-cpp (Clang's C++ API, which statically embeds LLVM) together
+with the Clang/LLVM development headers, for tools that embed Clang in-process
+(e.g. dependency scanning or clang-tidy-style tooling). Because LLVM is built
+without RTTI, dependents deriving from Clang's polymorphic types must compile
+with `-fno-rtti`. Note the C++ standard library: the upstream LLVM **Linux**
+releases are built against libstdc++, so a dependent must be built with a
+libstdc++ standard library (`stdlib = "stdc++"` or `"dynamic-stdc++"`) -- a
+libc++ dependent (the default) fails to link against it with `undefined symbol`.
+macOS releases are built against libc++, matching the default.
+
 When using the `toolchain_roots` attribute, there is currently no single target
 that you can reference, and you may have to alias the tools you want with a
 `select` clause in your workspace.
