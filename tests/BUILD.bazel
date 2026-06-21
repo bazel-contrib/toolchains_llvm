@@ -232,6 +232,25 @@ sh_test(
     ],
 )
 
+# Verifies the `clang_cpp` target: compiles against the Clang/LLVM development
+# headers and links libclang-cpp (which statically embeds LLVM). Compiled with
+# `-fno-rtti` because the LLVM distribution is built without RTTI.
+#
+# Tagged `manual` so the default `bazel test //...` / `//:all` does not pick it
+# up: libclang-cpp is only shipped by some distributions, so the target is empty
+# on others (e.g. the pinned LLVM 13.0.0 used by the container tests) and would
+# fail to link. The `clang_cpp_test` CI job (run_clang_cpp_test.sh) runs it
+# explicitly in `-c opt` against the default (modern) toolchain on Ubuntu and
+# macOS, mirroring the opt/host-opt configuration clang_cpp is consumed in.
+cc_test(
+    name = "clang_cpp_test",
+    srcs = ["clang_cpp_test.cc"],
+    copts = ["-fno-rtti"],
+    linkstatic = True,
+    tags = ["manual"],
+    deps = ["@llvm_toolchain_llvm//:clang_cpp"],
+)
+
 # As a workaround for https://github.com/bazelbuild/rules_foreign_cc/issues/1018.
 toolchain(
     name = "ninja_mac_arm64_toolchain",
