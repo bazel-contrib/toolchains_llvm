@@ -838,7 +838,14 @@ cc_toolchain(
         target_toolchain_path_prefix = target_toolchain_path_prefix,
         tools_path_prefix = toolchain_info.tools_path_prefix,
         wrapper_bin_prefix = toolchain_info.wrapper_bin_prefix,
-        redacted_dates_path = "external/{}/redacted_dates.h".format(rctx.name),
+        # Env-var opt-out for consumers whose actions re-serialize toolchain
+        # flags into out-of-sandbox compiler invocations (rules_rust
+        # cargo_build_script with --strategy=CargoBuildScriptRun=local,
+        # rules_foreign_cc make/cmake). The sandbox-relative redacted_dates.h
+        # path cannot resolve outside the sandbox.
+        redacted_dates_path = (
+            "" if rctx.os.environ.get("TOOLCHAINS_LLVM_DISABLE_DATE_REDACTION", "") in ("1", "true", "True") else "external/{}/redacted_dates.h".format(rctx.name)
+        ),
         sysroot_label_str = sysroot_label_str,
         sysroot_path = sysroot_path,
         stdlib = stdlib,
