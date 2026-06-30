@@ -225,6 +225,11 @@ filegroup(
 )
 
 filegroup(
+    name = "install-name-tool",
+    srcs = ["bin/llvm-install-name-tool"],
+)
+
+filegroup(
     name = "ranlib",
     srcs = ["bin/llvm-ranlib"],
 )
