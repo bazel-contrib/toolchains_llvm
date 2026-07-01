@@ -218,3 +218,39 @@ msan_flags_test = analysistest.make(
         "//command_line_option:features": ["msan"],
     },
 )
+
+def _stdlib_flags_test_impl(ctx):
+    env = analysistest.begin(ctx)
+    cpp_actions = [
+        a
+        for a in analysistest.target_actions(env)
+        if a.mnemonic == "CppCompile"
+    ]
+    asserts.true(env, len(cpp_actions) > 0, "expected a CppCompile action")
+    argv = cpp_actions[0].argv
+
+    # The libc++ headers are located explicitly via -nostdinc++ plus
+    # -cxx-isystem entries (see _cxx_isystem in cc_toolchain_config.bzl).
+    asserts.true(
+        env,
+        "-nostdinc++" in argv,
+        "expected -nostdinc++ on the compile command line, got: %s" % argv,
+    )
+
+    # Because -nostdinc++ overrides the C++ header search, -stdlib=libc++ has no
+    # compile-time effect and must NOT be passed: clang would report it unused,
+    # printing -Wunused-command-line-argument on every object file. Guards the
+    # regression fixed by dropping -stdlib=libc++ from the libc++ branches.
+    asserts.true(
+        env,
+        "-stdlib=libc++" not in argv,
+        "-stdlib=libc++ must not be on the compile command line (it is unused " +
+        "under -nostdinc++ and warns), got: %s" % argv,
+    )
+    return analysistest.end(env)
+
+# Analysis-only test: with the default builtin-libc++ toolchain, the C++ compile
+# action must locate libc++ via -nostdinc++/-cxx-isystem and must not carry a
+# redundant -stdlib=libc++ (which triggers -Wunused-command-line-argument). Runs
+# on Linux and macOS (builtin-libc++ emits -nostdinc++ on both).
+stdlib_flags_test = analysistest.make(_stdlib_flags_test_impl)

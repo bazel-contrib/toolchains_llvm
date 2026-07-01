@@ -15,7 +15,7 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
-load(":transitions.bzl", "dwp_file", "msan_flags_test", "sanitizer_test", "transition_library_to_platform")
+load(":transitions.bzl", "dwp_file", "msan_flags_test", "sanitizer_test", "stdlib_flags_test", "transition_library_to_platform")
 
 cc_library(
     name = "stdlib",
@@ -120,6 +120,15 @@ msan_flags_test(
     name = "msan_flags_test",
     target_compatible_with = ["@platforms//os:linux"],
     target_under_test = ":stdlib_bin",
+)
+
+# Verifies the default (builtin-libc++) toolchain locates libc++ via
+# -nostdinc++/-cxx-isystem and does NOT pass a redundant -stdlib=libc++, which
+# clang reports as -Wunused-command-line-argument on every object file. Runs on
+# both Linux and macOS (builtin-libc++ emits -nostdinc++ on each).
+stdlib_flags_test(
+    name = "stdlib_flags_test",
+    target_under_test = ":stdlib",
 )
 
 # End-to-end msan test. Built and run with the instrumented-libc++ toolchain
