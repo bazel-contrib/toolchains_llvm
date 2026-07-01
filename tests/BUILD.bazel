@@ -122,10 +122,11 @@ msan_flags_test(
     target_under_test = ":stdlib_bin",
 )
 
-# Verifies the default (builtin-libc++) toolchain locates libc++ via
-# -nostdinc++/-cxx-isystem and does NOT pass a redundant -stdlib=libc++, which
-# clang reports as -Wunused-command-line-argument on every object file. Runs on
-# both Linux and macOS (builtin-libc++ emits -nostdinc++ on each).
+# Verifies the C++ compile command line never carries both -stdlib=libc++ and
+# -nostdinc++ -- the redundant combination that makes clang emit
+# -Wunused-command-line-argument on every object file. Toolchain-agnostic, so it
+# is correct under //:all across the default builtin-libc++ toolchain and the
+# stdc++/sysroot toolchains the container tests select, on Linux and macOS.
 stdlib_flags_test(
     name = "stdlib_flags_test",
     target_under_test = ":stdlib",
