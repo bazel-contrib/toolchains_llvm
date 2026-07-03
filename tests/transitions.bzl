@@ -218,3 +218,37 @@ msan_flags_test = analysistest.make(
         "//command_line_option:features": ["msan"],
     },
 )
+
+def _stdlib_flags_test_impl(ctx):
+    env = analysistest.begin(ctx)
+    cpp_actions = [
+        a
+        for a in analysistest.target_actions(env)
+        if a.mnemonic == "CppCompile"
+    ]
+    asserts.true(env, len(cpp_actions) > 0, "expected a CppCompile action")
+    argv = cpp_actions[0].argv
+
+    # -stdlib=libc++ only steers the C++ header search at compile time, so it is
+    # unused -- and warns, -Wunused-command-line-argument, once per object --
+    # whenever -nostdinc++ overrides that search. The two must therefore never
+    # appear together on a compile command line. This invariant is
+    # toolchain-agnostic, so the test is correct under whatever toolchain the
+    # surrounding build selects: the libc++ configs no longer emit -stdlib=libc++
+    # (the fix), builtin-libc++ emits -nostdinc++ but not -stdlib=libc++, and the
+    # stdc++/sysroot toolchains (exercised by container tests) never emit
+    # -stdlib=libc++ at all.
+    asserts.true(
+        env,
+        not ("-stdlib=libc++" in argv and "-nostdinc++" in argv),
+        "-stdlib=libc++ must not appear together with -nostdinc++ (it is unused " +
+        "under -nostdinc++ and warns), got: %s" % argv,
+    )
+    return analysistest.end(env)
+
+# Analysis-only test: the C++ compile command line must never carry both
+# -stdlib=libc++ and -nostdinc++ (the redundant-flag combination that triggers
+# -Wunused-command-line-argument). Toolchain-agnostic, so it is safe under
+# //:all across the default builtin-libc++ toolchain and the stdc++/sysroot
+# toolchains used by the container tests, on Linux and macOS.
+stdlib_flags_test = analysistest.make(_stdlib_flags_test_impl)

@@ -451,9 +451,12 @@ def cc_toolchain_config(
         stdlib = "stdc++-" + stdlib[len("dynamic-stdc++-"):]
 
     if stdlib == "builtin-libc++":
-        cxx_flags.extend([
-            "-stdlib=libc++",
-        ])
+        # NB: -stdlib=libc++ is intentionally NOT passed. It is only a
+        # compile-time header-selection flag (cxx_flags never reach the link
+        # action; libc++ is linked explicitly below), and the libc++ headers are
+        # already located explicitly via -nostdinc++ + -cxx-isystem (see
+        # cpp_system_includes / _cxx_isystem). Passing it therefore has no effect
+        # and triggers -Wunused-command-line-argument on every object file.
         system_includes.append(toolchain_builtin_include)
         if is_darwin_exec_and_target:
             # On macOS, use the SDK's libc++ entirely (headers + linking).
@@ -511,10 +514,10 @@ def cc_toolchain_config(
             ]
 
     elif stdlib == "libc++":
-        cxx_flags.extend([
-            "-stdlib=libc++",
-        ])
-
+        # As in the builtin-libc++ branch, -stdlib=libc++ is redundant: libc++ is
+        # located via -nostdinc++/-cxx-isystem and linked explicitly below, and
+        # on darwin (where -nostdinc++ is not emitted) clang already defaults to
+        # libc++. Passing it only produces -Wunused-command-line-argument.
         stdlib_link_libs.extend([
             "-l:libc++.a",
             "-l:libc++abi.a",
