@@ -242,6 +242,23 @@ sh_test(
     ],
 )
 
+# The libxml2 stub (`libxml2_stub = True` in tests/MODULE.bazel) must let
+# ld.lld start without any host libxml2.so.2. Linux-only: the stub is not
+# written into non-Linux distributions.
+sh_test(
+    name = "libxml2_stub_test",
+    srcs = ["libxml2_stub_test.sh"],
+    args = [
+        "$(rootpath @llvm_toolchain_llvm//:bin/ld.lld)",
+        "$(rootpath @llvm_toolchain_llvm//:lib/libxml2.so.2)",
+    ],
+    data = [
+        "@llvm_toolchain_llvm//:bin/ld.lld",
+        "@llvm_toolchain_llvm//:lib/libxml2.so.2",
+    ],
+    target_compatible_with = ["@platforms//os:linux"],
+)
+
 # As a workaround for https://github.com/bazelbuild/rules_foreign_cc/issues/1018.
 toolchain(
     name = "ninja_mac_arm64_toolchain",

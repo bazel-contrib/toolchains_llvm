@@ -21,10 +21,13 @@ load(
 )
 load(
     "//toolchain/internal:common.bzl",
+    "arch",
     "attr_dict",
     "exec_os_arch_dict_value",
     "host_info",
+    "os",
 )
+load("//toolchain/internal:libxml2_stub.bzl", "write_libxml2_stub")
 
 # The merged distribution table is built at module-load time by the
 # `llvm_distributions` module extension (see
@@ -159,6 +162,9 @@ def download_llvm(rctx):
             for clang_version in clang_versions:
                 lib_path = clang_version.get_child("lib", lib_name)
                 rctx.file(lib_path, libclang_rt_content, legacy_utf8 = False)
+
+    if rctx.attr.libxml2_stub:
+        write_libxml2_stub(rctx, os(rctx), arch(rctx))
 
     # Optionally overlay a memory-sanitizer-instrumented libc++ used by msan
     # builds (enabled with `--features=msan`; see cc_toolchain_config.bzl).

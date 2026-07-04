@@ -128,6 +128,20 @@ llvm_repo_attrs.update({
                "of the regular libc++ for builds with MemorySanitizer enabled " +
                "(`--features=msan`, Linux only)."),
     ),
+    "libxml2_stub": attr.bool(
+        mandatory = False,
+        default = False,
+        doc = ("Write a stub `lib/libxml2.so.2` into the downloaded LLVM distribution " +
+               "(Linux only; a no-op elsewhere). Prebuilt LLVM release binaries " +
+               "dynamically link ld.lld against libxml2.so.2, which lld only uses for " +
+               "Windows COFF manifest merging; hosts whose libxml2 is 2.14+ " +
+               "(soname libxml2.so.16 — e.g. Ubuntu 25.10+, Arch, Fedora 41+) cannot " +
+               "run ld.lld otherwise. The stub is found via the binaries' RUNPATH " +
+               "($ORIGIN/../lib), removing the host libxml2 dependency. LLVM release " +
+               "binaries link libxml2 statically starting with LLVM 23.1.0 (scheduled " +
+               "2026-08-25); this attribute matters for all earlier LLVM versions. " +
+               "See `toolchain/internal/libxml2_stub.bzl` for details."),
+    ),
     "libcxx_sha256": attr.string(
         mandatory = False,
         doc = "The expected SHA-256 of the archive downloaded as per the `libcxx_url` attribute.",
