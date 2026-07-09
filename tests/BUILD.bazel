@@ -313,3 +313,14 @@ cc_test(
     tags = ["manual"],
     deps = [":test_cxx_standard_lib_transitioned"],
 )
+
+cc_library(
+    name = "assembly_test_lib",
+    srcs = ["assembly_test.s"],
+)
+
+build_test(
+    name = "assembly_test",
+    targets = [":assembly_test_lib"],
+)
+

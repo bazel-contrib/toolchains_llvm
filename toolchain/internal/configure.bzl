@@ -695,7 +695,7 @@ filegroup(
 
 filegroup(name = "all-files-{suffix}", srcs = [":all-components-{suffix}", {extra_files_str}])
 filegroup(name = "archiver-files-{suffix}", srcs = [{extra_files_str}])
-filegroup(name = "assembler-files-{suffix}", srcs = [{extra_files_str}])
+filegroup(name = "assembler-files-{suffix}", srcs = ["redacted_dates.h", {extra_files_str}])
 filegroup(name = "compiler-files-{suffix}", srcs = [":compiler-components-{suffix}", {extra_files_str}])
 filegroup(name = "dwp-files-{suffix}", srcs = [{extra_files_str}])
 filegroup(name = "linker-files-{suffix}", srcs = [":linker-components-{suffix}", {extra_files_str}])
@@ -747,7 +747,7 @@ filegroup(
 
 filegroup(name = "all-files-{suffix}", srcs = [":all-components-{suffix}", {extra_files_str}])
 filegroup(name = "archiver-files-{suffix}", srcs = ["{llvm_dist_label_prefix}ar", {extra_files_str}])
-filegroup(name = "assembler-files-{suffix}", srcs = ["{llvm_dist_label_prefix}as", {extra_files_str}])
+filegroup(name = "assembler-files-{suffix}", srcs = ["{llvm_dist_label_prefix}as", "redacted_dates.h", {extra_files_str}])
 filegroup(name = "compiler-files-{suffix}", srcs = [":compiler-components-{suffix}", {extra_files_str}])
 filegroup(name = "dwp-files-{suffix}", srcs = ["{llvm_dist_label_prefix}dwp", {extra_files_str}])
 filegroup(name = "linker-files-{suffix}", srcs = [":linker-components-{suffix}", {extra_files_str}])
