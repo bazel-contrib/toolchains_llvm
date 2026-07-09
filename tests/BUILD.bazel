@@ -323,4 +323,3 @@ build_test(
     name = "assembly_test",
     targets = [":assembly_test_lib"],
 )
-
