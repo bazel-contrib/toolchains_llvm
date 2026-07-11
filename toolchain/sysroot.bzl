@@ -1,4 +1,5 @@
 load("@aspect_bazel_lib//lib:repo_utils.bzl", "repo_utils")
+load("@bazel_tools//tools/build_defs/repo:cache.bzl", "DEFAULT_CANONICAL_ID_ENV", "get_default_canonical_id")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "get_auth")
 
 def _sysroot_impl(rctx):
@@ -17,6 +18,7 @@ def _sysroot_impl(rctx):
         integrity = rctx.attr.integrity,
         auth = get_auth(rctx, urls),
         sha256 = rctx.attr.sha256,
+        canonical_id = get_default_canonical_id(rctx, urls),
     )
 
     # Source directories are more efficient than file groups for 2 reasons:
@@ -69,6 +71,7 @@ def _sysroot_impl(rctx):
 
 sysroot = repository_rule(
     implementation = _sysroot_impl,
+    environ = [DEFAULT_CANONICAL_ID_ENV],
     attrs = {
         "url": attr.string(),
         "urls": attr.string_list(),
