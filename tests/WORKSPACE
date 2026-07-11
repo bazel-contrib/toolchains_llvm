@@ -38,9 +38,9 @@ bazel_features_deps()
 
 http_archive(
     name = "aspect_bazel_lib",
-    sha256 = "3f4abcf708b83ca040cb6b36fa5f8871d60f136b5f7d3c697b6da3343b9ec1da",
-    strip_prefix = "bazel-lib-3.4.0",
-    url = "https://github.com/aspect-build/bazel-lib/releases/download/v3.4.0/bazel-lib-v3.4.0.tar.gz",
+    sha256 = "77f4af7eb3b7573dafa8afab9058ee0d9696209a8b8096ac77646a42d12d0e48",
+    strip_prefix = "bazel-lib-3.5.0",
+    url = "https://github.com/aspect-build/bazel-lib/releases/download/v3.5.0/bazel-lib-v3.5.0.tar.gz",
 )
 
 http_archive(
