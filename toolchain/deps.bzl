@@ -25,9 +25,9 @@ def bazel_toolchain_dependencies():
     if not native.existing_rule("rules_cc"):
         http_archive(
             name = "rules_cc",
-            urls = ["https://github.com/bazelbuild/rules_cc/releases/download/0.2.21/rules_cc-0.2.21.tar.gz"],
-            sha256 = "962251923438d27fc030c2d9d35c058a7f7da4fed42c42ad5342c7b4403d4cf2",
-            strip_prefix = "rules_cc-0.2.21",
+            urls = ["https://github.com/bazelbuild/rules_cc/releases/download/0.2.22/rules_cc-0.2.22.tar.gz"],
+            sha256 = "81c10a95a5c22d838276ee90d712635d6042419fdfca5ef88328226b6321e53b",
+            strip_prefix = "rules_cc-0.2.22",
         )
 
     # Load bazel_skylib if the user has not defined them.
