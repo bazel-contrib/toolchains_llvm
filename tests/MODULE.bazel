@@ -29,7 +29,7 @@ bazel_dep(name = "rules_license", version = "1.0.0")
 bazel_dep(name = "rules_rust", version = "0.70.0")
 bazel_dep(name = "rules_shell", version = "0.8.0")
 bazel_dep(name = "abseil-cpp", version = "20250814.2", repo_name = "com_google_absl")
-bazel_dep(name = "boringssl", version = "0.20260526.0")
+bazel_dep(name = "boringssl", version = "0.20260713.0")
 single_version_override(
     module_name = "boringssl",
     patches = ["//:boringssl-20260413.0.patch"],
