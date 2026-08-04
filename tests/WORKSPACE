@@ -367,19 +367,12 @@ maybe(
     name = "host_platform",
 )
 
-# For testing rules_rust.
-
-http_archive(
-    name = "rules_rust",
-    integrity = "sha256-3Ch+PsqAsp1cyV4mHK4nPu3xr0oAqWrpN+I0U02tskw=",
-    urls = ["https://github.com/bazelbuild/rules_rust/releases/download/0.67.0/rules_rust-0.67.0.tar.gz"],
-)
-
-load("@rules_rust//rust:repositories.bzl", "rules_rust_dependencies", "rust_register_toolchains")
-
-rules_rust_dependencies()
-
-rust_register_toolchains()
+# NOTE: rules_rust is intentionally NOT set up here. The rules_rust tests in
+# run_external_tests.sh only run with bzlmod (see tests/MODULE.bazel). As of
+# rules_rust 0.71 the WORKSPACE support files (rust/repositories.bzl) are gone,
+# and under hybrid mode (--enable_bzlmod --enable_workspace) bazel_dep repos
+# shadow same-named WORKSPACE repos, so loading them here would break the main
+# repository mapping for every hybrid invocation.
 
 http_archive(
     name = "rules_python",
