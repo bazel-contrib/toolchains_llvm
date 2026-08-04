@@ -38,9 +38,9 @@ bazel_features_deps()
 
 http_archive(
     name = "aspect_bazel_lib",
-    sha256 = "77f4af7eb3b7573dafa8afab9058ee0d9696209a8b8096ac77646a42d12d0e48",
-    strip_prefix = "bazel-lib-3.5.0",
-    url = "https://github.com/aspect-build/bazel-lib/releases/download/v3.5.0/bazel-lib-v3.5.0.tar.gz",
+    sha256 = "10f232c10df1ba5cbbbfbcde947090463348f0344d4153e25371b13ee3daf0ce",
+    strip_prefix = "bazel-lib-3.7.1",
+    url = "https://github.com/aspect-build/bazel-lib/releases/download/v3.7.1/bazel-lib-v3.7.1.tar.gz",
 )
 
 http_archive(
@@ -338,17 +338,17 @@ http_archive(
     name = "boringssl",
     patch_args = ["-p1"],
     patches = ["//:boringssl-20260413.0.patch"],
-    sha256 = "6c94f115372978f4505df8280522111c03f2ec4efbdf2dcc713cb8cf1fa9aaab",
-    strip_prefix = "boringssl-0.20260526.0",
-    urls = ["https://github.com/google/boringssl/releases/download/0.20260526.0/boringssl-0.20260526.0.tar.gz"],
+    sha256 = "585c91782fc0651ba6f2376b672acdc30437705d8a50b4967c20e6293e318969",
+    strip_prefix = "boringssl-0.20260803.0",
+    urls = ["https://github.com/google/boringssl/releases/download/0.20260803.0/boringssl-0.20260803.0.tar.gz"],
 )
 
 http_archive(
     name = "io_bazel_rules_go",
-    sha256 = "763f4a3f6b03469fdb00a77a333dd0b5546d3ee1fa29db373128c08fee73e0e8",
+    sha256 = "0b805c94fb3730dc23df32925ed477b3f4ed37b56075dcac6f218c3ea7b4ab42",
     urls = [
-        "https://mirror.bazel.build/github.com/bazel-contrib/rules_go/releases/download/v0.61.1/rules_go-v0.61.1.zip",
-        "https://github.com/bazel-contrib/rules_go/releases/download/v0.61.1/rules_go-v0.61.1.zip",
+        "https://mirror.bazel.build/github.com/bazel-contrib/rules_go/releases/download/v0.62.0/rules_go-v0.62.0.zip",
+        "https://github.com/bazel-contrib/rules_go/releases/download/v0.62.0/rules_go-v0.62.0.zip",
     ],
 )
 
@@ -415,8 +415,8 @@ protobuf_deps()
 
 http_archive(
     name = "rules_java",
-    sha256 = "9de4e178c2c4f98d32aafe5194c3f2b717ae10405caa11bdcb460ac2a6f61516",
-    urls = ["https://github.com/bazelbuild/rules_java/releases/download/9.6.1/rules_java-9.6.1.tar.gz"],
+    sha256 = "68794ca344c1caf13dca65f90c06660823013fa080931266e2625103904a664e",
+    urls = ["https://github.com/bazelbuild/rules_java/releases/download/9.7.0/rules_java-9.7.0.tar.gz"],
 )
 
 load("@rules_java//java:rules_java_deps.bzl", "rules_java_dependencies")
