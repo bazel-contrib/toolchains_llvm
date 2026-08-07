@@ -408,8 +408,8 @@ protobuf_deps()
 
 http_archive(
     name = "rules_java",
-    sha256 = "68794ca344c1caf13dca65f90c06660823013fa080931266e2625103904a664e",
-    urls = ["https://github.com/bazelbuild/rules_java/releases/download/9.7.0/rules_java-9.7.0.tar.gz"],
+    sha256 = "2ec42a8b57608bd0f07b111b5e114e464930adca790a6e61bec5cb3109cd7c65",
+    urls = ["https://github.com/bazelbuild/rules_java/releases/download/9.7.1/rules_java-9.7.1.tar.gz"],
 )
 
 load("@rules_java//java:rules_java_deps.bzl", "rules_java_dependencies")
