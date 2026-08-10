@@ -38,9 +38,9 @@ bazel_features_deps()
 
 http_archive(
     name = "aspect_bazel_lib",
-    sha256 = "77f4af7eb3b7573dafa8afab9058ee0d9696209a8b8096ac77646a42d12d0e48",
-    strip_prefix = "bazel-lib-3.5.0",
-    url = "https://github.com/aspect-build/bazel-lib/releases/download/v3.5.0/bazel-lib-v3.5.0.tar.gz",
+    sha256 = "10f232c10df1ba5cbbbfbcde947090463348f0344d4153e25371b13ee3daf0ce",
+    strip_prefix = "bazel-lib-3.7.1",
+    url = "https://github.com/aspect-build/bazel-lib/releases/download/v3.7.1/bazel-lib-v3.7.1.tar.gz",
 )
 
 http_archive(
@@ -329,26 +329,26 @@ http_archive(
 # As a test dep of com_google_absl.
 http_archive(
     name = "googletest",
-    sha256 = "65fab701d9829d38cb77c14acdc431d2108bfdbf8979e40eb8ae567edf10b27c",
-    strip_prefix = "googletest-1.17.0",
-    urls = ["https://github.com/google/googletest/archive/v1.17.0.tar.gz"],
+    sha256 = "6e3191c1455468b3fc35a417fb565c1c5071aee1b7e7f85e30cf48a98d37d8b5",
+    strip_prefix = "googletest-1.18.0",
+    urls = ["https://github.com/google/googletest/archive/v1.18.0.tar.gz"],
 )
 
 http_archive(
     name = "boringssl",
     patch_args = ["-p1"],
     patches = ["//:boringssl-20260413.0.patch"],
-    sha256 = "6c94f115372978f4505df8280522111c03f2ec4efbdf2dcc713cb8cf1fa9aaab",
-    strip_prefix = "boringssl-0.20260526.0",
-    urls = ["https://github.com/google/boringssl/releases/download/0.20260526.0/boringssl-0.20260526.0.tar.gz"],
+    sha256 = "585c91782fc0651ba6f2376b672acdc30437705d8a50b4967c20e6293e318969",
+    strip_prefix = "boringssl-0.20260803.0",
+    urls = ["https://github.com/google/boringssl/releases/download/0.20260803.0/boringssl-0.20260803.0.tar.gz"],
 )
 
 http_archive(
     name = "io_bazel_rules_go",
-    sha256 = "763f4a3f6b03469fdb00a77a333dd0b5546d3ee1fa29db373128c08fee73e0e8",
+    sha256 = "0b805c94fb3730dc23df32925ed477b3f4ed37b56075dcac6f218c3ea7b4ab42",
     urls = [
-        "https://mirror.bazel.build/github.com/bazel-contrib/rules_go/releases/download/v0.61.1/rules_go-v0.61.1.zip",
-        "https://github.com/bazel-contrib/rules_go/releases/download/v0.61.1/rules_go-v0.61.1.zip",
+        "https://mirror.bazel.build/github.com/bazel-contrib/rules_go/releases/download/v0.62.0/rules_go-v0.62.0.zip",
+        "https://github.com/bazel-contrib/rules_go/releases/download/v0.62.0/rules_go-v0.62.0.zip",
     ],
 )
 
@@ -367,19 +367,12 @@ maybe(
     name = "host_platform",
 )
 
-# For testing rules_rust.
-
-http_archive(
-    name = "rules_rust",
-    integrity = "sha256-3Ch+PsqAsp1cyV4mHK4nPu3xr0oAqWrpN+I0U02tskw=",
-    urls = ["https://github.com/bazelbuild/rules_rust/releases/download/0.67.0/rules_rust-0.67.0.tar.gz"],
-)
-
-load("@rules_rust//rust:repositories.bzl", "rules_rust_dependencies", "rust_register_toolchains")
-
-rules_rust_dependencies()
-
-rust_register_toolchains()
+# NOTE: rules_rust is intentionally NOT set up here. The rules_rust tests in
+# run_external_tests.sh only run with bzlmod (see tests/MODULE.bazel). As of
+# rules_rust 0.71 the WORKSPACE support files (rust/repositories.bzl) are gone,
+# and under hybrid mode (--enable_bzlmod --enable_workspace) bazel_dep repos
+# shadow same-named WORKSPACE repos, so loading them here would break the main
+# repository mapping for every hybrid invocation.
 
 http_archive(
     name = "rules_python",
@@ -415,8 +408,8 @@ protobuf_deps()
 
 http_archive(
     name = "rules_java",
-    sha256 = "9de4e178c2c4f98d32aafe5194c3f2b717ae10405caa11bdcb460ac2a6f61516",
-    urls = ["https://github.com/bazelbuild/rules_java/releases/download/9.6.1/rules_java-9.6.1.tar.gz"],
+    sha256 = "4061f0cbfd556ff885243c600b69be452e26c81ed5b9e5c67d555bf95d37a973",
+    urls = ["https://github.com/bazelbuild/rules_java/releases/download/9.7.2/rules_java-9.7.2.tar.gz"],
 )
 
 load("@rules_java//java:rules_java_deps.bzl", "rules_java_dependencies")

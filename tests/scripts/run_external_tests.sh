@@ -93,7 +93,10 @@ if [[ "${_use_bazel_version}" != "8."* ]] && [[ "${USE_BZLMOD:-true}" == "true" 
     generate_imported_dylib_sh="${output_base}/external/io_bazel_rules_go/tests/core/cgo/generate_imported_dylib.sh"
   fi
   echo "Script: '${generate_imported_dylib_sh}'"
-  "${generate_imported_dylib_sh}" "${IMPORTED_C_PATH-}" "${OUTPUT_DIR:-${output_base}}" || echo "ERROR: rules_go script 'tests/core/cgo/generate_imported_dylib.sh' failed."
+  # The script compiles the `imported.c` next to it into the dylibs expected by
+  # the (manual) dylib_test targets, in the same package directory.
+  _cgo_dir="$(dirname "${generate_imported_dylib_sh}")"
+  "${generate_imported_dylib_sh}" "${IMPORTED_C_PATH:-${_cgo_dir}/imported.c}" "${OUTPUT_DIR:-${_cgo_dir}}" || echo "ERROR: rules_go script 'tests/core/cgo/generate_imported_dylib.sh' failed."
   echo "------------------------------------------------------"
 
   targets+=(
