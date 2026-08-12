@@ -255,6 +255,11 @@ filegroup(
 )
 
 filegroup(
+    name = "clang-apply-replacements",
+    srcs = ["bin/clang-apply-replacements"],
+)
+
+filegroup(
     name = "clang-format",
     srcs = ["bin/clang-format"],
 )
