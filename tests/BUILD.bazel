@@ -242,6 +242,19 @@ sh_test(
     ],
 )
 
+# Verifies the convenience filegroups for the extra LLVM tools are available in
+# the distribution repo, so consumers can depend on e.g.
+# `@llvm_toolchain_llvm//:clang-apply-replacements` the same way they depend on
+# `@llvm_toolchain_llvm//:clang-tidy`.
+build_test(
+    name = "extra_tools_test",
+    targets = [
+        "@llvm_toolchain_llvm//:clang-apply-replacements",
+        "@llvm_toolchain_llvm//:clang-format",
+        "@llvm_toolchain_llvm//:clang-tidy",
+    ],
+)
+
 # As a workaround for https://github.com/bazelbuild/rules_foreign_cc/issues/1018.
 toolchain(
     name = "ninja_mac_arm64_toolchain",
@@ -312,4 +325,14 @@ cc_test(
     # can use the default toolchain
     tags = ["manual"],
     deps = [":test_cxx_standard_lib_transitioned"],
+)
+
+cc_library(
+    name = "assembly_test_lib",
+    srcs = ["assembly_test.s"],
+)
+
+build_test(
+    name = "assembly_test",
+    targets = [":assembly_test_lib"],
 )
