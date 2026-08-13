@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
 package(default_visibility = ["//visibility:public"])
 
 # Some targets may need to directly depend on these files.
@@ -75,6 +77,12 @@ filegroup(
     ),
 )
 
+cc_library(
+    name = "clang_headers",
+    hdrs = glob(["include/**"]),
+    strip_include_prefix = "include",
+)
+
 # This filegroup should only have source directories, not individual files.
 # We rely on this assumption in system_module_map.bzl.
 filegroup(
@@ -132,6 +140,11 @@ filegroup(
         ],
         allow_empty = True,
     ),
+)
+
+filegroup(
+    name = "lib_archives",
+    srcs = glob(["lib/*.a"], allow_empty = True),
 )
 
 filegroup(
