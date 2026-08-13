@@ -45,9 +45,9 @@ http_archive(
 
 http_archive(
     name = "tar.bzl",
-    sha256 = "89017f8c7310257e006f0b1f905cc628de726533e99110b3954f6e980e23cc86",
-    strip_prefix = "tar.bzl-0.10.7",
-    url = "https://github.com/bazel-contrib/tar.bzl/releases/download/v0.10.7/tar.bzl-v0.10.7.tar.gz",
+    sha256 = "0ca2f75db5d9883cee6745ffd365a1d076480173b7b298060ce5944e8b293a70",
+    strip_prefix = "tar.bzl-0.10.8",
+    url = "https://github.com/bazel-contrib/tar.bzl/releases/download/v0.10.8/tar.bzl-v0.10.8.tar.gz",
 )
 
 http_archive(
@@ -408,8 +408,8 @@ protobuf_deps()
 
 http_archive(
     name = "rules_java",
-    sha256 = "4061f0cbfd556ff885243c600b69be452e26c81ed5b9e5c67d555bf95d37a973",
-    urls = ["https://github.com/bazelbuild/rules_java/releases/download/9.7.2/rules_java-9.7.2.tar.gz"],
+    sha256 = "88537048d7d07589ff4939c99889300c7063e43480ddd3cfa94d6c2cc899aa2e",
+    urls = ["https://github.com/bazelbuild/rules_java/releases/download/9.8.0/rules_java-9.8.0.tar.gz"],
 )
 
 load("@rules_java//java:rules_java_deps.bzl", "rules_java_dependencies")
