@@ -41,6 +41,24 @@ jobs:
           USE_BAZEL_VERSION: ${{ matrix.bazel_version }}
           USE_BZLMOD: ${{ matrix.bzlmod }}
         run: tests/scripts/run_tests.sh -O
+  lsan_macos_test:
+    # LLVM <= 21 deadlocks while enumerating dyld images during LSan's exit
+    # check on current macOS. LLVM 22 uses _dyld_get_dyld_header instead; keep a
+    # focused test pinned to the first release line containing that fix.
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Test LSan with LLVM 22
+        env:
+          USE_BAZEL_VERSION: latest
+          USE_BZLMOD: true
+        run: |
+          source tests/scripts/bazel.sh
+          cd tests
+          "${bazel}" --bazelrc=/dev/null test \
+            "${common_test_args[@]}" \
+            --repo_env=LLVM_VERSION=22.1.8 \
+            //:lsan_test
   toolchain_test:
     strategy:
       fail-fast: false
@@ -195,6 +213,7 @@ jobs:
     needs:
       - lint
       - test
+      - lsan_macos_test
       - toolchain_test
       - external_test
       - container_test

@@ -184,6 +184,14 @@ filegroup(
 )
 
 filegroup(
+    name = "libclang_rt-lsan-darwin",
+    srcs = glob(
+        ["lib/clang/{LLVM_VERSION}/lib/darwin/libclang_rt.lsan_osx_dynamic.dylib"],
+        allow_empty = True,
+    ),
+)
+
+filegroup(
     name = "libclang_rt-tsan-darwin",
     srcs = glob(
         ["lib/clang/{LLVM_VERSION}/lib/darwin/libclang_rt.tsan_osx_dynamic.dylib"],

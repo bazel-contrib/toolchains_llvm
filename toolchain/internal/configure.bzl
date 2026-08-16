@@ -818,6 +818,9 @@ filegroup(
         "{use_asan}": ["{root}:libclang_rt-asan-darwin"],
         "//conditions:default": [],
     }}) + select({{
+        "{use_lsan}": ["{root}:libclang_rt-lsan-darwin"],
+        "//conditions:default": [],
+    }}) + select({{
         "{use_ubsan}": ["{root}:libclang_rt-ubsan-darwin"],
         "//conditions:default": [],
     }}) + select({{
@@ -829,6 +832,7 @@ filegroup(
             suffix = suffix,
             root = target_toolchain_root,
             use_asan = str(Label("//toolchain/config:use_asan")),
+            use_lsan = str(Label("//toolchain/config:use_lsan")),
             use_ubsan = str(Label("//toolchain/config:use_ubsan")),
             use_tsan = str(Label("//toolchain/config:use_tsan")),
         )
