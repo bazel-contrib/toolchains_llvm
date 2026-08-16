@@ -60,25 +60,7 @@ def _system_module_map(ctx):
         paths.join(execroot_prefix, file.path),
     )
 
-    # Unlike cxx_builtin_include_files, whose entries are source directories
-    # emitted as umbrella submodules, these are individual headers (e.g. a
-    # force-included header) that must always be emitted as textual headers.
-    forced_textual_header_closure = lambda file: "  textual header \"{}\"".format(
-        paths.join(execroot_prefix, file.path),
-    )
-
     template_dict = ctx.actions.template_dict()
-
-    if ctx.attr.extra_textual_headers:
-        template_dict.add_joined(
-            "%extra_textual_headers%",
-            ctx.attr.extra_textual_headers[DefaultInfo].files,
-            join_with = "\n",
-            map_each = forced_textual_header_closure,
-            allow_closure = True,
-        )
-    else:
-        template_dict.add("%extra_textual_headers%", "")
 
     if bazel_features.rules.merkle_cache_v2:
         # If provided, cxx_builtin_files should be a filegroup with 2 source directory entries:
@@ -139,7 +121,6 @@ system_module_map = rule(
     attrs = {
         "cxx_builtin_include_files": attr.label(mandatory = True),
         "cxx_builtin_include_directories": attr.string_list(mandatory = True),
-        "extra_textual_headers": attr.label(allow_files = True),
         "sysroot_files": attr.label(),
         "sysroot_path": attr.string(),
         "_module_map_template": attr.label(
