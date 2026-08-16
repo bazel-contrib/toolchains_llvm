@@ -175,7 +175,7 @@ def _sanitizer_test_impl(ctx):
 # exercising the sanitizer compile/link flags and runtime end to end. Used for
 # asan/ubsan/tsan (msan needs an instrumented libc++). More than one sanitizer
 # covers the combinations that must not produce an ambiguous select() match in
-# the toolchain (see //toolchain/config:use_any_sanitizer).
+# the toolchain (see //toolchain/config:use_asan_ubsan_or_tsan).
 sanitizer_test = rule(
     implementation = _sanitizer_test_impl,
     test = True,

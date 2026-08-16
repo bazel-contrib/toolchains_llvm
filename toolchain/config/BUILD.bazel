@@ -80,10 +80,29 @@ config_setting(
 # The three settings above are not mutually exclusive: `--features=asan
 # --features=ubsan` matches both. A select() may therefore only key on more
 # than one of them when every matching branch resolves to the same value, so
-# anything shared by all sanitizers keys on this group instead, and anything
+# anything shared by asan/ubsan/tsan keys on this group instead, and anything
 # sanitizer-specific gets its own single-condition select().
+#
+# The group is named after its exact members rather than "any sanitizer",
+# because it is not all of them and the set is expected to change:
+#
+#   msan needs no config_setting of its own. It is driven entirely by the
+#   mutually-exclusive msan/nomsan cc_features in cc_toolchain_config.bzl, so
+#   no select() keys on it and it cannot produce an ambiguous match. It also
+#   does not want what this group guards: it links the instrumented libc++
+#   itself rather than through `-fsanitize-link-c++-runtime`, and it is
+#   Linux-only, so the macOS runtime dylibs never apply.
+#
+#   lsan is a stock rules_cc sanitizer feature (`--features=lsan`,
+#   -fsanitize=leak) that this toolchain does not augment at all -- there is no
+#   :use_lsan setting above. Standalone LSan has no separate C++ runtime to
+#   link and clang does not support it on Apple targets, so it likely needs
+#   nothing here, but that has not been verified. Adding a setting for it means
+#   revisiting this group.
+#
+# Anything added here must keep every select() keyed on exactly one condition.
 selects.config_setting_group(
-    name = "use_any_sanitizer",
+    name = "use_asan_ubsan_or_tsan",
     match_any = [
         ":use_asan",
         ":use_ubsan",
