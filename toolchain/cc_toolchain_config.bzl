@@ -859,6 +859,13 @@ def cc_toolchain_config(
     # than a //toolchain/config flag) means the augmentation is reset to
     # `--host_features` in the exec configuration, so build tools stay
     # uninstrumented -- matching how the stock features themselves behave.
+    #
+    # Sanitizers combine (`--features=asan --features=ubsan` is a supported
+    # build), and the use_* settings all match at once when they do. A single
+    # select() keyed on several of them is then an ambiguous match and Bazel
+    # fails analysis, so the flags are assembled from selects that each key on
+    # exactly one condition: what all sanitizers share keys on
+    # use_any_sanitizer, what only ubsan needs keys on use_ubsan.
     sanitizer_compile_flags = select({
         str(Label("@toolchains_llvm//toolchain/config:use_ubsan")): [
             "-fsanitize=bounds",
@@ -867,16 +874,14 @@ def cc_toolchain_config(
         "//conditions:default": [],
     })
     sanitizer_link_flags = select({
-        str(Label("@toolchains_llvm//toolchain/config:use_asan")): [
+        str(Label("@toolchains_llvm//toolchain/config:use_any_sanitizer")): [
             "-fsanitize-link-c++-runtime",
         ],
+        "//conditions:default": [],
+    }) + select({
         str(Label("@toolchains_llvm//toolchain/config:use_ubsan")): [
-            "-fsanitize-link-c++-runtime",
             "-fsanitize=bounds",
             "-fsanitize=nullability",
-        ],
-        str(Label("@toolchains_llvm//toolchain/config:use_tsan")): [
-            "-fsanitize-link-c++-runtime",
         ],
         "//conditions:default": [],
     })
@@ -902,9 +907,7 @@ def cc_toolchain_config(
         )
         runfiles_feature_label = ":" + name + "_sanitizer_runtime_runfiles"
         sanitizer_runtime_features = select({
-            str(Label("@toolchains_llvm//toolchain/config:use_asan")): [runfiles_feature_label],
-            str(Label("@toolchains_llvm//toolchain/config:use_ubsan")): [runfiles_feature_label],
-            str(Label("@toolchains_llvm//toolchain/config:use_tsan")): [runfiles_feature_label],
+            str(Label("@toolchains_llvm//toolchain/config:use_any_sanitizer")): [runfiles_feature_label],
             "//conditions:default": [],
         })
 

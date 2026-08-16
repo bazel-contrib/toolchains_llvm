@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@bazel_skylib//lib:selects.bzl", "selects")
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 
 bool_flag(
@@ -73,5 +74,20 @@ config_setting(
 config_setting(
     name = "use_tsan",
     values = {"features": "tsan"},
+    visibility = ["//visibility:public"],
+)
+
+# The three settings above are not mutually exclusive: `--features=asan
+# --features=ubsan` matches both. A select() may therefore only key on more
+# than one of them when every matching branch resolves to the same value, so
+# anything shared by all sanitizers keys on this group instead, and anything
+# sanitizer-specific gets its own single-condition select().
+selects.config_setting_group(
+    name = "use_any_sanitizer",
+    match_any = [
+        ":use_asan",
+        ":use_ubsan",
+        ":use_tsan",
+    ],
     visibility = ["//visibility:public"],
 )

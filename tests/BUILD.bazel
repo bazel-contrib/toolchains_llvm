@@ -15,7 +15,7 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
-load(":transitions.bzl", "dwp_file", "msan_flags_test", "sanitizer_test", "stdlib_flags_test", "transition_library_to_platform")
+load(":transitions.bzl", "dwp_file", "msan_flags_test", "sanitizer_combo_flags_test", "sanitizer_test", "stdlib_flags_test", "transition_library_to_platform")
 
 cc_library(
     name = "stdlib",
@@ -92,7 +92,7 @@ cc_test(
 sanitizer_test(
     name = "asan_test",
     src = ":stdlib_bin",
-    sanitizer = "asan",
+    sanitizers = ["asan"],
     tags = ["manual"],
     target_compatible_with = ["@platforms//os:linux"],
 )
@@ -100,7 +100,7 @@ sanitizer_test(
 sanitizer_test(
     name = "ubsan_test",
     src = ":stdlib_bin",
-    sanitizer = "ubsan",
+    sanitizers = ["ubsan"],
     tags = ["manual"],
     target_compatible_with = ["@platforms//os:linux"],
 )
@@ -108,7 +108,21 @@ sanitizer_test(
 sanitizer_test(
     name = "tsan_test",
     src = ":stdlib_bin",
-    sanitizer = "tsan",
+    sanitizers = ["tsan"],
+    tags = ["manual"],
+    target_compatible_with = ["@platforms//os:linux"],
+)
+
+# asan and ubsan together: the combination that used to fail analysis with
+# "Illegal ambiguous match" (#777). asan+tsan is not tested because clang
+# rejects that pair outright.
+sanitizer_test(
+    name = "asan_ubsan_test",
+    src = ":stdlib_bin",
+    sanitizers = [
+        "asan",
+        "ubsan",
+    ],
     tags = ["manual"],
     target_compatible_with = ["@platforms//os:linux"],
 )
@@ -119,6 +133,15 @@ sanitizer_test(
 msan_flags_test(
     name = "msan_flags_test",
     target_compatible_with = ["@platforms//os:linux"],
+    target_under_test = ":stdlib_bin",
+)
+
+# Analysis-only check that two sanitizers can be enabled at once. Not restricted
+# to Linux and not tagged manual: it never links or runs, so it needs no
+# sanitizer runtime, and macOS is where the combination used to fail on the
+# cc_toolchain's dynamic_runtime_lib (#777).
+sanitizer_combo_flags_test(
+    name = "sanitizer_combo_flags_test",
     target_under_test = ":stdlib_bin",
 )
 

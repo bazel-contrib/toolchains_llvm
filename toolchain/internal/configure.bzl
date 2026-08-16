@@ -766,7 +766,7 @@ system_module_map(
 )
 
 filegroup(name = "runtime-libs-empty-{suffix}", srcs = [])
-
+{sanitizer_runtime_filegroup}
 cc_toolchain(
     name = "cc-clang-{suffix}",
     all_files = "all-files-{suffix}",
@@ -805,15 +805,38 @@ cc_toolchain(
     # a format argument (not inlined in the template) so its select() braces
     # are not re-interpreted by the outer format().
     runtime_lib_attrs = ""
+    runtime_lib_filegroup = ""
     if target_os == "darwin" and not use_absolute_paths_llvm:
         runtime_lib_attrs = """
     static_runtime_lib = ":runtime-libs-empty-{suffix}",
-    dynamic_runtime_lib = select({{
-        "{use_asan}": "{root}:libclang_rt-asan-darwin",
-        "{use_ubsan}": "{root}:libclang_rt-ubsan-darwin",
-        "{use_tsan}": "{root}:libclang_rt-tsan-darwin",
-        "//conditions:default": ":runtime-libs-empty-{suffix}",
-    }}),""".format(
+    dynamic_runtime_lib = ":sanitizer-runtime-libs-{suffix}",""".format(suffix = suffix)
+
+        # Like runtime_lib_attrs, this is passed as a format argument rather
+        # than inlined into the template, so its select() braces are not
+        # re-interpreted by the outer format().
+        #
+        # Sanitizers combine, so the enabled ones cannot be picked with a single
+        # select() over the use_* settings: they all match at once and Bazel
+        # rejects the ambiguous match. dynamic_runtime_lib takes one label, so
+        # instead of selecting the label, select the filegroup's contents -- one
+        # single-condition select() per sanitizer, concatenated. A combined
+        # build then gets exactly the runtimes it enabled, and no combination is
+        # ambiguous.
+        runtime_lib_filegroup = """
+filegroup(
+    name = "sanitizer-runtime-libs-{suffix}",
+    srcs = select({{
+        "{use_asan}": ["{root}:libclang_rt-asan-darwin"],
+        "//conditions:default": [],
+    }}) + select({{
+        "{use_ubsan}": ["{root}:libclang_rt-ubsan-darwin"],
+        "//conditions:default": [],
+    }}) + select({{
+        "{use_tsan}": ["{root}:libclang_rt-tsan-darwin"],
+        "//conditions:default": [],
+    }}),
+)
+""".format(
             suffix = suffix,
             root = target_toolchain_root,
             use_asan = str(Label("//toolchain/config:use_asan")),
@@ -883,6 +906,7 @@ cc_toolchain(
         extra_exec_compatible_with_all_targets = toolchain_info.extra_exec_compatible_with.get("", []),
         extra_target_compatible_with_all_targets = toolchain_info.extra_target_compatible_with.get("", []),
         runtime_lib_attrs = runtime_lib_attrs,
+        sanitizer_runtime_filegroup = runtime_lib_filegroup,
     )
 
 def _is_remote(rctx, exec_os, exec_arch):

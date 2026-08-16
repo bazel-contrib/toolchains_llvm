@@ -148,12 +148,12 @@ transition_binary_to_platform = rule(
 _FEATURES = "//command_line_option:features"
 
 def _sanitizer_transition_impl(settings, attr):
-    # Enable the requested sanitizer via `--features`, matching how sanitizers
+    # Enable the requested sanitizers via `--features`, matching how sanitizers
     # are turned on in normal builds (rules_cc's stock asan/ubsan/tsan
     # features). Using a feature means Bazel resets it to `--host_features` in
     # the exec configuration, so build tools stay uninstrumented.
-    features = [f for f in settings[_FEATURES] if f != attr.sanitizer]
-    return {_FEATURES: features + [attr.sanitizer]}
+    features = [f for f in settings[_FEATURES] if f not in attr.sanitizers]
+    return {_FEATURES: features + attr.sanitizers}
 
 _sanitizer_transition = transition(
     implementation = _sanitizer_transition_impl,
@@ -171,15 +171,20 @@ def _sanitizer_test_impl(ctx):
         runfiles = ctx.attr.src[0][DefaultInfo].default_runfiles,
     )]
 
-# Builds and runs `src` with a single sanitizer enabled via `--features`,
+# Builds and runs `src` with the given sanitizers enabled via `--features`,
 # exercising the sanitizer compile/link flags and runtime end to end. Used for
-# asan/ubsan/tsan (msan needs an instrumented libc++).
+# asan/ubsan/tsan (msan needs an instrumented libc++). More than one sanitizer
+# covers the combinations that must not produce an ambiguous select() match in
+# the toolchain (see //toolchain/config:use_any_sanitizer).
 sanitizer_test = rule(
     implementation = _sanitizer_test_impl,
     test = True,
     attrs = {
         "src": attr.label(mandatory = True, cfg = _sanitizer_transition),
-        "sanitizer": attr.string(mandatory = True, values = ["asan", "ubsan", "tsan"]),
+        "sanitizers": attr.string_list(
+            mandatory = True,
+            allow_empty = False,
+        ),
         "_allowlist_function_transition": attr.label(
             default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
         ),
@@ -216,6 +221,37 @@ msan_flags_test = analysistest.make(
     _msan_flags_test_impl,
     config_settings = {
         "//command_line_option:features": ["msan"],
+    },
+)
+
+def _sanitizer_combo_flags_test_impl(ctx):
+    env = analysistest.begin(ctx)
+    cpp_actions = [
+        a
+        for a in analysistest.target_actions(env)
+        if a.mnemonic == "CppCompile"
+    ]
+    asserts.true(env, len(cpp_actions) > 0, "expected a CppCompile action")
+    argv = cpp_actions[0].argv
+    for flag in ["-fsanitize=address", "-fsanitize=undefined"]:
+        asserts.true(
+            env,
+            flag in argv,
+            "expected %s on the compile command line, got: %s" % (flag, argv),
+        )
+    return analysistest.end(env)
+
+# Analysis-only test for combined sanitizers. Its real job is to reach analysis
+# at all: the use_asan/use_ubsan/use_tsan config_settings match `--features`, so
+# they are not mutually exclusive, and a select() keying on more than one of
+# them fails with "Illegal ambiguous match" as soon as two sanitizers are
+# enabled together (#777). Because it only analyses, it runs on every platform,
+# including macOS -- where the ambiguity hits the cc_toolchain's
+# dynamic_runtime_lib rather than the toolchain config's link flags.
+sanitizer_combo_flags_test = analysistest.make(
+    _sanitizer_combo_flags_test_impl,
+    config_settings = {
+        "//command_line_option:features": ["asan", "ubsan"],
     },
 )
 
