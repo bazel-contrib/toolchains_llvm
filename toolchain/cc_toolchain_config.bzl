@@ -865,10 +865,10 @@ def cc_toolchain_config(
     # select() keyed on several of them is then an ambiguous match and Bazel
     # fails analysis, so the flags are assembled from selects that each key on
     # exactly one condition: what asan/ubsan/tsan share keys on
-    # use_asan_ubsan_or_tsan, what only ubsan needs keys on use_ubsan. msan is
+    # use_common_sanitizer, what only ubsan needs keys on use_ubsan. msan is
     # not involved -- it is carried by the msan/nomsan cc_features below, not by
-    # a select() -- and rules_cc's stock `lsan` feature is not augmented here at
-    # all; see //toolchain/config for both.
+    # a select() -- and rules_cc's stock `lsan` feature is not augmented here
+    # yet; see //toolchain/config for both.
     sanitizer_compile_flags = select({
         str(Label("@toolchains_llvm//toolchain/config:use_ubsan")): [
             "-fsanitize=bounds",
@@ -877,7 +877,7 @@ def cc_toolchain_config(
         "//conditions:default": [],
     })
     sanitizer_link_flags = select({
-        str(Label("@toolchains_llvm//toolchain/config:use_asan_ubsan_or_tsan")): [
+        str(Label("@toolchains_llvm//toolchain/config:use_common_sanitizer")): [
             "-fsanitize-link-c++-runtime",
         ],
         "//conditions:default": [],
@@ -910,7 +910,7 @@ def cc_toolchain_config(
         )
         runfiles_feature_label = ":" + name + "_sanitizer_runtime_runfiles"
         sanitizer_runtime_features = select({
-            str(Label("@toolchains_llvm//toolchain/config:use_asan_ubsan_or_tsan")): [runfiles_feature_label],
+            str(Label("@toolchains_llvm//toolchain/config:use_common_sanitizer")): [runfiles_feature_label],
             "//conditions:default": [],
         })
 

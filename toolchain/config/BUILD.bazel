@@ -83,8 +83,8 @@ config_setting(
 # anything shared by asan/ubsan/tsan keys on this group instead, and anything
 # sanitizer-specific gets its own single-condition select().
 #
-# The group is named after its exact members rather than "any sanitizer",
-# because it is not all of them and the set is expected to change:
+# The group holds the sanitizers that need the same treatment, not every
+# sanitizer, and it is expected to grow:
 #
 #   msan needs no config_setting of its own. It is driven entirely by the
 #   mutually-exclusive msan/nomsan cc_features in cc_toolchain_config.bzl, so
@@ -93,16 +93,19 @@ config_setting(
 #   itself rather than through `-fsanitize-link-c++-runtime`, and it is
 #   Linux-only, so the macOS runtime dylibs never apply.
 #
-#   lsan is a stock rules_cc sanitizer feature (`--features=lsan`,
-#   -fsanitize=leak) that this toolchain does not augment at all -- there is no
-#   :use_lsan setting above. Standalone LSan has no separate C++ runtime to
-#   link and clang does not support it on Apple targets, so it likely needs
-#   nothing here, but that has not been verified. Adding a setting for it means
-#   revisiting this group.
+#   lsan belongs here but is not wired up yet. rules_cc ships four stock
+#   sanitizer features -- asan, lsan, tsan, ubsan -- and there is no :use_lsan
+#   setting above, so `--features=lsan` gets no augmentation. On macOS the
+#   linked binary does reference @rpath/libclang_rt.lsan_osx_dynamic.dylib,
+#   which nothing then ships into runfiles: the same failure #769 fixed for the
+#   other three. Adding it is a behaviour change for lsan builds and wants its
+#   own test, so it is deliberately left to a follow-up.
 #
-# Anything added here must keep every select() keyed on exactly one condition.
+# Newer sanitizers keep appearing (the LLVM distributions already carry an
+# rtsan runtime), so expect to extend this. Anything added here must keep every
+# select() keyed on exactly one condition.
 selects.config_setting_group(
-    name = "use_asan_ubsan_or_tsan",
+    name = "use_common_sanitizer",
     match_any = [
         ":use_asan",
         ":use_ubsan",
