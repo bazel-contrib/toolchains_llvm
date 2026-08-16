@@ -13,7 +13,7 @@
 # limitations under the License.
 
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
-load("llvm_distributions.bzl", "distributions_test_writer", "requirements_test_writer")
+load("llvm_distributions.bzl", "distributions_test_writer", "prerelease_test_writer", "requirements_test_writer")
 
 exports_files(["template.modulemap"])
 
@@ -48,4 +48,17 @@ diff_test(
     name = "llvm_requirements_test",
     file1 = "llvm_requirements_test.golden.txt",
     file2 = "llvm_requirements_test.output.txt",
+)
+
+prerelease_test_writer(
+    name = "llvm_prerelease_test_output",
+    testonly = True,
+    result = "llvm_prerelease_test.output.txt",
+    visibility = ["//visibility:private"],
+)
+
+diff_test(
+    name = "llvm_prerelease_test",
+    file1 = "llvm_prerelease_test.golden.txt",
+    file2 = "llvm_prerelease_test.output.txt",
 )

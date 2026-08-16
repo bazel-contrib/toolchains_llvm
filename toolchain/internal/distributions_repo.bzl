@@ -175,7 +175,11 @@ def _basename_version(basename):
     # Mirrors `_distribution_version_string` in `llvm_distributions.bzl`,
     # duplicated here to avoid a dependency cycle (this is a repository rule
     # that runs at fetch time, before the runtime module loads).
-    return basename.split("-", 2)[1]
+    parts = basename.split("-")
+    version = parts[1]
+    if len(parts) > 2 and parts[2].startswith("rc") and parts[2][2:].isdigit():
+        version += "-" + parts[2]
+    return version
 
 def _impl(rctx):
     distributions = {}
