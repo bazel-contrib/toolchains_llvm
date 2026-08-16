@@ -149,7 +149,7 @@ _FEATURES = "//command_line_option:features"
 
 def _sanitizer_transition_impl(settings, attr):
     # Enable the requested sanitizers via `--features`, matching how sanitizers
-    # are turned on in normal builds (rules_cc's stock asan/ubsan/tsan
+    # are turned on in normal builds (rules_cc's stock asan/lsan/ubsan/tsan
     # features). Using a feature means Bazel resets it to `--host_features` in
     # the exec configuration, so build tools stay uninstrumented.
     features = [f for f in settings[_FEATURES] if f not in attr.sanitizers]
@@ -173,7 +173,7 @@ def _sanitizer_test_impl(ctx):
 
 # Builds and runs `src` with the given sanitizers enabled via `--features`,
 # exercising the sanitizer compile/link flags and runtime end to end. Used for
-# asan/ubsan/tsan (msan needs an instrumented libc++). More than one sanitizer
+# asan/lsan/ubsan/tsan (msan needs an instrumented libc++). More than one sanitizer
 # covers the combinations that must not produce an ambiguous select() match in
 # the toolchain (see //toolchain/config:use_common_sanitizer).
 sanitizer_test = rule(

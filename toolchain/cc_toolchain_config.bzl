@@ -318,16 +318,16 @@ def cc_toolchain_config(
         "-L{}libcxx-msan/lib/{}".format(target_toolchain_path_prefix, target_system_name),
     ]
 
-    # MemorySanitizer compile+link flags. Unlike asan/ubsan/tsan, msan must swap
+    # MemorySanitizer compile+link flags. Unlike asan/lsan/ubsan/tsan, msan must swap
     # the C++ standard library for an instrumented libc++. On Linux this is
     # wired through a `msan` cc_feature (see the mutually-exclusive features
     # built near the cc_toolchain_config call), so that enabling it with
     # `--features=msan` is reset in the exec configuration (via --host_features)
     # and build tools stay uninstrumented.
     #
-    # asan/ubsan/tsan are provided by rules_cc's stock sanitizer cc_features
+    # asan/lsan/ubsan/tsan are provided by rules_cc's stock sanitizer cc_features
     # (defined in unix_cc_toolchain_config) and are likewise enabled via
-    # `--features=asan|ubsan|tsan`, so they are not wired up here.
+    # `--features=asan|lsan|ubsan|tsan`, so they are not wired up here.
     msan_sanitizer_flags = [
         "-fsanitize=memory",
         "-fsanitize-memory-track-origins",
@@ -844,8 +844,8 @@ def cc_toolchain_config(
         baked_link_stdlib_flags = default_link_search_flags
         baked_link_libs_stdlib = stdlib_link_libs
 
-    # asan/ubsan/tsan are rules_cc's stock sanitizer cc_features, enabled via
-    # `--features=asan|ubsan|tsan`. They link via a plain `-fsanitize=...`, which
+    # asan/lsan/ubsan/tsan are rules_cc's stock sanitizer cc_features, enabled via
+    # `--features=asan|lsan|ubsan|tsan`. They link via a plain `-fsanitize=...`, which
     # does not pull Clang's C++ sanitizer runtime, so C++ programs fail to link
     # (e.g. ubsan's vptr handlers, __ubsan_*_type_cache). Augment each stock
     # feature with `-fsanitize-link-c++-runtime`; ubsan additionally gets
@@ -862,11 +862,10 @@ def cc_toolchain_config(
     # build), and the use_* settings all match at once when they do. A single
     # select() keyed on several of them is then an ambiguous match and Bazel
     # fails analysis, so the flags are assembled from selects that each key on
-    # exactly one condition: what asan/ubsan/tsan share keys on
+    # exactly one condition: what asan/lsan/ubsan/tsan share keys on
     # use_common_sanitizer, what only ubsan needs keys on use_ubsan. msan is
     # not involved -- it is carried by the msan/nomsan cc_features below, not by
-    # a select() -- and rules_cc's stock `lsan` feature is not augmented here
-    # yet; see //toolchain/config for both.
+    # a select(); see //toolchain/config.
     sanitizer_compile_flags = select({
         str(Label("@toolchains_llvm//toolchain/config:use_ubsan")): [
             "-fsanitize=bounds",

@@ -76,7 +76,7 @@ if [[ -z "${toolchain_name}" ]]; then
     # and listed here only for the default toolchain: they require a sanitizer
     # runtime new enough for the host glibc, which the pinned LLVM 13.0.0
     # toolchain used by the container tests is not.
-    targets+=("//:asan_test" "//:ubsan_test" "//:tsan_test" "//:asan_ubsan_test")
+    targets+=("//:asan_test" "//:lsan_test" "//:ubsan_test" "//:tsan_test" "//:asan_ubsan_test")
   fi
 fi
 

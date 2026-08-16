@@ -77,11 +77,11 @@ cc_test(
     deps = [":stdlib"],
 )
 
-# Sanitizer support (rules_cc's stock asan/ubsan/tsan features, augmented by the
-# toolchain with the C++ sanitizer runtime). The transition enables a single
-# sanitizer via `--features` for the wrapped binary so the test runs regardless
-# of the global build flags. Restricted to Linux, where the toolchain ships the
-# sanitizer runtimes.
+# Sanitizer support (rules_cc's stock asan/lsan/ubsan/tsan features, augmented
+# by the toolchain with the C++ sanitizer runtime). The transition enables a
+# single sanitizer via `--features` for the wrapped binary so the test runs
+# regardless of the global build flags. The tests are restricted to Linux
+# except for lsan, whose macOS runtime is usable with LLVM 22 or newer.
 #
 # Tagged `manual` so the default `bazel test //...`/`//:all` does not pick them
 # up: the `container_test` job runs `//:all` against the pinned LLVM 13.0.0
@@ -103,6 +103,13 @@ sanitizer_test(
     sanitizers = ["ubsan"],
     tags = ["manual"],
     target_compatible_with = ["@platforms//os:linux"],
+)
+
+sanitizer_test(
+    name = "lsan_test",
+    src = ":stdlib_bin",
+    sanitizers = ["lsan"],
+    tags = ["manual"],
 )
 
 sanitizer_test(
