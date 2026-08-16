@@ -21,7 +21,7 @@
 # `llvm_version` and let the toolchain pick the existing entries up.
 #
 # Usage: utils/extra_distributions.sh [-d] [-t <tempdir>] -v <version>
-#   -v <version>  LLVM release version (e.g. 19.1.0).
+#   -v <version>  LLVM release version (e.g. 19.1.0 or 23.1.0-rc3).
 #   -d            Force download tarballs and recompute SHA-256s locally
 #                 even when GitHub provides a .digest field.
 #   -t <tempdir>  Reuse a specific temp directory (kept after exit).
@@ -93,9 +93,10 @@ curl "${curl_args[@]}" \
 
 # Asset table: name <TAB> digest (may be empty) <TAB> download URL.
 assets_tsv="${tmp_dir}/assets.tsv"
-jq -r '
+jq -r --arg version "${llvm_version}" '
   .assets[]
   | select(.name | test("^(clang[+]llvm|LLVM)-.*tar.(xz|gz)$"))
+  | select(.name | contains("-" + $version + "-"))
   | [.name, ((.digest // "") | sub("^sha256:"; "")), .browser_download_url] | @tsv
 ' "${release_json}" >"${assets_tsv}"
 

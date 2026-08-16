@@ -1,0 +1,7 @@
+exact 23.1.0-rc2: LLVM-23.1.0-rc2-Linux-X64.tar.xz
+exact 23.1.0-rc3: LLVM-23.1.0-rc3-Linux-X64.tar.xz
+exact 23.0.0: LLVM-23.0.0-Linux-X64.tar.xz
+latest: 23.0.0 = LLVM-23.0.0-Linux-X64.tar.xz
+latest:>=23: 23.0.0 = LLVM-23.0.0-Linux-X64.tar.xz
+latest:>22: 23.0.0 = LLVM-23.0.0-Linux-X64.tar.xz
+latest:>=23.1.0-rc1: 23.1.0-rc3 = LLVM-23.1.0-rc3-Linux-X64.tar.xz

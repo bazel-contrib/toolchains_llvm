@@ -69,6 +69,30 @@ llvm.toolchain(
 )
 ```
 
+Prereleases can be selected by their exact version and supplied through
+`extra_llvm_distributions` in the same way. Following the common SemVer range
+convention, they are excluded from `latest`, `first`, and stable-only version
+requirements. A requirement explicitly opts in by naming a prerelease with
+the same major/minor/patch tuple; for example, `latest:>=23.1.0-rc1` can select
+`23.1.0-rc3`, while `latest:>=23` and `latest:>22` cannot:
+
+```starlark
+llvm.toolchain(
+    name = "llvm_toolchain",
+    llvm_version = "23.1.0-rc3",
+    extra_llvm_distributions = {
+        "LLVM-23.1.0-rc3-Linux-ARM64.tar.xz": "02165e7811fcc015502f7be30f5887db0c8904947b3c620af4236e15f1669431",
+        "LLVM-23.1.0-rc3-Linux-X64.tar.xz": "76ec17df0b0401d9427dbaf6403c2dfc5b5daeda1553566def4139418a35f1",
+        "LLVM-23.1.0-rc3-macOS-ARM64.tar.xz": "d23dc0baf29225e2975447f29bbc98b4fc3779001e91adc4a5d7d95854681e79",
+    },
+)
+```
+
+Run `utils/extra_distributions.sh -v 23.1.0-rc3` to obtain the entries
+published for a particular prerelease. An asset is usable only when its
+filename contains that logical release version; LLVM occasionally publishes
+platform assets under a different product version.
+
 The following `WORKSPACE` snippet shows how to add a specific version for a specific target before
 the version was added to the bundled distribution data under
 [`toolchain/distributions/`](toolchain/distributions).

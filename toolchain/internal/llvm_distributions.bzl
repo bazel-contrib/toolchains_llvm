@@ -60,7 +60,7 @@ _llvm_distribution_urls = LLVM_DISTRIBUTION_URLS
 _DEFAULT_URL_TEMPLATE = "https://github.com/llvm/llvm-project/releases/download/llvmorg-{version}/"
 
 def _parse_version(v):
-    return tuple([int(s) for s in v.split(".")])
+    return tuple(versions.parse(v))
 
 def _version_string(version):
     return ".".join([str(v) for v in version])
@@ -72,7 +72,51 @@ def _distribution_version_string(distribution):
     # We assume here that the `distribution` contains a basename of the forms:
     # - `LLVM-<version>-...`, or
     # - `clang+llvm-<version>-...`.
-    return _distribution_basename(distribution).split("-", 2)[1]
+    parts = _distribution_basename(distribution).split("-")
+    version = parts[1]
+    if len(parts) > 2 and parts[2].startswith("rc") and parts[2][2:].isdigit():
+        version += "-" + parts[2]
+    return version
+
+def _is_prerelease(version):
+    return "-" in version
+
+def _parsed_version_core(parsed):
+    core = []
+    for part in parsed:
+        if part in ["-", "+"]:
+            break
+        core.append(part)
+    return tuple(core)
+
+def _version_core(version):
+    return _parsed_version_core(_parse_version(version))
+
+def _requirements_allow_prerelease(version, requirements):
+    if not _is_prerelease(version):
+        return True
+    if not requirements:
+        return False
+    core = _version_core(version)
+    return any([
+        "-" in requirement.version and _parsed_version_core(requirement.version) == core
+        for requirement in requirements
+    ])
+
+def _sort_versions(version_strings, *, reverse):
+    result = []
+    for version in version_strings:
+        inserted = False
+        for pos in range(len(result)):
+            if versions.cmp(result[pos], version) >= 0:
+                result = result[:pos] + [version] + result[pos:]
+                inserted = True
+                break
+        if not inserted:
+            result.append(version)
+    if reverse:
+        result = result[::-1]
+    return result
 
 def _distribution_version(distribution):
     # Return the version string of a distribution.
@@ -541,15 +585,22 @@ def _parse_version_or_requirements(version_or_requirements):
 def _get_version_from_distribution(distribution):
     # We assume here that the `distribution` is a basename of the form `LLVM-<version>-...` or
     # `clang+llvm-<version>-...`.
-    return distribution.split("-")[1]
+    return _distribution_version_string(distribution)
 
 def _get_llvm_versions(*, version_or_requirements, all_llvm_distributions):
+    requirements = _parse_version_or_requirements(version_or_requirements)
     llvm_version_dict = {}
     for distribution in all_llvm_distributions.keys():
         version = _get_version_from_distribution(distribution)
-        llvm_version_dict[_parse_version(version)] = version
 
-    return [v for k, v in sorted(llvm_version_dict.items(), reverse = version_or_requirements.startswith("latest"))]
+        # Match the common SemVer range convention: prereleases are excluded
+        # unless a comparator explicitly mentions a prerelease with the same
+        # major/minor/patch tuple.
+        if not _requirements_allow_prerelease(version, requirements):
+            continue
+        llvm_version_dict[version] = None
+
+    return _sort_versions(llvm_version_dict.keys(), reverse = version_or_requirements.startswith("latest"))
 
 def _required_llvm_release_name(*, version_or_requirements, all_llvm_distributions, host_info):
     llvm_versions = _get_llvm_versions(version_or_requirements = version_or_requirements, all_llvm_distributions = all_llvm_distributions)
@@ -998,6 +1049,55 @@ def _requirements_test_writer_impl(ctx):
 
 requirements_test_writer = rule(
     implementation = _requirements_test_writer_impl,
+    attrs = {
+        "result": attr.output(mandatory = True),
+    },
+)
+
+def _prerelease_test_writer_impl(ctx):
+    distributions = {
+        "LLVM-23.0.0-Linux-X64.tar.xz": "0" * 64,
+        "LLVM-23.1.0-rc2-Linux-X64.tar.xz": "1" * 64,
+        "LLVM-23.1.0-rc3-Linux-X64.tar.xz": "2" * 64,
+    }
+    host = struct(
+        arch = "x86_64",
+        os = "linux",
+        dist = struct(name = "ubuntu", version = "24.04"),
+    )
+    result = []
+
+    for requested in ["23.1.0-rc2", "23.1.0-rc3", "23.0.0"]:
+        available = _get_all_llvm_distributions(
+            llvm_distributions = distributions,
+            extra_llvm_distributions = {},
+            parsed_llvm_version = _parse_version(requested),
+        )
+        basename, error = _find_llvm_basename_or_error(requested, available, host)
+        result.append("exact {version}: {result}".format(
+            version = requested,
+            result = error or basename,
+        ))
+
+    all_distributions = _get_all_llvm_distributions(
+        llvm_distributions = distributions,
+        extra_llvm_distributions = {},
+        parsed_llvm_version = None,
+    )
+    for requested in ["latest", "latest:>=23", "latest:>22", "latest:>=23.1.0-rc1"]:
+        version, basename, error = _required_llvm_release_name(
+            version_or_requirements = requested,
+            all_llvm_distributions = all_distributions,
+            host_info = host,
+        )
+        result.append("{requested}: {result}".format(
+            requested = requested,
+            result = error or "{} = {}".format(version, basename),
+        ))
+    ctx.actions.write(ctx.outputs.result, "\n".join(result) + "\n")
+
+prerelease_test_writer = rule(
+    implementation = _prerelease_test_writer_impl,
     attrs = {
         "result": attr.output(mandatory = True),
     },
