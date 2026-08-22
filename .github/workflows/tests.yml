@@ -22,7 +22,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
       - name: Trunk Check
-        uses: trunk-io/trunk-action@v1
+        uses: trunk-io/trunk-action@v2.0.0
   test:
     strategy:
       fail-fast: false
