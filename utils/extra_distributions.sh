@@ -94,9 +94,16 @@ curl "${curl_args[@]}" \
 # Asset table: name <TAB> digest (may be empty) <TAB> download URL.
 assets_tsv="${tmp_dir}/assets.tsv"
 jq -r --arg version "${llvm_version}" '
-  .assets[]
-  | select(.name | test("^(clang[+]llvm|LLVM)-.*tar.(xz|gz)$"))
+  .assets as $assets
+  | .assets[]
+  | select(.name | test("^(clang[+]llvm|LLVM)-.*tar[.](zst|xz|gz)$"))
   | select(.name | contains("-" + $version + "-"))
+  | .name as $name
+  | select(
+      ($name | endswith(".tar.xz") | not) or
+      (($name | sub("[.]tar[.]xz$"; ".tar.zst")) as $zstd_name |
+       ($assets | any(.name == $zstd_name) | not))
+    )
   | [.name, ((.digest // "") | sub("^sha256:"; "")), .browser_download_url] | @tsv
 ' "${release_json}" >"${assets_tsv}"
 

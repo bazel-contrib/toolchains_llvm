@@ -22,7 +22,9 @@
 # Usage: utils/update_distributions.sh [-h]
 #
 # The script reads checksums from the GitHub release asset `.digest` field
-# (no tarballs are downloaded). GitHub only began populating `.digest` in
+# (no tarballs are downloaded). When equivalent `.tar.zst` and `.tar.xz`
+# assets exist, only the faster-to-extract zstd archive is recorded. GitHub only
+# began populating `.digest` in
 # 2024, so for older assets the script preserves the checksum already
 # present in `github.bzl`. To avoid the 60/hour unauthenticated API rate
 # limit, the script uses (in order): the `GITHUB_TOKEN` env var, or the
@@ -161,11 +163,27 @@ fi
 
 echo "Extracting matching assets..." >&2
 jq -r '
-  select(.prerelease | not)
-  | select(.tag_name | test("^llvmorg-[0-9]+\\.[0-9]+\\.[0-9]+$"))
+  select(.draft | not)
+  | select(.tag_name | test("^llvmorg-[0-9]+\\.[0-9]+\\.[0-9]+(-rc[0-9]+)?$"))
   | (.tag_name | ltrimstr("llvmorg-")) as $version
+  | .prerelease as $prerelease
+  | .assets as $assets
   | .assets[]
-  | select(.name | test("^(clang[+]llvm|LLVM)-.*tar.(xz|gz)$"))
+  | select(.name | test("^(clang[+]llvm|LLVM)-.*tar[.](zst|xz|gz)$"))
+  # A few LLVM prereleases use a different product version in an asset name
+  # (for example 23.0.0.3 under the 23.1.0-rc3 tag). Such an asset cannot be
+  # resolved as the tagged version, so omit it from the tagged-version data.
+  | select(.name | contains("-" + $version + "-"))
+  # Older prereleases predate GitHub asset digests and have never been in the
+  # checked-in table. Avoid making a routine refresh download multi-GB files;
+  # the one-release helper remains available when those releases are needed.
+  | select((.digest // "") != "" or ($prerelease | not))
+  | .name as $name
+  | select(
+      ($name | endswith(".tar.xz") | not) or
+      (($name | sub("[.]tar[.]xz$"; ".tar.zst")) as $zstd_name |
+       ($assets | any(.name == $zstd_name) | not))
+    )
   | [$version, .name, ((.digest // "") | sub("^sha256:"; ""))] | @tsv
 ' "${all}" >"${tmp_dir}/entries.raw.tsv"
 
@@ -188,7 +206,10 @@ awk -F'\t' -v min="${MIN_MAJOR}" -v existing="${existing}" '
       if (name in prev) digest = prev[name]
       else missing[name] = 1
     }
-    key = sprintf("%05d.%05d.%05d", v[1]+0, v[2]+0, v[3]+0)
+    split(v[3], patch, "-rc")
+    is_stable = (length(patch) == 1) ? 1 : 0
+    rc = is_stable ? 0 : patch[2]+0
+    key = sprintf("%05d.%05d.%05d.%05d.%05d", v[1]+0, v[2]+0, patch[1]+0, is_stable, rc)
     print key "\t" version "\t" name "\t" digest
   }
   END {

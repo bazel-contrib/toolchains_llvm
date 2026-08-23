@@ -44,6 +44,18 @@ common_attrs = {
                "'utils/lvm_checksums.sh' tool. This also allows to use the " +
                "distributions lists of future toolchain versions."),
     ),
+    "extra_llvm_distribution_files": attr.label_list(
+        allow_files = [".json", ".jsonc"],
+        doc = ("Additional distribution JSON/JSONC files to merge in order after " +
+               "the bundled table and before extra_llvm_distributions. Labels may " +
+               "refer to files in the root module or another repository."),
+    ),
+    "use_builtin_llvm_distributions": attr.bool(
+        default = True,
+        doc = ("Whether bundled LLVM distributions participate in version and " +
+               "host-platform selection. Disable this to use only entries from " +
+               "extra_llvm_distribution_files and extra_llvm_distributions."),
+    ),
     "exec_os": attr.string(
         mandatory = False,
         doc = "Execution platform OS, if different from host OS.",
