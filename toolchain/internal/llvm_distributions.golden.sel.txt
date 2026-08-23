@@ -1,5 +1,5 @@
 0.0.0-aarch64-darwin/darwin/ -> LLVM-0.0.0-macOS-ARM64.tar.xz
-0.0.0-aarch64-linux/linux/ -> LLVM-0.0.0-Linux-ARM64.tar.xz
+0.0.0-aarch64-linux/linux/ -> LLVM-0.0.0-Linux-ARM64.tar.zst
 0.0.0-aarch64-windows/windows/ -> clang+llvm-0.0.0-aarch64-pc-windows-msvc.tar.xz
 0.0.0-x86_64-darwin/darwin/ -> LLVM-0.0.0-macOS-X64.tar.xz
 0.0.0-x86_64-linux/linux/ -> LLVM-0.0.0-Linux-X64.tar.xz

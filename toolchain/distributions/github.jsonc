@@ -24,11 +24,17 @@
     }
   },
 
+  // 23.1.0-rc3
+  "LLVM-23.1.0-rc3-Linux-ARM64.tar.zst": "df134d97038d8a6e377c1f4cd9a2bfe69b7a9b5fe4180ea484fedd4a395dc21e",
+  "LLVM-23.1.0-rc3-Linux-X64.tar.zst": "4a1b03046ee7a5eb03ea65bd7389f698d800abec9da4e3864ab3908d64283f9a",
+  "LLVM-23.1.0-rc3-macOS-ARM64.tar.zst": "480253bcb1d7174d8dbf880c8d142fde90dc875ed786121e24cb76f0c665b159",
+
   // 22.1.8
   "LLVM-22.1.8-Linux-ARM64.tar.xz": "805efad2bb91cb4967fa569e0881d10c0f69c04461cf671cccbae19f547acc34",
   "LLVM-22.1.8-Linux-X64.tar.xz": "df0e1ecf16caf3489a272a5eea4eec9b0d82878f6477fa309504f918a0006384",
   "LLVM-22.1.8-macOS-ARM64.tar.xz": "f260f4f7c0d430828a81ae8a3826a1d63fc0963ec2459489308cc23b1f7eab4f",
   "clang+llvm-22.1.8-aarch64-pc-windows-msvc.tar.xz": "de718c58ebbc5f61d58c17b90457fcf42983bc2c4a4aba3e010d108713bfd7f1",
+  "clang+llvm-22.1.8-armv7a-linux-gnueabihf.tar.gz": "79da771ffbd01facbcec218622262c9ba1286fd17800a7ff34bed051f65385de",
   "clang+llvm-22.1.8-x86_64-pc-windows-msvc.tar.xz": "d96c2cc1736f4eb7fa43cb9bbdf56d93551a9ae0a9aadb9c99c3c3b2b712a234",
 
   // 22.1.7
@@ -95,6 +101,28 @@
   "clang+llvm-22.1.0-armv7a-linux-gnueabihf.tar.gz": "de659a6f78fa438cef16fa2f4297818336ad6e0739cf5f07ecb0fe1a491c254b",
   "clang+llvm-22.1.0-x86_64-pc-windows-msvc.tar.xz": "2dd6a6c990865f98766dec58cce1cbfba48e5affc0098e5b1fff96c2f1d23e81",
 
+  // 22.1.0-rc3
+  "LLVM-22.1.0-rc3-Linux-ARM64.tar.xz": "4bd84b6d38575048ffe6304aa25fd2e6d71314095847092a1eec36a74b248e37",
+  "LLVM-22.1.0-rc3-Linux-X64.tar.xz": "5360d8bef7b715c4cc2689d548d13e676d755cbf425a6bcb07c2959403da3047",
+  "clang+llvm-22.1.0-rc3-aarch64-pc-windows-msvc.tar.xz": "46c296b0260635bc9c1d59020c5ff829f6b756bff5574a223723bd8c8a739e69",
+  "clang+llvm-22.1.0-rc3-armv7a-linux-gnueabihf.tar.gz": "05493985ba6153be11ecc60e3b44f84497e8e5619bd9672e9bdcf2ae206c8126",
+  "clang+llvm-22.1.0-rc3-x86_64-pc-windows-msvc.tar.xz": "ba208e377c9c53bd1c0dfe3c82191a24a63577ece7db0c65c10d978470949dc5",
+
+  // 22.1.0-rc2
+  "LLVM-22.1.0-rc2-Linux-ARM64.tar.xz": "af456b10813fc26c0c23eca43e0f33178472587ba7f82871815c239302653224",
+  "LLVM-22.1.0-rc2-Linux-X64.tar.xz": "663d9df63a71ba5cd2649e88af34c2c00aa4285e0c7e5e7b68da7b42c3799b90",
+  "LLVM-22.1.0-rc2-macOS-ARM64.tar.xz": "8fa61a0378285c11247e3e097785527c88e8da0223fd16bc735857b107175cc9",
+  "clang+llvm-22.1.0-rc2-aarch64-pc-windows-msvc.tar.xz": "2cdddc66e4bce0c1cb434ba931ea6ee34d3246b0ae46daf919fea1d3f5413237",
+  "clang+llvm-22.1.0-rc2-armv7a-linux-gnueabihf.tar.gz": "143b50a9e242f7dd53d1a1fb7e35aad8f497e05d51370b39cd34769fc646260b",
+  "clang+llvm-22.1.0-rc2-x86_64-pc-windows-msvc.tar.xz": "f81d4478a682a7d80e291de75e561d8edccfbc8b5c94faee2bca21759a0a8720",
+
+  // 22.1.0-rc1
+  "LLVM-22.1.0-rc1-Linux-ARM64.tar.xz": "493b02d96ce2464277ad3e693b9d612892b3c403484fb62b7df1145f1ca2a953",
+  "LLVM-22.1.0-rc1-Linux-X64.tar.xz": "e6007fb39e502293eeccde21d7e16f9c9d1fbfaf2dd3ccaefe2b7987c2b52657",
+  "clang+llvm-22.1.0-rc1-aarch64-pc-windows-msvc.tar.xz": "0762a117b04d4359d50d366aae29772657ab516c5e12d662224df000adc07384",
+  "clang+llvm-22.1.0-rc1-armv7a-linux-gnueabihf.tar.gz": "ab7d0fea3391a8c7fd84b9bfe7a847787c91d2848d6e16d16c037f244b2884a2",
+  "clang+llvm-22.1.0-rc1-x86_64-pc-windows-msvc.tar.xz": "8fd9fa19ea5a58d3e01a581da7bbb705369e4951ba23cadad6cbf50b2b593675",
+
   // 21.1.8
   "LLVM-21.1.8-Linux-ARM64.tar.xz": "65ce0b329514e5643407db2d02a5bd34bf33d159055dafa82825c8385bd01993",
   "LLVM-21.1.8-Linux-X64.tar.xz": "b3b7f2801d15d50736acea3c73982994d025b01c2f035b91ae3b49d1b575732b",
@@ -159,6 +187,24 @@
   "clang+llvm-21.1.0-aarch64-pc-windows-msvc.tar.xz": "c2869e4173ed18185fa599174faeedab3fdaaf1fd86926d4b62df9bf137bef53",
   "clang+llvm-21.1.0-armv7a-linux-gnueabihf.tar.gz": "41fcc7c995b1aa1ba4e9d771796a5997d9582a710fc15e86cc8a881323d8eca8",
   "clang+llvm-21.1.0-x86_64-pc-windows-msvc.tar.xz": "751aab63f074f041883a5317ad100dbe1e60794693f896df83958824cbc4962a",
+
+  // 21.1.0-rc3
+  "clang+llvm-21.1.0-rc3-aarch64-pc-windows-msvc.tar.xz": "b2c2c199cbb8edc97ae367c7587d29d1ebc825eb7ca947ecc3db0787931a9e55",
+  "clang+llvm-21.1.0-rc3-armv7a-linux-gnueabihf.tar.gz": "9c462174f1b075912d1721dfddacedfb8cf5ce474be0286b7c145660b069ec40",
+  "clang+llvm-21.1.0-rc3-x86_64-pc-windows-msvc.tar.xz": "a7d1e127c7c11faed6dc930771bcdc0d48c79ce445db88317a76eac8c1ebf40d",
+
+  // 21.1.0-rc2
+  "LLVM-21.1.0-rc2-Linux-ARM64.tar.xz": "2e44d1ec6cb493a163f13b77e0a57f6dc5db38e85d3eebc8da6f6f690b356b7c",
+  "LLVM-21.1.0-rc2-Linux-X64.tar.xz": "76a6b9ebe8a1eead16f3cbc37165c5dc7c27b40678188cd0638a925746ce9ffd",
+  "clang+llvm-21.1.0-rc2-aarch64-pc-windows-msvc.tar.xz": "db8bda57a45bebc2e39b8c4ce3cd3700bafc2293595fbcd672f026e19b90d1d0",
+  "clang+llvm-21.1.0-rc2-armv7a-linux-gnueabihf.tar.gz": "a91f7cf04d38a66aabf14eec447596abd52b4c25139a075e56ac9ad20f3d8ce5",
+
+  // 21.1.0-rc1
+  "LLVM-21.1.0-rc1-Linux-ARM64.tar.xz": "01feeae47ffbc67f3cdadeb0b8c94068894e6b0ec727a1c9fadd49f712a9aa97",
+  "LLVM-21.1.0-rc1-Linux-X64.tar.xz": "cf8f30b09bb7a98349fa4b54d18eaca8e8ce8b81984f268bf911051dbfc49ff8",
+  "clang+llvm-21.1.0-rc1-aarch64-pc-windows-msvc.tar.xz": "78615eccb026cb864e5b72a0c40f9e3a3e03c526c9b8c9068243183f0a306fcd",
+  "clang+llvm-21.1.0-rc1-armv7a-linux-gnueabihf.tar.gz": "ea96932c5b3663acf2d12da374ffed050858e3a6d8ab880a85a0e1fa0d0c6634",
+  "clang+llvm-21.1.0-rc1-x86_64-pc-windows-msvc.tar.xz": "22ac78866b2d54320861d9db2293d7f8eb5e1747b8b340824f6333b46e7119c6",
 
   // 20.1.8
   "LLVM-20.1.8-Linux-ARM64.tar.xz": "b855cc17d935fdd83da82206b7a7cfc680095efd1e9e8182c4a05e761958bef8",

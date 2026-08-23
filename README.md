@@ -50,10 +50,18 @@ We currently offer limited customizability through attributes of the
 [llvm_toolchain\_\* rules](toolchain/rules.bzl). You can send us a PR to add
 more configuration attributes.
 
-The `MODULE.bazel` example below demonstrates how to use an LLVM release that
-is not yet present in the bundled distribution table. The required SHA-256s
-can be obtained with `utils/extra_distributions.sh -v <version>`
-(see [Distribution data and scripts](#distribution-data-and-scripts) below).
+Each toolchains_llvm release contains a snapshot of the LLVM distributions
+known when it was published. You do not have to wait for another
+toolchains_llvm release to use a newer LLVM release, an LLVM prerelease, or a
+custom build. Add its archive names and SHA-256s to
+`extra_llvm_distributions`, then select the version normally with
+`llvm_version`.
+
+For an official LLVM release that is not in the bundled table, archive
+basenames are sufficient: the standard LLVM GitHub release URL is inferred.
+The required SHA-256s can be obtained with
+`utils/extra_distributions.sh -v <version>` (see
+[Distribution data and scripts](#distribution-data-and-scripts) below):
 
 ```starlark
 llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm", dev_dependency = True)
@@ -69,12 +77,9 @@ llvm.toolchain(
 )
 ```
 
-Prereleases can be selected by their exact version and supplied through
-`extra_llvm_distributions` in the same way. Following the common SemVer range
-convention, they are excluded from `latest`, `first`, and stable-only version
-requirements. A requirement explicitly opts in by naming a prerelease with
-the same major/minor/patch tuple; for example, `latest:>=23.1.0-rc1` can select
-`23.1.0-rc3`, while `latest:>=23` and `latest:>22` cannot:
+The same mechanism works for a prerelease that is newer than the distribution
+snapshot. For example, the following configuration made 23.1.0-rc3 available
+before it was bundled with toolchains_llvm:
 
 ```starlark
 llvm.toolchain(
@@ -88,10 +93,85 @@ llvm.toolchain(
 )
 ```
 
-Run `utils/extra_distributions.sh -v 23.1.0-rc3` to obtain the entries
-published for a particular prerelease. An asset is usable only when its
-filename contains that logical release version; LLVM occasionally publishes
-platform assets under a different product version.
+Prereleases must be requested explicitly. Following the common SemVer range
+convention, they are excluded from `latest`, `first`, and stable-only version
+requirements. An exact `llvm_version = "23.1.0-rc3"` selects that release, and
+a requirement opts in by naming a prerelease with the same
+major/minor/patch tuple. Thus `latest:>=23.1.0-rc1` can select `23.1.0-rc3`,
+while `latest:>=23` and `latest:>22` cannot select it.
+
+`extra_llvm_distributions` is not limited to official LLVM artifacts. Its keys
+may also be complete download URLs or absolute local paths, so internally
+built, repackaged, or third-party LLVM distributions can be registered
+directly. Alternatively, keep basename keys and use
+`alternative_llvm_sources` to provide one or more mirror URL templates. In
+either case, use the usual `LLVM-<version>-...` or
+`clang+llvm-<version>-...` archive naming so version and host-platform
+selection can recognize the distribution. An asset is usable for a requested
+version only when its filename contains that logical version; LLVM
+occasionally publishes platform assets under a different product version.
+
+By default, extra distributions are merged with the bundled table. An extra
+entry with the same basename replaces the bundled checksum; use a complete URL
+or local path as the key to replace its source as well. When equivalent
+compression variants coexist, `.tar.zst` is preferred over `.tar.xz` and
+`.tar.gz`.
+
+Set `use_builtin_llvm_distributions = False` only when the bundled distribution
+table must be ignored completely. It removes all bundled checksums and URLs
+from version and host-platform selection; the toolchain can then select only
+artifacts supplied through `extra_llvm_distributions` or
+`extra_llvm_distribution_files`. This is useful for patched releases that
+retain an upstream version, private allowlists, or configurations that must use
+only explicitly declared artifacts. It is not needed merely to add a newer
+release or prerelease. At least one matching extra distribution must be
+provided when this option is disabled.
+
+Downstream maintainers who patch or vendor toolchains_llvm itself can instead
+put persistent bundle additions in
+[`toolchain/distributions/extra.jsonc`](toolchain/distributions/extra.jsonc).
+That file is intentionally empty upstream and is loaded after
+`pre_github.jsonc`, `github_legacy.jsonc`, and `github.jsonc`, so an identical
+key replaces the earlier checksum. Its `_meta.base_url` can also redirect the
+entries it contains to a downstream release server. The file can be changed
+in a fork or patched into the module with `single_version_override` or
+`archive_override`. Unlike the `extra_llvm_distributions` attribute, which is
+scoped to one toolchain declaration, `extra.jsonc` changes the bundled table
+for every consumer of that patched toolchains_llvm source.
+
+A workspace can keep its distributions in independent JSON or JSONC files
+without patching toolchains_llvm. Export the files from a Bazel package and
+pass their labels through `extra_llvm_distribution_files`:
+
+```starlark
+# config/BUILD.bazel
+exports_files(["llvm_distributions.jsonc"])
+```
+
+```starlark
+# MODULE.bazel
+llvm.toolchain(
+    name = "llvm_toolchain",
+    llvm_version = "22.1.8",
+    use_builtin_llvm_distributions = False,
+    extra_llvm_distribution_files = [
+        "//config:llvm_distributions.jsonc",
+    ],
+)
+```
+
+Here `use_builtin_llvm_distributions = False` makes the external file the
+complete distribution set rather than an addition to the bundled set. Omit the
+attribute when the file should merely extend or override bundled entries.
+
+These files use the same schema as `extra.jsonc` and may also come from
+another repository, for example
+`@company_toolchains//llvm:distributions.jsonc`. Multiple files are merged in
+list order; later files replace earlier checksums and covered URL templates.
+The inline `extra_llvm_distributions` dictionary is merged last.
+
+For complete control over the archive selected for each execution platform,
+use the lower-level `urls`, `sha256`, and `strip_prefix` attributes instead.
 
 The following `WORKSPACE` snippet shows how to add a specific version for a specific target before
 the version was added to the bundled distribution data under
@@ -497,6 +577,10 @@ fall back to the standard GitHub release URL
 Entry keys are either a tarball **basename** (URL derived via `base_url`)
 or a **full URL/path** (used verbatim, bypassing `base_url`). Comments are
 stripped before parsing, and trailing commas are tolerated.
+
+LLVM archives compressed as `.tar.zst`, `.tar.xz`, or `.tar.gz` are
+supported. When equivalent zstd and xz archives are available, automatic
+selection and the helper scripts prefer the much faster-to-extract zstd form.
 
 ### Two helper scripts
 
