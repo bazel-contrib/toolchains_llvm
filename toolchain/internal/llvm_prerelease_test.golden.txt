@@ -1,8 +1,8 @@
 exact 23.1.0-rc3: LLVM-23.1.0-rc3-Linux-X64.tar.zst
 exact 22.1.8: LLVM-22.1.8-Linux-X64.tar.xz
-latest: 22.1.8 = LLVM-22.1.8-Linux-X64.tar.xz
-latest:>=23: ERROR: No matching distribution found.
-latest:>22: 22.1.8 = LLVM-22.1.8-Linux-X64.tar.xz
-latest:>=23.1.0-rc1: 23.1.0-rc3 = LLVM-23.1.0-rc3-Linux-X64.tar.zst
+latest: 23.1.0 = LLVM-23.1.0-Linux-X64.tar.zst
+latest:>=23: 23.1.0 = LLVM-23.1.0-Linux-X64.tar.zst
+latest:>22: 23.1.0 = LLVM-23.1.0-Linux-X64.tar.zst
+latest:>=23.1.0-rc1: 23.1.0 = LLVM-23.1.0-Linux-X64.tar.zst
 custom-only latest: 20.1.4 = LLVM-20.1.4-Linux-X64.tar.zst
 custom-only bundled URL: suppressed
