@@ -50,11 +50,11 @@ def bazel_toolchain_dependencies():
             url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.51.0/bazel_features-v1.51.0.tar.gz",
         )
 
-    # Load helly25_bzl for version comparisons.
-    if not native.existing_rule("helly25_bzl"):
+    # Load mboworks_bzl for version comparisons.
+    if not native.existing_rule("mboworks_bzl"):
         http_archive(
-            name = "helly25_bzl",
-            url = "https://github.com/helly25/bzl/releases/download/0.5.0/bzl-0.5.0.tar.gz",
-            sha256 = "5f817f3f032ed377675564716bd0c59c6c7e5bce5857ce1004112fa34c9b3394",
-            strip_prefix = "bzl-0.5.0",
+            name = "mboworks_bzl",
+            url = "https://github.com/mboworks/bzl/releases/download/0.5.1/bzl-0.5.1.tar.gz",
+            sha256 = "0c51edbd3a3b69ebff59b5ffec411a3ab8cb137a845b9bba9803738cd7bd5c28",
+            strip_prefix = "bzl-0.5.1",
         )

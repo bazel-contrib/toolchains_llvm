@@ -13,12 +13,12 @@
 # limitations under the License.
 
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "read_netrc", "use_netrc")
-load("@helly25_bzl//bzl/versions:versions.bzl", "versions")
 load(
     "@llvm_distributions_data//:data.bzl",
     "LLVM_DISTRIBUTIONS",
     "LLVM_DISTRIBUTION_URLS",
 )
+load("@mboworks_bzl//bzl/versions:versions.bzl", "versions")
 load(
     "//toolchain/internal:common.bzl",
     "attr_dict",
