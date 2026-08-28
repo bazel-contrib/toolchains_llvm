@@ -13,7 +13,7 @@
 # limitations under the License.
 
 load("@bazel_features//:features.bzl", "bazel_features")
-load("@helly25_bzl//bzl/paths:paths.bzl", "paths")
+load("@mboworks_bzl//bzl/paths:paths.bzl", "paths")
 load(
     "//toolchain:aliases.bzl",
     _aliased_libs = "aliased_libs",
