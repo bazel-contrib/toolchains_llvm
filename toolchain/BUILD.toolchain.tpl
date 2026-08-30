@@ -33,6 +33,7 @@ filegroup(
     name = "internal-use-tools-legacy",
     srcs = [%{symlinked_tools}
         "%{tools_dir}/cc_wrapper.sh",
+        "%{tools_dir}/cpp_module_deps_scanner.sh",
     ],
     visibility = ["//visibility:private"],
 )

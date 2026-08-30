@@ -23,6 +23,7 @@ load("@rules_cc//cc/toolchains:args.bzl", "cc_args")
 load("@rules_cc//cc/toolchains:feature.bzl", "cc_feature")
 load("@rules_cc//cc/toolchains:feature_constraint.bzl", "cc_feature_constraint")
 load("@rules_cc//cc/toolchains:feature_set.bzl", "cc_feature_set")
+load("@rules_cc//cc/toolchains/impl:documented_api.bzl", "cc_external_feature")
 load(
     "//toolchain/internal:common.bzl",
     _check_os_arch_keys = "check_os_arch_keys",
@@ -604,16 +605,38 @@ def cc_toolchain_config(
     if use_toolchain_libcxx_paths:
         cpp_system_includes = toolchain_cpp_system_includes
 
+    cpp_modules_enabled_features = []
     if major_llvm_version >= 14:
         # With C++20, Clang defaults to using C++ rather than Clang modules,
         # which breaks Bazel's `use_module_maps` feature, which is used by
-        # `layering_check`. Since Bazel doesn't support C++ modules yet, it
-        # is safe to disable them globally until the toolchain shipped by
-        # Bazel sets this flag on `use_module_maps`.
+        # `layering_check`. Disable C++ modules by default, but not when the
+        # caller explicitly enables Bazel's `cpp_modules` feature.
         # https://github.com/llvm/llvm-project/commit/0556138624edf48621dd49a463dbe12e7101f17d
-        cxx_flags.append("-Xclang")
-        cxx_flags.append("-fno-cxx-modules")
-        cxx_flags.append("-Wno-module-import-in-extern-c")
+        cc_external_feature(
+            name = name + "_cpp_modules",
+            feature_name = "cpp_modules",
+            overridable = False,
+        )
+        cc_feature_constraint(
+            name = name + "_not_cpp_modules",
+            none_of = [":" + name + "_cpp_modules"],
+        )
+        cc_args(
+            name = name + "_disable_cpp_modules_args",
+            actions = ["@rules_cc//cc/toolchains/actions:cpp_compile_actions"],
+            args = [
+                "-Xclang",
+                "-fno-cxx-modules",
+                "-Wno-module-import-in-extern-c",
+            ],
+            requires_any_of = [":" + name + "_not_cpp_modules"],
+        )
+        cc_feature(
+            name = name + "_disable_cpp_modules",
+            feature_name = name + "_disable_cpp_modules",
+            args = [":" + name + "_disable_cpp_modules_args"],
+        )
+        cpp_modules_enabled_features = [":" + name + "_disable_cpp_modules"]
 
     opt_link_flags = ["-Wl,--gc-sections"] if target_os == "linux" else []
 
@@ -636,6 +659,7 @@ def cc_toolchain_config(
     tool_paths = {
         "ar": paths.join(tools_path_prefix, "llvm-ar" if not use_libtool else "libtool"),
         "cpp": paths.join(tools_path_prefix, "clang-cpp"),
+        "cpp-module-deps-scanner": paths.join(wrapper_bin_prefix, "cpp_module_deps_scanner.sh"),
         "dwp": paths.join(tools_path_prefix, "llvm-dwp"),
         "gcc": paths.join(wrapper_bin_prefix, "cc_wrapper.sh"),
         "gcov": paths.join(tools_path_prefix, "llvm-profdata"),
@@ -974,6 +998,6 @@ def cc_toolchain_config(
         coverage_link_flags = coverage_link_flags,
         supports_start_end_lib = supports_start_end_lib,
         builtin_sysroot = sysroot_path,
-        extra_enabled_features = nomsan_feature_labels + extra_enabled_features + sanitizer_runtime_features,
+        extra_enabled_features = nomsan_feature_labels + cpp_modules_enabled_features + extra_enabled_features + sanitizer_runtime_features,
         extra_known_features = msan_feature_labels + extra_known_features,
     )

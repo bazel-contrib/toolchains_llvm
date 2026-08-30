@@ -35,7 +35,10 @@ filegroup(
         "bin/clang",
         "bin/clang++",
         "bin/clang-cpp",
-    ],
+    ] + glob(
+        ["bin/clang-scan-deps"],
+        allow_empty = True,
+    ),
 )
 
 filegroup(
