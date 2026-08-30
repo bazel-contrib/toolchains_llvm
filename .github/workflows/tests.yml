@@ -226,6 +226,7 @@ jobs:
       - lint
       - test
       - lsan_macos_test
+      - cpp_modules_test
       - toolchain_test
       - external_test
       - container_test
