@@ -18,20 +18,6 @@ load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load(":transitions.bzl", "dwp_file", "msan_flags_test", "sanitizer_combo_flags_test", "sanitizer_test", "stdlib_flags_test", "transition_library_to_platform")
 
 cc_library(
-    name = "cpp20_module",
-    module_interfaces = ["cpp20_module.cppm"],
-    tags = ["manual"],
-)
-
-cc_test(
-    name = "cpp20_module_test",
-    size = "small",
-    srcs = ["cpp20_module_test.cc"],
-    tags = ["manual"],
-    deps = [":cpp20_module"],
-)
-
-cc_library(
     name = "stdlib",
     srcs = ["stdlib.cc"],
     hdrs = ["stdlib.h"],

@@ -1,5 +1,4 @@
-#!/bin/bash
-# Copyright 2026 The Bazel Authors.
+# Copyright 2026 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,17 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -euo pipefail
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
-scripts_dir="$(dirname "${BASH_SOURCE[0]}")"
-# shellcheck source=tests/scripts/bazel.sh
-source "${scripts_dir}/bazel.sh"
-cd "${scripts_dir}/.."
+# Keep module_interfaces in a separate package: Bazel 7 rejects the attribute
+# while loading a package, even when the target is tagged manual and unbuilt.
+cc_library(
+    name = "cpp20_module",
+    module_interfaces = ["cpp20_module.cppm"],
+)
 
-"${bazel}" --bazelrc=/dev/null test \
-  "${common_test_args[@]}" \
-  --experimental_cpp_modules \
-  --features=cpp_modules \
-  --cxxopt=-std=c++23 \
-  --repo_env=LLVM_VERSION=22.1.8 \
-  //cpp_modules:cpp20_module_test
+cc_test(
+    name = "cpp20_module_test",
+    size = "small",
+    srcs = ["cpp20_module_test.cc"],
+    deps = [":cpp20_module"],
+)
