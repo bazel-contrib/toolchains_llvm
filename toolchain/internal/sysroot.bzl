@@ -23,6 +23,9 @@ load(
 )
 
 def _darwin_sdk_path(rctx):
+    # Record DEVELOPER_DIR as an input so changes to it invalidate this repository.
+    if hasattr(rctx, "getenv"):
+        rctx.getenv("DEVELOPER_DIR")
     exec_result = rctx.execute(["/usr/bin/xcrun", "--show-sdk-path", "--sdk", "macosx"])
     if exec_result.return_code:
         fail("Failed to detect OSX SDK path: \n%s\n%s" % (exec_result.stdout, exec_result.stderr))
