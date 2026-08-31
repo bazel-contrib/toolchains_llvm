@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@helly25_bzl//bzl/paths:paths.bzl", "paths")
+load("@mboworks_bzl//bzl/paths:paths.bzl", "paths")
 
 SUPPORTED_TARGETS = [
     ("linux", "x86_64"),
