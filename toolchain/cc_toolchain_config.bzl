@@ -636,7 +636,31 @@ def cc_toolchain_config(
             feature_name = name + "_disable_cpp_modules",
             args = [":" + name + "_disable_cpp_modules_args"],
         )
-        cpp_modules_enabled_features = [":" + name + "_disable_cpp_modules"]
+        cc_args(
+            name = name + "_relocatable_cpp_modules_args",
+            actions = [
+                "@rules_cc//cc/toolchains/actions:cpp_compile_actions",
+                "@rules_cc//cc/toolchains/actions:cpp20_module_compile",
+                "@rules_cc//cc/toolchains/actions:cpp20_module_codegen",
+                "@rules_cc//cc/toolchains/actions:cpp_module_deps_scanning",
+            ],
+            args = [
+                "-Xclang",
+                "-fmodule-file-home-is-cwd",
+                "-Xclang",
+                "-fbuiltin-headers-in-system-modules",
+            ],
+            requires_any_of = [":" + name + "_cpp_modules"],
+        )
+        cc_feature(
+            name = name + "_relocatable_cpp_modules",
+            feature_name = name + "_relocatable_cpp_modules",
+            args = [":" + name + "_relocatable_cpp_modules_args"],
+        )
+        cpp_modules_enabled_features = [
+            ":" + name + "_disable_cpp_modules",
+            ":" + name + "_relocatable_cpp_modules",
+        ]
 
     opt_link_flags = ["-Wl,--gc-sections"] if target_os == "linux" else []
 

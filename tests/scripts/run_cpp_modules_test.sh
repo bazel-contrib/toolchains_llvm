@@ -27,3 +27,14 @@ cd "${scripts_dir}/.."
   --cxxopt=-std=c++23 \
   --repo_env=LLVM_VERSION=22.1.8 \
   //cpp_modules:cpp20_module_test
+
+module_actions="$("${bazel}" --bazelrc=/dev/null aquery \
+  //cpp_modules:cpp20_module \
+  "${common_test_args[@]}" \
+  --experimental_cpp_modules \
+  --features=cpp_modules \
+  --cxxopt=-std=c++23 \
+  --repo_env=LLVM_VERSION=22.1.8 \
+  --output=text)"
+grep -q -- "-fmodule-file-home-is-cwd" <<<"${module_actions}"
+grep -q -- "-fbuiltin-headers-in-system-modules" <<<"${module_actions}"
