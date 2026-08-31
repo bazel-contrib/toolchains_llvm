@@ -649,6 +649,8 @@ def cc_toolchain_config(
                 "-fmodule-file-home-is-cwd",
                 "-Xclang",
                 "-fbuiltin-headers-in-system-modules",
+                "-Xclang",
+                "-fmodules-embed-all-files",
             ],
             requires_any_of = [":" + name + "_cpp_modules"],
         )

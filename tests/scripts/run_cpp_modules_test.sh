@@ -38,3 +38,4 @@ module_actions="$("${bazel}" --bazelrc=/dev/null aquery \
   --output=text)"
 grep -q -- "-fmodule-file-home-is-cwd" <<<"${module_actions}"
 grep -q -- "-fbuiltin-headers-in-system-modules" <<<"${module_actions}"
+grep -q -- "-fmodules-embed-all-files" <<<"${module_actions}"
