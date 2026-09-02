@@ -59,6 +59,18 @@ jobs:
             "${common_test_args[@]}" \
             --repo_env=LLVM_VERSION=22.1.8 \
             //:lsan_test
+  cpp_modules_test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Test C++ modules with LLVM 22
+        env:
+          USE_BAZEL_VERSION: 9.2.0
+        run: tests/scripts/run_cpp_modules_test.sh
   toolchain_test:
     strategy:
       fail-fast: false
@@ -214,6 +226,7 @@ jobs:
       - lint
       - test
       - lsan_macos_test
+      - cpp_modules_test
       - toolchain_test
       - external_test
       - container_test

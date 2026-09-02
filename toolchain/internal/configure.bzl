@@ -360,6 +360,13 @@ def llvm_config_impl(rctx):
             "%{toolchain_path_prefix}": llvm_dist_path_prefix,
         },
     )
+    rctx.template(
+        "bin/cpp_module_deps_scanner.sh",
+        rctx.attr._cpp_module_deps_scanner_sh_tpl,
+        {
+            "%{toolchain_path_prefix}": llvm_dist_path_prefix,
+        },
+    )
 
     if hasattr(rctx, "repo_metadata"):
         return rctx.repo_metadata(reproducible = True)
