@@ -507,6 +507,9 @@ llvm_config_attrs.update({
     "_cc_wrapper_sh_tpl": attr.label(
         default = "//toolchain:cc_wrapper.sh.tpl",
     ),
+    "_cpp_module_deps_scanner_sh_tpl": attr.label(
+        default = "//toolchain:cpp_module_deps_scanner.sh.tpl",
+    ),
 })
 
 def llvm_repo_impl(rctx):

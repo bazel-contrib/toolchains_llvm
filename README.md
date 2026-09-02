@@ -485,6 +485,61 @@ then they can be referenced as:
 - `@llvm_toolchain//:clang-format`
 - `@llvm_toolchain//:llvm-cov`
 
+### C++ named modules
+
+The toolchain supports Bazel's experimental C++ named-module pipeline. A
+module interface declared with `cc_library.module_interfaces` is compiled to a
+PCM, Bazel scans its module dependencies with LLVM's `clang-scan-deps`, and
+dependent `cc_*` targets can import the module by name.
+
+The currently tested configuration is Bazel 9.2 with LLVM 22 on Linux and
+macOS. The selected LLVM distribution must contain `bin/clang-scan-deps`; this
+is especially important for custom distributions described in
+[Bring Your Own LLVM](#bring-your-own-llvm). Bazel 7 and 8 do not expose the
+required `cc_library` module API. Windows is not currently tested.
+
+Declare module interfaces separately from ordinary sources:
+
+```starlark
+cc_library(
+    name = "geometry",
+    module_interfaces = ["geometry.cppm"],
+)
+
+cc_binary(
+    name = "app",
+    srcs = ["app.cc"],
+    deps = [":geometry"],
+)
+```
+
+For example, `geometry.cppm` can export a module and `app.cc` can import it:
+
+```cpp
+// geometry.cppm
+export module geometry;
+export int area(int width, int height) { return width * height; }
+
+// app.cc
+import geometry;
+```
+
+Enable Bazel's experimental module support and the toolchain feature, and
+select C++20 or newer:
+
+```sh
+bazel build //:app \
+  --experimental_cpp_modules \
+  --features=cpp_modules \
+  --cxxopt=-std=c++20
+```
+
+The toolchain configures Bazel's module dependency-scanning action and emits
+relocatable PCMs. It also embeds module inputs so compilation databases and
+tools such as clang-tidy retain the source information they need. Without the
+`cpp_modules` feature, the toolchain continues to disable C++ named modules to
+preserve the existing Clang module-map behavior used by `layering_check`.
+
 ### Strict header deps (Linux only)
 
 The toolchain supports Bazel's `layering_check` feature, which relies on
