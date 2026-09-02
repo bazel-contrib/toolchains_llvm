@@ -1,7 +1,7 @@
 """LLVM extension for use with bzlmod"""
 
 load("@bazel_features//:features.bzl", "bazel_features")
-load("@toolchains_llvm//toolchain:rules.bzl", "llvm_toolchain")
+load("@toolchains_llvm//toolchain:rules.bzl", "llvm_toolchain", _llvm_distribution = "llvm")
 load(
     "@toolchains_llvm//toolchain/internal:repo.bzl",
     _llvm_config_attrs = "llvm_config_attrs",
@@ -52,8 +52,31 @@ def _constraint_dict(tags, name):
 
 def _llvm_impl_(module_ctx):
     for mod in module_ctx.modules:
-        if not mod.is_root:
-            fail("Only the root module can use the 'llvm' extension")
+        toolchain_tags = (
+            mod.tags.toolchain +
+            mod.tags.toolchain_root +
+            mod.tags.target_toolchain_root +
+            mod.tags.sysroot +
+            mod.tags.extra_compiler_files +
+            mod.tags.extra_linker_files +
+            mod.tags.extra_exec_compatible_with +
+            mod.tags.extra_target_compatible_with
+        )
+        if not mod.is_root and toolchain_tags:
+            fail("Only the root module can configure an LLVM toolchain; dependency modules may only use the distribution tag")
+        for distribution_attr in mod.tags.distribution:
+            attrs = {
+                key: getattr(distribution_attr, key)
+                for key in dir(distribution_attr)
+                if not key.startswith("_")
+            }
+            if attrs.get("llvm_version") and attrs.get("llvm_versions"):
+                fail("Exactly one of llvm_version or llvm_versions must be set")
+            if not attrs.get("llvm_versions"):
+                if not attrs.get("llvm_version"):
+                    fail("One of llvm_version or llvm_versions must be set")
+                attrs["llvm_versions"] = {"": attrs["llvm_version"]}
+            _llvm_distribution(**attrs)
         toolchain_names = []
         for toolchain_attr in mod.tags.toolchain:
             name = toolchain_attr.name
@@ -117,9 +140,19 @@ _attrs.pop("sysroot", None)
 _attrs.pop("extra_compiler_files_dict", None)
 _attrs.pop("extra_linker_files_dict", None)
 
+_distribution_attrs = dict(_llvm_repo_attrs)
+_distribution_attrs["name"] = attr.string(
+    mandatory = True,
+    doc = "Globally unique name for the generated LLVM distribution repository.",
+)
+
 llvm = module_extension(
     implementation = _llvm_impl_,
     tag_classes = {
+        "distribution": tag_class(
+            doc = "Downloads an LLVM distribution without configuring or registering a C++ toolchain. This tag may be used by dependency modules.",
+            attrs = _distribution_attrs,
+        ),
         "toolchain": tag_class(
             attrs = _attrs,
         ),
