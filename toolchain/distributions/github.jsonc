@@ -27,6 +27,8 @@
   // 23.1.0
   "LLVM-23.1.0-Linux-ARM64.tar.zst": "50c0ba826e5571f0860e197a47369f20c68d723de650b8de7422af165b349513",
   "LLVM-23.1.0-Linux-X64.tar.zst": "1a3dd8e99df9fe6f5b3b9c62a4a81e0c57da9b95b1889a6dbf6c304c264e756f",
+  "clang+llvm-23.1.0-aarch64-pc-windows-msvc.tar.zst": "b2a58c5ca619a629cba4870c53fb56bf164aaa6b137067be9f6cca638342ad45",
+  "clang+llvm-23.1.0-armv7a-linux-gnueabihf.tar.gz": "75b85060eb596e561331543988dad42a87d86ca0c646c3bb6e189fd6216f8b79",
   "clang+llvm-23.1.0-x86_64-pc-windows-msvc.tar.zst": "1aebf024b959b3835c3bd936da2fa58cd002c61ccf47fce1714447b900bd9837",
 
   // 23.1.0-rc3
