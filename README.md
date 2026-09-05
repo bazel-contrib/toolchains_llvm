@@ -445,6 +445,25 @@ The toolchain is tested to work with `rules_go`, `rules_rust`, and
 
 ### Accessing tools
 
+Dependency modules that need files from a matching LLVM distribution, but do
+not own the root module's C++ toolchain selection, can materialize only the
+distribution:
+
+```python
+llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
+llvm.distribution(
+    name = "my_rule_llvm",
+    llvm_version = "22.1.8",
+)
+use_repo(llvm, "my_rule_llvm")
+```
+
+The generated repository uses the same `BUILD.llvm_repo.tpl` layout as the
+`<toolchain-name>_llvm` repository created by `llvm.toolchain`. It neither
+creates nor registers a C++ toolchain. Repository names must be globally unique
+among modules using this extension; a rule set should therefore include its
+module name in `name`.
+
 The LLVM distribution also provides several tools like `clang-format`. You can
 depend on these tools directly in the bin directory of the distribution. When
 not using the `toolchain_roots` attribute, the distribution is available in the
