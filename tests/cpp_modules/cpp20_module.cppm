@@ -12,8 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+module;
+
+// Check that standard library headers can be included from a module
+#include <cassert> 
+
 export module toolchains_llvm_test;
 
 export int answer() {
+  assert(true);
   return 42;
 }

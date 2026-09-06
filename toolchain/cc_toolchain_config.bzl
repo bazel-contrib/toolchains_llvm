@@ -30,6 +30,12 @@ load(
     _os_arch_pair = "os_arch_pair",
 )
 
+CPP_MODULE_ACTIONS = [
+    "@rules_cc//cc/toolchains/actions:cpp20_module_compile",
+    "@rules_cc//cc/toolchains/actions:cpp20_module_codegen",
+    "@rules_cc//cc/toolchains/actions:cpp_module_deps_scanning",
+]
+
 # Bazel 4.* doesn't support nested starlark functions, so we cannot simplify
 # _fmt_flags() by defining it as a nested function.
 def _fmt_flags(flags, toolchain_path_prefix):
@@ -640,10 +646,7 @@ def cc_toolchain_config(
             name = name + "_relocatable_cpp_modules_args",
             actions = [
                 "@rules_cc//cc/toolchains/actions:cpp_compile_actions",
-                "@rules_cc//cc/toolchains/actions:cpp20_module_compile",
-                "@rules_cc//cc/toolchains/actions:cpp20_module_codegen",
-                "@rules_cc//cc/toolchains/actions:cpp_module_deps_scanning",
-            ],
+            ] + CPP_MODULE_ACTIONS,
             args = [
                 "-Xclang",
                 "-fmodule-file-home-is-cwd",
@@ -807,12 +810,16 @@ def cc_toolchain_config(
         # keep the default (uninstrumented) stdlib and stay uninstrumented.
         cc_args(
             name = name + "_msan_compile_args",
-            actions = ["@rules_cc//cc/toolchains/actions:compile_actions"],
+            actions = [
+                "@rules_cc//cc/toolchains/actions:cpp_compile_actions",
+            ] + CPP_MODULE_ACTIONS,
             args = msan_compile_include_flags + msan_sanitizer_flags,
         )
         cc_args(
             name = name + "_msan_cxx_args",
-            actions = ["@rules_cc//cc/toolchains/actions:cpp_compile_actions"],
+            actions = [
+                "@rules_cc//cc/toolchains/actions:cpp_compile_actions",
+            ] + CPP_MODULE_ACTIONS,
             args = msan_cxx_isystem_flags,
         )
         cc_args(
@@ -846,7 +853,9 @@ def cc_toolchain_config(
         if normal_compile_include_flags:
             cc_args(
                 name = name + "_nomsan_compile_args",
-                actions = ["@rules_cc//cc/toolchains/actions:compile_actions"],
+                actions = [
+                    "@rules_cc//cc/toolchains/actions:cpp_compile_actions",
+                ] + CPP_MODULE_ACTIONS,
                 args = normal_compile_include_flags,
                 requires_any_of = [":" + name + "_not_msan"],
             )
@@ -854,7 +863,9 @@ def cc_toolchain_config(
         if default_cxx_isystem_flags:
             cc_args(
                 name = name + "_nomsan_cxx_args",
-                actions = ["@rules_cc//cc/toolchains/actions:cpp_compile_actions"],
+                actions = [
+                    "@rules_cc//cc/toolchains/actions:cpp_compile_actions",
+                ] + CPP_MODULE_ACTIONS,
                 args = default_cxx_isystem_flags,
                 requires_any_of = [":" + name + "_not_msan"],
             )
