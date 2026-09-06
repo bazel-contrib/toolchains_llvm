@@ -807,12 +807,22 @@ def cc_toolchain_config(
         # keep the default (uninstrumented) stdlib and stay uninstrumented.
         cc_args(
             name = name + "_msan_compile_args",
-            actions = ["@rules_cc//cc/toolchains/actions:compile_actions"],
+            actions = [
+                "@rules_cc//cc/toolchains/actions:compile_actions",
+                "@rules_cc//cc/toolchains/actions:cpp20_module_compile",
+                "@rules_cc//cc/toolchains/actions:cpp20_module_codegen",
+                "@rules_cc//cc/toolchains/actions:cpp_module_deps_scanning",
+            ],
             args = msan_compile_include_flags + msan_sanitizer_flags,
         )
         cc_args(
             name = name + "_msan_cxx_args",
-            actions = ["@rules_cc//cc/toolchains/actions:cpp_compile_actions"],
+            actions = [
+                "@rules_cc//cc/toolchains/actions:cpp_compile_actions",
+                "@rules_cc//cc/toolchains/actions:cpp20_module_compile",
+                "@rules_cc//cc/toolchains/actions:cpp20_module_codegen",
+                "@rules_cc//cc/toolchains/actions:cpp_module_deps_scanning",
+            ],
             args = msan_cxx_isystem_flags,
         )
         cc_args(
@@ -846,7 +856,12 @@ def cc_toolchain_config(
         if normal_compile_include_flags:
             cc_args(
                 name = name + "_nomsan_compile_args",
-                actions = ["@rules_cc//cc/toolchains/actions:compile_actions"],
+                actions = [
+                    "@rules_cc//cc/toolchains/actions:compile_actions",
+                    "@rules_cc//cc/toolchains/actions:cpp20_module_compile",
+                    "@rules_cc//cc/toolchains/actions:cpp20_module_codegen",
+                    "@rules_cc//cc/toolchains/actions:cpp_module_deps_scanning",
+                ],
                 args = normal_compile_include_flags,
                 requires_any_of = [":" + name + "_not_msan"],
             )
@@ -854,7 +869,12 @@ def cc_toolchain_config(
         if default_cxx_isystem_flags:
             cc_args(
                 name = name + "_nomsan_cxx_args",
-                actions = ["@rules_cc//cc/toolchains/actions:cpp_compile_actions"],
+                actions = [
+                    "@rules_cc//cc/toolchains/actions:cpp_compile_actions",
+                    "@rules_cc//cc/toolchains/actions:cpp20_module_compile",
+                    "@rules_cc//cc/toolchains/actions:cpp20_module_codegen",
+                    "@rules_cc//cc/toolchains/actions:cpp_module_deps_scanning",
+                ],
                 args = default_cxx_isystem_flags,
                 requires_any_of = [":" + name + "_not_msan"],
             )
