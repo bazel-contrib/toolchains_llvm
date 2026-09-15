@@ -30,6 +30,15 @@ def bazel_toolchain_dependencies():
             strip_prefix = "rules_cc-0.2.25",
         )
 
+    # rules_cc's cc_toolchain_config rule depends on apple_support's Xcode
+    # configuration, including for non-Apple toolchains.
+    if not native.existing_rule("apple_support"):
+        http_archive(
+            name = "apple_support",
+            sha256 = "7830e480103a26c9627ae95933adfb17f1f0522a9482fcc38ea0e52093db9b19",
+            urls = ["https://github.com/bazelbuild/apple_support/releases/download/2.8.0/apple_support.2.8.0.tar.gz"],
+        )
+
     # Load bazel_skylib if the user has not defined them.
     if not native.existing_rule("bazel_skylib"):
         http_archive(
