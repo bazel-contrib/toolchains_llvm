@@ -390,9 +390,9 @@ py_repositories()
 
 http_archive(
     name = "rules_foreign_cc",
-    sha256 = "f986e6912c26301fb523f29dbdb09435c40a17014725849cbc69b2de09918ecd",
+    sha256 = "327b3fcacde97b9665424db2b6c37e6f8da59ecc783dc5b8683c69396f820a12",
     strip_prefix = "rules_foreign_cc-0.16.0",
-    url = "https://github.com/bazelbuild/rules_foreign_cc/archive/0.16.0.tar.gz",
+    url = "https://github.com/bazel-contrib/rules_foreign_cc/releases/download/0.16.0/rules_foreign_cc-0.16.0.tar.gz",
 )
 
 http_archive(
