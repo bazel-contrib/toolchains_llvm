@@ -18,7 +18,8 @@ on:
   # Manual retry. No inputs: run it against the release tag as the ref.
   workflow_dispatch: {}
 
-permissions: read-all
+permissions:
+  contents: write
 
 jobs:
   publish:
