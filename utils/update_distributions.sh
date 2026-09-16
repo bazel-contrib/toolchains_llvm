@@ -330,24 +330,32 @@ else
   echo "         Run 'trunk fmt ${output}' before committing." >&2
 fi
 
-# Regenerate the golden file consumed by `llvm_distributions_output_test`. The
-# golden enumerates every known distribution (so adding entries to github.bzl
-# invariably changes it). We invoke the `distributions_test_writer` rule
-# directly and copy its output -- running `bazel test` would just fail with a
-# diff, which is exactly what we are fixing.
-golden="${repo_root}/toolchain/internal/llvm_distributions.golden.out.txt"
-echo "Updating ${golden}..." >&2
+# Regenerate the golden files that depend on the bundled distributions. The
+# distribution golden enumerates every known archive, while the prerelease
+# golden exercises version selection (including `latest`). We invoke their
+# writer rules directly and copy the outputs -- running `bazel test` would just
+# fail with a diff, which is exactly what we are fixing.
+distributions_golden="${repo_root}/toolchain/internal/llvm_distributions.golden.out.txt"
+prerelease_golden="${repo_root}/toolchain/internal/llvm_prerelease_test.golden.txt"
+echo "Updating ${distributions_golden} and ${prerelease_golden}..." >&2
 if ! command -v bazel >/dev/null 2>&1; then
-  echo "ERROR: bazel not on PATH; cannot regenerate the golden file." >&2
+  echo "ERROR: bazel not on PATH; cannot regenerate the golden files." >&2
   echo "       github.bzl has been written; rerun under bazel to refresh" >&2
-  echo "       the golden." >&2
+  echo "       the goldens." >&2
   exit 1
 fi
 (
   cd "${repo_root}"
-  bazel build //toolchain/internal:llvm_distributions >&2
+  bazel build \
+    //toolchain/internal:llvm_distributions \
+    //toolchain/internal:llvm_prerelease_test_output >&2
   bazel_bin="$(bazel info bazel-bin)"
-  cp -f "${bazel_bin}/toolchain/internal/llvm_distributions.out.txt" "${golden}"
+  cp -f \
+    "${bazel_bin}/toolchain/internal/llvm_distributions.out.txt" \
+    "${distributions_golden}"
+  cp -f \
+    "${bazel_bin}/toolchain/internal/llvm_prerelease_test.output.txt" \
+    "${prerelease_golden}"
 )
 
 echo "Done." >&2
