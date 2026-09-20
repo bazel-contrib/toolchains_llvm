@@ -95,6 +95,18 @@ llvm_toolchain(
     llvm_versions = LLVM_VERSIONS,
 )
 
+llvm_toolchain(
+    name = "llvm_toolchain_local_linker",
+    cxx_standard = {"": "c++17"},
+    linker = {
+        "darwin-aarch64": "/usr/bin/ld",
+        "darwin-x86_64": "/usr/bin/ld",
+        "linux-aarch64": "/usr/bin/ld",
+        "linux-x86_64": "/usr/bin/ld",
+    },
+    llvm_versions = LLVM_VERSIONS,
+)
+
 # Toolchain examples for testing different stdlib implementations on Linux.
 # These are used by run_external_tests.sh in CI to verify that the toolchain
 # works with system-hosted libc++ and libstdc++ instead of the builtin libc++.

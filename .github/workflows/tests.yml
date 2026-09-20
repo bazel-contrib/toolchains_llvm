@@ -86,6 +86,22 @@ jobs:
           USE_BAZEL_VERSION: ${{ matrix.bazel_version }}
           USE_BZLMOD: ${{ matrix.bzlmod }}
         run: tests/scripts/run_toolchain_tests.sh
+  local_linker_test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+        bzlmod: [true, false]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - if: startsWith(matrix.os, 'ubuntu')
+        run: tests/scripts/ubuntu_install_libtinfo.sh
+      - name: Test native linker selection
+        env:
+          USE_BAZEL_VERSION: latest
+          USE_BZLMOD: ${{ matrix.bzlmod }}
+        run: tests/scripts/run_local_linker_tests.sh
   external_test:
     strategy:
       fail-fast: false
@@ -228,6 +244,7 @@ jobs:
       - lsan_macos_test
       - cpp_modules_test
       - toolchain_test
+      - local_linker_test
       - external_test
       - container_test
       - xcompile_test

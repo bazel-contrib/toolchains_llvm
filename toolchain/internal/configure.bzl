@@ -148,6 +148,7 @@ def llvm_config_impl(rctx):
     _check_os_arch_keys(rctx.attr.extra_exec_compatible_with)
     _check_os_arch_keys(rctx.attr.extra_target_compatible_with)
     _check_os_arch_keys(rctx.attr.stdlib)
+    _check_os_arch_keys(rctx.attr.linker)
 
     os = _os(rctx)
     if os == "windows":
@@ -276,6 +277,7 @@ def llvm_config_impl(rctx):
         conly_flags_dict = rctx.attr.conly_flags,
         cxx_flags_dict = rctx.attr.cxx_flags,
         link_flags_dict = rctx.attr.link_flags,
+        linker_dict = rctx.attr.linker,
         archive_flags_dict = rctx.attr.archive_flags,
         link_libs_dict = rctx.attr.link_libs,
         fastbuild_compile_flags_dict = rctx.attr.fastbuild_compile_flags,
@@ -421,6 +423,54 @@ def _cc_toolchains_str(
 def _dict_value(d, target_pair, default = None):
     return d.get(target_pair, d.get("", default))
 
+def _native_linker(rctx, exec_os):
+    """Resolve the execution platform's native linker."""
+    if exec_os == "darwin":
+        xcrun = rctx.which("xcrun")
+        if not xcrun:
+            fail("linker selection 'auto' requires xcrun on Darwin")
+        result = rctx.execute([xcrun, "--find", "ld"], quiet = True)
+        if result.return_code:
+            fail("linker selection 'auto' could not resolve the Darwin linker with xcrun: {}".format(result.stderr.strip()))
+        linker = result.stdout.strip()
+        if not linker:
+            fail("linker selection 'auto' received an empty linker path from xcrun")
+        return linker
+    if exec_os == "linux":
+        linker = rctx.which("ld")
+        if not linker:
+            fail("linker selection 'auto' could not find ld on PATH")
+        return str(linker)
+    fail("linker selection 'auto' is not supported on the {} execution platform".format(exec_os))
+
+def _linker_descriptor(rctx, selection, exec_os, target_os):
+    """Return the linker path and capabilities for a configured selection."""
+    if not selection or selection == "lld":
+        return struct(
+            path = "",
+            supports_start_end_lib = True,
+        )
+
+    if selection == "auto":
+        if exec_os != target_os:
+            fail("linker selection 'auto' requires matching execution and target operating systems, got {} -> {}".format(exec_os, target_os))
+        selection = _native_linker(rctx, exec_os)
+    elif not _is_absolute_path(selection):
+        fail("linker selection must be `lld`, `auto`, or an absolute path, got '{}'".format(selection))
+
+    linker_path = rctx.path(selection)
+    if not linker_path.exists:
+        fail("configured linker does not exist: {}".format(selection))
+    test = rctx.which("test")
+    if not test or rctx.execute([test, "-x", linker_path], quiet = True).return_code:
+        fail("configured linker is not executable: {}".format(linker_path))
+    return struct(
+        path = str(linker_path),
+        # A local linker is deliberately treated conservatively. A managed
+        # linker backend can advertise stronger capabilities.
+        supports_start_end_lib = False,
+    )
+
 def _cc_toolchain_str(
         rctx,
         suffix,
@@ -471,6 +521,13 @@ def _cc_toolchain_str(
     # convention, rather than silently producing malformed flags.
     if sysroot_path:
         sysroot_path = _canonical_dir_path(sysroot_path)
+
+    linker = _linker_descriptor(
+        rctx,
+        _dict_value(toolchain_info.linker_dict, target_pair, "lld"),
+        exec_os,
+        target_os,
+    )
 
     extra_files_str = repr(":internal-use-tools" if bazel_features.rules.merkle_cache_v2 else ":internal-use-tools-legacy")
 
@@ -635,6 +692,8 @@ cc_toolchain_config(
     extra_enabled_features = {extra_enabled_features},
     cxx_builtin_include_directories = {cxx_builtin_include_directories},
     llvm_version = "{llvm_version}",
+    linker_path = {linker_path},
+    linker_supports_start_end_lib = {linker_supports_start_end_lib},
 )
 
 toolchain(
@@ -899,6 +958,8 @@ filegroup(
         lib_label = "lib" if bazel_features.rules.merkle_cache_v2 else "lib_legacy",
         extra_compiler_files = ("\"%s\"," % _extra_compiler_label) if _extra_compiler_label else "",
         llvm_version = llvm_version,
+        linker_path = repr(linker.path),
+        linker_supports_start_end_lib = linker.supports_start_end_lib,
         extra_linker_files = ("\"%s\"," % _extra_linker_label) if _extra_linker_label else "",
         extra_exec_compatible_with_specific = toolchain_info.extra_exec_compatible_with.get(target_pair, []),
         extra_target_compatible_with_specific = toolchain_info.extra_target_compatible_with.get(target_pair, []),
