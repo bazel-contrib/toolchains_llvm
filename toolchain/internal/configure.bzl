@@ -252,7 +252,17 @@ def llvm_config_impl(rctx):
         symlinked_tools_str = ""
 
     if rctx.attr.mold_binary:
-        rctx.symlink(rctx.path(rctx.attr.mold_binary), "bin/mold")
+        # Do not symlink across external repositories. Bazel's repository
+        # contents cache may relocate this repository independently and leave
+        # such a symlink pointing at the repository-rule staging directory.
+        # Materialize the executable so linker actions always receive a real
+        # file from this toolchain repository.
+        rctx.file(
+            "bin/mold",
+            rctx.read(rctx.attr.mold_binary),
+            executable = True,
+            legacy_utf8 = False,
+        )
 
     sysroot_paths_dict, sysroot_labels_dict = _sysroot_paths_dict(
         rctx,
@@ -976,7 +986,11 @@ filegroup(
         llvm_version = llvm_version,
         linker_path = repr(linker.path),
         linker_supports_start_end_lib = linker.supports_start_end_lib,
-        linker_file = repr(linker.file) + "," if linker.file else "",
+        # With Merkle-tree directory inputs, internal-use-tools already owns
+        # the complete bin directory. Listing a file below it separately
+        # creates a sandbox input-path collision. Older Bazel versions use the
+        # explicit legacy file list and still need the selected linker here.
+        linker_file = repr(linker.file) + "," if linker.file and not bazel_features.rules.merkle_cache_v2 else "",
         extra_linker_files = ("\"%s\"," % _extra_linker_label) if _extra_linker_label else "",
         extra_exec_compatible_with_specific = toolchain_info.extra_exec_compatible_with.get(target_pair, []),
         extra_target_compatible_with_specific = toolchain_info.extra_target_compatible_with.get(target_pair, []),

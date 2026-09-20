@@ -462,7 +462,7 @@ llvm_config_attrs.update({
     ),
     "mold_binary": attr.label(
         allow_single_file = True,
-        doc = "A prebuilt mold executable. Set automatically when mold_version is used.",
+        doc = "A source-file label for a prebuilt mold executable. Set automatically when mold_version is used.",
     ),
     "mold_version": attr.string(
         doc = "Version of the official prebuilt mold executable to download when linker selects `mold`.",

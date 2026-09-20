@@ -64,7 +64,7 @@ def llvm_toolchain(name, **kwargs):
                 exec_os = kwargs.get("exec_os", ""),
                 version = mold_version,
             )
-            kwargs["mold_binary"] = "@{}_mold//:mold".format(name)
+            kwargs["mold_binary"] = "@{}_mold//:bin/mold".format(name)
     elif kwargs.get("mold_version") or kwargs.get("mold_binary"):
         fail("mold_version and mold_binary require a `mold` linker selection")
 

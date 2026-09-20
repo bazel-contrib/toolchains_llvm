@@ -520,7 +520,7 @@ llvm.toolchain(
 )
 ```
 
-Alternatively, `mold_binary` accepts a label that produces one prebuilt mold
+Alternatively, `mold_binary` accepts a source-file label for one prebuilt mold
 executable. This is the integration point for a separate mold Bazel module or
 an internally mirrored executable:
 

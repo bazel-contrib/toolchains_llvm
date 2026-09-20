@@ -67,11 +67,6 @@ def _mold_repository_impl(rctx):
 package(default_visibility = ["//visibility:public"])
 
 exports_files(["bin/mold"])
-
-filegroup(
-    name = "mold",
-    srcs = ["bin/mold"],
-)
 """)
 
 mold_repository = repository_rule(
