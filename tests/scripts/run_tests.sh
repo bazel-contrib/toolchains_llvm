@@ -18,9 +18,10 @@ set -euo pipefail
 toolchain_name=""
 enable_omp_targets="1"
 enable_wasm_tests="1"
+enable_linker_trace="1"
 LLVM_VERSION=""
 
-while getopts "hOt:v:W" opt; do
+while getopts "hOTt:v:W" opt; do
   case "${opt}" in
   "h")
     echo "Usage:"
@@ -29,6 +30,9 @@ while getopts "hOt:v:W" opt; do
     ;;
   "O")
     enable_omp_targets=""
+    ;;
+  "T")
+    enable_linker_trace=""
     ;;
   "t")
     toolchain_name="${OPTARG}"
@@ -57,8 +61,10 @@ test_args=(
   "--extra_toolchains=${toolchain_name}"
   "--copt=-v"
   "--linkopt=-Wl,-v"
-  "--linkopt=-Wl,-t"
 )
+if [[ -n "${enable_linker_trace}" ]]; then
+  test_args+=("--linkopt=-Wl,-t")
+fi
 
 targets=(
   "//:all"

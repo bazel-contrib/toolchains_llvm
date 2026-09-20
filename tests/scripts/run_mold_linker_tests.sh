@@ -23,4 +23,4 @@ if [[ ${system_name}-${machine} != "Linux-x86_64" ]]; then
 fi
 
 scripts_dir="${BASH_SOURCE[0]%/*}"
-"${scripts_dir}/run_tests.sh" -O -W -t "@llvm_toolchain_mold//:cc-toolchain-x86_64-linux"
+"${scripts_dir}/run_tests.sh" -O -T -W -t "@llvm_toolchain_mold//:cc-toolchain-x86_64-linux"
