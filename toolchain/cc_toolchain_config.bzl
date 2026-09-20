@@ -1013,8 +1013,7 @@ def cc_toolchain_config(
         opt_compile_flags = opt_compile_flags,
         conly_flags = conly_flags,
         cxx_flags = baked_cxx_isystem_flags + cxx_flags,
-        link_flags = link_flags + select({str(Label("@toolchains_llvm//toolchain/config:use_libunwind")): libunwind_link_flags, "//conditions:default": []}) +
-                     select({str(Label("@toolchains_llvm//toolchain/config:use_compiler_rt")): compiler_rt_link_flags, "//conditions:default": []}) +
+        link_flags = link_flags + select({str(Label("@toolchains_llvm//toolchain/config:use_compiler_rt")): compiler_rt_link_flags, "//conditions:default": []}) +
                      # Standard library search paths and msan's libc++ forcing
                      # flags. On Linux these live in the msan/nomsan cc_features
                      # (baked_link_stdlib_flags is empty); elsewhere only the
@@ -1027,7 +1026,11 @@ def cc_toolchain_config(
         # Standard library archives. On Linux these live in the cc_features
         # (baked_link_libs_stdlib is empty); elsewhere the configured stdlib's
         # archives.
-        link_libs = baked_link_libs_stdlib + link_libs,
+        # Keep libunwind after libc++/libc++abi. Traditional linkers process
+        # static archives from left to right and do not revisit an earlier
+        # libunwind archive when libc++abi later introduces _Unwind_* symbols.
+        link_libs = baked_link_libs_stdlib + link_libs +
+                    select({str(Label("@toolchains_llvm//toolchain/config:use_libunwind")): libunwind_link_flags, "//conditions:default": []}),
         opt_link_flags = opt_link_flags,
         unfiltered_compile_flags = unfiltered_compile_flags,
         coverage_compile_flags = coverage_compile_flags,
