@@ -490,12 +490,53 @@ The accepted values are:
   linker selected by the active Xcode developer directory (`xcrun --find ld`);
   on Linux it is `ld` from `PATH`. Execution and target operating systems must
   match.
+- `mold`: use an optional repository-managed mold executable for ELF/Linux
+  targets. Configure it with `mold_version` or `mold_binary` as described
+  below.
 - An absolute path, such as `/usr/bin/ld`: use that executable directly.
 
 Native and explicitly pathed linkers are local execution-platform dependencies.
 The same path must exist on a remote executor, so bundled LLD is preferable for
 hermetic or remote builds. An arbitrary local linker is conservatively treated
 as not supporting Bazel's start/end-lib optimization.
+
+#### mold
+
+[mold](https://github.com/rui314/mold) is available as an explicit, optional
+linker for Linux execution platforms and Linux/ELF targets. It is never selected
+by default or by `auto`. The simplest configuration downloads a checksum-pinned
+official release executable, avoiding the linker bootstrap cycle involved in
+building mold with the toolchain that is supposed to use it:
+
+```starlark
+llvm.toolchain(
+    name = "llvm_toolchain",
+    llvm_version = "23.1.1",
+    linker = {
+        "linux-aarch64": "mold",
+        "linux-x86_64": "mold",
+    },
+    mold_version = "2.42.1",
+)
+```
+
+Alternatively, `mold_binary` accepts a label that produces one prebuilt mold
+executable. This is the integration point for a separate mold Bazel module or
+an internally mirrored executable:
+
+```starlark
+llvm.toolchain(
+    name = "llvm_toolchain",
+    llvm_version = "23.1.1",
+    linker = {"linux-x86_64": "mold"},
+    mold_binary = "@my_mold//:mold",
+)
+```
+
+The executable is copied into the generated toolchain's declared linker inputs,
+so sandboxed and remote actions receive it. A source-built `cc_binary` cannot
+serve as its own linker's bootstrap; `mold_binary` must already be executable
+without selecting this mold-enabled C++ toolchain.
 
 ### C++ named modules
 

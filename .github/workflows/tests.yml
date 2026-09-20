@@ -102,6 +102,20 @@ jobs:
           USE_BAZEL_VERSION: latest
           USE_BZLMOD: ${{ matrix.bzlmod }}
         run: tests/scripts/run_local_linker_tests.sh
+  mold_linker_test:
+    strategy:
+      fail-fast: false
+      matrix:
+        bzlmod: [true, false]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: tests/scripts/ubuntu_install_libtinfo.sh
+      - name: Test mold linker selection
+        env:
+          USE_BAZEL_VERSION: latest
+          USE_BZLMOD: ${{ matrix.bzlmod }}
+        run: tests/scripts/run_mold_linker_tests.sh
   external_test:
     strategy:
       fail-fast: false
@@ -245,6 +259,7 @@ jobs:
       - cpp_modules_test
       - toolchain_test
       - local_linker_test
+      - mold_linker_test
       - external_test
       - container_test
       - xcompile_test

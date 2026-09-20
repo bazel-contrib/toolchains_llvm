@@ -251,6 +251,9 @@ def llvm_config_impl(rctx):
         tools_path_prefix = paths.ensure_trailing_slash(paths.join(llvm_dist_path_prefix, "bin"))
         symlinked_tools_str = ""
 
+    if rctx.attr.mold_binary:
+        rctx.symlink(rctx.path(rctx.attr.mold_binary), "bin/mold")
+
     sysroot_paths_dict, sysroot_labels_dict = _sysroot_paths_dict(
         rctx,
         rctx.attr.sysroot,
@@ -447,6 +450,7 @@ def _linker_descriptor(rctx, selection, exec_os, target_os):
     """Return the linker path and capabilities for a configured selection."""
     if not selection:
         return struct(
+            file = "",
             path = "",
             supports_start_end_lib = True,
         )
@@ -455,8 +459,18 @@ def _linker_descriptor(rctx, selection, exec_os, target_os):
         if exec_os != target_os:
             fail("linker selection 'auto' requires matching execution and target operating systems, got {} -> {}".format(exec_os, target_os))
         selection = _native_linker(rctx, exec_os)
+    elif selection == "mold":
+        if exec_os != "linux" or target_os != "linux":
+            fail("mold requires Linux execution and ELF/Linux targets, got {} -> {}".format(exec_os, target_os))
+        if not rctx.attr.mold_binary:
+            fail("linker selection 'mold' requires mold_version or mold_binary")
+        return struct(
+            file = "bin/mold",
+            path = "bin/mold",
+            supports_start_end_lib = True,
+        )
     elif not _is_absolute_path(selection):
-        fail("linker selection must be empty, `auto`, or an absolute path, got '{}'".format(selection))
+        fail("linker selection must be empty, `auto`, `mold`, or an absolute path, got '{}'".format(selection))
 
     linker_path = rctx.path(selection)
     if not linker_path.exists:
@@ -465,6 +479,7 @@ def _linker_descriptor(rctx, selection, exec_os, target_os):
     if not test or rctx.execute([test, "-x", linker_path], quiet = True).return_code:
         fail("configured linker is not executable: {}".format(linker_path))
     return struct(
+        file = "",
         path = str(linker_path),
         # A local linker is deliberately treated conservatively. A managed
         # linker backend can advertise stronger capabilities.
@@ -788,6 +803,7 @@ filegroup(
         "{toolchain_root}:ld",
         "{toolchain_root}:ar",
         "{target_toolchain_root}:{lib_label}",
+        {linker_file}
         {extra_linker_files}
     ],
 )
@@ -960,6 +976,7 @@ filegroup(
         llvm_version = llvm_version,
         linker_path = repr(linker.path),
         linker_supports_start_end_lib = linker.supports_start_end_lib,
+        linker_file = repr(linker.file) + "," if linker.file else "",
         extra_linker_files = ("\"%s\"," % _extra_linker_label) if _extra_linker_label else "",
         extra_exec_compatible_with_specific = toolchain_info.extra_exec_compatible_with.get(target_pair, []),
         extra_target_compatible_with_specific = toolchain_info.extra_target_compatible_with.get(target_pair, []),

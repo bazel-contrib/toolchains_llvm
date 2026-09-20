@@ -460,6 +460,13 @@ llvm_config_attrs.update({
                "for the execution platform's native linker, or an absolute path " +
                "to a linker executable. An empty key applies to all targets.").format(_target_pairs),
     ),
+    "mold_binary": attr.label(
+        allow_single_file = True,
+        doc = "A prebuilt mold executable. Set automatically when mold_version is used.",
+    ),
+    "mold_version": attr.string(
+        doc = "Version of the official prebuilt mold executable to download when linker selects `mold`.",
+    ),
     "toolchain_roots": attr.string_dict(
         mandatory = False,
         # TODO: Ideally, we should be taking a filegroup label here instead of a package path, but

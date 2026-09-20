@@ -123,6 +123,20 @@ llvm.toolchain(
 )
 use_repo(llvm, "llvm_toolchain_local_linker")
 
+llvm.toolchain(
+    name = "llvm_toolchain_mold",
+    cxx_standard = {"": "c++17"},
+    exec_arch = "x86_64",
+    exec_os = "linux",
+    linker = {
+        "linux-aarch64": "mold",
+        "linux-x86_64": "mold",
+    },
+    llvm_versions = LLVM_VERSIONS,
+    mold_version = "2.42.1",
+)
+use_repo(llvm, "llvm_toolchain_mold", "llvm_toolchain_mold_mold")
+
 # MemorySanitizer end-to-end toolchain. Pinned to the exact LLVM build that the
 # instrumented libc++ overlay (libcxx_url) was compiled against, so the linked
 # libc++ is itself instrumented and ABI-compatible. Used only by the msan tests
