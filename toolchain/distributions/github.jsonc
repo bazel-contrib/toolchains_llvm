@@ -24,6 +24,13 @@
     }
   },
 
+  // 23.1.2
+  "LLVM-23.1.2-Linux-ARM64.tar.zst": "143308c82f8e21707be7fdc135d5e0ddd9a46a377ca9f38befc716fd842cb59b",
+  "LLVM-23.1.2-Linux-X64.tar.zst": "6382de1c1a210ce5a5cc49d18bc8444d137742e7cbf9b19f4ae602bb1ab52534",
+  "LLVM-23.1.2-macOS-ARM64.tar.zst": "3da0e91b5dfe3a5ec795ad2be79b3f5e6f28c8b23edcd3847fad7742b25e0507",
+  "clang+llvm-23.1.2-aarch64-pc-windows-msvc.tar.zst": "5a1b014065e0828786d503de408bff6c0ee57d4e7ad70086e57fa729e14bb76c",
+  "clang+llvm-23.1.2-x86_64-pc-windows-msvc.tar.zst": "ceaee048142fece144752c6f6431cb0905a7a6160f78ab8cf5cf0b6216f99418",
+
   // 23.1.1
   "LLVM-23.1.1-Linux-ARM64.tar.zst": "56fff2df2d78b1941c5c6961167f840eaa501a8c2a25c59376111b332a7145c7",
   "LLVM-23.1.1-Linux-X64.tar.zst": "b7ddbabd70fa1d206948bc83f59e59aa84eaf4cd09b6b89cc3ece28177710a6f",
