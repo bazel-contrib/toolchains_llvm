@@ -445,7 +445,7 @@ def _native_linker(rctx, exec_os):
 
 def _linker_descriptor(rctx, selection, exec_os, target_os):
     """Return the linker path and capabilities for a configured selection."""
-    if not selection or selection == "lld":
+    if not selection:
         return struct(
             path = "",
             supports_start_end_lib = True,
@@ -456,7 +456,7 @@ def _linker_descriptor(rctx, selection, exec_os, target_os):
             fail("linker selection 'auto' requires matching execution and target operating systems, got {} -> {}".format(exec_os, target_os))
         selection = _native_linker(rctx, exec_os)
     elif not _is_absolute_path(selection):
-        fail("linker selection must be `lld`, `auto`, or an absolute path, got '{}'".format(selection))
+        fail("linker selection must be empty, `auto`, or an absolute path, got '{}'".format(selection))
 
     linker_path = rctx.path(selection)
     if not linker_path.exists:
@@ -524,7 +524,7 @@ def _cc_toolchain_str(
 
     linker = _linker_descriptor(
         rctx,
-        _dict_value(toolchain_info.linker_dict, target_pair, "lld"),
+        _dict_value(toolchain_info.linker_dict, target_pair, ""),
         exec_os,
         target_os,
     )

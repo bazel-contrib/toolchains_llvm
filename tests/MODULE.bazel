@@ -95,6 +95,7 @@ register_toolchains("@llvm_toolchain//:all")
 llvm.toolchain(
     name = "llvm_toolchain_cxx20",
     cxx_standard = {"": "c++20"},
+    linker = {"": ""},
     llvm_versions = LLVM_VERSIONS,
 )
 llvm.extra_target_compatible_with(
