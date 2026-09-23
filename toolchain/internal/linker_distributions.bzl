@@ -14,6 +14,8 @@
 
 """Downloads versioned linker executables from the linker catalogue."""
 
+load("//toolchain/internal:distributions_repo.bzl", "load_jsonc")
+
 def _normalize_os(rctx):
     if rctx.attr.exec_os:
         return rctx.attr.exec_os
@@ -51,7 +53,7 @@ def _mold_version(rctx):
     fail("could not determine the mold version from the mold module's CMakeLists.txt")
 
 def _linker_distributions_repository_impl(rctx):
-    catalogue = json.decode(rctx.read(rctx.attr.catalogue))
+    catalogue = load_jsonc(rctx, rctx.attr.catalogue)
     platform = "{}-{}".format(_normalize_os(rctx), _normalize_arch(rctx))
     manifest = {}
 
@@ -101,8 +103,8 @@ linker_distributions_repository = repository_rule(
     implementation = _linker_distributions_repository_impl,
     attrs = {
         "catalogue": attr.label(
-            allow_single_file = [".json"],
-            default = Label("//toolchain/distributions:linkers.json"),
+            allow_single_file = [".json", ".jsonc"],
+            default = Label("//toolchain/distributions:linkers.jsonc"),
         ),
         "exec_arch": attr.string(),
         "exec_os": attr.string(),

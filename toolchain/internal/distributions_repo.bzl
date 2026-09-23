@@ -153,7 +153,7 @@ def _strip_trailing_commas(text):
         i += 1
     return "".join(out)
 
-def _load_jsonc(rctx, label):
+def load_jsonc(rctx, label):
     path = rctx.path(label)
     raw = rctx.read(path)
     return json.decode(_strip_trailing_commas(_strip_jsonc(raw)))
@@ -191,7 +191,7 @@ def load_distribution_files(rctx, srcs):
     distributions = {}
     distribution_urls = {}
     for src in srcs:
-        data = _load_jsonc(rctx, src)
+        data = load_jsonc(rctx, src)
 
         # Pull `_meta.base_url` (the `""` default + per-version overrides).
         # Currently only `base_url` is recognized inside `_meta`; ignore

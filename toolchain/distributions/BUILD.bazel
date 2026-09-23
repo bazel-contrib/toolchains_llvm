@@ -17,5 +17,3 @@
 # `@llvm_distributions_data//:data.bzl` consumed by
 # `//toolchain/internal:llvm_distributions.bzl`.
 exports_files(glob(["*.jsonc"]))
-
-exports_files(["linkers.json"])
