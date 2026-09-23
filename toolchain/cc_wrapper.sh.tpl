@@ -106,8 +106,8 @@ function sanitize_option() {
   local -r opt=$1
   if [[ ${opt} == */cc_wrapper.sh ]]; then
     printf "%s" "${toolchain_path_prefix}bin/clang"
-  elif [[ ${opt} == "--ld-path=bin/mold" ]]; then
-    printf "%s" "--ld-path=${script_dir}/mold"
+  elif [[ ${opt} == --ld-path=bin/linkers/* ]]; then
+    printf "%s" "--ld-path=${script_dir}/${opt#--ld-path=bin/}"
   elif [[ ${opt} =~ ^-fsanitize-(ignore|black)list=[^/] ]] && [[ ${script_dir} == /* ]]; then
     # shellcheck disable=SC2206
     parts=(${opt/=/ }) # Split flag name and value into array.

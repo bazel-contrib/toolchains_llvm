@@ -16,7 +16,7 @@ load(
     "//toolchain/internal:configure.bzl",
     _llvm_config_impl = "llvm_config_impl",
 )
-load("//toolchain/internal:mold.bzl", "mold_repository")
+load("//toolchain/internal:linker_distributions.bzl", "linker_distributions_repository")
 load(
     "//toolchain/internal:repo.bzl",
     _common_attrs = "common_attrs",
@@ -51,22 +51,19 @@ def llvm_toolchain(name, **kwargs):
             fail("One of llvm_version or llvm_versions must be set")
         kwargs.update(llvm_versions = {"": kwargs.get("llvm_version")})
 
-    uses_mold = "mold" in kwargs.get("linker", {}).values()
-    if uses_mold:
-        mold_version = kwargs.get("mold_version")
-        mold_binary = kwargs.get("mold_binary")
-        if bool(mold_version) == bool(mold_binary):
-            fail("A toolchain selecting mold must set exactly one of mold_version or mold_binary")
-        if mold_version:
-            mold_repository(
-                name = name + "_mold",
-                exec_arch = kwargs.get("exec_arch", ""),
-                exec_os = kwargs.get("exec_os", ""),
-                version = mold_version,
-            )
-            kwargs["mold_binary"] = "@{}_mold//:bin/mold".format(name)
-    elif kwargs.get("mold_version") or kwargs.get("mold_binary"):
-        fail("mold_version and mold_binary require a `mold` linker selection")
+    versioned_linkers = sorted({
+        selection: True
+        for selection in kwargs.get("linker", {}).values()
+        if "@" in selection
+    }.keys())
+    if versioned_linkers:
+        linker_distributions_repository(
+            name = name + "_linkers",
+            exec_arch = kwargs.get("exec_arch", ""),
+            exec_os = kwargs.get("exec_os", ""),
+            linkers = versioned_linkers,
+        )
+        kwargs["linker_repository"] = "@{}_linkers//:linkers.json".format(name)
 
     if not kwargs.get("toolchain_roots"):
         llvm_args = {

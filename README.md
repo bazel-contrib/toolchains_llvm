@@ -477,7 +477,7 @@ the empty key applies to every target:
 ```starlark
 llvm.toolchain(
     name = "llvm_toolchain",
-    llvm_version = "23.1.1",
+    llvm_version = "23.1.2",
     linker = {"darwin-aarch64": "auto"},
 )
 ```
@@ -490,9 +490,9 @@ The accepted values are:
   linker selected by the active Xcode developer directory (`xcrun --find ld`);
   on Linux it is `ld` from `PATH`. Execution and target operating systems must
   match.
-- `mold`: use an optional repository-managed mold executable for ELF/Linux
-  targets. Configure it with `mold_version` or `mold_binary` as described
-  below.
+- `<linker>@<version>`: download a checksum-pinned executable from the bundled
+  linker catalogue. The target selects the linker while the execution platform
+  selects the executable artifact to download.
 - An absolute path, such as `/usr/bin/ld`: use that executable directly.
 
 Native and explicitly pathed linkers are local execution-platform dependencies.
@@ -511,32 +511,23 @@ building mold with the toolchain that is supposed to use it:
 ```starlark
 llvm.toolchain(
     name = "llvm_toolchain",
-    llvm_version = "23.1.1",
+    llvm_version = "23.1.2",
     linker = {
-        "linux-aarch64": "mold",
-        "linux-x86_64": "mold",
+        "linux-aarch64": "mold@2.42.1",
+        "linux-x86_64": "mold@2.42.1",
     },
-    mold_version = "2.42.1",
-)
-```
-
-Alternatively, `mold_binary` accepts a source-file label for one prebuilt mold
-executable. This is the integration point for a separate mold Bazel module or
-an internally mirrored executable:
-
-```starlark
-llvm.toolchain(
-    name = "llvm_toolchain",
-    llvm_version = "23.1.1",
-    linker = {"linux-x86_64": "mold"},
-    mold_binary = "@my_mold//:mold",
 )
 ```
 
 The executable is copied into the generated toolchain's declared linker inputs,
-so sandboxed and remote actions receive it. A source-built `cc_binary` cannot
-serve as its own linker's bootstrap; `mold_binary` must already be executable
-without selecting this mold-enabled C++ toolchain.
+so sandboxed and remote actions receive it. The selected linker cannot be built
+with the toolchain that is supposed to use it because that would create a
+linker bootstrap cycle.
+
+Bare `lld` continues to select the LLD executable included in the configured
+LLVM archive. A versioned `lld@<version>` instead means a separately packaged
+LLD executable from the linker catalogue; it is resolved in exactly the same
+way as `mold@<version>` when such a distribution is present.
 
 ### C++ named modules
 

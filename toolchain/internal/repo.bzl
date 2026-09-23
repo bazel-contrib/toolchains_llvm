@@ -456,16 +456,14 @@ llvm_config_attrs.update({
         mandatory = False,
         doc = ("Linker selection for each target OS and architecture pair ({}). " +
                "Use an empty value (the default) for the linker included in the " +
-               "selected LLVM distribution, `auto` " +
-               "for the execution platform's native linker, or an absolute path " +
-               "to a linker executable. An empty key applies to all targets.").format(_target_pairs),
+               "selected LLVM distribution, `auto` for the execution platform's " +
+               "native linker, `<linker>@<version>` for a linker from the bundled " +
+               "catalogue, or an absolute path to a linker executable. An empty " +
+               "key applies to all targets.").format(_target_pairs),
     ),
-    "mold_binary": attr.label(
+    "linker_repository": attr.label(
         allow_single_file = True,
-        doc = "A source-file label for a prebuilt mold executable. Set automatically when mold_version is used.",
-    ),
-    "mold_version": attr.string(
-        doc = "Version of the official prebuilt mold executable to download when linker selects `mold`.",
+        doc = "Internal manifest for versioned linker executables. Set automatically by llvm_toolchain.",
     ),
     "toolchain_roots": attr.string_dict(
         mandatory = False,

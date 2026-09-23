@@ -1,0 +1,22 @@
+{
+  "mold": {
+    "2.42.1": {
+      "linux-aarch64": {
+        "urls": [
+          "https://github.com/rui314/mold/releases/download/v2.42.1/mold-2.42.1-aarch64-linux.tar.gz"
+        ],
+        "sha256": "16b025652d3d7456689e6025a77e1903bb2a15e7630877c26cc133f5df95b9c6",
+        "strip_prefix": "mold-2.42.1-aarch64-linux",
+        "binary": "bin/mold"
+      },
+      "linux-x86_64": {
+        "urls": [
+          "https://github.com/rui314/mold/releases/download/v2.42.1/mold-2.42.1-x86_64-linux.tar.gz"
+        ],
+        "sha256": "6ff270c9bf07d2bec5c98aa324eb7c4daf6a1a4d815c05ff1708049616047855",
+        "strip_prefix": "mold-2.42.1-x86_64-linux",
+        "binary": "bin/mold"
+      }
+    }
+  }
+}

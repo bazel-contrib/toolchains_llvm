@@ -114,11 +114,10 @@ llvm_toolchain(
     exec_arch = "x86_64",
     exec_os = "linux",
     linker = {
-        "linux-aarch64": "mold",
-        "linux-x86_64": "mold",
+        "linux-aarch64": "mold@2.42.1",
+        "linux-x86_64": "mold@2.42.1",
     },
     llvm_versions = LLVM_VERSIONS,
-    mold_version = "2.42.1",
 )
 
 # Toolchain examples for testing different stdlib implementations on Linux.

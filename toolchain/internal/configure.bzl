@@ -251,18 +251,22 @@ def llvm_config_impl(rctx):
         tools_path_prefix = paths.ensure_trailing_slash(paths.join(llvm_dist_path_prefix, "bin"))
         symlinked_tools_str = ""
 
-    if rctx.attr.mold_binary:
-        # Do not symlink across external repositories. Bazel's repository
-        # contents cache may relocate this repository independently and leave
-        # such a symlink pointing at the repository-rule staging directory.
-        # Materialize the executable so linker actions always receive a real
-        # file from this toolchain repository.
-        rctx.file(
-            "bin/mold",
-            rctx.read(rctx.attr.mold_binary),
-            executable = True,
-            legacy_utf8 = False,
-        )
+    linker_paths = {}
+    if rctx.attr.linker_repository:
+        manifest_path = rctx.path(rctx.attr.linker_repository)
+        for reference, source in json.decode(rctx.read(manifest_path)).items():
+            destination = "bin/linkers/{}".format(source.split("/")[-1])
+
+            # Do not symlink across external repositories. Bazel's repository
+            # contents cache may relocate this repository independently and
+            # leave such a symlink pointing at its staging directory.
+            rctx.file(
+                destination,
+                rctx.read("{}/{}".format(manifest_path.dirname, source)),
+                executable = True,
+                legacy_utf8 = False,
+            )
+            linker_paths[reference] = destination
 
     sysroot_paths_dict, sysroot_labels_dict = _sysroot_paths_dict(
         rctx,
@@ -291,6 +295,7 @@ def llvm_config_impl(rctx):
         cxx_flags_dict = rctx.attr.cxx_flags,
         link_flags_dict = rctx.attr.link_flags,
         linker_dict = rctx.attr.linker,
+        linker_paths = linker_paths,
         archive_flags_dict = rctx.attr.archive_flags,
         link_libs_dict = rctx.attr.link_libs,
         fastbuild_compile_flags_dict = rctx.attr.fastbuild_compile_flags,
@@ -456,7 +461,7 @@ def _native_linker(rctx, exec_os):
         return str(linker)
     fail("linker selection 'auto' is not supported on the {} execution platform".format(exec_os))
 
-def _linker_descriptor(rctx, selection, exec_os, target_os):
+def _linker_descriptor(rctx, selection, linker_paths, exec_os, target_os):
     """Return the linker path and capabilities for a configured selection."""
     if not selection:
         return struct(
@@ -469,18 +474,25 @@ def _linker_descriptor(rctx, selection, exec_os, target_os):
         if exec_os != target_os:
             fail("linker selection 'auto' requires matching execution and target operating systems, got {} -> {}".format(exec_os, target_os))
         selection = _native_linker(rctx, exec_os)
-    elif selection == "mold":
-        if exec_os != "linux" or target_os != "linux":
+    elif "@" in selection:
+        parts = selection.split("@")
+        if len(parts) != 2 or not parts[0] or not parts[1]:
+            fail("invalid versioned linker reference '{}'; expected <linker>@<version>".format(selection))
+        linker = parts[0]
+        if linker == "mold" and (exec_os != "linux" or target_os != "linux"):
             fail("mold requires Linux execution and ELF/Linux targets, got {} -> {}".format(exec_os, target_os))
-        if not rctx.attr.mold_binary:
-            fail("linker selection 'mold' requires mold_version or mold_binary")
+        if linker not in ["lld", "mold"]:
+            fail("linker implementation '{}' is not supported".format(linker))
+        path = linker_paths.get(selection)
+        if not path:
+            fail("versioned linker '{}' was not materialized".format(selection))
         return struct(
-            file = "bin/mold",
-            path = "bin/mold",
+            file = path,
+            path = path,
             supports_start_end_lib = True,
         )
     elif not _is_absolute_path(selection):
-        fail("linker selection must be empty, `auto`, `mold`, or an absolute path, got '{}'".format(selection))
+        fail("linker selection must be empty, `auto`, `<linker>@<version>`, or an absolute path, got '{}'".format(selection))
 
     linker_path = rctx.path(selection)
     if not linker_path.exists:
@@ -550,6 +562,7 @@ def _cc_toolchain_str(
     linker = _linker_descriptor(
         rctx,
         _dict_value(toolchain_info.linker_dict, target_pair, ""),
+        toolchain_info.linker_paths,
         exec_os,
         target_os,
     )
