@@ -78,7 +78,9 @@ def cc_toolchain_config(
         cxx_builtin_include_directories,
         extra_known_features,
         extra_enabled_features,
-        llvm_version):
+        llvm_version,
+        linker_path = "",
+        linker_supports_start_end_lib = True):
     exec_os_arch_key = _os_arch_pair(exec_os, exec_arch)
     target_os_arch_key = _os_arch_pair(target_os, target_arch)
     _check_os_arch_keys([exec_os_arch_key, target_os_arch_key])
@@ -283,7 +285,7 @@ def cc_toolchain_config(
 
     link_flags = target_flags + [
         "-no-canonical-prefixes",
-        "-fuse-ld=lld",
+        "--ld-path=" + linker_path if linker_path else "-fuse-ld=lld",
     ] + resource_dir
 
     # libc++ headers shipped with the toolchain, used when not building with
@@ -341,7 +343,7 @@ def cc_toolchain_config(
         "-fsanitize-link-c++-runtime",
     ]
 
-    if exec_os == "darwin":
+    if exec_os == "darwin" and not linker_path:
         # These will get expanded by osx_cc_wrapper's `sanitize_option`
         link_flags.append("--ld-path=ld64.lld" if target_os == "darwin" else "--ld-path=ld.lld")
 
@@ -692,7 +694,7 @@ def cc_toolchain_config(
         "dwp": paths.join(tools_path_prefix, "llvm-dwp"),
         "gcc": paths.join(wrapper_bin_prefix, "cc_wrapper.sh"),
         "gcov": paths.join(tools_path_prefix, "llvm-profdata"),
-        "ld": paths.join(tools_path_prefix, "ld.lld"),
+        "ld": linker_path if linker_path else paths.join(tools_path_prefix, "ld.lld"),
         "llvm-cov": paths.join(tools_path_prefix, "llvm-cov"),
         "llvm-profdata": paths.join(tools_path_prefix, "llvm-profdata"),
         "nm": paths.join(tools_path_prefix, "llvm-nm"),
@@ -702,12 +704,9 @@ def cc_toolchain_config(
         "parse_headers": paths.join(wrapper_bin_prefix, "cc_wrapper.sh"),
     }
 
-    # Start-end group linker support:
-    # This was added to `lld` in this patch: http://reviews.llvm.org/D18814
-    #
-    # The oldest version of LLVM that we support is 6.0.0 which was released
-    # after the above patch was merged, so we just set this to `True`.
-    supports_start_end_lib = True
+    # Start/end library support is a property of the selected linker, not of
+    # clang. Bundled LLD supports it; arbitrary local linkers are conservative.
+    supports_start_end_lib = linker_supports_start_end_lib
 
     # Replace flags with any user-provided overrides.
     if compiler_configuration["compile_flags"] != None:
@@ -1014,8 +1013,7 @@ def cc_toolchain_config(
         opt_compile_flags = opt_compile_flags,
         conly_flags = conly_flags,
         cxx_flags = baked_cxx_isystem_flags + cxx_flags,
-        link_flags = link_flags + select({str(Label("@toolchains_llvm//toolchain/config:use_libunwind")): libunwind_link_flags, "//conditions:default": []}) +
-                     select({str(Label("@toolchains_llvm//toolchain/config:use_compiler_rt")): compiler_rt_link_flags, "//conditions:default": []}) +
+        link_flags = link_flags + select({str(Label("@toolchains_llvm//toolchain/config:use_compiler_rt")): compiler_rt_link_flags, "//conditions:default": []}) +
                      # Standard library search paths and msan's libc++ forcing
                      # flags. On Linux these live in the msan/nomsan cc_features
                      # (baked_link_stdlib_flags is empty); elsewhere only the
@@ -1028,7 +1026,11 @@ def cc_toolchain_config(
         # Standard library archives. On Linux these live in the cc_features
         # (baked_link_libs_stdlib is empty); elsewhere the configured stdlib's
         # archives.
-        link_libs = baked_link_libs_stdlib + link_libs,
+        # Keep libunwind after libc++/libc++abi. Traditional linkers process
+        # static archives from left to right and do not revisit an earlier
+        # libunwind archive when libc++abi later introduces _Unwind_* symbols.
+        link_libs = baked_link_libs_stdlib + link_libs +
+                    select({str(Label("@toolchains_llvm//toolchain/config:use_libunwind")): libunwind_link_flags, "//conditions:default": []}),
         opt_link_flags = opt_link_flags,
         unfiltered_compile_flags = unfiltered_compile_flags,
         coverage_compile_flags = coverage_compile_flags,

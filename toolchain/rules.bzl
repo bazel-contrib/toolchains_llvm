@@ -34,6 +34,11 @@ toolchain = repository_rule(
     attrs = _llvm_config_attrs,
     local = True,
     configure = True,
+    environ = [
+        "DEVELOPER_DIR",
+        "PATH",
+        "SDKROOT",
+    ],
     implementation = _llvm_config_impl,
 )
 

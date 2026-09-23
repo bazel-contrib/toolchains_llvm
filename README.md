@@ -466,6 +466,36 @@ then they can be referenced as:
 - `@llvm_toolchain//:clang-format`
 - `@llvm_toolchain//:llvm-cov`
 
+### Linker selection
+
+By default every generated toolchain uses the LLD linker bundled with its LLVM
+distribution. The `linker` attribute can instead select the execution
+platform's native linker or an explicit local linker path. Like other
+per-target settings, it is a dictionary keyed by target OS and architecture;
+the empty key applies to every target:
+
+```starlark
+llvm.toolchain(
+    name = "llvm_toolchain",
+    llvm_version = "23.1.1",
+    linker = {"darwin-aarch64": "auto"},
+)
+```
+
+The accepted values are:
+
+- `lld` (the default): use the linker bundled with LLVM.
+- `auto`: use the execution platform's native linker. On Darwin this is the
+  linker selected by the active Xcode developer directory (`xcrun --find ld`);
+  on Linux it is `ld` from `PATH`. Execution and target operating systems must
+  match.
+- An absolute path, such as `/usr/bin/ld`: use that executable directly.
+
+Native and explicitly pathed linkers are local execution-platform dependencies.
+The same path must exist on a remote executor, so bundled LLD is preferable for
+hermetic or remote builds. An arbitrary local linker is conservatively treated
+as not supporting Bazel's start/end-lib optimization.
+
 ### C++ named modules
 
 The toolchain supports Bazel's experimental C++ named-module pipeline. A

@@ -452,6 +452,13 @@ _compiler_configuration_attrs = {
 llvm_config_attrs = dict(common_attrs)
 llvm_config_attrs.update(_compiler_configuration_attrs)
 llvm_config_attrs.update({
+    "linker": attr.string_dict(
+        mandatory = False,
+        doc = ("Linker selection for each target OS and architecture pair ({}). " +
+               "Use `lld` (the default) for the linker bundled with LLVM, `auto` " +
+               "for the execution platform's native linker, or an absolute path " +
+               "to a linker executable. An empty key applies to all targets.").format(_target_pairs),
+    ),
     "toolchain_roots": attr.string_dict(
         mandatory = False,
         # TODO: Ideally, we should be taking a filegroup label here instead of a package path, but
