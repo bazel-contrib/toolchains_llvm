@@ -506,8 +506,15 @@ as not supporting Bazel's start/end-lib optimization.
 
 [mold](https://github.com/rui314/mold) is available as an explicit, optional
 linker for Linux execution platforms and Linux/ELF targets. It is never selected
-by default or by `auto`. Add the mold module and inject its repository into the
-LLVM extension so the selected version follows the module dependency:
+by default or by `auto`. Depending on the mold Bazel module is entirely
+optional: without it, select a catalogue version explicitly as
+`mold@<version>`.
+
+Adding and injecting the mold module enables the shorter `mold` selection. It
+also puts the version in a standard `bazel_dep`, allowing dependency-management
+tools such as Dependabot or Renovate to discover and update it. toolchains_llvm
+reads the resolved module's version and selects the corresponding catalogue
+entry:
 
 ```starlark
 bazel_dep(name = "mold", version = "2.40.4")
@@ -534,6 +541,14 @@ llvm.toolchain(
 The bundled catalogue currently contains mold 2.40.4 (the version published in
 the Bazel Central Registry), 2.41.0, 2.42.0, and 2.42.1. Without a mold module,
 select one of these explicitly as `mold@<version>`.
+
+Module-based version selection does not bypass the catalogue. If dependency
+management updates mold to a release that toolchains_llvm does not yet know,
+repository configuration fails and reports the supported versions. The release
+must first be added to `toolchain/distributions/linkers.jsonc` with the SHA-256
+digests of its executor-specific artifacts. toolchains_llvm deliberately does
+not synthesize a release URL and download it without a checksum: the predictable
+asset naming scheme is not a substitute for artifact verification.
 
 The executable is copied into the generated toolchain's declared linker inputs,
 so sandboxed and remote actions receive it. The selected linker cannot be built
