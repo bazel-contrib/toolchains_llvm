@@ -23,6 +23,7 @@ local_path_override(
 )
 
 bazel_dep(name = "bazel_skylib", version = "1.9.2")
+bazel_dep(name = "mold", version = "2.40.4")
 bazel_dep(name = "platforms", version = "1.1.0")
 bazel_dep(name = "rules_cc", version = "0.2.25")
 bazel_dep(name = "rules_foreign_cc", version = "0.16.0")
@@ -59,6 +60,8 @@ use_repo(
 register_toolchains("@rust_toolchains//:all")
 
 llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
+
+inject_repo(llvm, "mold")
 
 # When updating this version, also update the versions associated with
 # llvm_toolchain below, sys_paths_test in the workflows file, and xcompile_test
@@ -130,8 +133,8 @@ llvm.toolchain(
     exec_arch = "x86_64",
     exec_os = "linux",
     linker = {
-        "linux-aarch64": "mold@2.42.1",
-        "linux-x86_64": "mold@2.42.1",
+        "linux-aarch64": "mold",
+        "linux-x86_64": "mold",
     },
     llvm_versions = LLVM_VERSIONS,
 )

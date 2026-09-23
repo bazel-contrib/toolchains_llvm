@@ -51,17 +51,18 @@ def llvm_toolchain(name, **kwargs):
             fail("One of llvm_version or llvm_versions must be set")
         kwargs.update(llvm_versions = {"": kwargs.get("llvm_version")})
 
-    versioned_linkers = sorted({
+    catalogued_linkers = sorted({
         selection: True
         for selection in kwargs.get("linker", {}).values()
-        if "@" in selection
+        if "@" in selection or selection == "mold"
     }.keys())
-    if versioned_linkers:
+    if catalogued_linkers:
         linker_distributions_repository(
             name = name + "_linkers",
             exec_arch = kwargs.get("exec_arch", ""),
             exec_os = kwargs.get("exec_os", ""),
-            linkers = versioned_linkers,
+            linkers = catalogued_linkers,
+            mold_source = "@mold//:src/entry.cc" if "mold" in catalogued_linkers else None,
         )
         kwargs["linker_repository"] = "@{}_linkers//:linkers.json".format(name)
 

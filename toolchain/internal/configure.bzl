@@ -474,11 +474,14 @@ def _linker_descriptor(rctx, selection, linker_paths, exec_os, target_os):
         if exec_os != target_os:
             fail("linker selection 'auto' requires matching execution and target operating systems, got {} -> {}".format(exec_os, target_os))
         selection = _native_linker(rctx, exec_os)
-    elif "@" in selection:
-        parts = selection.split("@")
-        if len(parts) != 2 or not parts[0] or not parts[1]:
-            fail("invalid versioned linker reference '{}'; expected <linker>@<version>".format(selection))
-        linker = parts[0]
+    elif "@" in selection or selection == "mold":
+        if selection == "mold":
+            linker = "mold"
+        else:
+            parts = selection.split("@")
+            if len(parts) != 2 or not parts[0] or not parts[1]:
+                fail("invalid versioned linker reference '{}'; expected <linker>@<version>".format(selection))
+            linker = parts[0]
         if linker == "mold" and (exec_os != "linux" or target_os != "linux"):
             fail("mold requires Linux execution and ELF/Linux targets, got {} -> {}".format(exec_os, target_os))
         if linker not in ["lld", "mold"]:
@@ -492,7 +495,7 @@ def _linker_descriptor(rctx, selection, linker_paths, exec_os, target_os):
             supports_start_end_lib = True,
         )
     elif not _is_absolute_path(selection):
-        fail("linker selection must be empty, `auto`, `<linker>@<version>`, or an absolute path, got '{}'".format(selection))
+        fail("linker selection must be empty, `auto`, `mold`, `<linker>@<version>`, or an absolute path, got '{}'".format(selection))
 
     linker_path = rctx.path(selection)
     if not linker_path.exists:

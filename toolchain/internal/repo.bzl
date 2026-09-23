@@ -457,9 +457,10 @@ llvm_config_attrs.update({
         doc = ("Linker selection for each target OS and architecture pair ({}). " +
                "Use an empty value (the default) for the linker included in the " +
                "selected LLVM distribution, `auto` for the execution platform's " +
-               "native linker, `<linker>@<version>` for a linker from the bundled " +
-               "catalogue, or an absolute path to a linker executable. An empty " +
-               "key applies to all targets.").format(_target_pairs),
+               "native linker, `mold` for the version provided by an injected mold " +
+               "module, `<linker>@<version>` for an explicit linker from the bundled " +
+               "catalogue, or an absolute path to a linker executable. An empty key " +
+               "applies to all targets.").format(_target_pairs),
     ),
     "linker_repository": attr.label(
         allow_single_file = True,

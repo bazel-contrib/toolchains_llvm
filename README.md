@@ -493,6 +493,8 @@ The accepted values are:
 - `<linker>@<version>`: download a checksum-pinned executable from the bundled
   linker catalogue. The target selects the linker while the execution platform
   selects the executable artifact to download.
+- `mold`: use the version supplied by an injected `mold` Bazel module and
+  download its matching executable from the linker catalogue.
 - An absolute path, such as `/usr/bin/ld`: use that executable directly.
 
 Native and explicitly pathed linkers are local execution-platform dependencies.
@@ -504,17 +506,27 @@ as not supporting Bazel's start/end-lib optimization.
 
 [mold](https://github.com/rui314/mold) is available as an explicit, optional
 linker for Linux execution platforms and Linux/ELF targets. It is never selected
-by default or by `auto`. The simplest configuration downloads a checksum-pinned
-official release executable, avoiding the linker bootstrap cycle involved in
-building mold with the toolchain that is supposed to use it:
+by default or by `auto`. Add the mold module and inject its repository into the
+LLVM extension so the selected version follows the module dependency:
+
+```starlark
+bazel_dep(name = "mold", version = "2.40.4")
+
+llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
+inject_repo(llvm, "mold")
+```
+
+Bare `mold` then downloads the matching checksum-pinned official executable,
+avoiding the linker bootstrap cycle involved in building mold with the
+toolchain that is supposed to use it:
 
 ```starlark
 llvm.toolchain(
     name = "llvm_toolchain",
     llvm_version = "23.1.2",
     linker = {
-        "linux-aarch64": "mold@2.42.1",
-        "linux-x86_64": "mold@2.42.1",
+        "linux-aarch64": "mold",
+        "linux-x86_64": "mold",
     },
 )
 ```
