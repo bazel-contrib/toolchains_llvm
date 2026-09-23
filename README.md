@@ -531,6 +531,10 @@ llvm.toolchain(
 )
 ```
 
+The bundled catalogue currently contains mold 2.40.4 (the version published in
+the Bazel Central Registry), 2.41.0, 2.42.0, and 2.42.1. Without a mold module,
+select one of these explicitly as `mold@<version>`.
+
 The executable is copied into the generated toolchain's declared linker inputs,
 so sandboxed and remote actions receive it. The selected linker cannot be built
 with the toolchain that is supposed to use it because that would create a
