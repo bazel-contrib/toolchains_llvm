@@ -490,11 +490,11 @@ The accepted values are:
   linker selected by the active Xcode developer directory (`xcrun --find ld`);
   on Linux it is `ld` from `PATH`. Execution and target operating systems must
   match.
-- `<linker>@<version>`: download a checksum-pinned executable from the bundled
-  linker catalogue. The target selects the linker while the execution platform
-  selects the executable artifact to download.
-- `mold`: use the version supplied by an injected `mold` Bazel module and
-  download its matching executable from the linker catalogue.
+- Any other name: download a checksum-pinned executable with that name from the
+  bundled linker catalogue. Its version comes from
+  `linker_version`/`linker_versions`. As a convenience specific to version
+  discovery, bare `mold` may instead derive its version from an injected mold
+  module.
 - An absolute path, such as `/usr/bin/ld`: use that executable directly.
 
 Native and explicitly pathed linkers are local execution-platform dependencies.
@@ -508,7 +508,7 @@ as not supporting Bazel's start/end-lib optimization.
 linker for Linux execution platforms and Linux/ELF targets. It is never selected
 by default or by `auto`. Depending on the mold Bazel module is entirely
 optional: without it, select a catalogue version explicitly as
-`mold@<version>`.
+`linker_version`.
 
 Adding and injecting the mold module enables the shorter `mold` selection. It
 also puts the version in a standard `bazel_dep`, allowing dependency-management
@@ -540,7 +540,19 @@ llvm.toolchain(
 
 The bundled catalogue currently contains mold 2.40.4 (the version published in
 the Bazel Central Registry), 2.41.0, 2.42.0, and 2.42.1. Without a mold module,
-select one of these explicitly as `mold@<version>`.
+select one using the same version and requirement syntax as `llvm_version`:
+
+```starlark
+llvm.toolchain(
+    name = "llvm_toolchain",
+    llvm_version = "23.1.2",
+    linker = {"": "mold"},
+    linker_version = "latest:>=2.40.0,<3.0.0",
+)
+```
+
+For per-target requirements use `linker_versions`, keyed like the `linker`
+map. Setting both `linker_version` and `linker_versions` is an error.
 
 Module-based version selection does not bypass the catalogue. If dependency
 management updates mold to a release that toolchains_llvm does not yet know,
@@ -555,10 +567,9 @@ so sandboxed and remote actions receive it. The selected linker cannot be built
 with the toolchain that is supposed to use it because that would create a
 linker bootstrap cycle.
 
-Bare `lld` continues to select the LLD executable included in the configured
-LLVM archive. A versioned `lld@<version>` instead means a separately packaged
-LLD executable from the linker catalogue; it is resolved in exactly the same
-way as `mold@<version>` when such a distribution is present.
+The empty linker selection—not a special linker name—selects the linker included
+in the configured LLVM archive. Consequently, `lld` is treated like every other
+catalogue name and requires a matching catalogue entry and version.
 
 ### C++ named modules
 

@@ -149,6 +149,7 @@ def llvm_config_impl(rctx):
     _check_os_arch_keys(rctx.attr.extra_target_compatible_with)
     _check_os_arch_keys(rctx.attr.stdlib)
     _check_os_arch_keys(rctx.attr.linker)
+    _check_os_arch_keys(rctx.attr.linker_versions)
 
     os = _os(rctx)
     if os == "windows":
@@ -295,6 +296,7 @@ def llvm_config_impl(rctx):
         cxx_flags_dict = rctx.attr.cxx_flags,
         link_flags_dict = rctx.attr.link_flags,
         linker_dict = rctx.attr.linker,
+        linker_versions_dict = rctx.attr.linker_versions,
         linker_paths = linker_paths,
         archive_flags_dict = rctx.attr.archive_flags,
         link_libs_dict = rctx.attr.link_libs,
@@ -461,9 +463,11 @@ def _native_linker(rctx, exec_os):
         return str(linker)
     fail("linker selection 'auto' is not supported on the {} execution platform".format(exec_os))
 
-def _linker_descriptor(rctx, selection, linker_paths, exec_os, target_os):
+def _linker_descriptor(rctx, selection, version, linker_paths, exec_os, target_os):
     """Return the linker path and capabilities for a configured selection."""
     if not selection:
+        if version:
+            fail("linker version '{}' has no linker selection".format(version))
         return struct(
             file = "",
             path = "",
@@ -471,31 +475,24 @@ def _linker_descriptor(rctx, selection, linker_paths, exec_os, target_os):
         )
 
     if selection == "auto":
+        if version:
+            fail("linker version '{}' cannot be used with linker selection 'auto'".format(version))
         if exec_os != target_os:
             fail("linker selection 'auto' requires matching execution and target operating systems, got {} -> {}".format(exec_os, target_os))
         selection = _native_linker(rctx, exec_os)
-    elif "@" in selection or selection == "mold":
-        if selection == "mold":
-            linker = "mold"
-        else:
-            parts = selection.split("@")
-            if len(parts) != 2 or not parts[0] or not parts[1]:
-                fail("invalid versioned linker reference '{}'; expected <linker>@<version>".format(selection))
-            linker = parts[0]
-        if linker == "mold" and (exec_os != "linux" or target_os != "linux"):
-            fail("mold requires Linux execution and ELF/Linux targets, got {} -> {}".format(exec_os, target_os))
-        if linker not in ["lld", "mold"]:
-            fail("linker implementation '{}' is not supported".format(linker))
-        path = linker_paths.get(selection)
+    elif not _is_absolute_path(selection):
+        reference = "{}@{}".format(selection, version) if version else selection
+        path = linker_paths.get(reference)
         if not path:
-            fail("versioned linker '{}' was not materialized".format(selection))
+            fail("catalogued linker '{}' was not materialized".format(reference))
         return struct(
             file = path,
             path = path,
             supports_start_end_lib = True,
         )
-    elif not _is_absolute_path(selection):
-        fail("linker selection must be empty, `auto`, `mold`, `<linker>@<version>`, or an absolute path, got '{}'".format(selection))
+
+    if version:
+        fail("linker version '{}' cannot be used with absolute linker path '{}'".format(version, selection))
 
     linker_path = rctx.path(selection)
     if not linker_path.exists:
@@ -565,6 +562,7 @@ def _cc_toolchain_str(
     linker = _linker_descriptor(
         rctx,
         _dict_value(toolchain_info.linker_dict, target_pair, ""),
+        _dict_value(toolchain_info.linker_versions_dict, target_pair, ""),
         toolchain_info.linker_paths,
         exec_os,
         target_os,

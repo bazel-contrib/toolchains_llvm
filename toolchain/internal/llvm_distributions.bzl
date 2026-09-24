@@ -617,6 +617,27 @@ def _parse_version_or_requirements(version_or_requirements):
         version_or_requirements = version_or_requirements,
     ))
 
+def resolve_version(version_or_requirements, available_versions):
+    """Resolve an exact version or first/latest requirement against versions."""
+    if not version_or_requirements:
+        fail("ERROR: Empty version selection.")
+    if not _is_requirement(version_or_requirements):
+        if version_or_requirements not in available_versions:
+            fail("ERROR: Version '{}' is not available; supported versions: {}".format(
+                version_or_requirements,
+                ", ".join(_sort_versions(available_versions)),
+            ))
+        return version_or_requirements
+
+    requirements = _parse_version_or_requirements(version_or_requirements)
+    for version in _sort_versions(available_versions, reverse = version_or_requirements.startswith("latest")):
+        if not requirements or versions.check_all_requirements(version, requirements):
+            return version
+    fail("ERROR: No version matches '{}' in: {}".format(
+        version_or_requirements,
+        ", ".join(_sort_versions(available_versions)),
+    ))
+
 def _get_version_from_distribution(distribution):
     # We assume here that the `distribution` is a basename of the form `LLVM-<version>-...` or
     # `clang+llvm-<version>-...`.

@@ -14,7 +14,21 @@
 
 """Downloads versioned linker executables from the linker catalogue."""
 
+load("//toolchain/internal:common.bzl", "is_absolute_path")
 load("//toolchain/internal:distributions_repo.bzl", "load_jsonc")
+load("//toolchain/internal:llvm_distributions.bzl", "resolve_version")
+
+def catalogued_linker_reference(selection, version, target = ""):
+    """Return the catalogue reference for a linker selection, or None."""
+    if not selection:
+        if version:
+            fail("linker version '{}' has no linker selection for target '{}'".format(version, target))
+        return None
+    if selection == "auto" or is_absolute_path(selection):
+        if version:
+            fail("linker version '{}' cannot be used with linker selection '{}' for target '{}'".format(version, selection, target))
+        return None
+    return "{}@{}".format(selection, version) if version else selection
 
 def _normalize_os(rctx):
     if rctx.attr.exec_os:
@@ -38,12 +52,12 @@ def _normalize_arch(rctx):
 def _parse_reference(reference):
     parts = reference.split("@")
     if len(parts) != 2 or not parts[0] or not parts[1]:
-        fail("invalid versioned linker reference '{}'; expected <linker>@<version>".format(reference))
+        fail("invalid internal linker reference '{}'".format(reference))
     return parts[0], parts[1]
 
 def _mold_version(rctx):
     if not rctx.attr.mold_source:
-        fail("bare `mold` requires the mold module repository; use `mold@<version>` for an explicit catalogue version")
+        fail("bare `mold` requires linker_version/linker_versions or the injected mold module repository")
     source = rctx.path(rctx.attr.mold_source)
     prefix = "project(mold VERSION "
     for line in rctx.read("{}/CMakeLists.txt".format(source.dirname.dirname)).splitlines():
@@ -61,17 +75,12 @@ def _linker_distributions_repository_impl(rctx):
         if reference == "mold":
             linker, version = "mold", _mold_version(rctx)
         else:
-            linker, version = _parse_reference(reference)
+            linker, version_selection = _parse_reference(reference)
+            version = resolve_version(version_selection, catalogue.get(linker, {}).keys())
         versions = catalogue.get(linker)
         if not versions:
             fail("unknown linker '{}'; known linkers: {}".format(linker, ", ".join(sorted(catalogue.keys()))))
-        platforms = versions.get(version)
-        if not platforms:
-            fail("unsupported {} version '{}'; supported versions: {}".format(
-                linker,
-                version,
-                ", ".join(sorted(versions.keys())),
-            ))
+        platforms = versions[version]
         distribution = platforms.get(platform)
         if not distribution:
             fail("{} {} has no executable for the {} execution platform".format(linker, version, platform))
@@ -111,4 +120,36 @@ linker_distributions_repository = repository_rule(
         "linkers": attr.string_list(mandatory = True),
         "mold_source": attr.label(allow_single_file = True),
     },
+)
+
+def _linker_version_test_writer_impl(ctx):
+    available = ["2.40.4", "2.41.0", "2.42.0", "2.42.1"]
+    selections = [
+        "2.41.0",
+        "first",
+        "latest",
+        "latest:<2.42.1",
+        "first:>=2.41.0",
+        "latest:>=2.40.0,!=2.42.1",
+    ]
+    version_results = [
+        "{} -> {}".format(selection, resolve_version(selection, available))
+        for selection in selections
+    ]
+    reference_results = [
+        "{} + {} -> {}".format(selection or "<empty>", version or "<empty>", catalogued_linker_reference(selection, version))
+        for selection, version in [
+            ("gold", "1.2.3"),
+            ("lld", "19.1.7"),
+            ("mold", ""),
+            ("auto", ""),
+            ("/usr/bin/ld", ""),
+            ("", ""),
+        ]
+    ]
+    ctx.actions.write(ctx.outputs.out, "\n".join(version_results + reference_results) + "\n")
+
+linker_version_test_writer = rule(
+    implementation = _linker_version_test_writer_impl,
+    outputs = {"out": "%{name}.txt"},
 )

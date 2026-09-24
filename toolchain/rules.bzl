@@ -16,7 +16,11 @@ load(
     "//toolchain/internal:configure.bzl",
     _llvm_config_impl = "llvm_config_impl",
 )
-load("//toolchain/internal:linker_distributions.bzl", "linker_distributions_repository")
+load(
+    "//toolchain/internal:linker_distributions.bzl",
+    "catalogued_linker_reference",
+    "linker_distributions_repository",
+)
 load(
     "//toolchain/internal:repo.bzl",
     _common_attrs = "common_attrs",
@@ -51,11 +55,24 @@ def llvm_toolchain(name, **kwargs):
             fail("One of llvm_version or llvm_versions must be set")
         kwargs.update(llvm_versions = {"": kwargs.get("llvm_version")})
 
-    catalogued_linkers = sorted({
-        selection: True
-        for selection in kwargs.get("linker", {}).values()
-        if "@" in selection or selection == "mold"
-    }.keys())
+    if kwargs.get("linker_version") and kwargs.get("linker_versions"):
+        fail("Exactly one of linker_version or linker_versions must be set")
+    if kwargs.get("linker_version") and not kwargs.get("linker_versions"):
+        kwargs["linker_versions"] = {"": kwargs["linker_version"]}
+
+    linkers = kwargs.get("linker", {})
+    linker_versions = kwargs.get("linker_versions", {})
+    targets = {target: True for target in linkers.keys() + linker_versions.keys()}
+    if kwargs.get("linker_version"):
+        targets[""] = True
+    catalogued_linkers = {}
+    for target in targets.keys():
+        selection = linkers.get(target, linkers.get("", ""))
+        version = linker_versions.get(target, linker_versions.get("", ""))
+        reference = catalogued_linker_reference(selection, version, target)
+        if reference:
+            catalogued_linkers[reference] = True
+    catalogued_linkers = sorted(catalogued_linkers.keys())
     if catalogued_linkers:
         linker_distributions_repository(
             name = name + "_linkers",

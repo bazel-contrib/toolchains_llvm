@@ -13,9 +13,21 @@
 # limitations under the License.
 
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+load("linker_distributions.bzl", "linker_version_test_writer")
 load("llvm_distributions.bzl", "distributions_test_writer", "prerelease_test_writer", "requirements_test_writer")
 
 exports_files(["template.modulemap"])
+
+linker_version_test_writer(
+    name = "linker_version_test_output",
+    testonly = True,
+)
+
+diff_test(
+    name = "linker_version_test",
+    file1 = "linker_version_test.golden.txt",
+    file2 = "linker_version_test_output.txt",
+)
 
 distributions_test_writer(
     name = "llvm_distributions",

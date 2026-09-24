@@ -114,9 +114,10 @@ llvm_toolchain(
     exec_arch = "x86_64",
     exec_os = "linux",
     linker = {
-        "linux-aarch64": "mold@2.42.1",
-        "linux-x86_64": "mold@2.42.1",
+        "linux-aarch64": "mold",
+        "linux-x86_64": "mold",
     },
+    linker_version = "latest:<3.0.0",
     llvm_versions = LLVM_VERSIONS,
 )
 
