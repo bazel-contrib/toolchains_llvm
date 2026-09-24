@@ -35,8 +35,8 @@ def bazel_toolchain_dependencies():
     if not native.existing_rule("apple_support"):
         http_archive(
             name = "apple_support",
-            sha256 = "101bb193888ff0755f362bb84c2f44eeb19a1de368d4fc140cdd0bd19111b380",
-            urls = ["https://github.com/bazelbuild/apple_support/releases/download/2.9.0/apple_support.2.9.0.tar.gz"],
+            sha256 = "3d9b4a73fd3d58dd3303e8cd95497dc705407aacdd415faaf60b22de850a75c6",
+            urls = ["https://github.com/bazelbuild/apple_support/releases/download/2.9.1/apple_support.2.9.1.tar.gz"],
         )
 
     # Load bazel_skylib if the user has not defined them.
