@@ -559,10 +559,11 @@ def _cc_toolchain_str(
     if sysroot_path:
         sysroot_path = _canonical_dir_path(sysroot_path)
 
+    linker_selection = _dict_value(toolchain_info.linker_dict, target_pair, "")
     linker = _linker_descriptor(
         rctx,
-        _dict_value(toolchain_info.linker_dict, target_pair, ""),
-        _dict_value(toolchain_info.linker_versions_dict, target_pair, ""),
+        linker_selection,
+        _dict_value(toolchain_info.linker_versions_dict, target_pair, "") if linker_selection else "",
         toolchain_info.linker_paths,
         exec_os,
         target_os,

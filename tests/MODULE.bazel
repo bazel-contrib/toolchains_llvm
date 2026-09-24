@@ -23,7 +23,6 @@ local_path_override(
 )
 
 bazel_dep(name = "bazel_skylib", version = "1.9.2")
-bazel_dep(name = "mold", version = "2.40.4")
 bazel_dep(name = "platforms", version = "1.1.0")
 bazel_dep(name = "rules_cc", version = "0.2.25")
 bazel_dep(name = "rules_foreign_cc", version = "0.16.0")
@@ -60,8 +59,6 @@ use_repo(
 register_toolchains("@rust_toolchains//:all")
 
 llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
-
-inject_repo(llvm, "mold")
 
 # When updating this version, also update the versions associated with
 # llvm_toolchain below, sys_paths_test in the workflows file, and xcompile_test
@@ -126,19 +123,6 @@ llvm.toolchain(
     llvm_versions = LLVM_VERSIONS,
 )
 use_repo(llvm, "llvm_toolchain_local_linker")
-
-llvm.toolchain(
-    name = "llvm_toolchain_mold",
-    cxx_standard = {"": "c++17"},
-    exec_arch = "x86_64",
-    exec_os = "linux",
-    linker = {
-        "linux-aarch64": "mold",
-        "linux-x86_64": "mold",
-    },
-    llvm_versions = LLVM_VERSIONS,
-)
-use_repo(llvm, "llvm_toolchain_mold")
 
 # MemorySanitizer end-to-end toolchain. Pinned to the exact LLVM build that the
 # instrumented libc++ overlay (libcxx_url) was compiled against, so the linked

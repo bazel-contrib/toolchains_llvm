@@ -23,4 +23,15 @@ if [[ ${system_name}-${machine} != "Linux-x86_64" ]]; then
 fi
 
 scripts_dir="${BASH_SOURCE[0]%/*}"
-"${scripts_dir}/run_tests.sh" -O -T -W -t "@llvm_toolchain_mold//:cc-toolchain-x86_64-linux"
+if [[ ${USE_BZLMOD:-true} == "true" ]]; then
+  source "${scripts_dir}/bazel.sh"
+  "${bazel}" version
+  cd "${scripts_dir}/../mold_module"
+  "${bazel}" --bazelrc=/dev/null test \
+    "${common_test_args[@]}" \
+    --extra_toolchains=@llvm_toolchain_mold//:cc-toolchain-x86_64-linux \
+    --linkopt=-Wl,-v \
+    //:mold_test
+else
+  "${scripts_dir}/run_tests.sh" -O -T -W -t "@llvm_toolchain_mold//:cc-toolchain-x86_64-linux"
+fi
