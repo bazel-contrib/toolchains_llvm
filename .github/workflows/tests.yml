@@ -106,14 +106,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        bzlmod: [true, false]
+        include:
+          - bazel_version: latest
+            bzlmod: true
+          - bazel_version: 8.*
+            bzlmod: false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
       - run: tests/scripts/ubuntu_install_libtinfo.sh
       - name: Test mold linker selection
         env:
-          USE_BAZEL_VERSION: latest
+          USE_BAZEL_VERSION: ${{ matrix.bazel_version }}
           USE_BZLMOD: ${{ matrix.bzlmod }}
         run: tests/scripts/run_mold_linker_tests.sh
   external_test:
