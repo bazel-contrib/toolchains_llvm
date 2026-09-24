@@ -63,8 +63,6 @@ def llvm_toolchain(name, **kwargs):
     linkers = kwargs.get("linker", {})
     linker_versions = kwargs.get("linker_versions", {})
     targets = {target: True for target in linkers.keys() + linker_versions.keys()}
-    if kwargs.get("linker_version"):
-        targets[""] = True
     catalogued_linkers = {}
     for target in targets.keys():
         selection = linkers.get(target, linkers.get("", ""))
