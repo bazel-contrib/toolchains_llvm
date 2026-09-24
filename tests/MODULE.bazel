@@ -16,6 +16,7 @@ module(name = "toolchains_llvm_tests")
 
 bazel_dep(name = "toolchains_llvm", version = "0.0.0")
 bazel_dep(name = "bazel_features", version = "1.51.0")
+
 local_path_override(
     module_name = "toolchains_llvm",
     path = "..",
@@ -33,8 +34,8 @@ bazel_dep(name = "abseil-cpp", version = "20250814.2", repo_name = "com_google_a
 bazel_dep(name = "boringssl", version = "0.20260813.0")
 single_version_override(
     module_name = "boringssl",
-    patches = ["//:boringssl-20260413.0.patch"],
     patch_strip = 1,
+    patches = ["//:boringssl-20260413.0.patch"],
 )
 
 # TODO: Remove when protobuf is released with a version of rules_python that supports 8.x
@@ -152,22 +153,22 @@ use_repo(llvm, "llvm_toolchain_msan")
 # works with system-hosted libc++ and libstdc++ instead of the builtin libc++.
 llvm.toolchain(
     name = "llvm_toolchain_libcxx",
-    stdlib = {"": "libc++"},
     llvm_versions = LLVM_VERSIONS,
+    stdlib = {"": "libc++"},
 )
 use_repo(llvm, "llvm_toolchain_libcxx")
 
 llvm.toolchain(
     name = "llvm_toolchain_stdcpp",
-    stdlib = {"": "stdc++"},
     llvm_versions = LLVM_VERSIONS,
+    stdlib = {"": "stdc++"},
 )
 use_repo(llvm, "llvm_toolchain_stdcpp")
 
 llvm.toolchain(
     name = "llvm_toolchain_dynamic_stdcpp",
-    stdlib = {"": "dynamic-stdc++"},
     llvm_versions = LLVM_VERSIONS,
+    stdlib = {"": "dynamic-stdc++"},
 )
 use_repo(llvm, "llvm_toolchain_dynamic_stdcpp")
 
@@ -239,12 +240,12 @@ use_repo(llvm, "llvm_toolchain_with_system_llvm")
 # Toolchain example with a sysroot.
 llvm.toolchain(
     name = "llvm_toolchain_with_sysroot",
-    llvm_versions = LLVM_VERSIONS,
     # The chromium sysroots use the Debian libstdc++ header/library layout.
     cxx_include_layout = {
         "linux-x86_64": "debian",
         "linux-aarch64": "debian",
     },
+    llvm_versions = LLVM_VERSIONS,
 )
 
 # We can share the downloaded LLVM distribution with the first configuration.
@@ -281,7 +282,6 @@ llvm.toolchain(
     llvm_versions = LLVM_VERSIONS,
     stdlib = {"": "stdc++"},
 )
-
 llvm.toolchain_root(
     name = "llvm_toolchain_with_sysroot_stdcpp",
     label = "@llvm_toolchain_llvm//:BUILD",

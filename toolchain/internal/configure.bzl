@@ -149,6 +149,7 @@ def llvm_config_impl(rctx):
     _check_os_arch_keys(rctx.attr.extra_target_compatible_with)
     _check_os_arch_keys(rctx.attr.stdlib)
     _check_os_arch_keys(rctx.attr.linker)
+    _check_os_arch_keys(rctx.attr.linker_versions)
 
     os = _os(rctx)
     if os == "windows":
@@ -251,6 +252,23 @@ def llvm_config_impl(rctx):
         tools_path_prefix = paths.ensure_trailing_slash(paths.join(llvm_dist_path_prefix, "bin"))
         symlinked_tools_str = ""
 
+    linker_paths = {}
+    if rctx.attr.linker_repository:
+        manifest_path = rctx.path(rctx.attr.linker_repository)
+        for reference, source in json.decode(rctx.read(manifest_path)).items():
+            destination = "bin/linkers/{}".format(source.split("/")[-1])
+
+            # Do not symlink across external repositories. Bazel's repository
+            # contents cache may relocate this repository independently and
+            # leave such a symlink pointing at its staging directory.
+            rctx.file(
+                destination,
+                rctx.read("{}/{}".format(manifest_path.dirname, source)),
+                executable = True,
+                legacy_utf8 = False,
+            )
+            linker_paths[reference] = destination
+
     sysroot_paths_dict, sysroot_labels_dict = _sysroot_paths_dict(
         rctx,
         rctx.attr.sysroot,
@@ -278,6 +296,8 @@ def llvm_config_impl(rctx):
         cxx_flags_dict = rctx.attr.cxx_flags,
         link_flags_dict = rctx.attr.link_flags,
         linker_dict = rctx.attr.linker,
+        linker_versions_dict = rctx.attr.linker_versions,
+        linker_paths = linker_paths,
         archive_flags_dict = rctx.attr.archive_flags,
         link_libs_dict = rctx.attr.link_libs,
         fastbuild_compile_flags_dict = rctx.attr.fastbuild_compile_flags,
@@ -443,20 +463,36 @@ def _native_linker(rctx, exec_os):
         return str(linker)
     fail("linker selection 'auto' is not supported on the {} execution platform".format(exec_os))
 
-def _linker_descriptor(rctx, selection, exec_os, target_os):
+def _linker_descriptor(rctx, selection, version, linker_paths, exec_os, target_os):
     """Return the linker path and capabilities for a configured selection."""
     if not selection:
+        if version:
+            fail("linker version '{}' has no linker selection".format(version))
         return struct(
+            file = "",
             path = "",
             supports_start_end_lib = True,
         )
 
     if selection == "auto":
+        if version:
+            fail("linker version '{}' cannot be used with linker selection 'auto'".format(version))
         if exec_os != target_os:
             fail("linker selection 'auto' requires matching execution and target operating systems, got {} -> {}".format(exec_os, target_os))
         selection = _native_linker(rctx, exec_os)
     elif not _is_absolute_path(selection):
-        fail("linker selection must be empty, `auto`, or an absolute path, got '{}'".format(selection))
+        reference = "{}@{}".format(selection, version) if version else selection
+        path = linker_paths.get(reference)
+        if not path:
+            fail("catalogued linker '{}' was not materialized".format(reference))
+        return struct(
+            file = path,
+            path = path,
+            supports_start_end_lib = True,
+        )
+
+    if version:
+        fail("linker version '{}' cannot be used with absolute linker path '{}'".format(version, selection))
 
     linker_path = rctx.path(selection)
     if not linker_path.exists:
@@ -465,6 +501,7 @@ def _linker_descriptor(rctx, selection, exec_os, target_os):
     if not test or rctx.execute([test, "-x", linker_path], quiet = True).return_code:
         fail("configured linker is not executable: {}".format(linker_path))
     return struct(
+        file = "",
         path = str(linker_path),
         # A local linker is deliberately treated conservatively. A managed
         # linker backend can advertise stronger capabilities.
@@ -522,9 +559,12 @@ def _cc_toolchain_str(
     if sysroot_path:
         sysroot_path = _canonical_dir_path(sysroot_path)
 
+    linker_selection = _dict_value(toolchain_info.linker_dict, target_pair, "")
     linker = _linker_descriptor(
         rctx,
-        _dict_value(toolchain_info.linker_dict, target_pair, ""),
+        linker_selection,
+        _dict_value(toolchain_info.linker_versions_dict, target_pair, "") if linker_selection else "",
+        toolchain_info.linker_paths,
         exec_os,
         target_os,
     )
@@ -788,6 +828,7 @@ filegroup(
         "{toolchain_root}:ld",
         "{toolchain_root}:ar",
         "{target_toolchain_root}:{lib_label}",
+        {linker_file}
         {extra_linker_files}
     ],
 )
@@ -960,6 +1001,11 @@ filegroup(
         llvm_version = llvm_version,
         linker_path = repr(linker.path),
         linker_supports_start_end_lib = linker.supports_start_end_lib,
+        # With Merkle-tree directory inputs, internal-use-tools already owns
+        # the complete bin directory. Listing a file below it separately
+        # creates a sandbox input-path collision. Older Bazel versions use the
+        # explicit legacy file list and still need the selected linker here.
+        linker_file = repr(linker.file) + "," if linker.file and not bazel_features.rules.merkle_cache_v2 else "",
         extra_linker_files = ("\"%s\"," % _extra_linker_label) if _extra_linker_label else "",
         extra_exec_compatible_with_specific = toolchain_info.extra_exec_compatible_with.get(target_pair, []),
         extra_target_compatible_with_specific = toolchain_info.extra_target_compatible_with.get(target_pair, []),

@@ -477,7 +477,7 @@ the empty key applies to every target:
 ```starlark
 llvm.toolchain(
     name = "llvm_toolchain",
-    llvm_version = "23.1.1",
+    llvm_version = "23.1.2",
     linker = {"darwin-aarch64": "auto"},
 )
 ```
@@ -490,12 +490,86 @@ The accepted values are:
   linker selected by the active Xcode developer directory (`xcrun --find ld`);
   on Linux it is `ld` from `PATH`. Execution and target operating systems must
   match.
+- Any other name: download a checksum-pinned executable with that name from the
+  bundled linker catalogue. Its version comes from
+  `linker_version`/`linker_versions`. As a convenience specific to version
+  discovery, bare `mold` may instead derive its version from an injected mold
+  module.
 - An absolute path, such as `/usr/bin/ld`: use that executable directly.
 
 Native and explicitly pathed linkers are local execution-platform dependencies.
 The same path must exist on a remote executor, so bundled LLD is preferable for
 hermetic or remote builds. An arbitrary local linker is conservatively treated
 as not supporting Bazel's start/end-lib optimization.
+
+#### mold
+
+[mold](https://github.com/rui314/mold) is available as an explicit, optional
+linker for Linux execution platforms and Linux/ELF targets. It is never selected
+by default or by `auto`. Depending on the mold Bazel module is entirely
+optional: without it, select a catalogue version explicitly as
+`linker_version`.
+
+Adding and injecting the mold module enables the shorter `mold` selection. It
+also puts the version in a standard `bazel_dep`, allowing dependency-management
+tools such as Dependabot or Renovate to discover and update it. toolchains_llvm
+reads the resolved module's version and selects the corresponding catalogue
+entry:
+
+```starlark
+bazel_dep(name = "mold", version = "2.40.4")
+
+llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
+inject_repo(llvm, "mold")
+```
+
+Bare `mold` then downloads the matching checksum-pinned official executable,
+avoiding the linker bootstrap cycle involved in building mold with the
+toolchain that is supposed to use it:
+
+```starlark
+llvm.toolchain(
+    name = "llvm_toolchain",
+    llvm_version = "23.1.2",
+    linker = {
+        "linux-aarch64": "mold",
+        "linux-x86_64": "mold",
+    },
+)
+```
+
+The bundled catalogue currently contains mold 2.40.4 (the version published in
+the Bazel Central Registry), 2.41.0, 2.42.0, and 2.42.1. Without a mold module,
+select one using the same version and requirement syntax as `llvm_version`:
+
+```starlark
+llvm.toolchain(
+    name = "llvm_toolchain",
+    llvm_version = "23.1.2",
+    linker = {"": "mold"},
+    linker_version = "latest:>=2.40.0,<3.0.0",
+)
+```
+
+For per-target requirements use `linker_versions`, keyed like the `linker`
+map. Setting both `linker_version` and `linker_versions` is an error.
+
+Module-based version selection does not bypass the catalogue. If dependency
+management updates mold to a release that toolchains_llvm does not yet know,
+repository configuration fails and reports the supported versions. The release
+must first be added to `toolchain/distributions/linkers.jsonc` with the SHA-256
+digests of its executor-specific artifacts. toolchains_llvm deliberately does
+not synthesize a release URL and download it without a checksum: the predictable
+asset naming scheme is not a substitute for artifact verification.
+
+The executable is copied into the generated toolchain's declared linker inputs,
+so sandboxed and remote actions receive it. The selected linker cannot be built
+with the toolchain that is supposed to use it because that would create a
+linker bootstrap cycle.
+
+The empty linker selection—not a special linker name—selects the linker included
+in the configured LLVM archive. Consequently, `lld` is treated like every other
+catalogue name and requires a matching catalogue entry and version.
 
 ### C++ named modules
 

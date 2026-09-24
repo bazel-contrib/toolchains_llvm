@@ -17,6 +17,11 @@ load(
     _llvm_config_impl = "llvm_config_impl",
 )
 load(
+    "//toolchain/internal:linker_distributions.bzl",
+    "catalogued_linker_reference",
+    "linker_distributions_repository",
+)
+load(
     "//toolchain/internal:repo.bzl",
     _common_attrs = "common_attrs",
     _llvm_config_attrs = "llvm_config_attrs",
@@ -49,6 +54,35 @@ def llvm_toolchain(name, **kwargs):
         if not kwargs.get("llvm_version"):
             fail("One of llvm_version or llvm_versions must be set")
         kwargs.update(llvm_versions = {"": kwargs.get("llvm_version")})
+
+    if kwargs.get("linker_version") and kwargs.get("linker_versions"):
+        fail("Exactly one of linker_version or linker_versions must be set")
+    if kwargs.get("linker_version") and not kwargs.get("linker_versions"):
+        kwargs["linker_versions"] = {"": kwargs["linker_version"]}
+
+    linkers = kwargs.get("linker", {})
+    linker_versions = kwargs.get("linker_versions", {})
+    targets = {target: True for target in linkers.keys()}
+    targets.update({target: True for target in linker_versions.keys() if target})
+    if not linkers and linker_versions.get(""):
+        targets[""] = True
+    catalogued_linkers = {}
+    for target in targets.keys():
+        selection = linkers.get(target, linkers.get("", ""))
+        version = linker_versions.get(target, linker_versions.get("", ""))
+        reference = catalogued_linker_reference(selection, version, target)
+        if reference:
+            catalogued_linkers[reference] = True
+    catalogued_linkers = sorted(catalogued_linkers.keys())
+    if catalogued_linkers:
+        linker_distributions_repository(
+            name = name + "_linkers",
+            exec_arch = kwargs.get("exec_arch", ""),
+            exec_os = kwargs.get("exec_os", ""),
+            linkers = catalogued_linkers,
+            mold_source = "@mold//:src/entry.cc" if "mold" in catalogued_linkers else None,
+        )
+        kwargs["linker_repository"] = "@{}_linkers//:linkers.json".format(name)
 
     if not kwargs.get("toolchain_roots"):
         llvm_args = {

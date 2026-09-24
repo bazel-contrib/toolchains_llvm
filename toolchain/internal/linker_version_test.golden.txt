@@ -1,0 +1,12 @@
+2.41.0 -> 2.41.0
+first -> 2.40.4
+latest -> 2.42.1
+latest:<2.42.1 -> 2.42.0
+first:>=2.41.0 -> 2.41.0
+latest:>=2.40.0,!=2.42.1 -> 2.42.0
+gold + 1.2.3 -> gold@1.2.3
+lld + 19.1.7 -> lld@19.1.7
+mold + <empty> -> mold
+auto + <empty> -> None
+/usr/bin/ld + <empty> -> None
+<empty> + <empty> -> None

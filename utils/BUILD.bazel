@@ -1,0 +1,10 @@
+load("@rules_python//python:defs.bzl", "py_test")
+
+py_test(
+    name = "update_distributions_test",
+    srcs = [
+        "update_distributions.py",
+        "update_distributions_test.py",
+    ],
+    main = "update_distributions_test.py",
+)
