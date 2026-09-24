@@ -484,7 +484,8 @@ llvm.toolchain(
 
 The accepted values are:
 
-- `lld` (the default): use the linker bundled with LLVM.
+- An empty value (the default): use the linker included in the selected LLVM
+  distribution. The `linker` attribute may simply be omitted for this behavior.
 - `auto`: use the execution platform's native linker. On Darwin this is the
   linker selected by the active Xcode developer directory (`xcrun --find ld`);
   on Linux it is `ld` from `PATH`. Execution and target operating systems must

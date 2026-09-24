@@ -92,6 +92,7 @@ llvm_toolchain(
     extra_target_compatible_with = {
         "": ["@//:cxx20"],
     },
+    linker = {"": ""},
     llvm_versions = LLVM_VERSIONS,
 )
 

@@ -455,7 +455,8 @@ llvm_config_attrs.update({
     "linker": attr.string_dict(
         mandatory = False,
         doc = ("Linker selection for each target OS and architecture pair ({}). " +
-               "Use `lld` (the default) for the linker bundled with LLVM, `auto` " +
+               "Use an empty value (the default) for the linker included in the " +
+               "selected LLVM distribution, `auto` " +
                "for the execution platform's native linker, or an absolute path " +
                "to a linker executable. An empty key applies to all targets.").format(_target_pairs),
     ),
