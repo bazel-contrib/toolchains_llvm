@@ -532,8 +532,8 @@ llvm.toolchain(
 ```
 
 Each catalogue entry supplies checksum-pinned artifacts by linker name, version,
-and execution platform. Linker capabilities are declared with the artifact; an
-omitted capability is treated conservatively as unsupported:
+and execution platform. Optional linker capabilities are declared in
+`linker_features`; an omitted feature is treated conservatively as unsupported:
 
 ```jsonc
 {
@@ -544,7 +544,7 @@ omitted capability is treated conservatively as unsupported:
         "sha256": "<sha256>",
         "strip_prefix": "company-linker-1.2.3",
         "binary": "bin/company-linker",
-        "supports_start_end_lib": true,
+        "linker_features": ["start_end_lib"],
       },
     },
   },

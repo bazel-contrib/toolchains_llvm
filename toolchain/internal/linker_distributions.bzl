@@ -128,8 +128,8 @@ def _linker_distributions_repository_impl(rctx):
             legacy_utf8 = False,
         )
         manifest[reference] = {
+            "linker_features": distribution.get("linker_features", []),
             "path": output,
-            "supports_start_end_lib": distribution.get("supports_start_end_lib", False),
         }
 
     rctx.file("linkers.json", json.encode(manifest) + "\n")
@@ -183,17 +183,17 @@ def _linker_version_test_writer_impl(ctx):
     catalogue = {
         "test": {
             "1.0.0": {
-                "linux-x86_64": {"binary": "old", "supports_start_end_lib": False},
+                "linux-x86_64": {"binary": "old"},
             },
             "2.0.0": {
-                "darwin-aarch64": {"binary": "new", "supports_start_end_lib": True},
+                "darwin-aarch64": {"binary": "new", "linker_features": ["start_end_lib"]},
             },
         },
     }
     _merge_catalogue(catalogue, {
         "test": {
             "1.0.0": {
-                "linux-x86_64": {"binary": "override", "supports_start_end_lib": True},
+                "linux-x86_64": {"binary": "override", "linker_features": ["start_end_lib"]},
             },
             "3.0.0": {
                 "linux-x86_64": {"binary": "extra"},
@@ -203,8 +203,8 @@ def _linker_version_test_writer_impl(ctx):
     linux_version, linux_distribution = resolve_linker_distribution(catalogue, "test", "latest", "linux-x86_64")
     darwin_version, darwin_distribution = resolve_linker_distribution(catalogue, "test", "latest", "darwin-aarch64")
     platform_results = [
-        "latest linux-x86_64 -> {} {}".format(linux_version, linux_distribution.get("supports_start_end_lib", False)),
-        "latest darwin-aarch64 -> {} {}".format(darwin_version, darwin_distribution["supports_start_end_lib"]),
+        "latest linux-x86_64 -> {} {}".format(linux_version, "start_end_lib" in linux_distribution.get("linker_features", [])),
+        "latest darwin-aarch64 -> {} {}".format(darwin_version, "start_end_lib" in darwin_distribution.get("linker_features", [])),
         "merged override -> {}".format(catalogue["test"]["1.0.0"]["linux-x86_64"]["binary"]),
     ]
     ctx.actions.write(ctx.outputs.out, "\n".join(version_results + reference_results + platform_results) + "\n")

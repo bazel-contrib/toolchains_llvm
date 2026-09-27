@@ -269,8 +269,8 @@ def llvm_config_impl(rctx):
                 legacy_utf8 = False,
             )
             linker_paths[reference] = struct(
+                features = entry.get("linker_features", []),
                 path = destination,
-                supports_start_end_lib = entry.get("supports_start_end_lib", False),
             )
 
     sysroot_paths_dict, sysroot_labels_dict = _sysroot_paths_dict(
@@ -492,7 +492,7 @@ def _linker_descriptor(rctx, selection, version, linker_paths, exec_os, target_o
         return struct(
             file = linker_info.path,
             path = linker_info.path,
-            supports_start_end_lib = linker_info.supports_start_end_lib,
+            supports_start_end_lib = "start_end_lib" in linker_info.features,
         )
 
     if version:
