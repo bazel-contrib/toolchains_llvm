@@ -502,18 +502,48 @@ The same path must exist on a remote executor, so bundled LLD is preferable for
 hermetic or remote builds. An arbitrary local linker is conservatively treated
 as not supporting Bazel's start/end-lib optimization.
 
-#### mold
+The empty linker selection—not a special linker name—selects the linker included
+in the configured LLVM archive. Consequently, `lld` is treated like every other
+catalogue name and requires a matching catalogue entry and version.
 
-[mold](https://github.com/rui314/mold) is available as an explicit, optional
-linker for Linux execution platforms and Linux/ELF targets. It is never selected
-by default or by `auto`. Depending on the mold Bazel module is entirely
-optional: without it, select a catalogue version explicitly as
+#### Catalogued linkers
+
+Any non-empty linker name other than `auto` is resolved through
+[`linkers.jsonc`](toolchain/distributions/linkers.jsonc). The catalogue maps a
+linker name and version to checksum-pinned binaries for each execution platform.
+This mechanism is generic; mold is currently the first linker provided by the
+built-in catalogue.
+
+[mold](https://github.com/rui314/mold) is available for Linux execution
+platforms and Linux/ELF targets. It is never selected by default or by `auto`.
+Select it like any other catalogued linker and provide a version requirement
+using the same syntax as `llvm_version`:
+
+```starlark
+llvm.toolchain(
+    name = "llvm_toolchain",
+    llvm_version = "23.1.2",
+    linker = {"": "mold"},
+    linker_version = "latest:>=2.40.0,<3.0.0",
+)
+```
+
+For per-target requirements use `linker_versions`, keyed like the `linker`
+map. Setting both `linker_version` and `linker_versions` is an error.
+`linker_version = "latest"` selects the newest mold release known to the
+catalogue. To use an already installed mold instead of downloading one, provide
+its absolute path, for example `linker = {"": "/usr/bin/mold"}`. The `auto`
+selection resolves the platform's native `ld`; it does not search for mold.
+
+##### Optional mold module version inference
+
+Depending on the mold Bazel module is entirely optional. It does not enable the
+`mold` linker selection or provide the executable. Its only special role is to
+supply the version when `linker = {"": "mold"}` is used without
 `linker_version`.
-
-Adding and injecting the mold module enables the shorter `mold` selection. It
-also puts the version in a standard `bazel_dep`, allowing dependency-management
+Keeping that version in a standard `bazel_dep` allows dependency-management
 tools such as Dependabot or Renovate to discover and update it. toolchains_llvm
-reads the resolved module's version and selects the corresponding catalogue
+reads the resolved module version and selects the corresponding catalogue
 entry:
 
 ```starlark
@@ -523,9 +553,7 @@ llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
 inject_repo(llvm, "mold")
 ```
 
-Bare `mold` then downloads the matching checksum-pinned official executable,
-avoiding the linker bootstrap cycle involved in building mold with the
-toolchain that is supposed to use it:
+Bare `mold` then downloads the matching checksum-pinned official executable:
 
 ```starlark
 llvm.toolchain(
@@ -539,20 +567,7 @@ llvm.toolchain(
 ```
 
 The bundled catalogue currently contains mold 2.40.4 (the version published in
-the Bazel Central Registry), 2.41.0, 2.42.0, and 2.42.1. Without a mold module,
-select one using the same version and requirement syntax as `llvm_version`:
-
-```starlark
-llvm.toolchain(
-    name = "llvm_toolchain",
-    llvm_version = "23.1.2",
-    linker = {"": "mold"},
-    linker_version = "latest:>=2.40.0,<3.0.0",
-)
-```
-
-For per-target requirements use `linker_versions`, keyed like the `linker`
-map. Setting both `linker_version` and `linker_versions` is an error.
+the Bazel Central Registry), 2.41.0, 2.42.0, and 2.42.1.
 
 Module-based version selection does not bypass the catalogue. If dependency
 management updates mold to a release that toolchains_llvm does not yet know,
@@ -562,14 +577,10 @@ digests of its executor-specific artifacts. toolchains_llvm deliberately does
 not synthesize a release URL and download it without a checksum: the predictable
 asset naming scheme is not a substitute for artifact verification.
 
-The executable is copied into the generated toolchain's declared linker inputs,
-so sandboxed and remote actions receive it. The selected linker cannot be built
-with the toolchain that is supposed to use it because that would create a
-linker bootstrap cycle.
-
-The empty linker selection—not a special linker name—selects the linker included
-in the configured LLVM archive. Consequently, `lld` is treated like every other
-catalogue name and requires a matching catalogue entry and version.
+Catalogued executables are copied into the generated toolchain's declared linker
+inputs, so sandboxed and remote actions receive them. A selected linker cannot
+be built with the toolchain that is supposed to use it because that would create
+a linker bootstrap cycle.
 
 ### C++ named modules
 
