@@ -473,6 +473,18 @@ llvm_config_attrs.update({
                "architecture pair ({}). An empty key applies to all targets and " +
                "is initialized from linker_version when this attribute is unset.").format(_target_pairs),
     ),
+    "extra_linker_distribution_files": attr.label_list(
+        allow_files = [".json", ".jsonc"],
+        doc = ("Additional linker catalogue JSON/JSONC files. Files are merged " +
+               "in order after the built-in catalogue, and later entries override " +
+               "earlier entries for the same linker, version, and execution platform."),
+    ),
+    "use_builtin_linker_distributions": attr.bool(
+        default = True,
+        doc = ("Whether the built-in linker catalogue participates in linker " +
+               "version and execution-platform selection. Disable this to use " +
+               "only extra_linker_distribution_files."),
+    ),
     "linker_repository": attr.label(
         allow_single_file = True,
         doc = "Internal manifest for versioned linker executables. Set automatically by llvm_toolchain.",

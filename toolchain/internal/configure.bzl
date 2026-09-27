@@ -255,7 +255,8 @@ def llvm_config_impl(rctx):
     linker_paths = {}
     if rctx.attr.linker_repository:
         manifest_path = rctx.path(rctx.attr.linker_repository)
-        for reference, source in json.decode(rctx.read(manifest_path)).items():
+        for reference, entry in json.decode(rctx.read(manifest_path)).items():
+            source = entry["path"]
             destination = "bin/linkers/{}".format(source.split("/")[-1])
 
             # Do not symlink across external repositories. Bazel's repository
@@ -267,7 +268,10 @@ def llvm_config_impl(rctx):
                 executable = True,
                 legacy_utf8 = False,
             )
-            linker_paths[reference] = destination
+            linker_paths[reference] = struct(
+                path = destination,
+                supports_start_end_lib = entry.get("supports_start_end_lib", False),
+            )
 
     sysroot_paths_dict, sysroot_labels_dict = _sysroot_paths_dict(
         rctx,
@@ -482,13 +486,13 @@ def _linker_descriptor(rctx, selection, version, linker_paths, exec_os, target_o
         selection = _native_linker(rctx, exec_os)
     elif not _is_absolute_path(selection):
         reference = "{}@{}".format(selection, version) if version else selection
-        path = linker_paths.get(reference)
-        if not path:
+        linker_info = linker_paths.get(reference)
+        if not linker_info:
             fail("catalogued linker '{}' was not materialized".format(reference))
         return struct(
-            file = path,
-            path = path,
-            supports_start_end_lib = True,
+            file = linker_info.path,
+            path = linker_info.path,
+            supports_start_end_lib = linker_info.supports_start_end_lib,
         )
 
     if version:

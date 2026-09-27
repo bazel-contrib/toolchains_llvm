@@ -30,6 +30,7 @@ class UpdateTest(unittest.TestCase):
     def test_catalogue_platforms_and_determinism(self):
         catalogue = update.collect_mold_catalogue([release("2.42.1")], ["2.42.1"])
         self.assertEqual(set(catalogue["mold"]["2.42.1"]), {"linux-aarch64", "linux-x86_64"})
+        self.assertTrue(catalogue["mold"]["2.42.1"]["linux-x86_64"]["supports_start_end_lib"])
         self.assertEqual(update.render_linkers_jsonc(catalogue), update.render_linkers_jsonc(catalogue))
 
 

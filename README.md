@@ -514,6 +514,46 @@ linker name and version to checksum-pinned binaries for each execution platform.
 This mechanism is generic; mold is currently the first linker provided by the
 built-in catalogue.
 
+Projects can add or override catalogue entries without modifying
+toolchains_llvm by passing JSON or JSONC labels through
+`extra_linker_distribution_files`. Files are merged in order after the built-in
+catalogue; a later entry replaces the same linker, version, and execution
+platform. Set `use_builtin_linker_distributions = False` to use only the
+provided files:
+
+```starlark
+llvm.toolchain(
+    name = "llvm_toolchain",
+    llvm_version = "23.1.2",
+    linker = {"": "company_linker"},
+    linker_version = "latest:>=1.0.0,<2.0.0",
+    extra_linker_distribution_files = ["//config:linkers.jsonc"],
+)
+```
+
+Each catalogue entry supplies checksum-pinned artifacts by linker name, version,
+and execution platform. Linker capabilities are declared with the artifact; an
+omitted capability is treated conservatively as unsupported:
+
+```jsonc
+{
+  "company_linker": {
+    "1.2.3": {
+      "linux-x86_64": {
+        "urls": ["https://example.invalid/company-linker-1.2.3.tar.gz"],
+        "sha256": "<sha256>",
+        "strip_prefix": "company-linker-1.2.3",
+        "binary": "bin/company-linker",
+        "supports_start_end_lib": true,
+      },
+    },
+  },
+}
+```
+
+`first`, `latest`, and constrained selections consider only versions that have
+an artifact for the current execution platform.
+
 [mold](https://github.com/rui314/mold) is available for Linux execution
 platforms and Linux/ELF targets. It is never selected by default or by `auto`.
 Select it like any other catalogued linker and provide a version requirement

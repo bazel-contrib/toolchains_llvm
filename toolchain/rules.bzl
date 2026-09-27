@@ -79,8 +79,10 @@ def llvm_toolchain(name, **kwargs):
             name = name + "_linkers",
             exec_arch = kwargs.get("exec_arch", ""),
             exec_os = kwargs.get("exec_os", ""),
+            extra_catalogues = kwargs.get("extra_linker_distribution_files", []),
             linkers = catalogued_linkers,
             mold_source = "@mold//:src/entry.cc" if "mold" in catalogued_linkers else None,
+            use_builtin_catalogue = kwargs.get("use_builtin_linker_distributions", True),
         )
         kwargs["linker_repository"] = "@{}_linkers//:linkers.json".format(name)
 

@@ -113,12 +113,13 @@ llvm_toolchain(
     cxx_standard = {"": "c++17"},
     exec_arch = "x86_64",
     exec_os = "linux",
+    extra_linker_distribution_files = ["//:linkers.jsonc"],
     linker = {
-        "linux-aarch64": "mold",
-        "linux-x86_64": "mold",
+        "linux-x86_64": "test_mold",
     },
-    linker_version = "latest:<3.0.0",
+    linker_version = "2.40.4",
     llvm_versions = LLVM_VERSIONS,
+    use_builtin_linker_distributions = False,
 )
 
 # Toolchain examples for testing different stdlib implementations on Linux.
