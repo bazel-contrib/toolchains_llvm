@@ -198,6 +198,7 @@ def collect_mold_catalogue(releases, versions):
             platforms["linux-" + match.group(1)] = {
                 "urls": [asset["browser_download_url"]], "sha256": digest,
                 "strip_prefix": asset["name"].removesuffix(".tar.gz"), "binary": "bin/mold",
+                "linker_features": ["start_end_lib"],
             }
         if set(platforms) != {"linux-aarch64", "linux-x86_64"}:
             raise RuntimeError(f"mold {version} lacks required Linux assets")

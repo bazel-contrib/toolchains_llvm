@@ -55,6 +55,37 @@ def _parse_reference(reference):
         fail("invalid internal linker reference '{}'".format(reference))
     return parts[0], parts[1]
 
+def _merge_catalogue(catalogue, extra):
+    """Merge a linker catalogue into catalogue at platform granularity."""
+    for linker, versions in extra.items():
+        if linker == "_meta":
+            continue
+        merged_versions = catalogue.get(linker)
+        if merged_versions == None:
+            merged_versions = {}
+            catalogue[linker] = merged_versions
+        for version, platforms in versions.items():
+            merged_platforms = merged_versions.get(version)
+            if merged_platforms == None:
+                merged_platforms = {}
+                merged_versions[version] = merged_platforms
+            merged_platforms.update(platforms)
+
+def resolve_linker_distribution(catalogue, linker, version_selection, platform):
+    """Resolve a version against releases available for an execution platform."""
+    versions = catalogue.get(linker)
+    if not versions:
+        fail("unknown linker '{}'; known linkers: {}".format(linker, ", ".join(sorted(catalogue.keys()))))
+    available_versions = [
+        version
+        for version, platforms in versions.items()
+        if platform in platforms
+    ]
+    if not available_versions:
+        fail("linker '{}' has no executable for the {} execution platform".format(linker, platform))
+    version = resolve_version(version_selection, available_versions)
+    return version, versions[version][platform]
+
 def _mold_version(rctx):
     if not rctx.attr.mold_source:
         fail("bare `mold` requires linker_version/linker_versions or the injected mold module repository")
@@ -67,23 +98,20 @@ def _mold_version(rctx):
     fail("could not determine the mold version from the mold module's CMakeLists.txt")
 
 def _linker_distributions_repository_impl(rctx):
-    catalogue = load_jsonc(rctx, rctx.attr.catalogue)
+    catalogue = {}
+    if rctx.attr.use_builtin_catalogue:
+        _merge_catalogue(catalogue, load_jsonc(rctx, rctx.attr.catalogue))
+    for catalogue_file in rctx.attr.extra_catalogues:
+        _merge_catalogue(catalogue, load_jsonc(rctx, catalogue_file))
     platform = "{}-{}".format(_normalize_os(rctx), _normalize_arch(rctx))
     manifest = {}
 
     for index, reference in enumerate(sorted(rctx.attr.linkers)):
         if reference == "mold":
-            linker, version = "mold", _mold_version(rctx)
+            linker, version_selection = "mold", _mold_version(rctx)
         else:
             linker, version_selection = _parse_reference(reference)
-            version = resolve_version(version_selection, catalogue.get(linker, {}).keys())
-        versions = catalogue.get(linker)
-        if not versions:
-            fail("unknown linker '{}'; known linkers: {}".format(linker, ", ".join(sorted(catalogue.keys()))))
-        platforms = versions[version]
-        distribution = platforms.get(platform)
-        if not distribution:
-            fail("{} {} has no executable for the {} execution platform".format(linker, version, platform))
+        _, distribution = resolve_linker_distribution(catalogue, linker, version_selection, platform)
 
         extraction_dir = "_extract/{}".format(index)
         rctx.download_and_extract(
@@ -99,7 +127,10 @@ def _linker_distributions_repository_impl(rctx):
             executable = True,
             legacy_utf8 = False,
         )
-        manifest[reference] = output
+        manifest[reference] = {
+            "linker_features": distribution.get("linker_features", []),
+            "path": output,
+        }
 
     rctx.file("linkers.json", json.encode(manifest) + "\n")
     rctx.file("BUILD.bazel", """\
@@ -117,8 +148,10 @@ linker_distributions_repository = repository_rule(
         ),
         "exec_arch": attr.string(),
         "exec_os": attr.string(),
+        "extra_catalogues": attr.label_list(allow_files = [".json", ".jsonc"]),
         "linkers": attr.string_list(mandatory = True),
         "mold_source": attr.label(allow_single_file = True),
+        "use_builtin_catalogue": attr.bool(default = True),
     },
 )
 
@@ -147,7 +180,34 @@ def _linker_version_test_writer_impl(ctx):
             ("", ""),
         ]
     ]
-    ctx.actions.write(ctx.outputs.out, "\n".join(version_results + reference_results) + "\n")
+    catalogue = {
+        "test": {
+            "1.0.0": {
+                "linux-x86_64": {"binary": "old"},
+            },
+            "2.0.0": {
+                "darwin-aarch64": {"binary": "new", "linker_features": ["start_end_lib"]},
+            },
+        },
+    }
+    _merge_catalogue(catalogue, {
+        "test": {
+            "1.0.0": {
+                "linux-x86_64": {"binary": "override", "linker_features": ["start_end_lib"]},
+            },
+            "3.0.0": {
+                "linux-x86_64": {"binary": "extra"},
+            },
+        },
+    })
+    linux_version, linux_distribution = resolve_linker_distribution(catalogue, "test", "latest", "linux-x86_64")
+    darwin_version, darwin_distribution = resolve_linker_distribution(catalogue, "test", "latest", "darwin-aarch64")
+    platform_results = [
+        "latest linux-x86_64 -> {} {}".format(linux_version, "start_end_lib" in linux_distribution.get("linker_features", [])),
+        "latest darwin-aarch64 -> {} {}".format(darwin_version, "start_end_lib" in darwin_distribution.get("linker_features", [])),
+        "merged override -> {}".format(catalogue["test"]["1.0.0"]["linux-x86_64"]["binary"]),
+    ]
+    ctx.actions.write(ctx.outputs.out, "\n".join(version_results + reference_results + platform_results) + "\n")
 
 linker_version_test_writer = rule(
     implementation = _linker_version_test_writer_impl,

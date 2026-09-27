@@ -10,3 +10,6 @@ mold + <empty> -> mold
 auto + <empty> -> None
 /usr/bin/ld + <empty> -> None
 <empty> + <empty> -> None
+latest linux-x86_64 -> 3.0.0 False
+latest darwin-aarch64 -> 2.0.0 True
+merged override -> override

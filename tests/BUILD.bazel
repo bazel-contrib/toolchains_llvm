@@ -17,6 +17,8 @@ load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load(":transitions.bzl", "dwp_file", "msan_flags_test", "sanitizer_combo_flags_test", "sanitizer_test", "stdlib_flags_test", "transition_library_to_platform")
 
+exports_files(["linkers.jsonc"])
+
 cc_library(
     name = "stdlib",
     srcs = ["stdlib.cc"],
