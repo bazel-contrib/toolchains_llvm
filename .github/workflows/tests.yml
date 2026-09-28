@@ -281,6 +281,7 @@ jobs:
       - test
       - lsan_macos_test
       - cpp_modules_test
+      - llvm_23_archive_test
       - toolchain_test
       - local_linker_test
       - mold_linker_test
