@@ -71,6 +71,26 @@ jobs:
         env:
           USE_BAZEL_VERSION: 9.2.0
         run: tests/scripts/run_cpp_modules_test.sh
+  llvm_23_archive_test:
+    # LLVM 23.1.2 publishes both xz and zstd archives for these platforms, but
+    # released Bazel versions cannot decode the zstd archives' 1 GiB window.
+    # Build with both packages to ensure toolchains_llvm selects xz without
+    # first attempting to extract zstd. The macOS leg overrides LLVM 23's
+    # bundled linker, whose current-SDK TAPI fix is available in LLVM 24.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - if: startsWith(matrix.os, 'ubuntu')
+        run: tests/scripts/ubuntu_install_libtinfo.sh
+      - name: Test LLVM 23.1.2 xz fallback
+        env:
+          USE_BAZEL_VERSION: latest
+          USE_BZLMOD: true
+        run: tests/scripts/run_llvm_23_archive_test.sh
   toolchain_test:
     strategy:
       fail-fast: false

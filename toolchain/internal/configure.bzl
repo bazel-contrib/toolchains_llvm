@@ -52,6 +52,14 @@ load(
 # workspace builds, there is never a @@ in labels.
 BZLMOD_ENABLED = "@@" in str(Label("//:unused"))
 
+def _llvm_23_macos_uses_bundled_linker(llvm_version, linker_dict):
+    if not llvm_version.startswith("23."):
+        return False
+    return any([
+        not _dict_value(linker_dict, "darwin-aarch64", ""),
+        not _dict_value(linker_dict, "darwin-x86_64", ""),
+    ])
+
 def _detect_gcc_cxx_headers(rctx, sysroot_path, target_system_name):
     """Detect GCC C++ header directories in a sysroot.
 
@@ -169,6 +177,8 @@ def llvm_config_impl(rctx):
         # LLVM version missing for (os, arch)
         _empty_repository(rctx)
         return None
+    if os == "darwin" and _llvm_23_macos_uses_bundled_linker(llvm_version, rctx.attr.linker):
+        print("\nWARNING: LLVM 23's bundled macOS linker cannot parse current SDK TAPI files. Override Darwin targets with linker = {\"darwin-aarch64\": \"auto\", \"darwin-x86_64\": \"auto\"}; the bundled linker is fixed in LLVM 24.")  # buildifier: disable=print
     use_absolute_paths_llvm = rctx.attr.absolute_paths
     use_absolute_paths_sysroot = use_absolute_paths_llvm
 
@@ -1021,6 +1031,26 @@ filegroup(
 
 def _is_remote(rctx, exec_os, exec_arch):
     return not (_os_from_rctx(rctx) == exec_os and _arch_from_rctx(rctx) == exec_arch)
+
+def _linker_warning_test_writer_impl(ctx):
+    cases = [
+        ("23 defaults", "23.1.2", {}),
+        ("23 both auto", "23.1.2", {"darwin-aarch64": "auto", "darwin-x86_64": "auto"}),
+        ("23 partial override", "23.1.2", {"darwin-aarch64": "auto"}),
+        ("24 defaults", "24.1.0", {}),
+    ]
+    ctx.actions.write(
+        ctx.outputs.out,
+        "\n".join([
+            "{} -> {}".format(name, _llvm_23_macos_uses_bundled_linker(version, linkers))
+            for name, version, linkers in cases
+        ]) + "\n",
+    )
+
+linker_warning_test_writer = rule(
+    implementation = _linker_warning_test_writer_impl,
+    outputs = {"out": "%{name}.txt"},
+)
 
 def _convenience_targets_str(rctx, use_absolute_paths, llvm_dist_rel_path, llvm_dist_label_prefix, exec_dl_ext):
     """Generate `cc_import`/`native_binary` aliases for the exec-platform LLVM distribution.

@@ -113,9 +113,13 @@ occasionally publishes platform assets under a different product version.
 
 By default, extra distributions are merged with the bundled table. An extra
 entry with the same basename replaces the bundled checksum; use a complete URL
-or local path as the key to replace its source as well. When equivalent
-compression variants coexist, `.tar.zst` is preferred over `.tar.xz` and
-`.tar.gz`.
+or local path as the key to replace its source as well. Both `.tar.xz` and
+`.tar.zst` assets are retained, but xz is selected until Bazel can unpack
+LLVM's large-window zstd archives.
+
+On macOS, LLVM 23 requires a linker override such as
+`linker = {"darwin-aarch64": "auto"}` with current SDKs. Its bundled linker is
+fixed in LLVM 24.
 
 Set `use_builtin_llvm_distributions = False` only when the bundled distribution
 table must be ignored completely. It removes all bundled checksums and URLs
