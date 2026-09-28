@@ -103,12 +103,9 @@ def collect_llvm_entries(releases, existing):
         version = match.group(1)
         if int(version.split(".")[0]) < MIN_LLVM_MAJOR:
             continue
-        names = {asset["name"] for asset in release.get("assets", [])}
         for asset in release.get("assets", []):
             name = asset["name"]
             if not asset_re.fullmatch(name) or f"-{version}-" not in name:
-                continue
-            if name.endswith(".tar.xz") and name[:-7] + ".tar.zst" in names:
                 continue
             digest = (asset.get("digest") or "").removeprefix("sha256:") or existing.get(name, "")
             if not digest:
@@ -242,6 +239,7 @@ def update_goldens(root):
     subprocess.run(["bazel", "build", "//toolchain/internal:llvm_distributions", "//toolchain/internal:llvm_prerelease_test_output"], cwd=root, check=True)
     bazel_bin = Path(subprocess.check_output(["bazel", "info", "bazel-bin"], cwd=root, text=True).strip())
     shutil.copyfile(bazel_bin / "toolchain/internal/llvm_distributions.out.txt", root / "toolchain/internal/llvm_distributions.golden.out.txt")
+    shutil.copyfile(bazel_bin / "toolchain/internal/llvm_distributions.sel.txt", root / "toolchain/internal/llvm_distributions.golden.sel.txt")
     shutil.copyfile(bazel_bin / "toolchain/internal/llvm_prerelease_test.output.txt", root / "toolchain/internal/llvm_prerelease_test.golden.txt")
 
 

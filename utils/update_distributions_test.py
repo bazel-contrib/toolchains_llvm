@@ -15,6 +15,21 @@ def release(version, digest="a" * 64):
 
 
 class UpdateTest(unittest.TestCase):
+    def test_llvm_catalogue_keeps_xz_and_zstd(self):
+        releases = [{
+            "tag_name": "llvmorg-23.1.2",
+            "draft": False,
+            "assets": [
+                {"name": "LLVM-23.1.2-Linux-X64.tar." + suffix, "digest": "sha256:" + suffix[0] * 64}
+                for suffix in ["xz", "zst"]
+            ],
+        }]
+        entries = update.collect_llvm_entries(releases, {})
+        self.assertEqual(
+            {name for _, name, _ in entries},
+            {"LLVM-23.1.2-Linux-X64.tar.xz", "LLVM-23.1.2-Linux-X64.tar.zst"},
+        )
+
     def test_latest_three_plus_bcr(self):
         releases = [release(v) for v in ["2.42.1", "2.42.0", "2.41.0", "2.40.4"]]
         self.assertEqual(update.selected_mold_versions(releases, "2.40.4"), ["2.42.1", "2.42.0", "2.41.0", "2.40.4"])

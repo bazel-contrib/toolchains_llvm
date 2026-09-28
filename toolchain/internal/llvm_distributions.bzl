@@ -409,15 +409,16 @@ def _dist_to_os_names(dist, default_os_names = []):
 def _find_llvm_basenames_by_stem(*, prefixes, all_llvm_distributions, is_prefix = False, return_first_match = False):
     basenames = []
     for prefix in prefixes:
-        # LLVM publishes equivalent xz and zstd archives for newer releases.
-        # Prefer zstd because it is substantially faster to unpack.
-        for suffix in [".tar.zst", ".tar.xz", ".tar.gz"]:
+        # LLVM 23 zstd archives use a 1 GiB window, which released Bazel
+        # versions cannot decode. Keep zstd entries available for a future
+        # Bazel version with large-window support, but do not select them yet.
+        for suffix in [".tar.xz", ".tar.gz"]:
             basename = prefix + suffix
             if basename in all_llvm_distributions:
                 return [basename]
         if not is_prefix:
             continue
-        for suffix in [".tar.zst", ".tar.xz", ".tar.gz"]:
+        for suffix in [".tar.xz", ".tar.gz"]:
             for basename in all_llvm_distributions.keys():
                 if not basename.startswith(prefix):
                     continue
@@ -823,8 +824,8 @@ def _distributions_test_writer_impl(ctx):
 
     # Inject version '0.0.0' that verifies additional behavior using `extra_llvm_distributions`.
     extra_llvm_distributions = {
-        # Keep the equivalent xz asset to verify that automatic selection
-        # prefers zstd when both compression formats are available.
+        # Keep both formats to verify that automatic selection avoids zstd
+        # until Bazel supports the large windows used by LLVM 23 archives.
         "LLVM-0.0.0-Linux-ARM64.tar.zst": "d6b8679be46bdaa383e0c7f13a473ca8f7a4f87233f2cc0e0a7ab19e1b6265e7",
         "LLVM-0.0.0-Linux-ARM64.tar.xz": "a6b8679be46bdaa383e0c7f13a473ca8f7a4f87233f2cc0e0a7ab19e1b6265e7",
         "/foo/bar/LLVM-0.0.0-Linux-X64.tar.xz?xyz": "0a764a8ca521606532ca9ec4e5745c933b16b7d30f4701a47ee851d448fcdb74",
@@ -1164,7 +1165,7 @@ def _prerelease_test_writer_impl(ctx):
     custom_only = _get_all_llvm_distributions(
         llvm_distributions = {},
         extra_llvm_distributions = {
-            "https://example.com/LLVM-20.1.4-Linux-X64.tar.zst": "3" * 64,
+            "https://example.com/LLVM-20.1.4-Linux-X64.tar.xz": "3" * 64,
         },
         parsed_llvm_version = None,
     )
