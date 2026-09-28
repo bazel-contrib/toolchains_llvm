@@ -30,6 +30,16 @@ def catalogued_linker_reference(selection, version, target = ""):
         return None
     return "{}@{}".format(selection, version) if version else selection
 
+def llvm_23_macos_uses_bundled_linker(llvm_version, linker_dict):
+    """Whether any Darwin target retains LLVM 23's bundled linker."""
+    if not llvm_version.startswith("23."):
+        return False
+    default = linker_dict.get("", "")
+    return any([
+        not linker_dict.get("darwin-aarch64", default),
+        not linker_dict.get("darwin-x86_64", default),
+    ])
+
 def _normalize_os(rctx):
     if rctx.attr.exec_os:
         return rctx.attr.exec_os
@@ -207,7 +217,16 @@ def _linker_version_test_writer_impl(ctx):
         "latest darwin-aarch64 -> {} {}".format(darwin_version, "start_end_lib" in darwin_distribution.get("linker_features", [])),
         "merged override -> {}".format(catalogue["test"]["1.0.0"]["linux-x86_64"]["binary"]),
     ]
-    ctx.actions.write(ctx.outputs.out, "\n".join(version_results + reference_results + platform_results) + "\n")
+    warning_results = [
+        "{} -> {}".format(name, llvm_23_macos_uses_bundled_linker(version, linkers))
+        for name, version, linkers in [
+            ("23 defaults", "23.1.2", {}),
+            ("23 both auto", "23.1.2", {"darwin-aarch64": "auto", "darwin-x86_64": "auto"}),
+            ("23 partial override", "23.1.2", {"darwin-aarch64": "auto"}),
+            ("24 defaults", "24.1.0", {}),
+        ]
+    ]
+    ctx.actions.write(ctx.outputs.out, "\n".join(version_results + reference_results + platform_results + warning_results) + "\n")
 
 linker_version_test_writer = rule(
     implementation = _linker_version_test_writer_impl,

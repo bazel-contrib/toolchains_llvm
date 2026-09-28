@@ -1,4 +1,0 @@
-23 defaults -> True
-23 both auto -> False
-23 partial override -> True
-24 defaults -> False
