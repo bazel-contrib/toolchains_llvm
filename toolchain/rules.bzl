@@ -70,10 +70,9 @@ def llvm_toolchain(name, **kwargs):
     for target in targets.keys():
         selection = linkers.get(target, linkers.get("", ""))
         version = linker_versions.get(target, linker_versions.get("", ""))
-        reference = catalogued_linker_reference(selection, version, target)
+        reference = catalogued_linker_reference(selection, version)
         if reference:
-            catalogued_linkers[reference] = True
-    catalogued_linkers = sorted(catalogued_linkers.keys())
+            catalogued_linkers[target] = reference
     if catalogued_linkers:
         linker_distributions_repository(
             name = name + "_linkers",
@@ -81,7 +80,7 @@ def llvm_toolchain(name, **kwargs):
             exec_os = kwargs.get("exec_os", ""),
             extra_catalogues = kwargs.get("extra_linker_distribution_files", []),
             linkers = catalogued_linkers,
-            mold_source = "@mold//:src/entry.cc" if "mold" in catalogued_linkers else None,
+            mold_source = "@mold//:src/entry.cc" if "mold" in catalogued_linkers.values() else None,
             use_builtin_catalogue = kwargs.get("use_builtin_linker_distributions", True),
         )
         kwargs["linker_repository"] = "@{}_linkers//:linkers.json".format(name)

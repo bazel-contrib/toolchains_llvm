@@ -578,6 +578,9 @@ map. Setting both `linker_version` and `linker_versions` is an error.
 catalogue. To use an already installed mold instead of downloading one, provide
 its absolute path, for example `linker = {"": "/usr/bin/mold"}`. The `auto`
 selection resolves the platform's native `ld`; it does not search for mold.
+Version requirements apply only to catalogue selections. They are ignored for
+`auto`, absolute paths, and the linker included in the LLVM distribution, so a
+default `linker_version` can be combined with platform-specific overrides.
 
 ##### Optional mold module version inference
 

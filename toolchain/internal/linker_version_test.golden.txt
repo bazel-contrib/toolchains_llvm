@@ -8,8 +8,11 @@ gold + 1.2.3 -> gold@1.2.3
 lld + 19.1.7 -> lld@19.1.7
 mold + <empty> -> mold
 auto + <empty> -> None
+auto + latest -> None
 /usr/bin/ld + <empty> -> None
+/usr/bin/ld + latest -> None
 <empty> + <empty> -> None
+<empty> + latest -> None
 latest linux-x86_64 -> 3.0.0 False
 latest darwin-aarch64 -> 2.0.0 True
 merged override -> override
