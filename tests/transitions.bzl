@@ -224,6 +224,58 @@ msan_flags_test = analysistest.make(
     },
 )
 
+def _msan_c_flags_test_impl(ctx):
+    env = analysistest.begin(ctx)
+    compile_actions = [
+        a
+        for a in analysistest.target_actions(env)
+        if a.mnemonic == "CppCompile"
+    ]
+    asserts.equals(env, 1, len(compile_actions), "expected one C compile action")
+    argv = compile_actions[0].argv
+    asserts.true(
+        env,
+        "-fsanitize=memory" in argv,
+        "expected -fsanitize=memory on the C compile command line, got: %s" % argv,
+    )
+    return analysistest.end(env)
+
+# Regression test for C dependencies in an MSan build. C and C++ compilation
+# use distinct rules_cc action names even though both actions have the
+# CppCompile mnemonic.
+msan_c_flags_test = analysistest.make(
+    _msan_c_flags_test_impl,
+    config_settings = {
+        "//command_line_option:features": ["msan"],
+    },
+)
+
+def _darwin_linker_test_impl(ctx):
+    env = analysistest.begin(ctx)
+    link_actions = [
+        a
+        for a in analysistest.target_actions(env)
+        if a.mnemonic == "CppLink"
+    ]
+    asserts.equals(env, 1, len(link_actions), "expected one C++ link action")
+    action = link_actions[0]
+    asserts.true(
+        env,
+        "-lm" not in action.argv,
+        "Darwin links must not pass redundant -lm, got: %s" % action.argv,
+    )
+    inputs = [file.path for file in action.inputs.to_list()]
+    asserts.true(
+        env,
+        [path for path in inputs if path.endswith("/lib/libLTO.dylib")],
+        "expected libLTO.dylib in the Darwin linker sandbox inputs, got: %s" % inputs,
+    )
+    return analysistest.end(env)
+
+# Apple ld loads libLTO dynamically while linking LLVM bitcode. Keep the
+# matching plugin in the sandbox and avoid Linux-specific -lm at the same time.
+darwin_linker_test = analysistest.make(_darwin_linker_test_impl)
+
 def _sanitizer_combo_flags_test_impl(ctx):
     env = analysistest.begin(ctx)
     cpp_actions = [

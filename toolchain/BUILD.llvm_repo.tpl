@@ -137,6 +137,8 @@ filegroup(
         [
             "lib/**/libc++*.a",
             "lib/**/libunwind.a",
+            # Apple ld must load the LTO plugin matching the compiler bitcode.
+            "lib/libLTO.dylib",
             # msan-instrumented libc++ libraries, present only when the
             # distribution was configured with the `libcxx_url` attribute.
             "libcxx-msan/lib/**/lib*.a",
@@ -160,6 +162,8 @@ filegroup(
             "lib/clang/{LLVM_VERSION}/lib/**",
             "lib/**/libc++*.a",
             "lib/**/libunwind.a",
+            # Apple ld must load the LTO plugin matching the compiler bitcode.
+            "lib/libLTO.dylib",
             # msan-instrumented libc++ libraries, present only when the
             # distribution was configured with the `libcxx_url` attribute.
             # These must be linker-sandbox inputs; otherwise `-l:libc++.a`
