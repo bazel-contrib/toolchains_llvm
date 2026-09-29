@@ -18,15 +18,11 @@ load("//toolchain/internal:common.bzl", "is_absolute_path")
 load("//toolchain/internal:distributions_repo.bzl", "load_jsonc")
 load("//toolchain/internal:llvm_distributions.bzl", "resolve_version")
 
-def catalogued_linker_reference(selection, version, target = ""):
+def catalogued_linker_reference(selection, version):
     """Return the catalogue reference for a linker selection, or None."""
     if not selection:
-        if version:
-            fail("linker version '{}' has no linker selection for target '{}'".format(version, target))
         return None
     if selection == "auto" or is_absolute_path(selection):
-        if version:
-            fail("linker version '{}' cannot be used with linker selection '{}' for target '{}'".format(version, selection, target))
         return None
     return "{}@{}".format(selection, version) if version else selection
 
@@ -116,11 +112,27 @@ def _linker_distributions_repository_impl(rctx):
     platform = "{}-{}".format(_normalize_os(rctx), _normalize_arch(rctx))
     manifest = {}
 
-    for index, reference in enumerate(sorted(rctx.attr.linkers)):
+    references = {}
+    for target, reference in rctx.attr.linkers.items():
+        references.setdefault(reference, []).append(target)
+
+    for index, reference in enumerate(sorted(references.keys())):
         if reference == "mold":
             linker, version_selection = "mold", _mold_version(rctx)
         else:
             linker, version_selection = _parse_reference(reference)
+        versions = catalogue.get(linker)
+        if not versions:
+            fail("unknown linker '{}'; known linkers: {}".format(linker, ", ".join(sorted(catalogue.keys()))))
+        available_platforms = {
+            available_platform: True
+            for platforms in versions.values()
+            for available_platform in platforms.keys()
+        }
+        if platform not in available_platforms:
+            exec_os = platform.split("-")[0]
+            if all([target and target.split("-")[0] != exec_os for target in references[reference]]):
+                continue
         _, distribution = resolve_linker_distribution(catalogue, linker, version_selection, platform)
 
         extraction_dir = "_extract/{}".format(index)
@@ -159,7 +171,7 @@ linker_distributions_repository = repository_rule(
         "exec_arch": attr.string(),
         "exec_os": attr.string(),
         "extra_catalogues": attr.label_list(allow_files = [".json", ".jsonc"]),
-        "linkers": attr.string_list(mandatory = True),
+        "linkers": attr.string_dict(mandatory = True),
         "mold_source": attr.label(allow_single_file = True),
         "use_builtin_catalogue": attr.bool(default = True),
     },
@@ -186,8 +198,11 @@ def _linker_version_test_writer_impl(ctx):
             ("lld", "19.1.7"),
             ("mold", ""),
             ("auto", ""),
+            ("auto", "latest"),
             ("/usr/bin/ld", ""),
+            ("/usr/bin/ld", "latest"),
             ("", ""),
+            ("", "latest"),
         ]
     ]
     catalogue = {

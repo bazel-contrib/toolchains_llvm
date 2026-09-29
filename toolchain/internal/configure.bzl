@@ -485,8 +485,6 @@ def _linker_descriptor(rctx, selection, version, linker_paths, exec_os, target_o
         )
 
     if selection == "auto":
-        if version:
-            fail("linker version '{}' cannot be used with linker selection 'auto'".format(version))
         if exec_os != target_os:
             fail("linker selection 'auto' requires matching execution and target operating systems, got {} -> {}".format(exec_os, target_os))
         selection = _native_linker(rctx, exec_os)
@@ -494,15 +492,14 @@ def _linker_descriptor(rctx, selection, version, linker_paths, exec_os, target_o
         reference = "{}@{}".format(selection, version) if version else selection
         linker_info = linker_paths.get(reference)
         if not linker_info:
+            if exec_os != target_os:
+                return None
             fail("catalogued linker '{}' was not materialized".format(reference))
         return struct(
             file = linker_info.path,
             path = linker_info.path,
             supports_start_end_lib = "start_end_lib" in linker_info.features,
         )
-
-    if version:
-        fail("linker version '{}' cannot be used with absolute linker path '{}'".format(version, selection))
 
     linker_path = rctx.path(selection)
     if not linker_path.exists:
@@ -578,6 +575,8 @@ def _cc_toolchain_str(
         exec_os,
         target_os,
     )
+    if linker == None:
+        return ""
 
     extra_files_str = repr(":internal-use-tools" if bazel_features.rules.merkle_cache_v2 else ":internal-use-tools-legacy")
 
