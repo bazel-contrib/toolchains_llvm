@@ -268,6 +268,17 @@ jobs:
           USE_BAZEL_VERSION: ${{ matrix.bazel_version }}
           USE_BZLMOD: true
         run: tests/scripts/run_msan_tests.sh
+  unsupported_msan_test:
+    # The real MSan runtime tests above are Linux-only. On macOS, requesting
+    # MSan must fail loudly rather than silently running without instrumentation.
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Test Bazel 9 with LLVM 23
+        env:
+          USE_BAZEL_VERSION: 9.0.0
+          USE_BZLMOD: true
+        run: tests/scripts/run_unsupported_msan_test.sh
   # Single aggregating gate for branch protection. It depends on every job that
   # must pass, so "required_checks_done" is the only status check that needs to
   # be marked "required" on the master branch -- adding or renaming a job above
@@ -291,6 +302,7 @@ jobs:
       - abs_paths_test
       - sys_paths_test
       - msan_test
+      - unsupported_msan_test
     if: always()
     runs-on: ubuntu-latest
     steps:

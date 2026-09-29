@@ -104,7 +104,14 @@ function parse_option() {
 
 function sanitize_option() {
   local -r opt=$1
-  if [[ ${opt} == */cc_wrapper.sh ]]; then
+  if [[ ${opt} == --toolchains_llvm-unsupported-msan=* ]]; then
+    local -r target_os=${opt#*=}
+    echo >&2 "************************************************************************"
+    echo >&2 "FATAL ERROR: MEMORYSANITIZER (MSAN) IS NOT SUPPORTED FOR ${target_os} TARGETS"
+    echo >&2 "THE REQUESTED BUILD WOULD NOT BE INSTRUMENTED; REFUSING TO CONTINUE"
+    echo >&2 "************************************************************************"
+    exit 86
+  elif [[ ${opt} == */cc_wrapper.sh ]]; then
     printf "%s" "${toolchain_path_prefix}bin/clang"
   elif [[ ${opt} == --ld-path=bin/linkers/* ]]; then
     printf "%s" "--ld-path=${script_dir}/${opt#--ld-path=bin/}"
