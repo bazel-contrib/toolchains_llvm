@@ -15,7 +15,7 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
-load(":transitions.bzl", "dwp_file", "msan_flags_test", "sanitizer_combo_flags_test", "sanitizer_test", "stdlib_flags_test", "transition_library_to_platform")
+load(":transitions.bzl", "darwin_linker_test", "dwp_file", "msan_c_flags_test", "msan_flags_test", "sanitizer_combo_flags_test", "sanitizer_test", "stdlib_flags_test", "transition_library_to_platform")
 
 exports_files(["linkers.jsonc"])
 
@@ -142,6 +142,18 @@ sanitizer_test(
 msan_flags_test(
     name = "msan_flags_test",
     target_compatible_with = ["@platforms//os:linux"],
+    target_under_test = ":stdlib_bin",
+)
+
+msan_c_flags_test(
+    name = "msan_c_flags_test",
+    target_compatible_with = ["@platforms//os:linux"],
+    target_under_test = ":stdatomic_test",
+)
+
+darwin_linker_test(
+    name = "darwin_linker_test",
+    target_compatible_with = ["@platforms//os:macos"],
     target_under_test = ":stdlib_bin",
 )
 

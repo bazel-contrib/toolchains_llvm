@@ -348,7 +348,9 @@ def cc_toolchain_config(
         link_flags.append("--ld-path=ld64.lld" if target_os == "darwin" else "--ld-path=ld.lld")
 
     stdlib = compiler_configuration["stdlib"]
-    if stdlib != "none":
+
+    # Darwin supplies math through libSystem; avoid redundant -lm flags.
+    if stdlib != "none" and target_os != "darwin":
         link_flags.extend([
             "-lm",
         ])
@@ -810,6 +812,7 @@ def cc_toolchain_config(
         cc_args(
             name = name + "_msan_compile_args",
             actions = [
+                "@rules_cc//cc/toolchains/actions:c_compile",
                 "@rules_cc//cc/toolchains/actions:cpp_compile_actions",
             ] + CPP_MODULE_ACTIONS,
             args = msan_compile_include_flags + msan_sanitizer_flags,
