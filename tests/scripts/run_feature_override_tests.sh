@@ -34,6 +34,7 @@ run_test 0
 run_test 0 --features=test_override
 run_test 1 --features=test_override --features=test_second --features=unrelated
 run_test 0 --features=test_override --features=test_second --features=test_disable
+run_test 1 --features=test_override --features=test_second --features=test_disable --features=-test_disable
 run_test 0 --features=test_override --features=test_second --features=-test_second
 
 "${bazel}" --bazelrc=/dev/null test "${common_test_args[@]}" \

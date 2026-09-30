@@ -48,12 +48,12 @@ toolchain = repository_rule(
     implementation = _llvm_config_impl,
 )
 
-def llvm_feature_override(features = [], not_features = [], targets = [], reset = [], **settings):
+def llvm_feature_override(features = [], targets = [], reset = [], **settings):
     """Override any public llvm_toolchain settings under build features.
 
     Args:
-      features: All of these --features must be enabled.
-      not_features: None of these --features may be enabled.
+      features: Required build features; prefix a name with '-' to require it
+        to be absent or disabled. All conditions must match.
       targets: Optional target OS/architecture keys limiting the condition.
       reset: Inherited attribute names to reset before applying settings.
       **settings: Ordinary llvm_toolchain attributes to override.
@@ -61,7 +61,7 @@ def llvm_feature_override(features = [], not_features = [], targets = [], reset 
     Returns:
       An override for llvm_toolchain's feature_overrides list.
     """
-    return make_override(features, not_features, targets, reset, **settings)
+    return make_override(features = features, targets = targets, reset = reset, **settings)
 
 def llvm_toolchain(name, feature_overrides = [], **kwargs):
     """Create a toolchain and optional complete variants selected by features."""
@@ -69,7 +69,7 @@ def llvm_toolchain(name, feature_overrides = [], **kwargs):
         conditions_name = name + "_feature_conditions"
         feature_conditions_repository(
             name = conditions_name,
-            overrides = json.encode([{key: override[key] for key in ["features", "not_features", "targets"]} for override in feature_overrides]),
+            overrides = json.encode([{key: override[key] for key in ["features", "targets"]} for override in feature_overrides]),
         )
         manifests = []
         for index, override in enumerate(feature_overrides):

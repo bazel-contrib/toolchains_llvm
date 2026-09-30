@@ -314,8 +314,10 @@ use_repo(llvm, "llvm_toolchain")
 register_toolchains("@llvm_toolchain//:all")
 ```
 
-All `features` must be enabled and all `not_features` must be absent or disabled;
-unmentioned features are ignored. Names are arbitrary, not a hardcoded list.
+Use Bazel's signed feature notation: `features = ["thin_lto", "-msan"]` requires
+`thin_lto` to be enabled and `msan` to be absent or disabled. All entries must
+match; contradictory entries such as `["msan", "-msan"]` are rejected.
+Unmentioned features are ignored. Names are arbitrary, not a hardcoded list.
 Optional `targets` restricts an override to target OS/architecture keys. No match
 uses the fallback unchanged; multiple matches fail with an ambiguity error.
 Overrides do not stack or have implicit precedence.

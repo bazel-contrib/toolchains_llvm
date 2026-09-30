@@ -20,18 +20,35 @@ load(":feature_overrides.bzl", "can_share_llvm_archive", "merge_override", "sele
 def _selection_test_impl(ctx):
     env = unittest.begin(ctx)
     overrides = [
-        dict(features = ["arbitrary", "second"], not_features = ["excluded"]),
+        dict(features = ["arbitrary", "second", "-excluded"]),
         dict(features = ["another"], targets = ["linux-x86_64"]),
-        dict(features = [], not_features = ["arbitrary", "another", "no_negative"]),
+        dict(features = ["-arbitrary", "-another", "-no_negative"]),
     ]
     asserts.equals(env, "0", select_override(overrides, ["arbitrary", "second", "unrelated"]))
     asserts.equals(env, "default", select_override(overrides, ["arbitrary"]))
     asserts.equals(env, "default", select_override(overrides, ["arbitrary", "second", "excluded"]))
+    asserts.equals(env, "0", select_override(overrides, ["arbitrary", "second", "excluded"], ["excluded"]))
     asserts.equals(env, "default", select_override(overrides, ["arbitrary", "second"], ["second"]))
     asserts.equals(env, "1", select_override(overrides, ["another"], target = "linux-x86_64"))
     asserts.equals(env, "default", select_override(overrides, ["another"], target = "darwin-aarch64"))
     asserts.equals(env, "2", select_override(overrides, []))
+    asserts.equals(env, "2", select_override(overrides, ["arbitrary"], ["arbitrary"]))
+    asserts.equals(env, "default", select_override(overrides, ["no_negative"]))
     asserts.equals(env, "default", select_override([], ["anything"]))
+    return unittest.end(env)
+
+def _signed_features_test_impl(ctx):
+    env = unittest.begin(ctx)
+    conditions = ["a", "-b", "a", "-b"]
+    override = llvm_feature_override(features = conditions)
+    asserts.equals(env, conditions, override["features"])
+    asserts.equals(env, "0", select_override([override], ["a"]))
+    asserts.equals(env, "0", select_override([override], ["a", "b"], ["b"]))
+    asserts.equals(env, "default", select_override([override], ["a", "b"]))
+    asserts.equals(env, "default", select_override([override], ["a"], ["a"]))
+    negative_only = llvm_feature_override(features = ["-b"])
+    asserts.equals(env, "0", select_override([negative_only], []))
+    asserts.equals(env, "default", select_override([negative_only], ["b"]))
     return unittest.end(env)
 
 def _inheritance_test_impl(ctx):
@@ -69,7 +86,9 @@ def _invalid_impl(ctx):
     if case == "ambiguous":
         select_override([dict(features = ["a"]), dict(features = ["b"])], ["a", "b"])
     elif case == "contradictory":
-        llvm_feature_override(features = ["a"], not_features = ["a"])
+        llvm_feature_override(features = ["a", "-a"])
+    elif case == "negative_contradiction":
+        llvm_feature_override(features = ["-a", "a"])
     elif case == "empty":
         llvm_feature_override(features = [])
     elif case == "unknown":
@@ -78,8 +97,12 @@ def _invalid_impl(ctx):
         llvm_feature_override(features = ["a"], reset = ["feature_condition"])
     elif case == "target":
         llvm_feature_override(features = ["a"], targets = ["invalid"])
-    elif case == "signed":
-        llvm_feature_override(features = ["-a"])
+    elif case == "empty_name":
+        llvm_feature_override(features = [""])
+    elif case == "bare_minus":
+        llvm_feature_override(features = ["-"])
+    elif case == "double_minus":
+        llvm_feature_override(features = ["--a"])
     return []
 
 def _archive_sharing_test_impl(ctx):
@@ -106,6 +129,7 @@ def _invalid_test_impl(ctx):
 
 _invalid_test = analysistest.make(_invalid_test_impl, expect_failure = True, attrs = {"message": attr.string()})
 _selection_test = unittest.make(_selection_test_impl)
+_signed_features_test = unittest.make(_signed_features_test_impl)
 _inheritance_test = unittest.make(_inheritance_test_impl)
 _archive_sharing_test = unittest.make(_archive_sharing_test_impl)
 
@@ -115,16 +139,20 @@ def feature_overrides_test_suite(name):
     for case, message in {
         "ambiguous": "AMBIGUOUS FEATURE OVERRIDES",
         "contradictory": "both required and excluded",
-        "empty": "must have a features or not_features condition",
+        "negative_contradiction": "both required and excluded",
+        "empty": "must have at least one feature condition",
+        "empty_name": "invalid feature condition",
+        "bare_minus": "invalid feature condition",
+        "double_minus": "invalid feature condition",
         "unknown": "unknown or internal toolchain override attribute",
         "internal": "unknown or internal toolchain override attribute",
         "target": "invalid feature override target",
-        "signed": "feature names must be nonempty and unsigned",
     }.items():
         _invalid(name = name + "_" + case + "_subject", case = case, tags = ["manual"])
         _invalid_test(name = name + "_" + case + "_test", target_under_test = name + "_" + case + "_subject", message = message)
         tests.append(name + "_" + case + "_test")
     _selection_test(name = name + "_selection_test")
+    _signed_features_test(name = name + "_signed_features_test")
     _inheritance_test(name = name + "_inheritance_test")
     _archive_sharing_test(name = name + "_archive_sharing_test")
-    native.test_suite(name = name, tests = tests + [name + "_selection_test", name + "_inheritance_test", name + "_archive_sharing_test"])
+    native.test_suite(name = name, tests = tests + [name + "_selection_test", name + "_signed_features_test", name + "_inheritance_test", name + "_archive_sharing_test"])

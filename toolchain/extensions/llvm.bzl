@@ -141,19 +141,18 @@ _NONEMPTY_DEFAULTS = {
 def _feature_override(tag):
     settings = {}
     for key in _override_attrs:
-        if key in ["name", "features", "not_features", "targets", "reset"] or key.startswith("_"):
+        if key in ["name", "features", "targets", "reset"] or key.startswith("_"):
             continue
         value = getattr(tag, key)
         if (key in _NONEMPTY_DEFAULTS and value != _NONEMPTY_DEFAULTS[key]) or (key not in _NONEMPTY_DEFAULTS and value):
             settings[key] = value
-    return llvm_feature_override(tag.features, tag.not_features, tag.targets, tag.reset, **settings)
+    return llvm_feature_override(features = tag.features, targets = tag.targets, reset = tag.reset, **settings)
 
 _override_attrs = {key: value for key, value in _llvm_config_attrs.items() if not key.startswith("_") and key not in ["feature_condition", "feature_variants", "feature_base_llvm"]}
 _override_attrs.update(_llvm_repo_attrs)
 _override_attrs.update({
     "name": _attrs["name"],
-    "features": attr.string_list(),
-    "not_features": attr.string_list(),
+    "features": attr.string_list(doc = "Required build features; '-name' requires a feature to be absent or disabled. All conditions must match."),
     "targets": attr.string_list(),
     "reset": attr.string_list(),
 })
@@ -162,7 +161,7 @@ llvm = module_extension(
     implementation = _llvm_impl_,
     tag_classes = {
         "feature_override": tag_class(
-            doc = "Override any toolchain settings when all features and none of not_features are enabled in the build configuration. Reset inherited attributes with reset.",
+            doc = "Override any toolchain settings when all signed feature conditions match the build configuration. Reset inherited attributes with reset.",
             attrs = _override_attrs,
         ),
         "toolchain": tag_class(

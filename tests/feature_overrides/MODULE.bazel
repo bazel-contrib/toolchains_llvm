@@ -29,8 +29,7 @@ llvm.toolchain(
 )
 llvm.feature_override(
     name = "llvm_toolchain",
-    features = ["test_override", "test_second"],
-    not_features = ["test_disable", "test_distribution", "thin_lto"],
+    features = ["test_override", "test_second", "-test_disable", "-test_distribution", "-thin_lto"],
     targets = ["darwin-aarch64", "darwin-x86_64", "linux-x86_64"],
     cxx_standard = {"": "c++20"},
     extra_compile_flags = {"": ["-DFEATURE_TOOLCHAIN=1", "@override_input.rsp"]},
@@ -38,15 +37,13 @@ llvm.feature_override(
 )
 llvm.feature_override(
     name = "llvm_toolchain",
-    features = ["test_distribution"],
-    not_features = ["test_override", "thin_lto"],
+    features = ["test_distribution", "-test_override", "-thin_lto"],
     llvm_version = "22.1.8",
     reset = ["extra_compile_flags"],
 )
 llvm.feature_override(
     name = "llvm_toolchain",
-    features = ["thin_lto"],
-    not_features = ["test_override", "test_distribution"],
+    features = ["thin_lto", "-test_override", "-test_distribution"],
     linker = {"linux-x86_64": ""},
 )
 use_repo(llvm, "llvm_toolchain")

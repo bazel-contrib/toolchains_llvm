@@ -17,22 +17,23 @@
 load("//toolchain/internal:common.bzl", "SUPPORTED_TARGETS", "os_arch_pair", "os_bzl", "supported_os_arch_keys")
 load("//toolchain/internal:repo.bzl", "llvm_config_attrs", "llvm_repo_attrs")
 
-def make_override(features = [], not_features = [], targets = [], reset = [], **settings):
+def make_override(features = [], targets = [], reset = [], **settings):
     """Validate and construct a complete configuration override."""
-    if not features and not not_features:
-        fail("feature override must have a features or not_features condition")
-    for feature in features + not_features:
-        if not feature or feature.startswith("-"):
-            fail("feature names must be nonempty and unsigned; use not_features for negation")
-        if feature in features and feature in not_features:
-            fail("feature '{}' is both required and excluded".format(feature))
+    if not features:
+        fail("feature override must have at least one feature condition")
+    for feature in features:
+        name = feature[1:] if feature.startswith("-") else feature
+        if not name or name.startswith("-"):
+            fail("invalid feature condition '{}': use a nonempty name or '-name' for exclusion".format(feature))
+        if name in features and "-" + name in features:
+            fail("feature '{}' is both required and excluded".format(name))
     for target in targets:
         if not target or target not in supported_os_arch_keys():
             fail("invalid feature override target '{}'".format(target))
     for key in list(settings.keys()) + reset:
         if key.startswith("_") or key in ["feature_condition", "feature_variants", "feature_base_llvm"] or (key not in llvm_config_attrs and key not in llvm_repo_attrs):
             fail("unknown or internal toolchain override attribute '{}'".format(key))
-    return dict(features = features, not_features = not_features, targets = targets, reset = reset, settings = settings)
+    return dict(features = features, targets = targets, reset = reset, settings = settings)
 
 def _constraints(kind):
     result = {}
@@ -50,9 +51,9 @@ def select_override(overrides, features, disabled_features = [], target = None):
     for index, override in enumerate(overrides):
         if override.get("targets") and target not in override["targets"]:
             continue
-        if all([feature in active for feature in override["features"]]) and not any([
-            feature in active
-            for feature in override.get("not_features", [])
+        if all([
+            feature[1:] not in active if feature.startswith("-") else feature in active
+            for feature in override["features"]
         ]):
             matches.append(str(index))
     if len(matches) > 1:

@@ -48,11 +48,9 @@ llvm_toolchain(
             features = [
                 "test_override",
                 "test_second",
-            ],
-            not_features = [
-                "test_disable",
-                "test_distribution",
-                "thin_lto",
+                "-test_disable",
+                "-test_distribution",
+                "-thin_lto",
             ],
             targets = [
                 "darwin-aarch64",
@@ -61,21 +59,21 @@ llvm_toolchain(
             ],
         ),
         llvm_feature_override(
-            features = ["test_distribution"],
-            llvm_version = "22.1.8",
-            not_features = [
-                "test_override",
-                "thin_lto",
+            features = [
+                "test_distribution",
+                "-test_override",
+                "-thin_lto",
             ],
+            llvm_version = "22.1.8",
             reset = ["extra_compile_flags"],
         ),
         llvm_feature_override(
-            features = ["thin_lto"],
-            linker = {"linux-x86_64": ""},
-            not_features = [
-                "test_override",
-                "test_distribution",
+            features = [
+                "thin_lto",
+                "-test_override",
+                "-test_distribution",
             ],
+            linker = {"linux-x86_64": ""},
         ),
     ],
     linker = {
