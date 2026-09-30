@@ -7,7 +7,7 @@ exhaustive list of fixes, dependency updates, or newly catalogued LLVM archives.
 See the [GitHub releases](https://github.com/bazel-contrib/toolchains_llvm/releases)
 for release artifacts and the [README](README.md) for configuration and requirements.
 
-## Unreleased (planned 1.11.0)
+## 1.11.0
 
 ### Added
 
@@ -172,9 +172,9 @@ for release artifacts and the [README](README.md) for configuration and requirem
 - MSan's instrumented-libc++ integration dates to 1.8.0. The C-instrumentation
   and unsupported-target fixes above do not make MSan a new 1.11.0 feature.
 - Linux ThinLTO is inherited from Bazel/rules_cc, so its behavior also depends
-  on those versions. The planned 1.11.0 addition is the macOS integration.
+  on those versions. The 1.11.0 addition is the macOS integration.
 - Native and explicit-path linker selection shipped in 1.10.0. Downloadable
-  catalogued linkers are a separate, unreleased addition.
+  catalogued linkers are a separate addition in 1.11.0.
 - Zstd recognition arrived in 1.9.0; it does not guarantee that Bazel can
-  extract every zstd archive. The unreleased compatibility fix deliberately
+  extract every zstd archive. The 1.11.0 compatibility fix deliberately
   excludes zstd from automatic selection while retaining its metadata.
