@@ -3,7 +3,7 @@
 ## Quickstart
 
 See notes on the [release](https://github.com/bazel-contrib/toolchains_llvm/releases)
-for how to get started.
+for how to get started, and the [changelog](CHANGELOG.md) for feature availability.
 
 NOTE: For releases prior to 0.10.1, please also see [these notes](REPO_RENAME.md).
 
@@ -866,17 +866,21 @@ Entry keys are either a tarball **basename** (URL derived via `base_url`)
 or a **full URL/path** (used verbatim, bypassing `base_url`). Comments are
 stripped before parsing, and trailing commas are tolerated.
 
-LLVM archives compressed as `.tar.zst`, `.tar.xz`, or `.tar.gz` are
-supported. When equivalent zstd and xz archives are available, automatic
-selection and the helper scripts prefer the much faster-to-extract zstd form.
+The distribution data and both helper scripts retain `.tar.zst`, `.tar.xz`,
+and `.tar.gz` archives with their checksums. Automatic selection currently
+uses only xz or gzip: released Bazel versions cannot unpack LLVM 23's
+large-window zstd archives. Retaining zstd metadata does not enable its use;
+archive compatibility is decided by the toolchain selector, not the scripts.
 
 ### Two helper scripts
 
-- **`utils/update_distributions.sh`** — refreshes
-  [`toolchain/distributions/github.jsonc`](toolchain/distributions/github.jsonc)
-  by paging through the GitHub releases API for `llvm/llvm-project` and
-  rewriting the file in place. Use this when contributing a new LLVM release
-  to the bundled list. The script also regenerates the test golden file so
+- **`utils/update_distributions.sh`** — invokes `utils/update_distributions.py`
+  to refresh [`github.jsonc`](toolchain/distributions/github.jsonc) from LLVM
+  releases and [`linkers.jsonc`](toolchain/distributions/linkers.jsonc) from
+  mold releases. The linker catalogue includes the mold version in the Bazel
+  Central Registry and the three newest stable mold releases. Use this when
+  contributing new releases to the bundled lists.
+  The script also regenerates the distribution test golden files so
   the diff stays self-contained. No tarballs are downloaded — checksums come
   from GitHub's release-asset `.digest` field, with existing values
   preserved for older assets that predate that field. Set `GITHUB_TOKEN` to
@@ -890,10 +894,13 @@ selection and the helper scripts prefer the much faster-to-extract zstd form.
   tarballs and computing SHA-256 locally for older assets that don't have a
   `.digest`. See `-h` for details.
 
-Both scripts run on Linux, macOS, and on Windows under Git Bash / MSYS2 /
-WSL. They require `bash`, `curl`, `jq`, and `awk`;
-`utils/extra_distributions.sh` additionally needs `sha256sum` (Linux, Git
-Bash) or `shasum` (macOS).
+The shell entry points run on Linux, macOS, and on Windows under Git Bash /
+MSYS2 / WSL. The updater requires Python 3.9 or newer and `bazel` to regenerate
+goldens; its shell wrapper additionally requires `bash`. It uses `gh` for
+authentication when available and `GITHUB_TOKEN` is unset, and optionally uses
+Trunk or the repository's Prettier launcher for formatting.
+`utils/extra_distributions.sh` requires `bash`, `curl`, `jq`, `awk`, and either
+`sha256sum` (Linux, Git Bash) or `shasum` (macOS).
 
 ## Prior Art
 
