@@ -37,6 +37,9 @@ bazel="${TMPDIR:-/tmp}/bazelisk"
 readonly bazel
 
 common_args=(
+  # Also apply when a test deliberately runs with --bazelrc=/dev/null.
+  "--http_connector_attempts=10"
+  "--http_timeout_scaling=1.5"
   "--enable_bzlmod=${USE_BZLMOD:-true}"
   "--enable_workspace"
 )

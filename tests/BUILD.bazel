@@ -193,6 +193,29 @@ cc_test(
     ],
 )
 
+cc_binary(
+    name = "msan_detection",
+    srcs = ["msan_detection.c"],
+    linkstatic = True,
+    tags = ["manual"],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)
+
+sh_test(
+    name = "msan_detection_test",
+    srcs = ["msan_detection_test.sh"],
+    args = ["$(location :msan_detection)"],
+    data = [":msan_detection"],
+    tags = ["manual"],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)
+
 # We want to test that `llvm-dwp` (used when assembling a `.dwp` file from
 # `.dwo` files) can be called.
 #

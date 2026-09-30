@@ -32,3 +32,6 @@ http_archive(
 load("//toolchain:setup_distributions.bzl", "setup_llvm_distributions")
 
 setup_llvm_distributions()
+
+# Used by the feature override unit and expected-analysis-failure tests.
+register_toolchains("@bazel_skylib//toolchains/unittest:all")

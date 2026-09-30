@@ -452,6 +452,9 @@ _compiler_configuration_attrs = {
 llvm_config_attrs = dict(common_attrs)
 llvm_config_attrs.update(_compiler_configuration_attrs)
 llvm_config_attrs.update({
+    "feature_condition": attr.label(doc = "Internal configuration predicate for a feature-conditioned toolchain variant."),
+    "feature_variants": attr.label_list(doc = "Internal registration manifests for feature-conditioned toolchain variants."),
+    "feature_base_llvm": attr.label(doc = "Internal shared LLVM archive for a feature variant."),
     "linker": attr.string_dict(
         mandatory = False,
         doc = ("Linker selection for each target OS and architecture pair ({}). " +

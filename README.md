@@ -292,6 +292,55 @@ For specifying unregistered toolchains on the command line, please use the
 `--extra_toolchains` flag. For example,
 `--extra_toolchains=@llvm_toolchain//:cc-toolchain-x86_64-linux`.
 
+### Feature-based toolchain overrides
+
+Keep one toolchain name and use its ordinary configuration as the fallback.
+Conditional overrides can change any public `llvm_toolchain` setting, including
+the LLVM distribution, linker, sysroot, flags, libraries and sandbox inputs:
+
+```starlark
+llvm.toolchain(
+    name = "llvm_toolchain",
+    llvm_version = "23.1.2",
+    linker = {"linux-x86_64": "mold", "darwin-aarch64": "auto"},
+    linker_version = "latest",
+)
+llvm.feature_override(
+    name = "llvm_toolchain",
+    features = ["thin_lto"],
+    linker = {"linux-x86_64": ""},  # Use bundled LLD for LTO, retaining Darwin's auto.
+)
+use_repo(llvm, "llvm_toolchain")
+register_toolchains("@llvm_toolchain//:all")
+```
+
+All `features` must be enabled and all `not_features` must be absent or disabled;
+unmentioned features are ignored. Names are arbitrary, not a hardcoded list.
+Optional `targets` restricts an override to target OS/architecture keys. No match
+uses the fallback unchanged; multiple matches fail with an ambiguity error.
+Overrides do not stack or have implicit precedence.
+
+Unspecified settings inherit from the fallback. Dictionaries merge by key;
+each supplied value replaces the inherited value (lists are not appended).
+Use `reset = ["attribute_name"]` to clear an inherited attribute before applying
+the override. This also restores schema defaults, including empty values and
+booleans that module-extension tags cannot distinguish from omitted arguments.
+A scalar `llvm_version` or `linker_version` replaces its inherited plural map,
+and vice versa.
+
+Selection happens during toolchain resolution from the build configuration's
+`--features` (and `--host_features` for build tools), not from per-rule features,
+implied C++ features, or compiler flags such as `-flto=thin`. Pass multiple
+features with repeated `--features` options. Generated variants keep all toolchain
+inputs consistent; registration may fetch distributions used by multiple variants.
+Convenience targets such as `@llvm_toolchain//:clang-format` retain the fallback's
+distribution.
+
+For WORKSPACE, pass `feature_overrides = [llvm_feature_override(features = [...],
+...)]` to `llvm_toolchain`; load both functions from `//toolchain:rules.bzl` in
+the toolchains_llvm repository and register through its `llvm_register_toolchains`
+macro or `@llvm_toolchain//:all`.
+
 ### Bring Your Own LLVM
 
 The following mechanisms are available for using an LLVM toolchain:
@@ -582,6 +631,12 @@ Version requirements apply only to catalogue selections. They are ignored for
 `auto`, absolute paths, and the linker included in the LLVM distribution, so a
 default `linker_version` can be combined with platform-specific overrides.
 
+Clang LTO with mold requires a compatible `LLVMgold.so` plugin and its runtime
+dependencies as declared linker inputs. The standalone mold download does not
+supply them; use the LLVM-distribution linker for LTO unless you provide the
+matching plugin. Bazel's `thin_lto` feature also requires a linker compatible
+with its indexing actions.
+
 ##### Optional mold module version inference
 
 Depending on the mold Bazel module is entirely optional. It does not enable the
@@ -695,14 +750,15 @@ per-package or global basis.
 ### Sanitizers
 
 The toolchain can build with AddressSanitizer, UndefinedBehaviorSanitizer,
-ThreadSanitizer, or MemorySanitizer. Enable at most one at a time, via Bazel
-features:
+ThreadSanitizer, or MemorySanitizer. Enable them via Bazel features; supported
+combinations such as ASan+UBSan can be enabled together:
 
 ```sh
 bazel build //... --features=asan
 bazel build //... --features=ubsan
 bazel build //... --features=tsan
 bazel build //... --features=msan   # Linux only; see below
+bazel build //... --features=asan --features=ubsan
 ```
 
 `asan`, `ubsan`, and `tsan` are rules_cc's stock sanitizer features and work
@@ -719,6 +775,9 @@ MemorySanitizer additionally swaps in an instrumented libc++ (see below).
 MemorySanitizer is Linux-only and is enabled with `--features=msan`. A feature
 is used so Bazel resets it to `--host_features` in the exec configuration,
 keeping build tools uninstrumented.
+
+Requesting `--features=msan` on an unsupported target, including macOS, fails
+with a fatal error instead of silently producing an uninstrumented build.
 
 MemorySanitizer reports false positives unless the C++ standard library is also
 instrumented, so `msan` swaps the toolchain's libc++ for an instrumented build

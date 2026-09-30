@@ -19,7 +19,10 @@
 # links and runs an instrumented libc++, so it catches an uninstrumented libc++
 # being linked under msan -- something the analysis-only msan_flags_test cannot.
 #
-# msan is Linux/x86_64 only and the toolchain is defined via bzlmod, so this is
+# The C detection test additionally requires a specific MSan diagnostic and
+# exit code. Both test sources refuse to compile without instrumentation.
+#
+# This MSan overlay is Linux/x86_64 only and is defined via bzlmod, so this is
 # only run with USE_BZLMOD=true.
 
 set -euo pipefail
@@ -48,4 +51,4 @@ set -x
   "${common_test_args[@]}" \
   --extra_toolchains=@llvm_toolchain_msan//:all \
   --features=msan \
-  -- //:msan_libcxx_test
+  -- //:msan_libcxx_test //:msan_detection_test

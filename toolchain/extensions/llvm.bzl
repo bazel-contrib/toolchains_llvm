@@ -1,7 +1,7 @@
 """LLVM extension for use with bzlmod"""
 
 load("@bazel_features//:features.bzl", "bazel_features")
-load("@toolchains_llvm//toolchain:rules.bzl", "llvm_toolchain")
+load("@toolchains_llvm//toolchain:rules.bzl", "llvm_feature_override", "llvm_toolchain")
 load(
     "@toolchains_llvm//toolchain/internal:repo.bzl",
     _llvm_config_attrs = "llvm_config_attrs",
@@ -77,6 +77,12 @@ def _llvm_impl_(module_ctx):
                 name,
             )
 
+            attrs["feature_overrides"] = [
+                _feature_override(tag)
+                for tag in mod.tags.feature_override
+                if tag.name == name
+            ]
+
             llvm_toolchain(
                 **attrs
             )
@@ -97,6 +103,9 @@ def _llvm_impl_(module_ctx):
         for tag in mod.tags.extra_linker_files:
             if tag.name not in toolchain_names:
                 fail("extra_linker_files '%s' does not have a corresponding toolchain" % tag.name)
+        for tag in mod.tags.feature_override:
+            if tag.name not in toolchain_names:
+                fail("feature_override '%s' does not have a corresponding toolchain" % tag.name)
 
     if bazel_features.external_deps.extension_metadata_has_reproducible:
         return module_ctx.extension_metadata(reproducible = True)
@@ -116,10 +125,46 @@ _attrs.pop("target_toolchain_roots", None)
 _attrs.pop("sysroot", None)
 _attrs.pop("extra_compiler_files_dict", None)
 _attrs.pop("extra_linker_files_dict", None)
+_attrs.pop("feature_condition", None)
+_attrs.pop("feature_variants", None)
+_attrs.pop("feature_base_llvm", None)
+
+# Tags cannot distinguish an omitted value from an explicitly supplied schema
+# default. `reset` clears inherited values in that case; nondefault settings
+# are ordinary typed toolchain attributes (including label-valued attributes).
+_NONEMPTY_DEFAULTS = {
+    "distribution": "auto",
+    "use_builtin_llvm_distributions": True,
+    "use_builtin_linker_distributions": True,
+}
+
+def _feature_override(tag):
+    settings = {}
+    for key in _override_attrs:
+        if key in ["name", "features", "not_features", "targets", "reset"] or key.startswith("_"):
+            continue
+        value = getattr(tag, key)
+        if (key in _NONEMPTY_DEFAULTS and value != _NONEMPTY_DEFAULTS[key]) or (key not in _NONEMPTY_DEFAULTS and value):
+            settings[key] = value
+    return llvm_feature_override(tag.features, tag.not_features, tag.targets, tag.reset, **settings)
+
+_override_attrs = {key: value for key, value in _llvm_config_attrs.items() if not key.startswith("_") and key not in ["feature_condition", "feature_variants", "feature_base_llvm"]}
+_override_attrs.update(_llvm_repo_attrs)
+_override_attrs.update({
+    "name": _attrs["name"],
+    "features": attr.string_list(),
+    "not_features": attr.string_list(),
+    "targets": attr.string_list(),
+    "reset": attr.string_list(),
+})
 
 llvm = module_extension(
     implementation = _llvm_impl_,
     tag_classes = {
+        "feature_override": tag_class(
+            doc = "Override any toolchain settings when all features and none of not_features are enabled in the build configuration. Reset inherited attributes with reset.",
+            attrs = _override_attrs,
+        ),
         "toolchain": tag_class(
             attrs = _attrs,
         ),
