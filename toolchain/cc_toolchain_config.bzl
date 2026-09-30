@@ -993,6 +993,39 @@ def cc_toolchain_config(
             "//conditions:default": [],
         })
 
+    darwin_thin_lto_features = []
+    if target_os == "darwin":
+        # rules_cc only declares thin_lto for ELF targets. Declaring that
+        # exact C++ feature here would activate Bazel's distributed LTO path,
+        # which requires --start-lib and ELF indexing options Apple ld lacks.
+        # Instead translate the build/host feature request into linker-managed
+        # ThinLTO, equivalent to passing -flto=thin at compile and link time.
+        # This deliberately does not interpret rule-local feature attributes.
+        cc_args(
+            name = name + "_darwin_thin_lto_args",
+            actions = [
+                "@rules_cc//cc/toolchains/actions:c_compile",
+                "@rules_cc//cc/toolchains/actions:cpp_compile",
+                "@rules_cc//cc/toolchains/actions:cpp_module_compile",
+                "@rules_cc//cc/toolchains/actions:cpp_module_codegen",
+                "@rules_cc//cc/toolchains/actions:cpp20_module_compile",
+                "@rules_cc//cc/toolchains/actions:cpp20_module_codegen",
+                "@rules_cc//cc/toolchains/actions:objc_compile",
+                "@rules_cc//cc/toolchains/actions:objcpp_compile",
+                "@rules_cc//cc/toolchains/actions:link_actions",
+            ],
+            args = ["-flto=thin"],
+        )
+        cc_feature(
+            name = name + "_darwin_thin_lto",
+            feature_name = name + "_darwin_thin_lto",
+            args = [":" + name + "_darwin_thin_lto_args"],
+        )
+        darwin_thin_lto_features = select({
+            str(Label("@toolchains_llvm//toolchain/config:use_thin_lto")): [":" + name + "_darwin_thin_lto"],
+            "//conditions:default": [],
+        })
+
     if compiler_configuration["extra_compile_flags"] != None:
         compile_flags.extend(_fmt_flags(compiler_configuration["extra_compile_flags"], toolchain_path_prefix))
     if compiler_configuration["extra_cxx_flags"] != None:
@@ -1059,6 +1092,6 @@ def cc_toolchain_config(
         coverage_link_flags = coverage_link_flags,
         supports_start_end_lib = supports_start_end_lib,
         builtin_sysroot = sysroot_path,
-        extra_enabled_features = nomsan_feature_labels + cpp_modules_enabled_features + extra_enabled_features + sanitizer_runtime_features,
+        extra_enabled_features = nomsan_feature_labels + cpp_modules_enabled_features + extra_enabled_features + sanitizer_runtime_features + darwin_thin_lto_features,
         extra_known_features = msan_feature_labels + extra_known_features,
     )

@@ -749,6 +749,15 @@ deps (also known as "depend on what you use") for `cc_*` rules. This feature
 can be enabled by enabling the `layering_check` feature on a per-target,
 per-package or global basis.
 
+### ThinLTO
+
+Use `bazel build -c opt --features=thin_lto //...`. Linux uses Bazel's separate
+ThinLTO indexing/backend actions; macOS uses linker-managed ThinLTO, passing
+`-flto=thin` during compilation and linking. On macOS this is selected through
+configuration-level `--features` (or `--host_features` for build tools), not
+rule-local `features` attributes. LLVM 23 on macOS still needs the native linker
+override described above.
+
 ### Sanitizers
 
 The toolchain can build with AddressSanitizer, UndefinedBehaviorSanitizer,
