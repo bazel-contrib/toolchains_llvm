@@ -52,7 +52,9 @@ done
 
 scripts_dir="$(dirname "${BASH_SOURCE[0]}")"
 source "${scripts_dir}/bazel.sh"
-"${bazel}" version
+# Do not start an idle server in the root workspace just to print the version:
+# its repo-cache garbage collection can race with the tests workspace's cleanup.
+"${bazel}" --version
 
 cd "${scripts_dir}"
 
