@@ -12,6 +12,10 @@
 // instrumented libc++ the program exits 0; otherwise MSan aborts and the test
 // fails.
 
+#if !__has_feature(memory_sanitizer)
+#error "THIS TEST REQUIRES MEMORYSANITIZER INSTRUMENTATION"
+#endif
+
 #include <cstdio>
 #include <iomanip>
 #include <limits>

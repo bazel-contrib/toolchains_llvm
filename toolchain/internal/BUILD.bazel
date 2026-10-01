@@ -13,10 +13,13 @@
 # limitations under the License.
 
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+load(":feature_overrides_test.bzl", "feature_overrides_test_suite")
 load("linker_distributions.bzl", "linker_version_test_writer")
 load("llvm_distributions.bzl", "distributions_test_writer", "prerelease_test_writer", "requirements_test_writer")
 
 exports_files(["template.modulemap"])
+
+feature_overrides_test_suite(name = "feature_overrides_tests")
 
 linker_version_test_writer(
     name = "linker_version_test_output",

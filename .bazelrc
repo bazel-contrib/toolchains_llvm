@@ -1,1 +1,5 @@
+# Tolerate transient registry/artifact failures and slower LLVM downloads.
+common --http_connector_attempts=10
+common --http_timeout_scaling=1.5
+
 try-import %workspace%/.bazelrc.user

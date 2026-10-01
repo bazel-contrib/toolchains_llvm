@@ -16,6 +16,7 @@ load(
     "//toolchain/internal:configure.bzl",
     _llvm_config_impl = "llvm_config_impl",
 )
+load("//toolchain/internal:feature_overrides.bzl", "can_share_llvm_archive", "feature_conditions_repository", "make_override", "merge_override")
 load(
     "//toolchain/internal:linker_distributions.bzl",
     "catalogued_linker_reference",
@@ -47,7 +48,46 @@ toolchain = repository_rule(
     implementation = _llvm_config_impl,
 )
 
-def llvm_toolchain(name, **kwargs):
+def llvm_feature_override(features = [], targets = [], reset = [], **settings):
+    """Override any public llvm_toolchain settings under build features.
+
+    Args:
+      features: Required build features; prefix a name with '-' to require it
+        to be absent or disabled. All conditions must match.
+      targets: Optional target OS/architecture keys limiting the condition.
+      reset: Inherited attribute names to reset before applying settings.
+      **settings: Ordinary llvm_toolchain attributes to override.
+
+    Returns:
+      An override for llvm_toolchain's feature_overrides list.
+    """
+    return make_override(features = features, targets = targets, reset = reset, **settings)
+
+def llvm_toolchain(name, feature_overrides = [], **kwargs):
+    """Create a toolchain and optional complete variants selected by features."""
+    if feature_overrides:
+        conditions_name = name + "_feature_conditions"
+        feature_conditions_repository(
+            name = conditions_name,
+            overrides = json.encode([{key: override[key] for key in ["features", "targets"]} for override in feature_overrides]),
+        )
+        manifests = []
+        for index, override in enumerate(feature_overrides):
+            variant_name = name + "_feature_" + str(index)
+            variant = merge_override(kwargs, override["settings"], override["reset"])
+
+            # Reuse the base archive when only toolchain configuration changes.
+            # This still permits overrides of every distribution attribute.
+            if can_share_llvm_archive(kwargs, override["settings"], override["reset"]):
+                variant["feature_base_llvm"] = "@{}//:BUILD.bazel".format(name + "_llvm")
+            variant["feature_condition"] = "@{}//:variant_{}".format(conditions_name, index)
+            _llvm_toolchain(name = variant_name, **variant)
+            manifests.append("@{}//:toolchain_manifest.json".format(variant_name))
+        kwargs["feature_condition"] = "@{}//:variant_default".format(conditions_name)
+        kwargs["feature_variants"] = manifests
+    _llvm_toolchain(name = name, **kwargs)
+
+def _llvm_toolchain(name, **kwargs):
     if kwargs.get("llvm_version") and kwargs.get("llvm_versions"):
         fail("Exactly one of llvm_version or llvm_versions must be set")
     if not kwargs.get("llvm_versions"):
@@ -85,7 +125,7 @@ def llvm_toolchain(name, **kwargs):
         )
         kwargs["linker_repository"] = "@{}_linkers//:linkers.json".format(name)
 
-    if not kwargs.get("toolchain_roots"):
+    if not kwargs.get("toolchain_roots") and not kwargs.get("feature_base_llvm"):
         llvm_args = {
             k: v
             for k, v in kwargs.items()

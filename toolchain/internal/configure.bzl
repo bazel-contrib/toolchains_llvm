@@ -123,11 +123,16 @@ def _detect_gcc_cxx_headers(rctx, sysroot_path, target_system_name):
     return include_dirs
 
 def _empty_repository(rctx):
-    rctx.file("BUILD.bazel")
-    rctx.file("toolchains.bzl", """\
-def llvm_register_toolchains():
-    pass
-""")
+    # A fallback may be unavailable on this execution platform while an
+    # override explicitly supplies a distribution or another execution platform.
+    registrations, names = _variant_registrations(rctx)
+    rctx.file("BUILD.bazel", "exports_files([\"toolchain_manifest.json\"])\n" + registrations)
+    rctx.file("toolchain_manifest.json", "[]")
+    rctx.template(
+        "toolchains.bzl",
+        rctx.attr._toolchains_bzl_tpl,
+        {"%{toolchain_labels}": ",\n        ".join([repr(name) for name in names])},
+    )
 
 def _join(path1, path2):
     if path1:
@@ -144,6 +149,8 @@ def llvm_config_impl(rctx):
     # still find the right roots. Keeping this in the rule impl (rather than the
     # macro) lets us tell "unset" apart from "explicitly set".
     target_toolchain_roots = rctx.attr.target_toolchain_roots or rctx.attr.toolchain_roots
+    if rctx.attr.feature_base_llvm and not target_toolchain_roots:
+        target_toolchain_roots = {"": str(rctx.attr.feature_base_llvm).rsplit(":", 1)[0]}
 
     _check_os_arch_keys(rctx.attr.toolchain_roots)
     _check_os_arch_keys(target_toolchain_roots)
@@ -161,7 +168,9 @@ def llvm_config_impl(rctx):
         return None
     arch = _arch(rctx)
 
-    if not rctx.attr.toolchain_roots:
+    if rctx.attr.feature_base_llvm:
+        toolchain_root = str(rctx.attr.feature_base_llvm).rsplit(":", 1)[0]
+    elif not rctx.attr.toolchain_roots:
         toolchain_root = ("@" if BZLMOD_ENABLED else "") + "@%s_llvm//" % rctx.attr.name
     else:
         _, toolchain_root = _exec_os_arch_dict_value(rctx, "toolchain_roots")
@@ -343,12 +352,13 @@ def llvm_config_impl(rctx):
         extra_enabled_features = rctx.attr.extra_enabled_features,
     )
     exec_dl_ext = "dylib" if os == "darwin" else "so"
-    cc_toolchains_str, toolchain_labels_str = _cc_toolchains_str(
+    cc_toolchains_str, toolchain_labels_str, registrations = _cc_toolchains_str(
         rctx,
         workspace_name,
         toolchain_info,
         use_absolute_paths_llvm,
     )
+    rctx.file("toolchain_manifest.json", json.encode(registrations))
 
     convenience_targets_str = _convenience_targets_str(
         rctx,
@@ -425,6 +435,7 @@ def _cc_toolchains_str(
 
     cc_toolchains_str = ""
     toolchain_names = []
+    registrations = []
     for (target_os, target_arch) in _supported_targets:
         if _is_standalone_arch(target_os, target_arch):
             suffix = target_arch
@@ -440,12 +451,51 @@ def _cc_toolchains_str(
         )
         if cc_toolchain_str:
             cc_toolchains_str = cc_toolchains_str + cc_toolchain_str
+            registrations.append(_toolchain_registration(rctx, suffix, target_os, target_arch, toolchain_info))
             toolchain_name = "@{}//:cc-toolchain-{}".format(workspace_name, suffix)
             toolchain_names.append(toolchain_name)
 
+    variant_registrations, variant_names = _variant_registrations(rctx)
+    cc_toolchains_str += variant_registrations
+    toolchain_names.extend(variant_names)
+
     sep = ",\n" + " " * 8  # 2 tabs with tabstop=4.
     toolchain_labels_str = sep.join(["\"{}\"".format(d) for d in toolchain_names])
-    return cc_toolchains_str, toolchain_labels_str
+    return cc_toolchains_str, toolchain_labels_str, registrations
+
+def _variant_registrations(rctx):
+    registrations = ""
+    names = []
+    for index, manifest in enumerate(rctx.attr.feature_variants):
+        for registration in json.decode(rctx.read(manifest)):
+            name = "feature-{}-{}".format(index, registration["name"])
+            registration["name"] = name
+            registrations += _registration_str(registration)
+            names.append("@{}//:{}".format(rctx.name, name))
+    return registrations, names
+
+def _toolchain_registration(rctx, suffix, target_os, target_arch, toolchain_info):
+    target_pair = _os_arch_pair(target_os, target_arch)
+    settings = _dict_value(toolchain_info.target_settings_dict, target_pair, [])
+    if rctx.attr.feature_condition:
+        settings = settings + [str(rctx.attr.feature_condition)]
+    return {
+        "name": "cc-toolchain-" + suffix,
+        "exec_compatible_with": [
+            str(Label("@platforms//cpu:" + toolchain_info.arch)),
+            str(Label("@platforms//os:" + _os_bzl(toolchain_info.os))),
+        ] + toolchain_info.extra_exec_compatible_with.get(target_pair, []) + toolchain_info.extra_exec_compatible_with.get("", []),
+        "target_compatible_with": [
+            str(Label("@platforms//cpu:" + target_arch)),
+            str(Label("@platforms//os:" + _os_bzl(target_os))),
+        ] + toolchain_info.extra_target_compatible_with.get(target_pair, []) + toolchain_info.extra_target_compatible_with.get("", []),
+        "target_settings": settings,
+        "toolchain": "{}@{}//:cc-clang-{}".format("@" if BZLMOD_ENABLED else "", rctx.name, suffix),
+        "toolchain_type": "@bazel_tools//tools/cpp:toolchain_type",
+    }
+
+def _registration_str(registration):
+    return "\ntoolchain(\n" + "".join(["    {} = {},\n".format(key, repr(value)) for key, value in registration.items()]) + ")\n"
 
 # Gets a value from the dict for the target pair, falling back to an empty
 # key, if present.  Bazel 4.* doesn't support nested starlark functions, so
@@ -524,9 +574,6 @@ def _cc_toolchain_str(
         use_absolute_paths_llvm):
     exec_os = toolchain_info.os
     exec_arch = toolchain_info.arch
-
-    exec_os_bzl = _os_bzl(exec_os)
-    target_os_bzl = _os_bzl(target_os)
 
     target_pair = _os_arch_pair(target_os, target_arch)
 
@@ -745,20 +792,7 @@ cc_toolchain_config(
     linker_supports_start_end_lib = {linker_supports_start_end_lib},
 )
 
-toolchain(
-    name = "cc-toolchain-{suffix}",
-    exec_compatible_with = [
-        "@platforms//cpu:{exec_arch}",
-        "@platforms//os:{exec_os_bzl}",
-    ] + {extra_exec_compatible_with_specific} + {extra_exec_compatible_with_all_targets},
-    target_compatible_with = [
-        "@platforms//cpu:{target_arch}",
-        "@platforms//os:{target_os_bzl}",
-    ] + {extra_target_compatible_with_specific} + {extra_target_compatible_with_all_targets},
-    target_settings = {target_settings},
-    toolchain = ":cc-clang-{suffix}",
-    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
-)
+{toolchain_registration}
 """
 
     template = template + """
@@ -954,15 +988,13 @@ filegroup(
         )
 
     return template.format(
+        toolchain_registration = _registration_str(_toolchain_registration(rctx, suffix, target_os, target_arch, toolchain_info)),
         suffix = suffix,
         target_os = target_os,
         target_arch = target_arch,
         exec_os = exec_os,
         exec_arch = exec_arch,
-        target_settings = _list_to_string(_dict_value(toolchain_info.target_settings_dict, target_pair)),
-        target_os_bzl = target_os_bzl,
         target_system_name = target_system_name,
-        exec_os_bzl = exec_os_bzl,
         llvm_dist_label_prefix = toolchain_info.llvm_dist_label_prefix,
         llvm_dist_path_prefix = toolchain_info.llvm_dist_path_prefix,
         toolchain_root = toolchain_info.toolchain_root,
@@ -1016,10 +1048,6 @@ filegroup(
         # explicit legacy file list and still need the selected linker here.
         linker_file = repr(linker.file) + "," if linker.file and not bazel_features.rules.merkle_cache_v2 else "",
         extra_linker_files = ("\"%s\"," % _extra_linker_label) if _extra_linker_label else "",
-        extra_exec_compatible_with_specific = toolchain_info.extra_exec_compatible_with.get(target_pair, []),
-        extra_target_compatible_with_specific = toolchain_info.extra_target_compatible_with.get(target_pair, []),
-        extra_exec_compatible_with_all_targets = toolchain_info.extra_exec_compatible_with.get("", []),
-        extra_target_compatible_with_all_targets = toolchain_info.extra_target_compatible_with.get("", []),
         runtime_lib_attrs = runtime_lib_attrs,
         sanitizer_runtime_filegroup = runtime_lib_filegroup,
     )

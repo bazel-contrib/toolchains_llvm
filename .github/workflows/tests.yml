@@ -106,6 +106,36 @@ jobs:
           USE_BAZEL_VERSION: ${{ matrix.bazel_version }}
           USE_BZLMOD: ${{ matrix.bzlmod }}
         run: tests/scripts/run_toolchain_tests.sh
+  feature_override_test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            bazel_version: 9.*
+            bzlmod: true
+          - os: ubuntu-latest
+            bazel_version: 9.*
+            bzlmod: true
+          - os: macos-latest
+            bazel_version: 8.*
+            bzlmod: false
+          - os: ubuntu-latest
+            bazel_version: 8.*
+            bzlmod: false
+          - os: ubuntu-latest
+            bazel_version: 7.*
+            bzlmod: true
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - if: startsWith(matrix.os, 'ubuntu')
+        run: tests/scripts/ubuntu_install_libtinfo.sh
+      - name: Test feature-selected toolchains and fallback
+        env:
+          USE_BAZEL_VERSION: ${{ matrix.bazel_version }}
+          USE_BZLMOD: ${{ matrix.bzlmod }}
+        run: tests/scripts/run_feature_override_tests.sh
   local_linker_test:
     strategy:
       fail-fast: false
@@ -294,6 +324,7 @@ jobs:
       - cpp_modules_test
       - llvm_23_archive_test
       - toolchain_test
+      - feature_override_test
       - local_linker_test
       - mold_linker_test
       - external_test

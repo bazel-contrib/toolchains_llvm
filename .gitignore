@@ -1,5 +1,6 @@
 /bazel-*
 /tests/bazel-*
+/tests/feature_overrides/bazel-*
 /toolchain/tools/__pycache__
 /toolchain/tools/host_os_key.pyc
 MODULE.bazel.lock

@@ -1,3 +1,6 @@
+common --http_connector_attempts=10
+common --http_timeout_scaling=1.5
+
 common --incompatible_disallow_empty_glob
 common --nolegacy_external_runfiles
 common --features=layering_check
