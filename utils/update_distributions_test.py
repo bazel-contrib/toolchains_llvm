@@ -15,19 +15,23 @@ def release(version, digest="a" * 64):
 
 
 class UpdateTest(unittest.TestCase):
-    def test_llvm_catalogue_keeps_xz_and_zstd(self):
+    def test_llvm_catalogue_keeps_all_compressions_and_checksums(self):
+        expected = {
+            "LLVM-23.1.2-Linux-X64.tar." + suffix: format(index, "064x")
+            for index, suffix in enumerate(["xz", "zst", "gz"], start=1)
+        }
         releases = [{
             "tag_name": "llvmorg-23.1.2",
             "draft": False,
             "assets": [
-                {"name": "LLVM-23.1.2-Linux-X64.tar." + suffix, "digest": "sha256:" + suffix[0] * 64}
-                for suffix in ["xz", "zst"]
+                {"name": name, "digest": "sha256:" + digest}
+                for name, digest in expected.items()
             ],
         }]
         entries = update.collect_llvm_entries(releases, {})
         self.assertEqual(
-            {name for _, name, _ in entries},
-            {"LLVM-23.1.2-Linux-X64.tar.xz", "LLVM-23.1.2-Linux-X64.tar.zst"},
+            {name: digest for _, name, digest in entries},
+            expected,
         )
 
     def test_latest_three_plus_bcr(self):

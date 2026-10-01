@@ -1,6 +1,12 @@
 load("@rules_python//python:defs.bzl", "py_test")
 
 py_test(
+    name = "extra_distributions_test",
+    srcs = ["extra_distributions_test.py"],
+    data = ["extra_distributions.sh"],
+)
+
+py_test(
     name = "update_distributions_test",
     srcs = [
         "update_distributions.py",
