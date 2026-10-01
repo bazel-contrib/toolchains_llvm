@@ -899,9 +899,28 @@ def cc_toolchain_config(
         baked_link_stdlib_flags = []
         baked_link_libs_stdlib = []
     else:
-        # MSan is only supported on Linux (where it is wired through the `msan`
-        # cc_feature above), so non-Linux toolchains always use the configured
-        # standard library and never the instrumented libc++.
+        # Bazel silently ignores a requested feature that the selected
+        # cc_toolchain does not declare. Declare msan on unsupported targets
+        # and pass a private marker that the compiler wrapper turns into a
+        # prominent fatal error, rather than allowing an uninstrumented build.
+        cc_args(
+            name = name + "_unsupported_msan_args",
+            actions = [
+                "@rules_cc//cc/toolchains/actions:c_compile",
+                "@rules_cc//cc/toolchains/actions:cpp_compile_actions",
+                "@rules_cc//cc/toolchains/actions:link_actions",
+            ] + CPP_MODULE_ACTIONS,
+            args = ["--toolchains_llvm-unsupported-msan={}".format(target_os.upper())],
+        )
+        cc_feature(
+            name = name + "_unsupported_msan",
+            feature_name = "msan",
+            args = [":" + name + "_unsupported_msan_args"],
+        )
+        msan_feature_labels = [":" + name + "_unsupported_msan"]
+
+        # Non-Linux toolchains always use the configured standard library and
+        # never the instrumented libc++.
         baked_compile_include_flags = normal_compile_include_flags
         baked_cxx_isystem_flags = default_cxx_isystem_flags
         baked_link_stdlib_flags = default_link_search_flags
