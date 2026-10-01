@@ -1,0 +1,51 @@
+# Copyright 2026 The Bazel Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load(":flags_test.bzl", "thin_lto_flags_tests")
+
+cc_library(
+    name = "c_part",
+    srcs = ["c_part.c"],
+)
+
+cc_library(
+    name = "cpp_part",
+    srcs = ["cpp_part.cc"],
+    deps = [":c_part"],
+)
+
+# The unresolved symbol in main disappears only after cross-translation-unit
+# optimization through both C and C++ static libraries. A non-LTO link fails.
+cc_test(
+    name = "thin_lto_test",
+    srcs = ["main.cc"],
+    linkopts = ["-Wl,-undefined,error"],
+    linkstatic = True,
+    tags = ["manual"],
+    target_compatible_with = ["@platforms//os:macos"],
+    deps = [":cpp_part"],
+)
+
+thin_lto_flags_tests(name = "flags_tests")
+
+genrule(
+    name = "thin_lto_tool",
+    testonly = True,
+    outs = ["thin_lto_tool.txt"],
+    cmd = "$(location :thin_lto_test) && touch $@",
+    tags = ["manual"],
+    target_compatible_with = ["@platforms//os:macos"],
+    tools = [":thin_lto_test"],
+)
