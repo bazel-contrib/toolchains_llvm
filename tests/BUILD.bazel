@@ -40,9 +40,12 @@ cc_test(
 )
 
 # conly_flags, given with an empty key, reach C compiles and not C++ ones.
+# Only @llvm_toolchain sets them, so conly_flags_test is `manual` and
+# run_tests.sh adds it when testing the default toolchain.
 cc_test(
     name = "conly_flags_test",
     srcs = ["conly_flags_test.c"],
+    tags = ["manual"],
 )
 
 cc_test(

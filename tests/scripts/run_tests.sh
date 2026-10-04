@@ -76,6 +76,8 @@ targets=(
 # toolchain won't work so :test_cxx_standard_is_20 won't build.
 if [[ -z "${toolchain_name}" ]]; then
   targets+=("//:test_cxx_standard_is_20")
+  # :conly_flags_test checks conly_flags that only @llvm_toolchain sets.
+  targets+=("//:conly_flags_test")
   # :extra_files_compile_test depends on extra_compiler_files on @llvm_toolchain;
   # restricted to linux because the cc_test target uses linux-only constraints.
   if [[ ${OSTYPE} == 'linux'* ]]; then
