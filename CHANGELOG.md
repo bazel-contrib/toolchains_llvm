@@ -7,6 +7,14 @@ exhaustive list of fixes, dependency updates, or newly catalogued LLVM archives.
 See the [GitHub releases](https://github.com/bazel-contrib/toolchains_llvm/releases)
 for release artifacts and the [README](README.md) for configuration and requirements.
 
+## 1.11.1
+
+- Select the matching LLVM `libLTO.dylib` by absolute path when linking on
+  macOS. Apple's linker in Command Line Tools 26.2 otherwise ignores Clang's
+  relative plugin path and uses its older library, failing to read newer LLVM
+  ThinLTO bitcode. Native links retain explicit user-provided LTO libraries;
+  compile-only actions, LLD, and non-Darwin targets are unchanged.
+
 ## 1.11.0
 
 ### Added

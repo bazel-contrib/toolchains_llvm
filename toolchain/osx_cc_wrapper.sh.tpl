@@ -35,6 +35,12 @@ LIBS=
 LIB_DIRS=
 RPATHS=
 OUTPUT=
+NOT_LINKING=
+LINKER_PATH=
+LINKER_FLAVOR=
+LTO_LIBRARY_SPECIFIED=
+TARGET_TRIPLE=
+NEXT_DRIVER_ARG=
 CLEANUP_FILES=()
 
 function cleanup() {
@@ -47,6 +53,32 @@ trap cleanup EXIT
 
 function parse_option() {
   local -r opt="$1"
+  # Keep driver options distinct from arguments forwarded to another tool.
+  # In particular, `-Xlinker -S` strips debug info; it is not compile-only.
+  if [[ ${NEXT_DRIVER_ARG} == target ]]; then
+    TARGET_TRIPLE=${opt}
+    NEXT_DRIVER_ARG=
+  elif [[ ${NEXT_DRIVER_ARG} == forwarded ]]; then
+    if [[ ${opt} == "-lto_library" ]]; then
+      LTO_LIBRARY_SPECIFIED=1
+    fi
+    NEXT_DRIVER_ARG=
+  else
+    case ${opt} in
+    -c | -S | -E | -fsyntax-only | -M | -MM | --analyze | -emit-ast) NOT_LINKING=1 ;;
+    --ld-path=*) LINKER_PATH=${opt#*=} ;;
+    -fuse-ld=*) LINKER_FLAVOR=${opt#*=} ;;
+    --target=*) TARGET_TRIPLE=${opt#*=} ;;
+    -target | --target) NEXT_DRIVER_ARG=target ;;
+    -Xlinker | -Xclang | -Xassembler | -Xpreprocessor) NEXT_DRIVER_ARG=forwarded ;;
+    -Wl,*)
+      case ,${opt#-Wl,}, in
+      *,-lto_library,*) LTO_LIBRARY_SPECIFIED=1 ;;
+      esac
+      ;;
+    esac
+  fi
+
   if [[ ${OUTPUT} == "1" ]]; then
     OUTPUT=${opt}
   elif [[ ${opt} =~ ^-l(.*)$ ]]; then
@@ -162,7 +194,7 @@ for ((i = 0; i <= $#; i++)); do
         sanitize_option "${opt}"
       )"
       parse_option "${opt}"
-      echo "${opt}" >>"${tmpfile}"
+      printf '%s\n' "${opt}" >>"${tmpfile}"
     done <"${!i:1}"
     cmd+=("@${tmpfile}")
   else
@@ -174,6 +206,25 @@ for ((i = 0; i <= $#; i++)); do
     cmd+=("${opt}")
   fi
 done
+
+# Clang's -no-canonical-prefixes makes its automatic -lto_library path relative
+# to the execroot. Apple ld in CLT 26.2 ignores that relative path and uses its
+# older libLTO instead, which cannot read newer LLVM bitcode. CLT 27 accepts the
+# relative path. Pass the matching library's absolute path at execution time so
+# both versions work without embedding a machine-specific path in the action.
+# This also covers bitcode from libraries when the link has no explicit -flto.
+case ${TARGET_TRIPLE} in
+"" | *-apple-* | *-darwin*) darwin_target=1 ;;
+*) darwin_target= ;;
+esac
+case ${LINKER_PATH:-${LINKER_FLAVOR}} in
+*lld) uses_lld=1 ;;
+*) uses_lld= ;;
+esac
+if [[ -n ${darwin_target} && -z ${NOT_LINKING} && -z ${uses_lld} && -z ${LTO_LIBRARY_SPECIFIED} && -f "${toolchain_path_prefix}lib/libLTO.dylib" ]]; then
+  # The last -lto_library wins. Separate arguments preserve spaces and commas.
+  cmd+=("-Xlinker" "-lto_library" "-Xlinker" "${toolchain_path_prefix_abs}lib/libLTO.dylib")
+fi
 
 # Call the C++ compiler.
 "${cmd[@]}"
