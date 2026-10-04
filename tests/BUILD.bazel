@@ -39,6 +39,17 @@ cc_test(
     srcs = ["stdatomic_test.c"],
 )
 
+# conly_flags, given with an empty key, reach C compiles and not C++ ones.
+cc_test(
+    name = "conly_flags_test",
+    srcs = ["conly_flags_test.c"],
+)
+
+cc_test(
+    name = "conly_flags_cxx_test",
+    srcs = ["conly_flags_cxx_test.cc"],
+)
+
 # We want to test a `.stripped` target to make sure `llvm-strip` can be called.
 #
 # For this we need `cc_binary`; `cc_test` does not create `.stripped` targets.

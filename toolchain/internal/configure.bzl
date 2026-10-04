@@ -1009,7 +1009,7 @@ filegroup(
         cxx_include_layout = toolchain_info.cxx_include_layout_dict.get(target_pair, ""),
         cxx_standard = _dict_value(toolchain_info.cxx_standard_dict, target_pair, "c++17"),
         compile_flags = _list_to_string(_dict_value(toolchain_info.compile_flags_dict, target_pair)),
-        conly_flags = _list_to_string(toolchain_info.conly_flags_dict.get(target_pair, [])),
+        conly_flags = _list_to_string(_dict_value(toolchain_info.conly_flags_dict, target_pair, [])),
         cxx_flags = _list_to_string(_dict_value(toolchain_info.cxx_flags_dict, target_pair)),
         link_flags = _list_to_string(_dict_value(toolchain_info.link_flags_dict, target_pair)),
         archive_flags = _list_to_string(_dict_value(toolchain_info.archive_flags_dict, target_pair)),
