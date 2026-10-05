@@ -253,6 +253,9 @@ def llvm_config_impl(rctx):
         tools = _toolchain_tools(os)
         for tool_name, symlink_name in tools.items():
             rctx.symlink(paths.join(llvm_dist_rel_path, "bin", tool_name), paths.join(tools_path_prefix, symlink_name))
+            if tool_name == "clangd":
+                # A symlinked `clangd` looks for `include/` headers relative to itself
+                rctx.symlink(paths.join(llvm_dist_rel_path, "include"), "include")
         symlinked_tools_str = "".join([
             "\n" + (" " * 8) + "\"" + paths.join(tools_path_prefix, symlink_name) + "\","
             for symlink_name in tools.values()
@@ -1074,6 +1077,9 @@ def _convenience_targets_str(rctx, use_absolute_paths, llvm_dist_rel_path, llvm_
         for toolname in _aliased_tools:
             filename = "bin/{}".format(toolname)
             filenames.append(filename)
+            if toolname == "clangd":
+                # A symlinked `clangd` looks for `include/` headers relative to itself
+                filenames.append("include")
 
         for filename in filenames:
             rctx.symlink(paths.join(llvm_dist_rel_path, filename), filename)
