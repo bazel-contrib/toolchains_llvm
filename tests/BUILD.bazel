@@ -39,6 +39,20 @@ cc_test(
     srcs = ["stdatomic_test.c"],
 )
 
+# conly_flags, given with an empty key, reach C compiles and not C++ ones.
+# Only @llvm_toolchain sets them, so conly_flags_test is `manual` and
+# run_tests.sh adds it when testing the default toolchain.
+cc_test(
+    name = "conly_flags_test",
+    srcs = ["conly_flags_test.c"],
+    tags = ["manual"],
+)
+
+cc_test(
+    name = "conly_flags_cxx_test",
+    srcs = ["conly_flags_cxx_test.cc"],
+)
+
 # We want to test a `.stripped` target to make sure `llvm-strip` can be called.
 #
 # For this we need `cc_binary`; `cc_test` does not create `.stripped` targets.
