@@ -599,8 +599,13 @@ def _cc_toolchain_str(
     )
 
     if not sysroot_path:
-        if exec_os == target_os and exec_arch == target_arch:
-            # For darwin -> darwin, we can use the macOS SDK path.
+        if exec_os == target_os and (exec_arch == target_arch or exec_os == "darwin"):
+            # The macOS SDK is universal: the detected SDK also works when
+            # crossing between Darwin architectures on the same machine.
+            #
+            # NOTE: Apple might someday drop x86_64 from the SDK, but has not announced that yet.
+            # Apple's macOS 27's SDK still supports x86_64, even though 26 is the last release for Intel Macs:
+            # https://developer.apple.com/documentation/xcode-release-notes/xcode-27-release-notes
             sysroot_path = _default_sysroot_path(rctx, exec_os)
         elif (target_os, target_arch) in _supported_no_sysroot_targets:
             sysroot_path = ""
