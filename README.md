@@ -670,8 +670,9 @@ llvm.toolchain(
 )
 ```
 
-The bundled catalogue currently contains mold 2.40.4 (the version published in
-the Bazel Central Registry), 2.41.0, 2.42.0, and 2.42.1.
+The bundled catalogue includes mold 3.0.0 and retains previously catalogued
+versions. See [`linkers.jsonc`](toolchain/distributions/linkers.jsonc) for the
+complete version list.
 
 Module-based version selection does not bypass the catalogue. If dependency
 management updates mold to a release that toolchains_llvm does not yet know,
@@ -877,9 +878,11 @@ archive compatibility is decided by the toolchain selector, not the scripts.
 - **`utils/update_distributions.sh`** — invokes `utils/update_distributions.py`
   to refresh [`github.jsonc`](toolchain/distributions/github.jsonc) from LLVM
   releases and [`linkers.jsonc`](toolchain/distributions/linkers.jsonc) from
-  mold releases. The linker catalogue includes the mold version in the Bazel
-  Central Registry and the three newest stable mold releases. Use this when
-  contributing new releases to the bundled lists.
+  mold releases. It refreshes the mold version in the Bazel Central Registry
+  and the three newest stable mold releases, preserving previously catalogued
+  versions, other linkers, and additional execution platforms. Catalogue
+  removals require an explicit change; updates do not prune older entries.
+  Use this when contributing new releases to the bundled lists.
   The script also regenerates the distribution test golden files so
   the diff stays self-contained. No tarballs are downloaded — checksums come
   from GitHub's release-asset `.digest` field, with existing values
