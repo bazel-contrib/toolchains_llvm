@@ -690,11 +690,8 @@ def cc_toolchain_config(
     # https://github.com/bazelbuild/rules_cc/blob/fe41fc4ea219c9d3680ee536bba6681f3baf838e/cc/private/toolchain/unix_cc_toolchain_config.bzl#L1887
     # NOTE: Ensure these are listed in toolchain_tools in toolchain/internal/common.bzl.
 
-    # This assumes we're not using `absolute_paths=False`, which will attempt to use a symlinked version of this called
-    # just `libtool`. I think it would be pretty straight forward to fix this, but as we don't use
-    # `absolute_paths=False` in Sorbet, it doesn't seem very important right now.
     libtool_name = "libtool"
-    if use_libtool and exec_os == "darwin":
+    if use_libtool and tools_path_prefix.startswith("/"):
         libtool_name = "llvm-libtool-darwin"
 
     tool_paths = {
