@@ -7,6 +7,21 @@ exhaustive list of fixes, dependency updates, or newly catalogued LLVM archives.
 See the [GitHub releases](https://github.com/bazel-contrib/toolchains_llvm/releases)
 for release artifacts and the [README](README.md) for configuration and requirements.
 
+## 1.11.2
+
+- Honor the empty-key fallback in `conly_flags` for every target, matching the
+  other flag attributes. These flags apply to C compilation only, not C++.
+- Preserve existing linker catalogue versions and execution platforms during
+  distribution updates, including mold 2.41.0. The BCR version and three newest
+  stable mold releases determine which entries to refresh, not which to retain;
+  removing an existing entry requires an explicit change.
+- Add checksum-pinned LLVM 23.1.3 archives. Both xz and zstd metadata are retained;
+  unsupported zstd archives remain excluded from selection.
+- Add mold 3.0.0 for Linux ARM64 and x86_64. Unconstrained mold `latest` now
+  selects 3.0.0; previously catalogued versions remain available for exact pins.
+- Update `rules_cc` to 0.2.26 in WORKSPACE and test configurations, and
+  `rules_python` to 2.4.1 in the test configurations.
+
 ## 1.11.1
 
 - Select the matching LLVM `libLTO.dylib` by absolute path when linking on
