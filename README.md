@@ -117,9 +117,9 @@ or local path as the key to replace its source as well. Both `.tar.xz` and
 `.tar.zst` assets are retained, but xz is selected until Bazel can unpack
 LLVM's large-window zstd archives.
 
-On macOS, LLVM 23 requires a linker override such as
-`linker = {"darwin-aarch64": "auto"}` with current SDKs. Its bundled linker is
-fixed in LLVM 24.
+On macOS, LLVM 23.1.0 to 23.1.2 require a linker override such as
+`linker = {"darwin-aarch64": "auto"}` with current SDKs. Their bundled linker
+is fixed in LLVM 23.1.3.
 
 Set `use_builtin_llvm_distributions = False` only when the bundled distribution
 table must be ignored completely. It removes all bundled checksums and URLs

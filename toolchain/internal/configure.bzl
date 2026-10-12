@@ -183,7 +183,7 @@ def llvm_config_impl(rctx):
         _empty_repository(rctx)
         return None
     if os == "darwin" and _llvm_23_macos_uses_bundled_linker(llvm_version, rctx.attr.linker):
-        print("\nWARNING: LLVM 23's bundled macOS linker cannot parse current SDK TAPI files. Override Darwin targets with linker = {\"darwin-aarch64\": \"auto\", \"darwin-x86_64\": \"auto\"}; the bundled linker is fixed in LLVM 24.")  # buildifier: disable=print
+        print("\nWARNING: The macOS linker bundled with LLVM 23 before 23.1.3 cannot parse current SDK TAPI files. Use LLVM 23.1.3 or later, or override Darwin targets with linker = {\"darwin-aarch64\": \"auto\", \"darwin-x86_64\": \"auto\"}.")  # buildifier: disable=print
     use_absolute_paths_llvm = rctx.attr.absolute_paths
     use_absolute_paths_sysroot = use_absolute_paths_llvm
 

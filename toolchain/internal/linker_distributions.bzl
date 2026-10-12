@@ -14,6 +14,7 @@
 
 """Downloads versioned linker executables from the linker catalogue."""
 
+load("@mboworks_bzl//bzl/versions:versions.bzl", "versions")
 load("//toolchain/internal:common.bzl", "is_absolute_path")
 load("//toolchain/internal:distributions_repo.bzl", "load_jsonc")
 load("//toolchain/internal:llvm_distributions.bzl", "resolve_version")
@@ -27,8 +28,10 @@ def catalogued_linker_reference(selection, version):
     return "{}@{}".format(selection, version) if version else selection
 
 def llvm_23_macos_uses_bundled_linker(llvm_version, linker_dict):
-    """Whether any Darwin target retains LLVM 23's bundled linker."""
-    if not llvm_version.startswith("23."):
+    """Whether any Darwin target retains a bundled LLVM 23 linker without arm64e.x1 support."""
+
+    # LLVM 23.1.3 backports arm64e.x1 support to ld64.lld (llvm/llvm-project#224185).
+    if not llvm_version.startswith("23.") or not versions.lt(llvm_version, "23.1.3"):
         return False
     default = linker_dict.get("", "")
     return any([
@@ -238,6 +241,7 @@ def _linker_version_test_writer_impl(ctx):
             ("23 defaults", "23.1.2", {}),
             ("23 both auto", "23.1.2", {"darwin-aarch64": "auto", "darwin-x86_64": "auto"}),
             ("23 partial override", "23.1.2", {"darwin-aarch64": "auto"}),
+            ("23.1.3 defaults", "23.1.3", {}),
             ("24 defaults", "24.1.0", {}),
         ]
     ]
