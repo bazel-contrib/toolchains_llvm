@@ -710,7 +710,8 @@ def cc_toolchain_config(
     # clang. Bundled LLD supports it; arbitrary local linkers are conservative.
     supports_start_end_lib = linker_supports_start_end_lib
 
-    # Replace flags with any user-provided overrides.
+    # Replace flags with any user-provided overrides. compile_flags, cxx_flags
+    # and link_flags cannot: their defaults include computed values.
     if compiler_configuration["compile_flags"] != None:
         compile_flags.extend(_fmt_flags(compiler_configuration["compile_flags"], toolchain_path_prefix))
     if compiler_configuration["cxx_flags"] != None:
@@ -718,23 +719,23 @@ def cc_toolchain_config(
     if compiler_configuration["link_flags"] != None:
         link_flags.extend(_fmt_flags(compiler_configuration["link_flags"], toolchain_path_prefix))
     if compiler_configuration["archive_flags"] != None:
-        archive_flags.extend(_fmt_flags(compiler_configuration["archive_flags"], toolchain_path_prefix))
+        archive_flags = _fmt_flags(compiler_configuration["archive_flags"], toolchain_path_prefix)
     if compiler_configuration["link_libs"] != None:
-        link_libs.extend(_fmt_flags(compiler_configuration["link_libs"], toolchain_path_prefix))
+        link_libs = _fmt_flags(compiler_configuration["link_libs"], toolchain_path_prefix)
     if compiler_configuration["opt_compile_flags"] != None:
-        opt_compile_flags.extend(_fmt_flags(compiler_configuration["opt_compile_flags"], toolchain_path_prefix))
+        opt_compile_flags = _fmt_flags(compiler_configuration["opt_compile_flags"], toolchain_path_prefix)
     if compiler_configuration["opt_link_flags"] != None:
-        opt_link_flags.extend(_fmt_flags(compiler_configuration["opt_link_flags"], toolchain_path_prefix))
+        opt_link_flags = _fmt_flags(compiler_configuration["opt_link_flags"], toolchain_path_prefix)
     if compiler_configuration["dbg_compile_flags"] != None:
-        dbg_compile_flags.extend(_fmt_flags(compiler_configuration["dbg_compile_flags"], toolchain_path_prefix))
+        dbg_compile_flags = _fmt_flags(compiler_configuration["dbg_compile_flags"], toolchain_path_prefix)
     if compiler_configuration["fastbuild_compile_flags"] != None:
-        fastbuild_compile_flags.extend(_fmt_flags(compiler_configuration["fastbuild_compile_flags"], toolchain_path_prefix))
+        fastbuild_compile_flags = _fmt_flags(compiler_configuration["fastbuild_compile_flags"], toolchain_path_prefix)
     if compiler_configuration["coverage_compile_flags"] != None:
-        coverage_compile_flags.extend(_fmt_flags(compiler_configuration["coverage_compile_flags"], toolchain_path_prefix))
+        coverage_compile_flags = _fmt_flags(compiler_configuration["coverage_compile_flags"], toolchain_path_prefix)
     if compiler_configuration["coverage_link_flags"] != None:
-        coverage_link_flags.extend(_fmt_flags(compiler_configuration["coverage_link_flags"], toolchain_path_prefix))
+        coverage_link_flags = _fmt_flags(compiler_configuration["coverage_link_flags"], toolchain_path_prefix)
     if compiler_configuration["unfiltered_compile_flags"] != None:
-        unfiltered_compile_flags.extend(_fmt_flags(compiler_configuration["unfiltered_compile_flags"], toolchain_path_prefix))
+        unfiltered_compile_flags = _fmt_flags(compiler_configuration["unfiltered_compile_flags"], toolchain_path_prefix)
 
     # Turn the accumulated include directories into search-path flags. The C++
     # standard library dirs are searched first (-cxx-isystem) and the C/system
