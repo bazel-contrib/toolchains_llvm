@@ -19,4 +19,5 @@ merged override -> override
 23 defaults -> True
 23 both auto -> False
 23 partial override -> True
+23.1.3 defaults -> False
 24 defaults -> False
