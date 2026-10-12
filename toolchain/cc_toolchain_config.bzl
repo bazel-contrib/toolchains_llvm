@@ -260,7 +260,7 @@ def cc_toolchain_config(
     compile_flags = target_flags + [
         # Security
         "-U_FORTIFY_SOURCE",  # https://github.com/google/sanitizers/issues/247
-        "-fstack-protector",
+        "-fstack-protector-strong",
         "-fno-omit-frame-pointer",
         # Diagnostics
         "-fcolor-diagnostics",
