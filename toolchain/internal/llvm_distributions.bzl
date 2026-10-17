@@ -26,6 +26,7 @@ load(
     "host_info",
 )
 load("//toolchain/internal:distributions_repo.bzl", "load_distribution_files")
+load("//toolchain/internal:version_selectors.bzl", _allows_prerelease = "allows_prerelease", _matches_requirements = "matches", _parse_requirements = "parse_requirements")
 
 # The merged distribution table is built at module-load time by the
 # `llvm_distributions` module extension (see
@@ -61,21 +62,25 @@ _llvm_distribution_urls = LLVM_DISTRIBUTION_URLS
 _DEFAULT_URL_TEMPLATE = "https://github.com/llvm/llvm-project/releases/download/llvmorg-{version}/"
 
 def _parse_version(v):
-    return tuple(versions.parse(v))
+    return tuple(versions.parse(v, mode = "semver"))
 
 def _version_string(version):
     core = []
-    suffix = ""
+    prerelease = []
+    build = []
+    phase = 0
     for part in version:
-        if part in ["-", "+"]:
-            suffix += part
-        elif suffix:
-            # The versions helper tokenizes LLVM's `rc3` identifier as
-            # `"rc", 3`; LLVM release tags use the compact spelling.
-            suffix += str(part)
-        else:
+        if phase == 0 and part == "-":
+            phase = 1
+        elif phase < 2 and part == "+":
+            phase = 2
+        elif phase == 0:
             core.append(str(part))
-    return ".".join(core) + suffix
+        elif phase == 1:
+            prerelease.append(str(part))
+        else:
+            build.append(str(part))
+    return ".".join(core) + ("-" + ".".join(prerelease) if prerelease else "") + ("+" + ".".join(build) if build else "")
 
 def _distribution_basename(distribution):
     return distribution.split("?", 1)[0].split("#", 1)[0].split("/")[-1].split("\\")[-1].replace("%2B", "+")
@@ -90,37 +95,15 @@ def _distribution_version_string(distribution):
         version += "-" + parts[2]
     return version
 
-def _is_prerelease(version):
-    return "-" in version
-
-def _parsed_version_core(parsed):
-    core = []
-    for part in parsed:
-        if part in ["-", "+"]:
-            break
-        core.append(part)
-    return tuple(core)
-
-def _version_core(version):
-    return _parsed_version_core(_parse_version(version))
-
 def _requirements_allow_prerelease(version, requirements):
-    if not _is_prerelease(version):
-        return True
-    if not requirements:
-        return False
-    core = _version_core(version)
-    return any([
-        "-" in requirement.version and _parsed_version_core(requirement.version) == core
-        for requirement in requirements
-    ])
+    return _allows_prerelease(version, requirements)
 
-def _sort_versions(version_strings, *, reverse):
+def _sort_versions(version_strings, *, reverse = False):
     result = []
     for version in version_strings:
         inserted = False
         for pos in range(len(result)):
-            if versions.cmp(result[pos], version) >= 0:
+            if versions.cmp(result[pos], version, mode = "semver") >= 0:
                 result = result[:pos] + [version] + result[pos:]
                 inserted = True
                 break
@@ -609,7 +592,7 @@ def _is_requirement(version_or_requirements):
 def _parse_version_or_requirements(version_or_requirements):
     for prefix in ["latest:", "first:"]:
         if version_or_requirements.startswith(prefix):
-            return versions.parse_requirements(version_or_requirements.removeprefix(prefix))
+            return _parse_requirements(version_or_requirements.removeprefix(prefix))
     if version_or_requirements in ["latest", "first"]:
         return None
     if not _is_requirement(version_or_requirements):
@@ -632,7 +615,9 @@ def resolve_version(version_or_requirements, available_versions):
 
     requirements = _parse_version_or_requirements(version_or_requirements)
     for version in _sort_versions(available_versions, reverse = version_or_requirements.startswith("latest")):
-        if not requirements or versions.check_all_requirements(version, requirements):
+        if not _requirements_allow_prerelease(version, requirements):
+            continue
+        if not requirements or _matches_requirements(version, requirements):
             return version
     fail("ERROR: No version matches '{}' in: {}".format(
         version_or_requirements,
@@ -651,7 +636,7 @@ def _get_llvm_versions(*, version_or_requirements, all_llvm_distributions):
         version = _get_version_from_distribution(distribution)
 
         # Match the common SemVer range convention: prereleases are excluded
-        # unless a comparator explicitly mentions a prerelease with the same
+        # unless a positive comparator explicitly mentions a prerelease with the same
         # major/minor/patch tuple.
         if not _requirements_allow_prerelease(version, requirements):
             continue
@@ -663,7 +648,7 @@ def _required_llvm_release_name(*, version_or_requirements, all_llvm_distributio
     llvm_versions = _get_llvm_versions(version_or_requirements = version_or_requirements, all_llvm_distributions = all_llvm_distributions)
     requirements = _parse_version_or_requirements(version_or_requirements)
     for llvm_version in llvm_versions:
-        if requirements and not versions.check_all_requirements(llvm_version, requirements):
+        if requirements and not _matches_requirements(llvm_version, requirements):
             continue
         basenames = _find_llvm_basename_list(llvm_version, all_llvm_distributions, host_info)
         if len(basenames) == 1:
@@ -1159,6 +1144,42 @@ def _prerelease_test_writer_impl(ctx):
             requested = requested,
             result = error or "{} = {}".format(version, basename),
         ))
+
+    # Fixed synthetic catalogue: latest is host-specific, constrained by the
+    # release series, and must not admit an otherwise newer prerelease.
+    selector_distributions = _get_all_llvm_distributions(
+        llvm_distributions = {},
+        extra_llvm_distributions = {
+            "LLVM-23.1.2-Linux-X64.tar.xz": "1" * 64,
+            "LLVM-23.1.2-macOS-ARM64.tar.xz": "2" * 64,
+            "LLVM-23.1.3-Linux-X64.tar.xz": "3" * 64,
+            "LLVM-23.2.0-Linux-X64.tar.xz": "4" * 64,
+            "LLVM-23.3.0-rc1-Linux-X64.tar.xz": "5" * 64,
+            "LLVM-24.1.0-Linux-X64.tar.xz": "6" * 64,
+        },
+        parsed_llvm_version = None,
+    )
+    for selector_host in [host, struct(arch = "aarch64", os = "darwin", dist = struct(name = "darwin", version = ""))]:
+        for requested in [
+            "latest:major==23",
+            "latest:major()==23",
+            "latest:major==23,minor==1",
+            "first:major==23",
+            "latest:~=23.1.0",
+            "latest:~~=23.1.*",
+            "latest:!~=23.2.0,!~~=24.*",
+            "latest:==23.1.*",
+        ]:
+            version, basename, error = _required_llvm_release_name(
+                version_or_requirements = requested,
+                all_llvm_distributions = selector_distributions,
+                host_info = selector_host,
+            )
+            result.append("synthetic {} {}: {}".format(
+                selector_host.os,
+                requested,
+                error or "{} = {}".format(version, basename),
+            ))
 
     # With built-ins suppressed, version resolution must see only the user
     # entries. In particular, `latest` must not leak a newer bundled release.

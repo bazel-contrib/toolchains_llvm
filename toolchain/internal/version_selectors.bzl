@@ -1,0 +1,69 @@
+# Copyright 2026 The Bazel Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Shared SemVer requirement clauses and catalogue prerelease admission."""
+
+load("@mboworks_bzl//bzl/versions:versions.bzl", "versions")
+
+_NEGATED_OPERATORS = ["!=", "!~=", "!~~="]
+
+def parse_requirements(expression):
+    """Parse ANDed version clauses with the shared library's function expressions.
+
+    Args:
+        expression: Comma-separated requirements, excluding first:/latest:.
+
+    Returns:
+        Parsed requirement records from mboworks_bzl's SemVer mode.
+    """
+    if any([not clause.strip() for clause in expression.split(",")]):
+        fail("Empty version requirement clause in '{}'".format(expression))
+    return versions.parse_requirements(expression, mode = "semver")
+
+def matches(version, requirements):
+    """Whether version satisfies every clause, using SemVer release precedence."""
+    return versions.check_all_requirements(
+        version,
+        requirements,
+        constants = {
+            "major": versions.major(version, mode = "semver"),
+            "minor": versions.minor(version, mode = "semver"),
+            "patch": versions.patch(version, mode = "semver"),
+        },
+        mode = "semver",
+    )
+
+def _release(version):
+    parsed = versions.parse(version, mode = "semver")
+    result = []
+    for part in parsed:
+        if part in ["-", "+"]:
+            break
+        result.append(part)
+    return result
+
+def allows_prerelease(version, requirements):
+    """Whether a positive, unprojected clause names this prerelease's release core."""
+    parsed = versions.parse(version, mode = "semver")
+    if "-" not in parsed:
+        return True
+    if not requirements:
+        return False
+    core = _release(parsed)
+    return any([
+        not getattr(requirement, "component", None) and not getattr(requirement, "expression", None) and
+        requirement.op not in _NEGATED_OPERATORS and
+        "-" in requirement.version and versions.eq(_release(requirement.version), core, mode = "semver")
+        for requirement in requirements
+    ])

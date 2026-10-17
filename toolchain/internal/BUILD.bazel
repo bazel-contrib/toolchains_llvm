@@ -16,10 +16,13 @@ load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
 load(":feature_overrides_test.bzl", "feature_overrides_test_suite")
 load("linker_distributions.bzl", "linker_version_test_writer")
 load("llvm_distributions.bzl", "distributions_test_writer", "prerelease_test_writer", "requirements_test_writer")
+load(":version_selectors_test.bzl", "version_selectors_test_suite")
 
 exports_files(["template.modulemap"])
 
 feature_overrides_test_suite(name = "feature_overrides_tests")
+
+version_selectors_test_suite(name = "version_selectors_tests")
 
 linker_version_test_writer(
     name = "linker_version_test_output",
