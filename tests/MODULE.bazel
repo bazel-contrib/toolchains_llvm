@@ -22,6 +22,15 @@ local_path_override(
     path = "..",
 )
 
+# Temporary while CI cannot consistently resolve the mboworks_bzl 0.6.0 registry entry:
+# https://github.com/bazelbuild/bazel-central-registry/pull/11157
+archive_override(
+    module_name = "mboworks_bzl",
+    integrity = "sha256-fUkSqNu6DQIV93cBiWbHOApqhV8UQhxlDLrKIRa1YEQ=",
+    strip_prefix = "bzl-0.6.0",
+    urls = ["https://github.com/mboworks/bzl/releases/download/0.6.0/bzl-0.6.0.tar.gz"],
+)
+
 bazel_dep(name = "bazel_skylib", version = "1.9.2")
 bazel_dep(name = "platforms", version = "1.1.0")
 bazel_dep(name = "rules_cc", version = "0.2.26")
