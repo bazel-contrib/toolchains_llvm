@@ -262,7 +262,7 @@ updates as well. Exact versions remain useful when an LLVM release must match an
 such as an instrumented libc++ build.
 
 Conditions are comma-separated ANDed version clauses. Comparisons use the explicit SemVer mode of
-[`mboworks_bzl`'s version helpers](https://github.com/mboworks/bzl/blob/0.6.0/docs/versions.md), with zero padding for
+[`mboworks_bzl`'s version helpers](https://github.com/mboworks/bzl/blob/0.7.0/docs/versions.md), with zero padding for
 variable-length numeric releases. Thus `==23.1` means `23.1.0`, while `==23.1.*` means a release
 prefix. Prerelease identifiers use SemVer syntax and precedence rather than Python suffix
 normalization. Python-style requirement operators do not make this a PEP 440 version parser.
@@ -296,9 +296,21 @@ component-function clauses require a single non-negative integer operand and `==
 The shared version library also supports `prefix(2)==23.1` and
 `components(start=1,end=3)==1.2`, with the candidate version implied. Calls can supply explicit
 versions and nest other version calls, such as `major(prefix(2))==23`. Arguments are literal
-integers, quoted strings, booleans or `None`, keyword arguments, or calls to the five version
+integers, quoted strings, booleans or `None`, keyword arguments, or calls to the version
 functions, with constant references also allowed as arguments; arbitrary Starlark code is not evaluated. Commas within calls do not split clauses.
 These expressions work directly with `versions.check_all_requirements` too.
+
+Introspection functions also include `component_count`, `component`, `prerelease`,
+`is_prerelease`, `has_prerelease_prefix`, and `build`. For example, `component(-1)==2` tests the last
+written release component, `prerelease()=="rc1"` tests exact prerelease text, and
+`has_prerelease_prefix("rc")==True` tests the first prerelease identifier's prefix. Boolean results
+use literal `True`/`False` and text results use quoted strings, with `==` or `!=`. Integer
+introspection results support ordered comparisons with non-negative integer operands.
+`local` requires Python mode and is unavailable in these SemVer selectors.
+
+toolchains_llvm binds the shared API with `versions.with_mode("semver")`, so every operation and
+nested expression call uses the same mode regardless of its standalone default. No per-expression
+mode switch is accepted.
 
 | Selector                             | Selection policy                                       |
 | ------------------------------------ | ------------------------------------------------------ |
@@ -320,6 +332,8 @@ version attributes can still select a named prerelease. These rules apply to bot
 catalogue selectors. Predicates and admission remain separate: `==23.1.*` prefix-matches a
 `23.1.0-rc1` candidate, while `~~=23.1.*` also imposes a stable lower bound; neither alone admits
 that candidate into automatic selection.
+Introspection predicates do not themselves opt in: use an explicit prerelease bound, for example
+`latest:>=23.1.0-rc1,<23.1.0,has_prerelease_prefix("rc")==True`, to filter admitted prereleases.
 
 It is further possible to provide the version or requirement from an environment
 variable with a fallback version or requirement. In this case it is important to

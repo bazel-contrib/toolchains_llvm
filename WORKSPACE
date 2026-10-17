@@ -20,9 +20,9 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "mboworks_bzl",
-    sha256 = "7d4912a8dbba0d0215f777018966c7380a6a855f14421c650cbaca2116b56044",
-    strip_prefix = "bzl-0.6.0",
-    url = "https://github.com/mboworks/bzl/releases/download/0.6.0/bzl-0.6.0.tar.gz",
+    sha256 = "b12d761d883d497ecc3f5e4c005a02b19b425606b1eadd515d1583d8abe9ca14",
+    strip_prefix = "bzl-0.7.0",
+    url = "https://github.com/mboworks/bzl/releases/download/0.7.0/bzl-0.7.0.tar.gz",
 )
 
 # Materialize the merged LLVM distribution table for WORKSPACE-mode builds

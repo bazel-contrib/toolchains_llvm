@@ -23,6 +23,12 @@ def _requirements_test_impl(ctx):
     env = unittest.begin(ctx)
     for candidate, expression, expected in [
         ("23.1.2", "major()==23", True),
+        ("23.1.0-rc1", 'prerelease()=="rc1"', True),
+        ("23.1.0-rc1", 'prerelease ()=="rc,1"', False),
+        ("23.1.0-rc1", 'prerelease()=="rc.1"', False),
+        ("23.1.0-rc1", "is_prerelease()==True", True),
+        ("23.1.0-rc1", 'has_prerelease_prefix("rc")==True', True),
+        ("23.1.2", "component_count()==3,component(-1)==2", True),
         ("23.1.2", "major==23", True),
         ("24.1.0", "major==23", False),
         ("23.2.1", "major==23,minor>=2,patch==1", True),
@@ -67,6 +73,7 @@ def _resolution_test_impl(ctx):
     for selection, expected in [
         ("latest:major()==23", "23.1.3"),
         ("latest:major==23", "23.1.3"),
+        ("latest:major==23,is_prerelease()==False", "23.1.3"),
         ("first:major==23", "23.1.2"),
         ("latest:major==23,minor==1,patch!=3", "23.1.2"),
         ("latest:prefix(2)==23.1", "23.1.3"),
@@ -82,6 +89,8 @@ def _resolution_test_impl(ctx):
         ("first", "22.1.8"),
         ("first:>=23.1.0-rc10,<23.1.0", "23.1.0-rc10"),
         ("latest:>=23.1.0-rc10,<23.1.0", "23.1.0-rc2"),
+        ('latest:>=23.1.0-rc10,<23.1.0,has_prerelease_prefix("rc")==True', "23.1.0-rc2"),
+        ('latest:>=23.1.0-rc10,<23.1.0,prerelease()=="rc10"', "23.1.0-rc10"),
         ("23.1.0-rc2", "23.1.0-rc2"),
     ]:
         asserts.equals(env, expected, resolve_version(selection, available), selection)
@@ -112,6 +121,7 @@ def _prerelease_test_impl(ctx):
         ("23.1.0-rc2", "!~=23.1.0-rc1", False),
         ("23.1.0-rc2", "!~~=22.*", False),
         ("23.1.0", "major()==23", True),
+        ("23.1.0+-.rc1", "major()==23", True),
     ]:
         asserts.equals(env, expected, allows_prerelease(candidate, parse_requirements(expression)), "{} {}".format(candidate, expression))
     asserts.false(env, allows_prerelease("23.1.0-rc2", None))
@@ -151,6 +161,9 @@ def version_selectors_test_suite(name):
         ("minor_width", "minor()==23.1.2", "", "non-negative integer operand"),
         ("projection_suffix", "patch()>=23.1.0-rc1", "", "non-negative integer operand"),
         ("bad_wildcard", "==23.*.1", "", "single trailing"),
+        ("bool_operand", "", "latest:is_prerelease()==1", "bool operand"),
+        ("text_operand", "", "latest:prerelease()==rc1", "arguments must be"),
+        ("local_mode", "", 'latest:local()==""', "requires PEP 440 mode"),
         ("no_match", "", "latest:major()==25", "No version matches"),
         ("unavailable", "", "25.1.0", "not available"),
         ("empty_selection", "", "latest:", "Empty version requirement"),

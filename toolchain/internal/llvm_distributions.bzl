@@ -43,6 +43,8 @@ load("//toolchain/internal:version_selectors.bzl", _allows_prerelease = "allows_
 #   - extra.jsonc         - empty by default; downstream slot for additional
 #                           bundled distributions (private mirrors, internal
 #                           builds, etc.).
+_semver = versions.with_mode("semver")
+
 _llvm_distributions = LLVM_DISTRIBUTIONS
 
 # Per-basename download URL map, fully expanded from the `_meta.base_url`
@@ -62,7 +64,7 @@ _llvm_distribution_urls = LLVM_DISTRIBUTION_URLS
 _DEFAULT_URL_TEMPLATE = "https://github.com/llvm/llvm-project/releases/download/llvmorg-{version}/"
 
 def _parse_version(v):
-    return tuple(versions.parse(v, mode = "semver"))
+    return tuple(_semver.parse(v))
 
 def _version_string(version):
     core = []
@@ -103,7 +105,7 @@ def _sort_versions(version_strings, *, reverse = False):
     for version in version_strings:
         inserted = False
         for pos in range(len(result)):
-            if versions.cmp(result[pos], version, mode = "semver") >= 0:
+            if _semver.cmp(result[pos], version) >= 0:
                 result = result[:pos] + [version] + result[pos:]
                 inserted = True
                 break

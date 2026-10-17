@@ -16,6 +16,8 @@
 
 load("@mboworks_bzl//bzl/versions:versions.bzl", "versions")
 
+_semver = versions.with_mode("semver")
+
 _NEGATED_OPERATORS = ["!=", "!~=", "!~~="]
 
 def parse_requirements(expression):
@@ -29,41 +31,31 @@ def parse_requirements(expression):
     """
     if any([not clause.strip() for clause in expression.split(",")]):
         fail("Empty version requirement clause in '{}'".format(expression))
-    return versions.parse_requirements(expression, mode = "semver")
+    return _semver.parse_requirements(expression)
 
 def matches(version, requirements):
     """Whether version satisfies every clause, using SemVer release precedence."""
-    return versions.check_all_requirements(
+    return _semver.check_all_requirements(
         version,
         requirements,
         constants = {
-            "major": versions.major(version, mode = "semver"),
-            "minor": versions.minor(version, mode = "semver"),
-            "patch": versions.patch(version, mode = "semver"),
+            "major": _semver.major(version),
+            "minor": _semver.minor(version),
+            "patch": _semver.patch(version),
         },
-        mode = "semver",
     )
-
-def _release(version):
-    parsed = versions.parse(version, mode = "semver")
-    result = []
-    for part in parsed:
-        if part in ["-", "+"]:
-            break
-        result.append(part)
-    return result
 
 def allows_prerelease(version, requirements):
     """Whether a positive, unprojected clause names this prerelease's release core."""
-    parsed = versions.parse(version, mode = "semver")
-    if "-" not in parsed:
+    if not _semver.is_prerelease(version):
         return True
     if not requirements:
         return False
-    core = _release(parsed)
+    core = _semver.components(version)
     return any([
         not getattr(requirement, "component", None) and not getattr(requirement, "expression", None) and
         requirement.op not in _NEGATED_OPERATORS and
-        "-" in requirement.version and versions.eq(_release(requirement.version), core, mode = "semver")
+        "*" not in requirement.version and
+        _semver.is_prerelease(requirement.version) and _semver.eq(_semver.components(requirement.version), core)
         for requirement in requirements
     ])
