@@ -267,79 +267,28 @@ Version attributes accept exact versions or selectors of the form `first`, `firs
 execution host; `first` picks the oldest. The same clause syntax applies to LLVM and catalogued
 linker versions, and lets one configuration accommodate hosts whose available archives differ.
 
-Conditions are comma-separated ANDed version clauses. Comparisons use the explicit SemVer mode of
-[`mboworks_bzl`'s version helpers](https://github.com/mboworks/bzl/blob/0.7.0/docs/versions.md), with zero padding for
-variable-length numeric releases. Thus `==23.1` means `23.1.0`, while `==23.1.*` means a release
-prefix. Prerelease identifiers use SemVer syntax and precedence rather than Python suffix
-normalization. Python-style requirement operators do not make this a PEP 440 version parser.
+Conditions are comma-separated and combined with AND. toolchains_llvm supplies `major`, `minor`,
+and `patch` as numeric release-component constants, so `latest:major==23,minor>=2` stays within
+LLVM 23 and requires a minor version of at least 2. Comparisons and function expressions use
+[mboworks_bzl's SemVer mode](https://mboworks.github.io/bzl/site/tag/0.7.0/docs/versions.html#semver).
 
-| Operator             | Meaning                                                        | Example                |
-| -------------------- | -------------------------------------------------------------- | ---------------------- |
-| `==`, `!=`           | Exact match/exclusion, or a trailing `.*` release prefix       | `==23.1.*`             |
-| `<`, `<=`, `>`, `>=` | Version ordering                                               | `>=23.1.2,<24`         |
-| `~=`                 | Compatible release; retain all but the final operand component | `~=23.1` or `~=23.1.0` |
-| `!~=`                | Negation of compatible release                                 | `!~=23.1.0`            |
-| `~~=`                | Explicit release prefix with a lower bound at that prefix      | `~~=23.1.*`            |
-| `!~~=`               | Negation of extended compatible release                        | `!~~=23.1.*`           |
+| Selector                    | Selection policy                             |
+| --------------------------- | -------------------------------------------- |
+| `latest:major==23`          | Newest stable LLVM 23 release for the host   |
+| `latest:major==23,minor==1` | Newest stable 23.1 release for the host      |
+| `latest:~=23.1.0,!=23.1.2`  | Newest compatible 23.1 release except 23.1.2 |
+| `first:>=22,<23`            | Oldest stable LLVM 22 release for the host   |
 
-For stable releases, `~=23.1` means `>=23.1,<24`, and `~=23.1.0` means `>=23.1.0,<23.2`.
-`~~=23.1.*` combines `>=23.1` with the `23.1` prefix. These prefix boundaries also exclude
-prereleases of the next series. The negated and extended compatible operators are library
-extensions to Python's operator set. Compatible release needs at least two numeric components;
-extended compatible release requires a single trailing `.*`.
+For all comparison operators, wildcard matching and compatible-release boundaries, see
+[Compatible and matching requirements](https://mboworks.github.io/bzl/site/tag/0.7.0/docs/versions.html#compatible-and-matching-requirements).
+Function clauses such as `major()==23` and more advanced inspection are documented under
+[Requirement expressions and constants](https://mboworks.github.io/bzl/site/tag/0.7.0/docs/versions.html#requirement-expressions-and-constants).
 
-toolchains_llvm supplies `major`, `minor`, and `patch` as named constants containing the individual
-numeric release components at indices 0, 1, and 2. For example, `major==23,minor>=2` selects LLVM
-23.2 or later within major 23. Missing minor/patch components are zero; suffixes are excluded.
-These are explicit bindings supplied for each candidate through the shared library's `constants`
-dictionary. The library itself does not install implicit constants.
-
-Function calls such as `major()==23` remain available in an independent namespace. Thus
-`latest:major==23` and `latest:major()==23` express the same intended major constraint. Zero-argument
-component-function clauses require a single non-negative integer operand and `==`, `!=`, `<`,
-`<=`, `>`, or `>=`. Constant values use ordinary version comparisons in the selected SemVer mode.
-
-The shared version library also supports `prefix(2)==23.1` and
-`components(start=1,end=3)==1.2`, with the candidate version implied. Calls can supply explicit
-versions and nest other version calls, such as `major(prefix(2))==23`. Arguments are literal
-integers, quoted strings, booleans or `None`, keyword arguments, or calls to the version
-functions, with constant references also allowed as arguments; arbitrary Starlark code is not evaluated. Commas within calls do not split clauses.
-These expressions work directly with `versions.check_all_requirements` too.
-
-Introspection functions also include `component_count`, `component`, `prerelease`,
-`is_prerelease`, `has_prerelease_prefix`, and `build`. For example, `component(-1)==2` tests the last
-written release component, `prerelease()=="rc1"` tests exact prerelease text, and
-`has_prerelease_prefix("rc")==True` tests the first prerelease identifier's prefix. Boolean results
-use literal `True`/`False` and text results use quoted strings, with `==` or `!=`. Integer
-introspection results support ordered comparisons with non-negative integer operands.
-`local` requires Python mode and is unavailable in these SemVer selectors.
-
-toolchains_llvm binds the shared API with `versions.with_mode("semver")`, so every operation and
-nested expression call uses the same mode regardless of its standalone default. No per-expression
-mode switch is accepted.
-
-| Selector                             | Selection policy                                       |
-| ------------------------------------ | ------------------------------------------------------ |
-| `latest:major==23`                   | Newest stable LLVM 23 release for the host             |
-| `latest:major==23,minor==1`          | Newest stable 23.1 release for the host                |
-| `latest:major==23,minor>=2`          | Newest stable LLVM 23 release with minor at least 2    |
-| `latest:major==23,minor==1,patch==2` | Newest release with the first three components 23.1.2  |
-| `latest:~=23.1.0,!=23.1.2`           | Newest compatible 23.1 release except 23.1.2           |
-| `latest:~~=23.1.*,!=23.1.2`          | Explicit 23.1 prefix with a lower bound, except 23.1.2 |
-| `first:>=15.0.6,<16`                 | Oldest matching release available for the host         |
-
-An omitted comparator means `==` for a plain version clause. Function expressions and constant references require an explicit
-comparator, such as `major()==23`; `major()=23` is rejected. Unknown functions/constants, empty clauses,
-malformed wildcards, and unsupported operands fail rather than broadening selection.
-
-Prereleases remain excluded unless a positive, unprojected clause explicitly names a prerelease
-with the same release core. Exclusions such as `!=23.1.0-rc1` do not opt into prereleases. Exact
-version attributes can still select a named prerelease. These rules apply to both LLVM and linker
-catalogue selectors. Predicates and admission remain separate: `==23.1.*` prefix-matches a
-`23.1.0-rc1` candidate, while `~~=23.1.*` also imposes a stable lower bound; neither alone admits
-that candidate into automatic selection.
-Introspection predicates do not themselves opt in: use an explicit prerelease bound, for example
-`latest:>=23.1.0-rc1,<23.1.0,has_prerelease_prefix("rc")==True`, to filter admitted prereleases.
+Prereleases are excluded from automatic selection unless a positive, plain version clause names a
+prerelease with the same numeric release core. For example,
+`latest:>=23.1.0-rc1,<23.1.0` admits matching release candidates. Exclusions, component constraints
+and introspection functions do not themselves opt in. An exact `llvm_version = "23.1.0-rc3"`
+can select that prerelease directly. The same admission policy applies to catalogued linkers.
 
 It is further possible to provide the version or requirement from an environment
 variable with a fallback version or requirement. In this case it is important to
