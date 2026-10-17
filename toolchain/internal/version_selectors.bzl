@@ -20,19 +20,6 @@ _semver = versions.with_mode("semver")
 
 _NEGATED_OPERATORS = ["!=", "!~=", "!~~="]
 
-def _parse_requirements(expression):
-    """Parse ANDed version clauses with the shared library's function expressions.
-
-    Args:
-        expression: Comma-separated requirements, excluding first:/latest:.
-
-    Returns:
-        Parsed requirement records from mboworks_bzl's SemVer mode.
-    """
-    if any([not clause.strip() for clause in expression.split(",")]):
-        fail("Empty version requirement clause in '{}'".format(expression))
-    return _semver.parse_requirements(expression)
-
 def _matches(version, requirements):
     """Whether version satisfies every clause, using SemVer release precedence."""
     return _semver.check_all_requirements(
@@ -63,5 +50,5 @@ def _allows_prerelease(version, requirements):
 version_selectors = struct(
     allows_prerelease = _allows_prerelease,
     matches = _matches,
-    parse_requirements = _parse_requirements,
+    parse_requirements = _semver.parse_requirements,
 )

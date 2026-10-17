@@ -25,6 +25,9 @@ def _requirements_test_impl(ctx):
         ("23.1.2", "major()==23", True),
         ("23.1.0-rc1", 'prerelease()=="rc1"', True),
         ("23.1.0-rc1", 'prerelease ()=="rc,1"', False),
+        ("23.1.0-rc1", 'prerelease()=="rc,,1"', False),
+        ("23.1.0-rc1", 'prerelease()!="rc, ,1"', True),
+        ("23.1.0-rc1", 'has_prerelease_prefix("rc,,")==False', True),
         ("23.1.0-rc1", 'prerelease()=="rc.1"', False),
         ("23.1.0-rc1", "is_prerelease()==True", True),
         ("23.1.0-rc1", 'has_prerelease_prefix("rc")==True', True),
@@ -74,6 +77,7 @@ def _resolution_test_impl(ctx):
         ("latest:major()==23", "23.1.3"),
         ("latest:major==23", "23.1.3"),
         ("latest:major==23,is_prerelease()==False", "23.1.3"),
+        ('latest:major==23,prerelease()!=",,"', "23.1.3"),
         ("first:major==23", "23.1.2"),
         ("latest:major==23,minor==1,patch!=3", "23.1.2"),
         ("latest:prefix(2)==23.1", "23.1.3"),
@@ -153,9 +157,12 @@ def version_selectors_test_suite(name):
     """Instantiate selector, platform filtering, and invalid-input tests."""
     unittest.suite(name, _requirements_test, _resolution_test, _prerelease_test)
     for suffix, expression, selection, message in [
-        ("empty", "", "", "Empty version requirement"),
+        ("empty", "", "", "non-negative numeric release components"),
         ("unknown_constant", "", "latest:mjor==23", "Unknown version constant"),
-        ("empty_clause", ">=23,,<24", "", "Empty version requirement"),
+        ("empty_clause", ">=23,,<24", "", "non-negative numeric release components"),
+        ("leading_empty_clause", ",>=23", "", "non-negative numeric release components"),
+        ("trailing_empty_clause", ">=23,", "", "non-negative numeric release components"),
+        ("spaced_empty_clause", ">=23, ,<24", "", "non-negative numeric release components"),
         ("projection_operator", "major()=23", "", "non-negative numeric release components"),
         ("major_width", "major()==23.1", "", "non-negative integer operand"),
         ("minor_width", "minor()==23.1.2", "", "non-negative integer operand"),
@@ -166,7 +173,7 @@ def version_selectors_test_suite(name):
         ("local_mode", "", 'latest:local()==""', "requires PEP 440 mode"),
         ("no_match", "", "latest:major()==25", "No version matches"),
         ("unavailable", "", "25.1.0", "not available"),
-        ("empty_selection", "", "latest:", "Empty version requirement"),
+        ("empty_selection", "", "latest:", "non-negative numeric release components"),
     ]:
         target = name + "_" + suffix
         _invalid(name = target, expression = expression, selection = selection, tags = ["manual"])
