@@ -63,7 +63,7 @@ def bazel_toolchain_dependencies():
     if not native.existing_rule("mboworks_bzl"):
         http_archive(
             name = "mboworks_bzl",
-            url = "https://github.com/mboworks/bzl/releases/download/0.5.1/bzl-0.5.1.tar.gz",
-            sha256 = "0c51edbd3a3b69ebff59b5ffec411a3ab8cb137a845b9bba9803738cd7bd5c28",
-            strip_prefix = "bzl-0.5.1",
+            url = "https://github.com/mboworks/bzl/releases/download/0.7.0/bzl-0.7.0.tar.gz",
+            sha256 = "b12d761d883d497ecc3f5e4c005a02b19b425606b1eadd515d1583d8abe9ca14",
+            strip_prefix = "bzl-0.7.0",
         )
