@@ -236,18 +236,11 @@ for how CC toolchains work in general.
 
 ### Requirements
 
-Version attributes accept exact versions or selectors of the form `first`, `first:<conditions>`,
-`latest`, or `latest:<conditions>`. `latest` picks the newest matching release available for the
-execution host; `first` picks the oldest. The same clause syntax applies to LLVM and catalogued
-linker versions.
-
-Selectors let a single configuration follow compatible updates and accommodate hosts whose newest
-available archive differs. They select from the checksummed catalogue bundled with the pinned
-`toolchains_llvm` module plus explicitly configured extra distributions. They do not query upstream
-for new versions during a build. Updating the module or configured catalogue makes additional
-releases eligible; unchanged inputs select the same release on the same host.
-
-Use a constrained selector to pick up updates within an intended release series:
+Version requirements let projects bind automatic LLVM upgrades to deliberate `toolchains_llvm`
+release upgrades. A `toolchains_llvm` release can add new LLVM release identifiers to its
+checksummed catalogue. Upgrading the pinned module then makes those releases eligible without a
+separate edit to an exact `llvm_version`. Requirements restrict which of those additions a project
+will adopt, for example by keeping LLVM within major version 23:
 
 ```starlark
 llvm.toolchain(
@@ -256,10 +249,23 @@ llvm.toolchain(
 )
 ```
 
-Here a module upgrade can pick up a newer LLVM 23 release without a second edit to an exact LLVM
-version. Adopting LLVM 24 remains an explicit configuration change. Bare `latest` permits major
-updates as well. Exact versions remain useful when an LLVM release must match another artifact,
-such as an instrumented libc++ build.
+With this policy, upgrading `toolchains_llvm` to a release that adds a newer stable LLVM 23
+version also upgrades the selected compiler, when an archive is available for the execution host.
+Even a module release that only adds LLVM release identifiers can therefore update LLVM as part
+of the same dependency upgrade. Adding LLVM 24 to the catalogue leaves this selection within
+LLVM 23; adopting LLVM 24 requires an explicit selector change. Bare `latest` permits major
+upgrades introduced by module upgrades as well. Exact versions remain useful when an LLVM
+release must match another artifact, such as an instrumented libc++ build.
+
+Selection uses the catalogue bundled with the pinned `toolchains_llvm` module plus explicitly
+configured extra distributions. Builds do not query upstream for newly published LLVM releases.
+With the same module, configured catalogue and execution host, the selected release stays the
+same. A module upgrade or an explicit catalogue change is what makes additional releases eligible.
+
+Version attributes accept exact versions or selectors of the form `first`, `first:<conditions>`,
+`latest`, or `latest:<conditions>`. `latest` picks the newest matching release available for the
+execution host; `first` picks the oldest. The same clause syntax applies to LLVM and catalogued
+linker versions, and lets one configuration accommodate hosts whose available archives differ.
 
 Conditions are comma-separated ANDed version clauses. Comparisons use the explicit SemVer mode of
 [`mboworks_bzl`'s version helpers](https://github.com/mboworks/bzl/blob/0.7.0/docs/versions.md), with zero padding for
