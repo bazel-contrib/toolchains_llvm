@@ -17,7 +17,7 @@
 load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts", "unittest")
 load(":linker_distributions.bzl", "resolve_linker_distribution")
 load(":llvm_distributions.bzl", "resolve_version")
-load(":version_selectors.bzl", "allows_prerelease", "matches", "parse_requirements")
+load(":version_selectors.bzl", "version_selectors")
 
 def _requirements_test_impl(ctx):
     env = unittest.begin(ctx)
@@ -64,7 +64,7 @@ def _requirements_test_impl(ctx):
         ("23.1.0-rc10", "<23.1.0-rc2", True),
         ("23.1.2+build", " major() == 23 , minor() == 1 ", True),
     ]:
-        asserts.equals(env, expected, matches(candidate, parse_requirements(expression)), "{} {}".format(candidate, expression))
+        asserts.equals(env, expected, version_selectors.matches(candidate, version_selectors.parse_requirements(expression)), "{} {}".format(candidate, expression))
     return unittest.end(env)
 
 def _resolution_test_impl(ctx):
@@ -123,15 +123,15 @@ def _prerelease_test_impl(ctx):
         ("23.1.0", "major()==23", True),
         ("23.1.0+-.rc1", "major()==23", True),
     ]:
-        asserts.equals(env, expected, allows_prerelease(candidate, parse_requirements(expression)), "{} {}".format(candidate, expression))
-    asserts.false(env, allows_prerelease("23.1.0-rc2", None))
+        asserts.equals(env, expected, version_selectors.allows_prerelease(candidate, version_selectors.parse_requirements(expression)), "{} {}".format(candidate, expression))
+    asserts.false(env, version_selectors.allows_prerelease("23.1.0-rc2", None))
     return unittest.end(env)
 
 def _invalid_impl(ctx):
     if ctx.attr.selection:
         resolve_version(ctx.attr.selection, ["23.1.2", "24.1.0"])
     else:
-        parse_requirements(ctx.attr.expression)
+        version_selectors.parse_requirements(ctx.attr.expression)
     return []
 
 _invalid = rule(

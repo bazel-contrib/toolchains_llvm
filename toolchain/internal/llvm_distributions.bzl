@@ -26,7 +26,7 @@ load(
     "host_info",
 )
 load("//toolchain/internal:distributions_repo.bzl", "load_distribution_files")
-load("//toolchain/internal:version_selectors.bzl", _allows_prerelease = "allows_prerelease", _matches_requirements = "matches", _parse_requirements = "parse_requirements")
+load("//toolchain/internal:version_selectors.bzl", "version_selectors")
 
 # The merged distribution table is built at module-load time by the
 # `llvm_distributions` module extension (see
@@ -98,7 +98,7 @@ def _distribution_version_string(distribution):
     return version
 
 def _requirements_allow_prerelease(version, requirements):
-    return _allows_prerelease(version, requirements)
+    return version_selectors.allows_prerelease(version, requirements)
 
 def _sort_versions(version_strings, *, reverse = False):
     result = []
@@ -594,7 +594,7 @@ def _is_requirement(version_or_requirements):
 def _parse_version_or_requirements(version_or_requirements):
     for prefix in ["latest:", "first:"]:
         if version_or_requirements.startswith(prefix):
-            return _parse_requirements(version_or_requirements.removeprefix(prefix))
+            return version_selectors.parse_requirements(version_or_requirements.removeprefix(prefix))
     if version_or_requirements in ["latest", "first"]:
         return None
     if not _is_requirement(version_or_requirements):
@@ -619,7 +619,7 @@ def resolve_version(version_or_requirements, available_versions):
     for version in _sort_versions(available_versions, reverse = version_or_requirements.startswith("latest")):
         if not _requirements_allow_prerelease(version, requirements):
             continue
-        if not requirements or _matches_requirements(version, requirements):
+        if not requirements or version_selectors.matches(version, requirements):
             return version
     fail("ERROR: No version matches '{}' in: {}".format(
         version_or_requirements,
@@ -650,7 +650,7 @@ def _required_llvm_release_name(*, version_or_requirements, all_llvm_distributio
     llvm_versions = _get_llvm_versions(version_or_requirements = version_or_requirements, all_llvm_distributions = all_llvm_distributions)
     requirements = _parse_version_or_requirements(version_or_requirements)
     for llvm_version in llvm_versions:
-        if requirements and not _matches_requirements(llvm_version, requirements):
+        if requirements and not version_selectors.matches(llvm_version, requirements):
             continue
         basenames = _find_llvm_basename_list(llvm_version, all_llvm_distributions, host_info)
         if len(basenames) == 1:

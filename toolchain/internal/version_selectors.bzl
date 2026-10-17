@@ -20,7 +20,7 @@ _semver = versions.with_mode("semver")
 
 _NEGATED_OPERATORS = ["!=", "!~=", "!~~="]
 
-def parse_requirements(expression):
+def _parse_requirements(expression):
     """Parse ANDed version clauses with the shared library's function expressions.
 
     Args:
@@ -33,7 +33,7 @@ def parse_requirements(expression):
         fail("Empty version requirement clause in '{}'".format(expression))
     return _semver.parse_requirements(expression)
 
-def matches(version, requirements):
+def _matches(version, requirements):
     """Whether version satisfies every clause, using SemVer release precedence."""
     return _semver.check_all_requirements(
         version,
@@ -45,7 +45,7 @@ def matches(version, requirements):
         },
     )
 
-def allows_prerelease(version, requirements):
+def _allows_prerelease(version, requirements):
     """Whether a positive, unprojected clause names this prerelease's release core."""
     if not _semver.is_prerelease(version):
         return True
@@ -59,3 +59,9 @@ def allows_prerelease(version, requirements):
         _semver.is_prerelease(requirement.version) and _semver.eq(_semver.components(requirement.version), core)
         for requirement in requirements
     ])
+
+version_selectors = struct(
+    allows_prerelease = _allows_prerelease,
+    matches = _matches,
+    parse_requirements = _parse_requirements,
+)
