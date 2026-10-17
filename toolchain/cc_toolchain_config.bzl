@@ -128,7 +128,7 @@ def cc_toolchain_config(
         "linux-aarch64": (
             "clang-aarch64-linux",
             "aarch64",
-            "glibc_unknown",
+            "glibc",
             "clang",
             "clang",
             "glibc_unknown",
@@ -137,7 +137,7 @@ def cc_toolchain_config(
         "linux-armv7": (
             "clang-armv7-linux",
             "armv7",
-            "glibc_unknown",
+            "glibc",
             "clang",
             "clang",
             "glibc_unknown",
@@ -146,7 +146,7 @@ def cc_toolchain_config(
         "linux-riscv64": (
             "clang-riscv64-linux",
             "riscv64",
-            "glibc_unknown",
+            "glibc",
             "clang",
             "clang",
             "glibc_unknown",
@@ -155,7 +155,7 @@ def cc_toolchain_config(
         "linux-x86_64": (
             "clang-x86_64-linux",
             "k8",
-            "glibc_unknown",
+            "glibc",
             "clang",
             "clang",
             "glibc_unknown",
