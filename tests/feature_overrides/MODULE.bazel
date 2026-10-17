@@ -16,15 +16,6 @@ module(name = "feature_override_tests")
 
 bazel_dep(name = "toolchains_llvm", version = "0.0.0")
 local_path_override(module_name = "toolchains_llvm", path = "../..")
-
-# Temporary while mboworks_bzl 0.7.0 publication in the Bazel Central Registry is pending:
-# https://github.com/bazelbuild/bazel-central-registry/pull/11158
-archive_override(
-    module_name = "mboworks_bzl",
-    integrity = "sha256-sS12HYg9SX7MP15MAFoCsZtCVgax6t1RXRWD2KvpyhQ=",
-    strip_prefix = "bzl-0.7.0",
-    urls = ["https://github.com/mboworks/bzl/releases/download/0.7.0/bzl-0.7.0.tar.gz"],
-)
 bazel_dep(name = "rules_cc", version = "0.2.26")
 
 llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
