@@ -97,9 +97,6 @@ def _distribution_version_string(distribution):
         version += "-" + parts[2]
     return version
 
-def _requirements_allow_prerelease(version, requirements):
-    return version_selectors.allows_prerelease(version, requirements)
-
 def _sort_versions(version_strings, *, reverse = False):
     result = []
     for version in version_strings:
@@ -617,7 +614,7 @@ def resolve_version(version_or_requirements, available_versions):
 
     requirements = _parse_version_or_requirements(version_or_requirements)
     for version in _sort_versions(available_versions, reverse = version_or_requirements.startswith("latest")):
-        if not _requirements_allow_prerelease(version, requirements):
+        if not version_selectors.allows_prerelease(version, requirements):
             continue
         if not requirements or version_selectors.matches(version, requirements):
             return version
@@ -640,7 +637,7 @@ def _get_llvm_versions(*, version_or_requirements, all_llvm_distributions):
         # Match the common SemVer range convention: prereleases are excluded
         # unless a positive comparator explicitly mentions a prerelease with the same
         # major/minor/patch tuple.
-        if not _requirements_allow_prerelease(version, requirements):
+        if not version_selectors.allows_prerelease(version, requirements):
             continue
         llvm_version_dict[version] = None
 
