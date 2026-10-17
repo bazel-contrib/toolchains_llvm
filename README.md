@@ -236,22 +236,59 @@ for how CC toolchains work in general.
 
 ### Requirements
 
-Version attributes can be requirements of the form `first`, `first:<condition>`,
-`latest` or `latest:<condition>`.
+Version requirements let projects bind automatic LLVM upgrades to deliberate `toolchains_llvm`
+release upgrades. A `toolchains_llvm` release can add new LLVM release identifiers to its
+checksummed catalogue. Upgrading the pinned module then makes those releases eligible without a
+separate edit to an exact `llvm_version`. Requirements restrict which of those additions a project
+will adopt, for example by keeping LLVM within major version 23:
 
-In case of `latest`, the latest distribution matching the optional `condition`
-will be selected.
+```starlark
+llvm.toolchain(
+    name = "llvm_toolchain",
+    llvm_version = "latest:major==23",
+)
+```
 
-In case of `first`, the first distribution matching the optional `condition`
-will be selected.
+With this policy, upgrading `toolchains_llvm` to a release that adds a newer stable LLVM 23
+version also upgrades the selected compiler, when an archive is available for the execution host.
+Even a module release that only adds LLVM release identifiers can therefore update LLVM as part
+of the same dependency upgrade. Adding LLVM 24 to the catalogue leaves this selection within
+LLVM 23; adopting LLVM 24 requires an explicit selector change. Bare `latest` permits major
+upgrades introduced by module upgrades as well. Exact versions remain useful when an LLVM
+release must match another artifact, such as an instrumented libc++ build.
 
-The condition consists of a comma separated list of semver version comparisons
-supporting `<`, `<=`, `>`, `>=`, `==`, `!=`. Examples:
+Selection uses the catalogue bundled with the pinned `toolchains_llvm` module plus explicitly
+configured extra distributions. Builds do not query upstream for newly published LLVM releases.
+With the same module, configured catalogue and execution host, the selected release stays the
+same. A module upgrade or an explicit catalogue change is what makes additional releases eligible.
 
-- `latest`
-- `latest:>=20.1.0`
-- `latest:>17.0.4,!=19.1.7,<=20.1.0`
-- `first:>=15.0.6,<16`
+Version attributes accept exact versions or selectors of the form `first`, `first:<conditions>`,
+`latest`, or `latest:<conditions>`. `latest` picks the newest matching release available for the
+execution host; `first` picks the oldest. The same clause syntax applies to LLVM and catalogued
+linker versions, and lets one configuration accommodate hosts whose available archives differ.
+
+Conditions are comma-separated and combined with AND. toolchains_llvm supplies `major`, `minor`,
+and `patch` as numeric release-component constants, so `latest:major==23,minor>=2` stays within
+LLVM 23 and requires a minor version of at least 2. Comparisons and function expressions use
+[mboworks_bzl's SemVer mode](https://mboworks.github.io/bzl/site/tag/0.7.0/docs/versions.html#semver).
+
+| Selector                    | Selection policy                             |
+| --------------------------- | -------------------------------------------- |
+| `latest:major==23`          | Newest stable LLVM 23 release for the host   |
+| `latest:major==23,minor==1` | Newest stable 23.1 release for the host      |
+| `latest:~=23.1.0,!=23.1.2`  | Newest compatible 23.1 release except 23.1.2 |
+| `first:>=22,<23`            | Oldest stable LLVM 22 release for the host   |
+
+For all comparison operators, wildcard matching and compatible-release boundaries, see
+[Compatible and matching requirements](https://mboworks.github.io/bzl/site/tag/0.7.0/docs/versions.html#compatible-and-matching-requirements).
+Function clauses such as `major()==23` and more advanced inspection are documented under
+[Requirement expressions and constants](https://mboworks.github.io/bzl/site/tag/0.7.0/docs/versions.html#requirement-expressions-and-constants).
+
+Prereleases are excluded from automatic selection unless a positive, plain version clause names a
+prerelease with the same numeric release core. For example,
+`latest:>=23.1.0-rc1,<23.1.0` admits matching release candidates. Exclusions, component constraints
+and introspection functions do not themselves opt in. An exact `llvm_version = "23.1.0-rc3"`
+can select that prerelease directly. The same admission policy applies to catalogued linkers.
 
 It is further possible to provide the version or requirement from an environment
 variable with a fallback version or requirement. In this case it is important to
