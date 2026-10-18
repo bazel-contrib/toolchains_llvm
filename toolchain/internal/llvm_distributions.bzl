@@ -66,24 +66,6 @@ _DEFAULT_URL_TEMPLATE = "https://github.com/llvm/llvm-project/releases/download/
 def _parse_version(v):
     return tuple(_semver.parse(v))
 
-def _version_string(version):
-    core = []
-    prerelease = []
-    build = []
-    phase = 0
-    for part in version:
-        if phase == 0 and part == "-":
-            phase = 1
-        elif phase < 2 and part == "+":
-            phase = 2
-        elif phase == 0:
-            core.append(str(part))
-        elif phase == 1:
-            prerelease.append(str(part))
-        else:
-            build.append(str(part))
-    return ".".join(core) + ("-" + ".".join(prerelease) if prerelease else "") + ("+" + ".".join(build) if build else "")
-
 def _distribution_basename(distribution):
     return distribution.split("?", 1)[0].split("#", 1)[0].split("/")[-1].split("\\")[-1].replace("%2B", "+")
 
@@ -889,7 +871,7 @@ def _distributions_test_writer_impl(ctx):
     output = []
     select = []
     for version in versions:
-        output.append("version: " + _version_string(version))
+        output.append("version: " + _semver.normalize_string(version))
 
     # We keep track of versions in `not_found` and remove the ones we found.
     # So at the end all version that were not found remain, hence the name.
@@ -938,10 +920,10 @@ def _distributions_test_writer_impl(ctx):
                         os = os,
                         dist = dist,
                     )
-                    basenames = _find_llvm_basename_list(_version_string(version), all_llvm_distributions, host_info)
+                    basenames = _find_llvm_basename_list(_semver.normalize_string(version), all_llvm_distributions, host_info)
                     if version <= MAX_VERSION:
                         predicted, error = _find_llvm_basename_or_error(
-                            _version_string(version),
+                            _semver.normalize_string(version),
                             all_llvm_distributions,
                             host_info,
                         )
@@ -966,7 +948,7 @@ def _distributions_test_writer_impl(ctx):
                                     error = "ERROR: Bad arch selection: " + predicted
                         if not skip_output:
                             select.append("{version}-{arch}-{os}/{dist_name}/{dist_version} -> {basename}".format(
-                                version = _version_string(version),
+                                version = _semver.normalize_string(version),
                                 arch = arch,
                                 os = os,
                                 dist_name = dist.name,
@@ -976,7 +958,7 @@ def _distributions_test_writer_impl(ctx):
                     if len(basenames) != 1:
                         if basenames:
                             dupes.append("dup: {version}-{arch}-{os}-{dist_name}-{dist_version} -> {count}".format(
-                                version = _version_string(version),
+                                version = _semver.normalize_string(version),
                                 arch = arch,
                                 os = os,
                                 dist_name = dist.name,

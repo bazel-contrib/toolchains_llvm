@@ -47,10 +47,10 @@ use_repo(
 # TODO: Remove when protobuf is released with a version of rules_python that supports 8.x
 bazel_dep(name = "rules_python", version = "1.0.0", dev_dependency = True)
 
-# Temporary until mboworks_bzl 0.8.0 is published; then remove this override.
+# Pin mboworks/bzl#78 normalization until 0.8.0 is published; then remove this override.
 archive_override(
     module_name = "mboworks_bzl",
-    integrity = "sha256-qDdtBpEZVlxbJCHfW2hXR3GFOS5diYVVIZuWM5p64TI=",
-    strip_prefix = "bzl-afcd7e0279f6791880750dfbccd97c047ad51e96",
-    urls = ["https://github.com/mboworks/bzl/archive/afcd7e0279f6791880750dfbccd97c047ad51e96.tar.gz"],
+    integrity = "sha256-ARiUvKPNeXxnnsXAkrnvY8aBvjhkMnNC6SeiLKbqq9I=",
+    strip_prefix = "bzl-f99bc54fe433259865d5c054ee4afed73e237302",
+    urls = ["https://github.com/mboworks/bzl/archive/f99bc54fe433259865d5c054ee4afed73e237302.tar.gz"],
 )
