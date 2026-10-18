@@ -19,11 +19,3 @@ llvm.toolchain(
     llvm_version = "19.1.7",
 )
 use_repo(llvm, "llvm_toolchain_mold")
-
-# Use the published release until bazelbuild/bazel-central-registry#11173 merges; then remove this override.
-archive_override(
-    module_name = "mboworks_bzl",
-    integrity = "sha256-GhSUQjvUDeCfAdmgb9b4EdSaOglZcL+ugskoAZGrX5A=",
-    strip_prefix = "bzl-0.8.0",
-    urls = ["https://github.com/mboworks/bzl/releases/download/0.8.0/bzl-0.8.0.tar.gz"],
-)
