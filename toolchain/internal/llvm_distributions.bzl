@@ -555,11 +555,6 @@ def _is_requirement(version_or_requirements):
             return True
     return False
 
-def _get_version_from_distribution(distribution):
-    # We assume here that the `distribution` is a basename of the form `LLVM-<version>-...` or
-    # `clang+llvm-<version>-...`.
-    return _distribution_version_string(distribution)
-
 def _required_llvm_release_name(*, version_or_requirements, all_llvm_distributions, host_info, allow_prereleases = False):
     if not _is_requirement(version_or_requirements):
         basename, error = _find_llvm_basename_or_error(version_or_requirements, all_llvm_distributions, host_info)
@@ -568,7 +563,7 @@ def _required_llvm_release_name(*, version_or_requirements, all_llvm_distributio
     # Restrict to unambiguous host-compatible archives before selecting a version.
     available = {}
     for distribution in all_llvm_distributions:
-        version = _get_version_from_distribution(distribution)
+        version = _distribution_version_string(distribution)
         if version not in available:
             available[version] = _find_llvm_basename_list(version, all_llvm_distributions, host_info)
     selected = version_selectors.select(
@@ -614,7 +609,7 @@ def _filter_llvm_distributions(*, llvm_version, all_llvm_distributions):
     """Return (distribution: sha) entries from `all_llvm_distributions` that match `llvm_version`."""
     result = {}
     for k, v in all_llvm_distributions.items():
-        if _get_version_from_distribution(k) == llvm_version:
+        if _distribution_version_string(k) == llvm_version:
             result[k] = v
     return result
 
