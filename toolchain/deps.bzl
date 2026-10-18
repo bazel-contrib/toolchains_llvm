@@ -59,11 +59,10 @@ def bazel_toolchain_dependencies():
             url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.52.0/bazel_features-v1.52.0.tar.gz",
         )
 
-    # Pin mboworks/bzl#78 normalization; switch to the 0.8.0 release when published.
     if not native.existing_rule("mboworks_bzl"):
         http_archive(
             name = "mboworks_bzl",
-            url = "https://github.com/mboworks/bzl/archive/f99bc54fe433259865d5c054ee4afed73e237302.tar.gz",
-            sha256 = "011894bca3cd797c679ec5c092b9ef63c681be3864327342e927a22ca6eaabd2",
-            strip_prefix = "bzl-f99bc54fe433259865d5c054ee4afed73e237302",
+            url = "https://github.com/mboworks/bzl/releases/download/0.8.0/bzl-0.8.0.tar.gz",
+            sha256 = "1a1494423bd40de09f01d9a06fd6f811d49a3a095970bfae82c9280191ab5f90",
+            strip_prefix = "bzl-0.8.0",
         )
