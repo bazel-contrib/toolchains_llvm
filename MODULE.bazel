@@ -23,7 +23,7 @@ bazel_dep(name = "bazel_skylib", version = "1.8.2")
 bazel_dep(name = "aspect_bazel_lib", version = "2.19.3")
 bazel_dep(name = "rules_cc", version = "0.2.17")
 bazel_dep(name = "platforms", version = "1.0.0")
-bazel_dep(name = "mboworks_bzl", version = "0.7.0")
+bazel_dep(name = "mboworks_bzl", version = "0.8.0")
 
 llvm_distributions_ext = use_extension(
     "//toolchain/extensions:distributions.bzl",
@@ -47,10 +47,10 @@ use_repo(
 # TODO: Remove when protobuf is released with a version of rules_python that supports 8.x
 bazel_dep(name = "rules_python", version = "1.0.0", dev_dependency = True)
 
-# Pin the merged collection API from mboworks/bzl#75 until its next release.
+# Temporary until mboworks_bzl 0.8.0 is published; then remove this override.
 archive_override(
     module_name = "mboworks_bzl",
-    integrity = "sha256-i1EsPbRBlMEmvOibBfQoJ5laUhSpdF1LvicLG+0BwCo=",
-    strip_prefix = "bzl-9c6560ccd828c84fe28f667fb89a29f197161251",
-    urls = ["https://github.com/mboworks/bzl/archive/9c6560ccd828c84fe28f667fb89a29f197161251.tar.gz"],
+    integrity = "sha256-qDdtBpEZVlxbJCHfW2hXR3GFOS5diYVVIZuWM5p64TI=",
+    strip_prefix = "bzl-afcd7e0279f6791880750dfbccd97c047ad51e96",
+    urls = ["https://github.com/mboworks/bzl/archive/afcd7e0279f6791880750dfbccd97c047ad51e96.tar.gz"],
 )

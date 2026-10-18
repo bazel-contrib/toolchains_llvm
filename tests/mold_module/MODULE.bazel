@@ -20,10 +20,10 @@ llvm.toolchain(
 )
 use_repo(llvm, "llvm_toolchain_mold")
 
-# Pin the merged collection API from mboworks/bzl#75 until its next release.
+# Temporary until mboworks_bzl 0.8.0 is published; then remove this override.
 archive_override(
     module_name = "mboworks_bzl",
-    integrity = "sha256-i1EsPbRBlMEmvOibBfQoJ5laUhSpdF1LvicLG+0BwCo=",
-    strip_prefix = "bzl-9c6560ccd828c84fe28f667fb89a29f197161251",
-    urls = ["https://github.com/mboworks/bzl/archive/9c6560ccd828c84fe28f667fb89a29f197161251.tar.gz"],
+    integrity = "sha256-qDdtBpEZVlxbJCHfW2hXR3GFOS5diYVVIZuWM5p64TI=",
+    strip_prefix = "bzl-afcd7e0279f6791880750dfbccd97c047ad51e96",
+    urls = ["https://github.com/mboworks/bzl/archive/afcd7e0279f6791880750dfbccd97c047ad51e96.tar.gz"],
 )
