@@ -116,6 +116,7 @@ def _llvm_toolchain(name, **kwargs):
     if catalogued_linkers:
         linker_distributions_repository(
             name = name + "_linkers",
+            allow_prereleases = kwargs.get("allow_prereleases", False),
             exec_arch = kwargs.get("exec_arch", ""),
             exec_os = kwargs.get("exec_os", ""),
             extra_catalogues = kwargs.get("extra_linker_distribution_files", []),

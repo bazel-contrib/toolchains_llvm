@@ -27,6 +27,11 @@ _target_pairs = ", ".join(_supported_os_arch_keys())
 
 # Atributes common to both `llvm` and `toolchain` repository rules.
 common_attrs = {
+    "allow_prereleases": attr.bool(
+        default = False,
+        doc = ("Allow prereleases in first/latest LLVM and linker selection. " +
+               "Requirements still apply. Exact version pins are unaffected."),
+    ),
     "llvm_versions": attr.string_dict(
         mandatory = False,
         doc = ("LLVM version strings, keyed by host OS release name and architecture, " +
@@ -74,7 +79,8 @@ llvm_repo_attrs.update({
                "for the `llvm_versions` attribute. This value can be set to `first` or " +
                "`latest` in order to find the respective first or latest LLVM version " +
                "supported on the OS/arch. Further, requirements can be provided, e.g. " +
-               "`latest:>=17.0.4,!=19.0.7`."),
+               "`latest:major==23`, `latest:major==23,minor==1`, or `latest:~=23.1.0,!=23.1.2`. " +
+               "Selectors use the pinned catalogue and configured extras, not live release discovery."),
     ),
     "urls": attr.string_list_dict(
         mandatory = False,

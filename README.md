@@ -93,12 +93,11 @@ llvm.toolchain(
 )
 ```
 
-Prereleases must be requested explicitly. Following the common SemVer range
-convention, they are excluded from `latest`, `first`, and stable-only version
-requirements. An exact `llvm_version = "23.1.0-rc3"` selects that release, and
-a requirement opts in by naming a prerelease with the same
-major/minor/patch tuple. Thus `latest:>=23.1.0-rc1` can select `23.1.0-rc3`,
-while `latest:>=23` and `latest:>22` cannot select it.
+Automatic `latest` and `first` selection excludes prereleases by default, including
+when a requirement explicitly mentions a prerelease. Set `allow_prereleases = True`
+to make matching prereleases eligible for LLVM and catalogued linkers. Exact pins
+such as `llvm_version = "23.1.0-rc3"` select that release directly regardless of the
+option.
 
 `extra_llvm_distributions` is not limited to official LLVM artifacts. Its keys
 may also be complete download URLs or absolute local paths, so internally
@@ -236,22 +235,74 @@ for how CC toolchains work in general.
 
 ### Requirements
 
-Version attributes can be requirements of the form `first`, `first:<condition>`,
-`latest` or `latest:<condition>`.
+Version requirements let projects bind automatic LLVM upgrades to deliberate `toolchains_llvm`
+release upgrades. A `toolchains_llvm` release can add new LLVM release identifiers to its
+checksummed catalogue. Upgrading the pinned module then makes those releases eligible without a
+separate edit to an exact `llvm_version`. Requirements restrict which of those additions a project
+will adopt, for example by keeping LLVM within major version 23:
 
-In case of `latest`, the latest distribution matching the optional `condition`
-will be selected.
+```starlark
+llvm.toolchain(
+    name = "llvm_toolchain",
+    llvm_version = "latest:major==23",
+)
+```
 
-In case of `first`, the first distribution matching the optional `condition`
-will be selected.
+With this policy, upgrading `toolchains_llvm` to a release that adds a newer stable LLVM 23
+version also upgrades the selected compiler, when an archive is available for the execution host.
+Even a module release that only adds LLVM release identifiers can therefore update LLVM as part
+of the same dependency upgrade. Adding LLVM 24 to the catalogue leaves this selection within
+LLVM 23; adopting LLVM 24 requires an explicit selector change. Bare `latest` permits major
+upgrades introduced by module upgrades as well. Exact versions remain useful when an LLVM
+release must match another artifact, such as an instrumented libc++ build.
 
-The condition consists of a comma separated list of semver version comparisons
-supporting `<`, `<=`, `>`, `>=`, `==`, `!=`. Examples:
+Selection uses the catalogue bundled with the pinned `toolchains_llvm` module plus explicitly
+configured extra distributions. Builds do not query upstream for newly published LLVM releases.
+With the same module, configured catalogue and execution host, the selected release stays the
+same. A module upgrade or an explicit catalogue change is what makes additional releases eligible.
 
-- `latest`
-- `latest:>=20.1.0`
-- `latest:>17.0.4,!=19.1.7,<=20.1.0`
-- `first:>=15.0.6,<16`
+Version attributes accept exact versions or selectors of the form `first`, `first:<conditions>`,
+`latest`, or `latest:<conditions>`. `latest` picks the newest matching release available for the
+execution host; `first` picks the oldest. The same clause syntax applies to LLVM and catalogued
+linker versions, and lets one configuration accommodate hosts whose available archives differ.
+
+Conditions are comma-separated and combined with AND. toolchains_llvm supplies `major`, `minor`,
+and `patch` as numeric release-component constants, so `latest:major==23,minor>=2` stays within
+LLVM 23 and requires a minor version of at least 2. Comparisons and function expressions use
+[mboworks_bzl's SemVer mode](https://mboworks.github.io/bzl/site/tag/0.7.0/docs/versions.html#semver).
+
+<!-- prettier-ignore -->
+| Selector                    | Selection policy                               |
+| --------------------------- | ---------------------------------------------- |
+| `latest:major==23`          | Newest stable LLVM 23 release for the host     |
+| `latest:major==23,minor==1` | Newest stable 23.1 release for the host        |
+| `latest:~=23.1.0,!=23.1.2`  | Newest stable compatible release except 23.1.2 |
+| `first:>=22,<23`            | Oldest stable LLVM 22 release for the host     |
+
+For all comparison operators, wildcard matching and compatible-release boundaries, see
+[Compatible and matching requirements](https://mboworks.github.io/bzl/site/tag/0.7.0/docs/versions.html#compatible-and-matching-requirements).
+Function clauses such as `major()==23` and more advanced inspection are documented under
+[Requirement expressions and constants](https://mboworks.github.io/bzl/site/tag/0.7.0/docs/versions.html#requirement-expressions-and-constants).
+
+`allow_prereleases` defaults to `False` and applies to both bare and constrained
+`first`/`latest` selectors for LLVM and catalogued linkers. Requirements always
+apply; enabling prereleases does not bypass ranges or host availability. Naming
+an RC in a requirement does not implicitly enable prereleases. Exact version pins
+are unaffected.
+
+```starlark
+llvm.toolchain(
+    name = "llvm_rc",
+    llvm_version = "latest:>=23.1.0-rc1,<23.1.0",
+    allow_prereleases = True,
+)
+```
+
+This selects the newest matching release candidate available for the execution
+host. With `allow_prereleases = False`, that RC-only range has no matching release.
+With the option enabled, expressions such as `is_prerelease()==True` can further
+restrict selection to prereleases; `is_prerelease()==False` can restrict a
+particular selector to stable releases.
 
 It is further possible to provide the version or requirement from an environment
 variable with a fallback version or requirement. In this case it is important to

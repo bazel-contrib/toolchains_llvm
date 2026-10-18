@@ -48,3 +48,11 @@ llvm.feature_override(
 )
 use_repo(llvm, "llvm_toolchain")
 register_toolchains("@llvm_toolchain//:all")
+
+# Pin the merged collection API from mboworks/bzl#75 until its next release.
+archive_override(
+    module_name = "mboworks_bzl",
+    integrity = "sha256-i1EsPbRBlMEmvOibBfQoJ5laUhSpdF1LvicLG+0BwCo=",
+    strip_prefix = "bzl-9c6560ccd828c84fe28f667fb89a29f197161251",
+    urls = ["https://github.com/mboworks/bzl/archive/9c6560ccd828c84fe28f667fb89a29f197161251.tar.gz"],
+)
