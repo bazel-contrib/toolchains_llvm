@@ -27,9 +27,9 @@ _target_pairs = ", ".join(_supported_os_arch_keys())
 
 # Atributes common to both `llvm` and `toolchain` repository rules.
 common_attrs = {
-    "allow_prereleases": attr.bool(
+    "llvm_version_allow_prereleases": attr.bool(
         default = False,
-        doc = ("Allow prereleases in first/latest LLVM and linker selection. " +
+        doc = ("Allow prereleases in first/latest LLVM selection only. " +
                "Requirements still apply. Exact version pins are unaffected."),
     ),
     "llvm_versions": attr.string_dict(
@@ -470,6 +470,11 @@ llvm_config_attrs.update({
                "absolute path to a linker executable. Bare `mold` may derive its " +
                "version from an injected mold module. An empty key applies to all " +
                "targets.").format(_target_pairs),
+    ),
+    "linker_version_allow_prereleases": attr.bool(
+        default = False,
+        doc = ("Allow prereleases in first/latest catalogued linker selection, including mold. " +
+               "Requirements still apply. Exact pins and LLVM selection are unaffected."),
     ),
     "linker_version": attr.string(
         doc = ("Default version or version requirement for catalogued linkers, " +

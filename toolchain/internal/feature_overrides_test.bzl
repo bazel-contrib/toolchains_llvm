@@ -113,6 +113,19 @@ def _archive_sharing_test_impl(ctx):
     asserts.false(env, can_share_llvm_archive(base, {}, reset = ["distribution"]))
     asserts.false(env, can_share_llvm_archive(base, dict(toolchain_roots = {"": "/opt/llvm"})))
 
+    asserts.true(env, can_share_llvm_archive(base, dict(linker_version_allow_prereleases = True)))
+    asserts.true(env, can_share_llvm_archive(base, {}, reset = ["linker_version_allow_prereleases"]))
+    asserts.false(env, can_share_llvm_archive(base, dict(llvm_version_allow_prereleases = True)))
+    asserts.false(env, can_share_llvm_archive(base, {}, reset = ["llvm_version_allow_prereleases"]))
+    for llvm_allow in [False, True]:
+        for linker_allow in [False, True]:
+            settings = dict(llvm_version_allow_prereleases = llvm_allow, linker_version_allow_prereleases = linker_allow)
+            override = llvm_feature_override(features = ["test"], **settings)
+            merged = merge_override(dict(base, llvm_version_allow_prereleases = not llvm_allow, linker_version_allow_prereleases = not linker_allow), settings)
+            asserts.equals(env, llvm_allow, merged["llvm_version_allow_prereleases"])
+            asserts.equals(env, linker_allow, merged["linker_version_allow_prereleases"])
+            asserts.equals(env, settings, override["settings"])
+
     # Resetting an external root must create a new download: the base has no
     # generated LLVM archive repository that the variant could share.
     external_base = dict(base, toolchain_roots = {"": "/opt/llvm"})

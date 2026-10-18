@@ -94,8 +94,9 @@ llvm.toolchain(
 ```
 
 Automatic `latest` and `first` selection excludes prereleases by default, including
-when a requirement explicitly mentions a prerelease. Set `allow_prereleases = True`
-to make matching prereleases eligible for LLVM and catalogued linkers. Exact pins
+when a requirement explicitly mentions a prerelease. Set `llvm_version_allow_prereleases = True`
+to make matching LLVM prereleases eligible, or
+`linker_version_allow_prereleases = True` for catalogued linkers, including mold. Exact pins
 such as `llvm_version = "23.1.0-rc3"` select that release directly regardless of the
 option.
 
@@ -284,8 +285,9 @@ For all comparison operators, wildcard matching and compatible-release boundarie
 Function clauses such as `major()==23` and more advanced inspection are documented under
 [Requirement expressions and constants](https://mboworks.github.io/bzl/site/tag/0.7.0/docs/versions.html#requirement-expressions-and-constants).
 
-`allow_prereleases` defaults to `False` and applies to both bare and constrained
-`first`/`latest` selectors for LLVM and catalogued linkers. Requirements always
+`llvm_version_allow_prereleases` and `linker_version_allow_prereleases` each
+default to `False`. They independently control bare and constrained
+`first`/`latest` selectors for LLVM and catalogued linkers, respectively. Requirements always
 apply; enabling prereleases does not bypass ranges or host availability. Naming
 an RC in a requirement does not implicitly enable prereleases. Exact version pins
 are unaffected.
@@ -294,18 +296,45 @@ are unaffected.
 llvm.toolchain(
     name = "llvm_rc",
     llvm_version = "latest:>=23.1.0-rc1,<23.1.0",
-    allow_prereleases = True,
+    llvm_version_allow_prereleases = True,
 )
 ```
 
 This selects the newest matching release candidate available for the execution
-host. With `allow_prereleases = False`, that RC-only range has no matching release.
+host. With `llvm_version_allow_prereleases = False`, that RC-only range has no matching release.
 With the option enabled, expressions such as `is_prerelease()==True` can further
 restrict selection to prereleases; `is_prerelease()==False` can restrict a
 particular selector to stable releases.
 
+Linker selectors use the same bzl SemVer comparisons, requirement expressions,
+projection constants, and first/latest selection as LLVM. For example:
+
+```starlark
+llvm.toolchain(
+    name = "llvm_with_mold_rc",
+    llvm_version = "latest:major==23",
+    llvm_version_allow_prereleases = False,
+    linker = {"": "mold"},
+    linker_version = "latest:major==3,is_prerelease()==True",
+    linker_version_allow_prereleases = True,
+)
+```
+
+This selects stable LLVM and a mold prerelease independently. A matching mold
+prerelease must exist in the configured linker catalogue (for example, through
+`extra_linker_distribution_files`); selection does not discover live releases.
+Linker candidates are restricted to the execution platform before version selection,
+just as LLVM candidates are restricted to compatible archives. An exact
+`linker_version = "3.0.0-rc1"` does not require enabling prereleases. Bare `mold`
+without a version derives an exact pin from the injected mold module. The linker
+flag has no effect on bundled linkers, `auto`, or absolute executable paths.
+Both flags also work in feature overrides; changing only the linker flag can
+reuse the base LLVM archive.
+
 It is further possible to provide the version or requirement from an environment
-variable with a fallback version or requirement. In this case it is important to
+variable with a fallback version or requirement. This works for both LLVM and
+linker versions, for example `linker_version = "getenv(MOLD_VERSION,latest:major==3)"`
+with `--repo_env=MOLD_VERSION=3.0.0`. In this case it is important to
 also use the bazel flag `--repo_env=LLVM_VERSION=version_or_requirement`. It is
 important to use both correctly because otherwise the resulting builds are not
 reproducible. The main purpose of using an environment variable to encode the

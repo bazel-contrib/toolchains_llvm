@@ -555,44 +555,6 @@ def _is_requirement(version_or_requirements):
             return True
     return False
 
-def _parse_version_or_requirements(version_or_requirements):
-    for prefix in ["latest:", "first:"]:
-        if version_or_requirements.startswith(prefix):
-            return version_selectors.parse_requirements(version_or_requirements.removeprefix(prefix))
-    if version_or_requirements in ["latest", "first"]:
-        return None
-    if not _is_requirement(version_or_requirements):
-        return None
-    fail("ERROR: Invalid version requirements: '{version_or_requirements}'.".format(
-        version_or_requirements = version_or_requirements,
-    ))
-
-def resolve_version(version_or_requirements, available_versions, *, allow_prereleases = False):
-    """Resolve an exact version or first/latest requirement against versions."""
-    if not version_or_requirements:
-        fail("ERROR: Empty version selection.")
-    if not _is_requirement(version_or_requirements):
-        if version_or_requirements not in available_versions:
-            fail("ERROR: Version '{}' is not available; supported versions: {}".format(
-                version_or_requirements,
-                ", ".join(_semver.sorted(available_versions)),
-            ))
-        return version_or_requirements
-
-    requirements = _parse_version_or_requirements(version_or_requirements)
-    pick = _semver.latest if version_or_requirements.startswith("latest") else _semver.earliest
-    selected = pick(
-        available_versions,
-        include_requirements = lambda v: not requirements or version_selectors.matches(v, requirements),
-        exclude_requirements = None if allow_prereleases else _semver.is_prerelease,
-    )
-    if selected != None:
-        return selected
-    fail("ERROR: No version matches '{}' in: {}".format(
-        version_or_requirements,
-        ", ".join(_semver.sorted(available_versions)),
-    ))
-
 def _get_version_from_distribution(distribution):
     # We assume here that the `distribution` is a basename of the form `LLVM-<version>-...` or
     # `clang+llvm-<version>-...`.
@@ -609,51 +571,18 @@ def _required_llvm_release_name(*, version_or_requirements, all_llvm_distributio
         version = _get_version_from_distribution(distribution)
         if version not in available:
             available[version] = _find_llvm_basename_list(version, all_llvm_distributions, host_info)
-    requirements = _parse_version_or_requirements(version_or_requirements)
-    pick = _semver.latest if version_or_requirements.startswith("latest") else _semver.earliest
-    selected = pick(
+    selected = version_selectors.select(
+        version_or_requirements,
         [(version, names[0]) for version, names in available.items() if len(names) == 1],
         key = lambda item: item[0],
-        include_requirements = lambda v: not requirements or version_selectors.matches(v, requirements),
-        exclude_requirements = None if allow_prereleases else _semver.is_prerelease,
+        allow_prereleases = allow_prereleases,
     )
     if selected != None:
         return selected[0], selected[1], None
     return None, None, "ERROR: No matching distribution found."
 
-def _resolve_llvm_version_rctx_env(rctx, llvm_version):
-    if llvm_version.startswith("getenv(") and llvm_version.endswith(")"):
-        env_var = llvm_version[len("getenv("):-1]
-        if env_var.find(",") >= 0:
-            env_name, env_default = env_var.split(",", 1)
-        else:
-            env_name = env_var
-            env_default = None
-
-        env_name = env_name.strip(" ")
-        if not env_var:
-            fail("ERROR: Bad getenv parameter '{env_var}'.".format(
-                env_var = env_var,
-            ))
-
-        # We prefer 'repository_ctx.getenv' if it is available (~7.1+) and default
-        # to accessing the environment directly. The latter breaks "hermeticity".
-        if hasattr(rctx, "getenv"):
-            llvm_version = rctx.getenv(env_name, env_default)
-        elif env_name in rctx.os.environ:
-            llvm_version = rctx.os.environ[env_name]
-        else:
-            llvm_version = env_default
-
-        if not llvm_version:
-            fail("ERROR: Empty getenv lookup for '{env_var}'.".format(
-                env_var = env_var,
-            ))
-
-    return llvm_version
-
 def _required_llvm_release_name_rctx(rctx, llvm_version):
-    llvm_version = _resolve_llvm_version_rctx_env(rctx, llvm_version)
+    llvm_version = version_selectors.resolve_environment(rctx, llvm_version)
     builtin_distributions, user_distributions, _ = _configured_distribution_data(rctx)
     all_llvm_distributions = _get_all_llvm_distributions(
         llvm_distributions = builtin_distributions,
@@ -664,7 +593,7 @@ def _required_llvm_release_name_rctx(rctx, llvm_version):
         version_or_requirements = llvm_version,
         all_llvm_distributions = all_llvm_distributions,
         host_info = host_info(rctx),
-        allow_prereleases = rctx.attr.allow_prereleases,
+        allow_prereleases = rctx.attr.llvm_version_allow_prereleases,
     )
 
 def required_llvm_version_rctx(rctx):
@@ -702,13 +631,13 @@ def _distribution_urls(rctx):
 
     if rctx.attr.distribution == "auto":
         rctx_host_info = host_info(rctx)
-        llvm_version = _resolve_llvm_version_rctx_env(rctx, llvm_version)
+        llvm_version = version_selectors.resolve_environment(rctx, llvm_version)
         if _is_requirement(llvm_version):
             llvm_version, basename, error = _required_llvm_release_name(
                 version_or_requirements = llvm_version,
                 all_llvm_distributions = all_llvm_distributions,
                 host_info = rctx_host_info,
-                allow_prereleases = rctx.attr.allow_prereleases,
+                allow_prereleases = rctx.attr.llvm_version_allow_prereleases,
             )
         else:
             basename, error = _find_llvm_basename_or_error(llvm_version, all_llvm_distributions, rctx_host_info)
