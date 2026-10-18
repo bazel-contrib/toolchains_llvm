@@ -18,11 +18,12 @@ workspace(
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
+# Temporary source pin; switch to the mboworks_bzl 0.8.0 release when published.
 http_archive(
     name = "mboworks_bzl",
-    sha256 = "b12d761d883d497ecc3f5e4c005a02b19b425606b1eadd515d1583d8abe9ca14",
-    strip_prefix = "bzl-0.7.0",
-    url = "https://github.com/mboworks/bzl/releases/download/0.7.0/bzl-0.7.0.tar.gz",
+    sha256 = "a8376d069119565c5b2421df5b6857477185392e5d898555219b96339a7ae132",
+    strip_prefix = "bzl-afcd7e0279f6791880750dfbccd97c047ad51e96",
+    url = "https://github.com/mboworks/bzl/archive/afcd7e0279f6791880750dfbccd97c047ad51e96.tar.gz",
 )
 
 # Materialize the merged LLVM distribution table for WORKSPACE-mode builds
