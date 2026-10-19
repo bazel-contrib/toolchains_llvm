@@ -19,9 +19,13 @@ fail() {
 }
 
 clang_format_path=$1
-libcpp_path=$2
+clang_format_filegroup_path=$2
+libcpp_path=$3
 
 [[ -e ${clang_format_path} ]] || fail "bin/clang-format not found at ${clang_format_path}"
+
+[[ ${clang_format_filegroup_path} == "${clang_format_path}" ]] ||
+  fail "clang-format filegroup resolves to ${clang_format_filegroup_path}, expected ${clang_format_path}"
 
 [[ -e ${libcpp_path} ]] ||
   compgen -G "${libcpp_path}" >/dev/null ||
