@@ -29,6 +29,19 @@ exports_files(glob(
 
 ## LLVM toolchain files
 
+# Dylib-linked tools need the LLVM/Clang and C++ runtimes on remote workers.
+filegroup(
+    name = "runtime_shared_libraries",
+    srcs = glob(
+        [
+            "lib/libLLVM.so*",
+            "lib/libclang-cpp.so*",
+            "lib/**/libc++*.so*",
+        ],
+        allow_empty = True,
+    ),
+)
+
 filegroup(
     name = "clang",
     srcs = [
