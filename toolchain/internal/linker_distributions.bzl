@@ -17,7 +17,9 @@
 load("@mboworks_bzl//bzl/versions:versions.bzl", "versions")
 load("//toolchain/internal:common.bzl", "is_absolute_path")
 load("//toolchain/internal:distributions_repo.bzl", "load_jsonc")
-load("//toolchain/internal:llvm_distributions.bzl", "resolve_version")
+load("//toolchain/internal:version_selectors.bzl", "version_selectors")
+
+_semver = versions.with_mode("semver")
 
 def catalogued_linker_reference(selection, version):
     """Return the catalogue reference for a linker selection, or None."""
@@ -31,7 +33,7 @@ def llvm_23_macos_uses_bundled_linker(llvm_version, linker_dict):
     """Whether any Darwin target retains a bundled LLVM 23 linker without arm64e.x1 support."""
 
     # LLVM 23.1.3 backports arm64e.x1 support to ld64.lld (llvm/llvm-project#224185).
-    if not llvm_version.startswith("23.") or not versions.lt(llvm_version, "23.1.3"):
+    if not llvm_version.startswith("23.") or not _semver.lt(llvm_version, "23.1.3"):
         return False
     default = linker_dict.get("", "")
     return any([
@@ -80,7 +82,7 @@ def _merge_catalogue(catalogue, extra):
                 merged_versions[version] = merged_platforms
             merged_platforms.update(platforms)
 
-def resolve_linker_distribution(catalogue, linker, version_selection, platform):
+def resolve_linker_distribution(catalogue, linker, version_selection, platform, *, allow_prereleases = False):
     """Resolve a version against releases available for an execution platform."""
     versions = catalogue.get(linker)
     if not versions:
@@ -92,7 +94,7 @@ def resolve_linker_distribution(catalogue, linker, version_selection, platform):
     ]
     if not available_versions:
         fail("linker '{}' has no executable for the {} execution platform".format(linker, platform))
-    version = resolve_version(version_selection, available_versions)
+    version = version_selectors.resolve(version_selection, available_versions, allow_prereleases = allow_prereleases)
     return version, versions[version][platform]
 
 def _mold_version(rctx):
@@ -124,6 +126,7 @@ def _linker_distributions_repository_impl(rctx):
             linker, version_selection = "mold", _mold_version(rctx)
         else:
             linker, version_selection = _parse_reference(reference)
+        version_selection = version_selectors.resolve_environment(rctx, version_selection)
         versions = catalogue.get(linker)
         if not versions:
             fail("unknown linker '{}'; known linkers: {}".format(linker, ", ".join(sorted(catalogue.keys()))))
@@ -136,7 +139,7 @@ def _linker_distributions_repository_impl(rctx):
             exec_os = platform.split("-")[0]
             if all([target and target.split("-")[0] != exec_os for target in references[reference]]):
                 continue
-        _, distribution = resolve_linker_distribution(catalogue, linker, version_selection, platform)
+        _, distribution = resolve_linker_distribution(catalogue, linker, version_selection, platform, allow_prereleases = rctx.attr.linker_version_allow_prereleases)
 
         extraction_dir = "_extract/{}".format(index)
         rctx.download_and_extract(
@@ -167,6 +170,7 @@ exports_files(["linkers.json"])
 linker_distributions_repository = repository_rule(
     implementation = _linker_distributions_repository_impl,
     attrs = {
+        "linker_version_allow_prereleases": attr.bool(default = False),
         "catalogue": attr.label(
             allow_single_file = [".json", ".jsonc"],
             default = Label("//toolchain/distributions:linkers.jsonc"),
@@ -191,7 +195,7 @@ def _linker_version_test_writer_impl(ctx):
         "latest:>=2.40.0,!=2.42.1",
     ]
     version_results = [
-        "{} -> {}".format(selection, resolve_version(selection, available))
+        "{} -> {}".format(selection, version_selectors.resolve(selection, available))
         for selection in selections
     ]
     reference_results = [

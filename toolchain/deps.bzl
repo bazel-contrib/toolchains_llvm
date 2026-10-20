@@ -59,7 +59,6 @@ def bazel_toolchain_dependencies():
             url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.52.0/bazel_features-v1.52.0.tar.gz",
         )
 
-    # Load mboworks_bzl for version comparisons.
     if not native.existing_rule("mboworks_bzl"):
         http_archive(
             name = "mboworks_bzl",

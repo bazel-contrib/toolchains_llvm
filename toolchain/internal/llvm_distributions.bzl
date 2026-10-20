@@ -26,6 +26,7 @@ load(
     "host_info",
 )
 load("//toolchain/internal:distributions_repo.bzl", "load_distribution_files")
+load("//toolchain/internal:version_selectors.bzl", "version_selectors")
 
 # The merged distribution table is built at module-load time by the
 # `llvm_distributions` module extension (see
@@ -42,6 +43,8 @@ load("//toolchain/internal:distributions_repo.bzl", "load_distribution_files")
 #   - extra.jsonc         - empty by default; downstream slot for additional
 #                           bundled distributions (private mirrors, internal
 #                           builds, etc.).
+_semver = versions.with_mode("semver")
+
 _llvm_distributions = LLVM_DISTRIBUTIONS
 
 # Per-basename download URL map, fully expanded from the `_meta.base_url`
@@ -61,21 +64,7 @@ _llvm_distribution_urls = LLVM_DISTRIBUTION_URLS
 _DEFAULT_URL_TEMPLATE = "https://github.com/llvm/llvm-project/releases/download/llvmorg-{version}/"
 
 def _parse_version(v):
-    return tuple(versions.parse(v))
-
-def _version_string(version):
-    core = []
-    suffix = ""
-    for part in version:
-        if part in ["-", "+"]:
-            suffix += part
-        elif suffix:
-            # The versions helper tokenizes LLVM's `rc3` identifier as
-            # `"rc", 3`; LLVM release tags use the compact spelling.
-            suffix += str(part)
-        else:
-            core.append(str(part))
-    return ".".join(core) + suffix
+    return tuple(_semver.parse(v))
 
 def _distribution_basename(distribution):
     return distribution.split("?", 1)[0].split("#", 1)[0].split("/")[-1].split("\\")[-1].replace("%2B", "+")
@@ -89,46 +78,6 @@ def _distribution_version_string(distribution):
     if len(parts) > 2 and parts[2].startswith("rc") and parts[2][2:].isdigit():
         version += "-" + parts[2]
     return version
-
-def _is_prerelease(version):
-    return "-" in version
-
-def _parsed_version_core(parsed):
-    core = []
-    for part in parsed:
-        if part in ["-", "+"]:
-            break
-        core.append(part)
-    return tuple(core)
-
-def _version_core(version):
-    return _parsed_version_core(_parse_version(version))
-
-def _requirements_allow_prerelease(version, requirements):
-    if not _is_prerelease(version):
-        return True
-    if not requirements:
-        return False
-    core = _version_core(version)
-    return any([
-        "-" in requirement.version and _parsed_version_core(requirement.version) == core
-        for requirement in requirements
-    ])
-
-def _sort_versions(version_strings, *, reverse):
-    result = []
-    for version in version_strings:
-        inserted = False
-        for pos in range(len(result)):
-            if versions.cmp(result[pos], version) >= 0:
-                result = result[:pos] + [version] + result[pos:]
-                inserted = True
-                break
-        if not inserted:
-            result.append(version)
-    if reverse:
-        result = result[::-1]
-    return result
 
 def _distribution_version(distribution):
     # Return the version string of a distribution.
@@ -606,103 +555,29 @@ def _is_requirement(version_or_requirements):
             return True
     return False
 
-def _parse_version_or_requirements(version_or_requirements):
-    for prefix in ["latest:", "first:"]:
-        if version_or_requirements.startswith(prefix):
-            return versions.parse_requirements(version_or_requirements.removeprefix(prefix))
-    if version_or_requirements in ["latest", "first"]:
-        return None
+def _required_llvm_release_name(*, version_or_requirements, all_llvm_distributions, host_info, allow_prereleases = False):
     if not _is_requirement(version_or_requirements):
-        return None
-    fail("ERROR: Invalid version requirements: '{version_or_requirements}'.".format(
-        version_or_requirements = version_or_requirements,
-    ))
+        basename, error = _find_llvm_basename_or_error(version_or_requirements, all_llvm_distributions, host_info)
+        return version_or_requirements, basename, error
 
-def resolve_version(version_or_requirements, available_versions):
-    """Resolve an exact version or first/latest requirement against versions."""
-    if not version_or_requirements:
-        fail("ERROR: Empty version selection.")
-    if not _is_requirement(version_or_requirements):
-        if version_or_requirements not in available_versions:
-            fail("ERROR: Version '{}' is not available; supported versions: {}".format(
-                version_or_requirements,
-                ", ".join(_sort_versions(available_versions)),
-            ))
-        return version_or_requirements
-
-    requirements = _parse_version_or_requirements(version_or_requirements)
-    for version in _sort_versions(available_versions, reverse = version_or_requirements.startswith("latest")):
-        if not requirements or versions.check_all_requirements(version, requirements):
-            return version
-    fail("ERROR: No version matches '{}' in: {}".format(
+    # Restrict to unambiguous host-compatible archives before selecting a version.
+    available = {}
+    for distribution in all_llvm_distributions:
+        version = _distribution_version_string(distribution)
+        if version not in available:
+            available[version] = _find_llvm_basename_list(version, all_llvm_distributions, host_info)
+    selected = version_selectors.select(
         version_or_requirements,
-        ", ".join(_sort_versions(available_versions)),
-    ))
-
-def _get_version_from_distribution(distribution):
-    # We assume here that the `distribution` is a basename of the form `LLVM-<version>-...` or
-    # `clang+llvm-<version>-...`.
-    return _distribution_version_string(distribution)
-
-def _get_llvm_versions(*, version_or_requirements, all_llvm_distributions):
-    requirements = _parse_version_or_requirements(version_or_requirements)
-    llvm_version_dict = {}
-    for distribution in all_llvm_distributions.keys():
-        version = _get_version_from_distribution(distribution)
-
-        # Match the common SemVer range convention: prereleases are excluded
-        # unless a comparator explicitly mentions a prerelease with the same
-        # major/minor/patch tuple.
-        if not _requirements_allow_prerelease(version, requirements):
-            continue
-        llvm_version_dict[version] = None
-
-    return _sort_versions(llvm_version_dict.keys(), reverse = version_or_requirements.startswith("latest"))
-
-def _required_llvm_release_name(*, version_or_requirements, all_llvm_distributions, host_info):
-    llvm_versions = _get_llvm_versions(version_or_requirements = version_or_requirements, all_llvm_distributions = all_llvm_distributions)
-    requirements = _parse_version_or_requirements(version_or_requirements)
-    for llvm_version in llvm_versions:
-        if requirements and not versions.check_all_requirements(llvm_version, requirements):
-            continue
-        basenames = _find_llvm_basename_list(llvm_version, all_llvm_distributions, host_info)
-        if len(basenames) == 1:
-            return llvm_version, basenames[0], None
+        [(version, names[0]) for version, names in available.items() if len(names) == 1],
+        key = lambda item: item[0],
+        allow_prereleases = allow_prereleases,
+    )
+    if selected != None:
+        return selected[0], selected[1], None
     return None, None, "ERROR: No matching distribution found."
 
-def _resolve_llvm_version_rctx_env(rctx, llvm_version):
-    if llvm_version.startswith("getenv(") and llvm_version.endswith(")"):
-        env_var = llvm_version[len("getenv("):-1]
-        if env_var.find(",") >= 0:
-            env_name, env_default = env_var.split(",", 1)
-        else:
-            env_name = env_var
-            env_default = None
-
-        env_name = env_name.strip(" ")
-        if not env_var:
-            fail("ERROR: Bad getenv parameter '{env_var}'.".format(
-                env_var = env_var,
-            ))
-
-        # We prefer 'repository_ctx.getenv' if it is available (~7.1+) and default
-        # to accessing the environment directly. The latter breaks "hermeticity".
-        if hasattr(rctx, "getenv"):
-            llvm_version = rctx.getenv(env_name, env_default)
-        elif env_name in rctx.os.environ:
-            llvm_version = rctx.os.environ[env_name]
-        else:
-            llvm_version = env_default
-
-        if not llvm_version:
-            fail("ERROR: Empty getenv lookup for '{env_var}'.".format(
-                env_var = env_var,
-            ))
-
-    return llvm_version
-
 def _required_llvm_release_name_rctx(rctx, llvm_version):
-    llvm_version = _resolve_llvm_version_rctx_env(rctx, llvm_version)
+    llvm_version = version_selectors.resolve_environment(rctx, llvm_version)
     builtin_distributions, user_distributions, _ = _configured_distribution_data(rctx)
     all_llvm_distributions = _get_all_llvm_distributions(
         llvm_distributions = builtin_distributions,
@@ -713,6 +588,7 @@ def _required_llvm_release_name_rctx(rctx, llvm_version):
         version_or_requirements = llvm_version,
         all_llvm_distributions = all_llvm_distributions,
         host_info = host_info(rctx),
+        allow_prereleases = rctx.attr.llvm_version_allow_prereleases,
     )
 
 def required_llvm_version_rctx(rctx):
@@ -733,7 +609,7 @@ def _filter_llvm_distributions(*, llvm_version, all_llvm_distributions):
     """Return (distribution: sha) entries from `all_llvm_distributions` that match `llvm_version`."""
     result = {}
     for k, v in all_llvm_distributions.items():
-        if _get_version_from_distribution(k) == llvm_version:
+        if _distribution_version_string(k) == llvm_version:
             result[k] = v
     return result
 
@@ -750,12 +626,13 @@ def _distribution_urls(rctx):
 
     if rctx.attr.distribution == "auto":
         rctx_host_info = host_info(rctx)
-        llvm_version = _resolve_llvm_version_rctx_env(rctx, llvm_version)
+        llvm_version = version_selectors.resolve_environment(rctx, llvm_version)
         if _is_requirement(llvm_version):
             llvm_version, basename, error = _required_llvm_release_name(
                 version_or_requirements = llvm_version,
                 all_llvm_distributions = all_llvm_distributions,
                 host_info = rctx_host_info,
+                allow_prereleases = rctx.attr.llvm_version_allow_prereleases,
             )
         else:
             basename, error = _find_llvm_basename_or_error(llvm_version, all_llvm_distributions, rctx_host_info)
@@ -809,387 +686,15 @@ def _distribution_urls(rctx):
 
     return urls, sha256, strip_prefix
 
-def _distributions_test_writer_impl(ctx):
-    """Analyze the configured versions and write to a file for test consumption.
-
-    The test generated file '<rule_name>.out' contains the following lines:
-    - a 'del:' line denotes a llvm distribution basename that was not found.
-    - a 'add:' line denotes a version that was predicted but does not exist.
-
-    Lines of type `add:` should never occur as the algorithm is supposed to
-    verify that predicted distributions have been configured. Otherwise the
-    algorithm could not know the hash value.
-    """
-    use_llvm_distributions = _llvm_distributions
-
-    # Inject version '0.0.0' that verifies additional behavior using `extra_llvm_distributions`.
-    extra_llvm_distributions = {
-        # Keep both formats to verify that automatic selection avoids zstd
-        # until Bazel supports the large windows used by LLVM 23 archives.
-        "LLVM-0.0.0-Linux-ARM64.tar.zst": "d6b8679be46bdaa383e0c7f13a473ca8f7a4f87233f2cc0e0a7ab19e1b6265e7",
-        "LLVM-0.0.0-Linux-ARM64.tar.xz": "a6b8679be46bdaa383e0c7f13a473ca8f7a4f87233f2cc0e0a7ab19e1b6265e7",
-        "/foo/bar/LLVM-0.0.0-Linux-X64.tar.xz?xyz": "0a764a8ca521606532ca9ec4e5745c933b16b7d30f4701a47ee851d448fcdb74",
-        "http://server/foo/bar/LLVM-0.0.0-macOS-ARM64.tar.xz#xyz": "9da86f64a99f5ce9b679caf54e938736ca269c5e069d0c94ad08b995c5f25c16",
-        "http://server/foo/bar/LLVM-0.0.0-macOS-X64.tar.xz": "264f2f1e8b67f066749349ae8b4943d346cd44e099464164ef21b42a57663540",
-        "http://server/clang%2Bllvm-0.0.0-aarch64-pc-windows-msvc.tar.xz": "5916d93bf80e3ae504022cdd8cb8887be001f9b68a7a08bd268727e8d858afa4",
-        "http://server/path-to-file/clang%2Bllvm-0.0.0-x86_64-pc-windows-msvc.tar.xz#bla": "5916d93bf80e3ae504022cdd8cb8887be001f9b68a7a08bd268727e8d858afa4",
-    }
-
-    arch_list = [
-        "aarch64",
-        "armv7a",
-        "mips",
-        "mipsel",
-        "powerpc64",
-        "powerpc64le",
-        "sparc64",
-        "sparcv9",
-        "x86_32",
-        "x86_64",
-    ]
-    arch_alias_dict = {
-        "sparc64": ["sparc64", "sparcv9"],
-        "sparcv9": ["sparcv9", "sparc64"],
-    }
-    os_list = [
-        "darwin",
-        "linux",
-        "windows",
-    ]
-    ANY_VERSION = "0"  # Version does not matter, but must be a valid integer
-    dist_dict_list = {
-        "linux": [
-            # keep sorted
-            struct(name = "amzn", version = ANY_VERSION),
-            struct(name = "arch", version = ANY_VERSION),
-            struct(name = "centos", version = "6"),
-            struct(name = "centos", version = "7"),
-            struct(name = "chainguard", version = ANY_VERSION),
-            struct(name = "debian", version = "0"),
-            struct(name = "debian", version = "8"),
-            struct(name = "debian", version = "9"),
-            struct(name = "fedora", version = "26"),
-            struct(name = "fedora", version = "27"),
-            struct(name = "fedora", version = "42"),
-            struct(name = "freebsd", version = "10"),
-            struct(name = "freebsd", version = "11"),
-            struct(name = "freebsd", version = "12"),
-            struct(name = "freebsd", version = "13"),
-            struct(name = "ibm-aix", version = "7.2"),
-            struct(name = "linuxmint", version = "18"),
-            struct(name = "linuxmint", version = "19"),
-            struct(name = "pc-solaris", version = "2.11"),
-            struct(name = "raspbian", version = ANY_VERSION),
-            struct(name = "rhel", version = ANY_VERSION),
-            struct(name = "sun-solaris", version = "2.11"),
-            struct(name = "suse", version = "11.3"),
-            struct(name = "suse", version = "12.2"),
-            struct(name = "suse", version = "12.3"),
-            struct(name = "suse", version = "12.4"),
-            struct(name = "suse", version = "15.5"),
-            struct(name = "suse", version = "16.0"),
-            struct(name = "suse", version = "17.0"),
-            struct(name = "ubuntu", version = "14.04"),
-            struct(name = "ubuntu", version = "16.04"),
-            struct(name = "ubuntu", version = "18.04.5"),
-            struct(name = "ubuntu", version = "18.04.6"),
-            struct(name = "ubuntu", version = "18.04"),
-            struct(name = "ubuntu", version = "20.04"),
-            struct(name = "ubuntu", version = "20.10"),
-            struct(name = "ubuntu", version = "22.04"),
-            struct(name = "ubuntu", version = "24.04"),
-            struct(name = "void", version = ANY_VERSION),
-            struct(name = "wolfi", version = ANY_VERSION),
-        ],
-    }
-
-    # Define the min real version. For earlier injected versions we do no perform dist testing.
-    MIN_VERSION = _parse_version("6.0.0")
-
-    # Additional output will be generated for versions up to and including `MAX_VERSION`
-    MAX_VERSION = _parse_version("20.1.3")
-    version_dict = {
-        _distribution_version(basename): None
-        for basename in use_llvm_distributions.keys() + extra_llvm_distributions.keys()
-    }
-    versions = sorted(version_dict.keys())
-
-    # Write versions to output to check which versions we take into account.
-    output = []
-    select = []
-    for version in versions:
-        output.append("version: " + _version_string(version))
-
-    # We keep track of versions in `not_found` and remove the ones we found.
-    # So at the end all version that were not found remain, hence the name.
-    not_found = {
-        _distribution_basename(distribution): None
-        for distribution in use_llvm_distributions.keys() + extra_llvm_distributions.keys()
-    }
-
-    # While computing we add predicted versions that are not configured as True.
-    # At the end we add the not-found versions as False.
-    result = {}
-
-    # Collect cases that produce duplicates (or multiple) basenames.
-    dupes = []
-
-    # For all versions X arch X os check if we can compute the distribution.
-    for version in versions:
-        all_llvm_distributions = _get_all_llvm_distributions(
-            llvm_distributions = use_llvm_distributions,
-            extra_llvm_distributions = extra_llvm_distributions,
-            parsed_llvm_version = version,
-        )
-        for basename, distribution in all_llvm_distributions.items():
-            _, shaerr = _normalize_and_check_sha256(distribution.sha256)
-            if shaerr:
-                output.append("err: {basename}: bad sha256: {shaerr}".format(
-                    basename = basename,
-                    shaerr = shaerr,
-                ))
-        for arch in arch_list:
-            for os in os_list:
-                if version < MIN_VERSION:
-                    # Limit the injected version checks
-                    if arch not in ["aarch64", "x86_64"]:
-                        break
-                    dist_list = [struct(name = os, version = "")]
-                else:
-                    dist_list = dist_dict_list.get(os, [struct(name = os, version = "")])
-                for dist in dist_list:
-                    if arch == "sparc64" and dist.name != "sun-solaris":
-                        # Sparc64 and SparcV9 are handled in the same way, just different precedence.
-                        # One is the architecture th other the ISA. Restrict to one to limit output.
-                        continue
-                    host_info = struct(
-                        arch = arch,
-                        os = os,
-                        dist = dist,
-                    )
-                    basenames = _find_llvm_basename_list(_version_string(version), all_llvm_distributions, host_info)
-                    if version <= MAX_VERSION:
-                        predicted, error = _find_llvm_basename_or_error(
-                            _version_string(version),
-                            all_llvm_distributions,
-                            host_info,
-                        )
-                        skip_output = False
-                        if error:
-                            if error.startswith("ERROR: No matching config could be found for version"):
-                                skip_output = True
-                        else:
-                            if predicted.endswith(".exe"):
-                                error = "ERROR: Windows .exe is not supported: " + predicted
-                            elif predicted not in all_llvm_distributions:
-                                error = "ERROR: Unavailable prediction: " + predicted
-                            elif len(basenames) == 0:
-                                skip_output = True
-                            elif len(basenames) == 1:
-                                predicted = basenames[0]
-                            else:
-                                error = "ERROR: Multiple selections"
-                            if not error:
-                                arch_found = [arch for arch in arch_list if arch in predicted]
-                                if len(arch_found) == 1 and arch_found[0] not in arch_alias_dict.get(arch, [arch]):
-                                    error = "ERROR: Bad arch selection: " + predicted
-                        if not skip_output:
-                            select.append("{version}-{arch}-{os}/{dist_name}/{dist_version} -> {basename}".format(
-                                version = _version_string(version),
-                                arch = arch,
-                                os = os,
-                                dist_name = dist.name,
-                                dist_version = dist.version,
-                                basename = error or predicted,
-                            ))
-                    if len(basenames) != 1:
-                        if basenames:
-                            dupes.append("dup: {version}-{arch}-{os}-{dist_name}-{dist_version} -> {count}".format(
-                                version = _version_string(version),
-                                arch = arch,
-                                os = os,
-                                dist_name = dist.name,
-                                dist_version = dist.version,
-                                count = len(basenames),
-                            ))
-                            dupes.extend(["   : " + basename for basename in basenames])
-                        continue
-                    basename = basenames[0]
-                    if basename in all_llvm_distributions:
-                        if basename in not_found:
-                            not_found.pop(basename)
-                    else:
-                        result[basename] = True
-
-    # Build result
-    for dist in not_found:
-        result[dist] = False
-    output += [("add: " if found else "del: ") + dist for dist, found in result.items()]
-    output += dupes
-    ctx.actions.write(ctx.outputs.output, "\n".join(output) + "\n")
-    ctx.actions.write(ctx.outputs.select, "\n".join(select) + "\n")
-
-distributions_test_writer = rule(
-    implementation = _distributions_test_writer_impl,
-    attrs = {
-        "output": attr.output(mandatory = True),
-        "select": attr.output(mandatory = True),
-    },
-)
-
-def _requirements_test_writer_impl(ctx):
-    """Analyze the configured versions and write to a file for test consumption.
-    The test generated file '<rule_name>.out' contains the following lines:
-    [<arch>,<os>,<requirement>]: <llvm_distribution_basename>
-    """
-    all_llvm_distributions = {
-        # In order to prevent new distributions to interfere we cut at 20.1.3.
-        k: v
-        for k, v in _llvm_distributions.items()
-        if _parse_version(_get_version_from_distribution(k)) <= (20, 1, 3)
-    }
-    requirement_list = [
-        "latest:<=20.1.0",
-        "latest:<=20.1.0,>17.0.4,!=19.1.7",
-        "latest:<20.1.0,>17.0.4,!=19.1.7",
-        "latest:<20.1.0,>17.0.4",
-        "latest:>=15.0.6,<16",
-        "first:>=15.0.6,<16",
-        "latest",
-        "first",
-    ]
-    arch_list = [
-        "aarch64",
-        "armv7a",
-        "x86_64",
-    ]
-    os_list = [
-        "darwin",
-        "linux",
-        "windows",
-    ]
-    ANY_VERSION = "0"  # Version does not matter, but must be a valid integer
-    dist_dict_list = {
-        "linux": [
-            # keep sorted
-            struct(name = "ubuntu", version = ANY_VERSION),
-            struct(name = "raspbian", version = ANY_VERSION),
-            struct(name = "rhel", version = ANY_VERSION),
-        ],
-    }
-    result = []
-    for arch in arch_list:
-        for os in os_list:
-            dist_list = dist_dict_list.get(os, [struct(name = os, version = "")])
-            for dist in dist_list:
-                for requirement in requirement_list:
-                    host_info = struct(
-                        arch = arch,
-                        os = os,
-                        dist = dist,
-                    )
-                    llvm_version, basename, error = _required_llvm_release_name(
-                        version_or_requirements = requirement,
-                        all_llvm_distributions = all_llvm_distributions,
-                        host_info = host_info,
-                    )
-                    if llvm_version and basename:
-                        result.append("[{arch},{os}{dist_name}{dist_version},'{requirement}']: {llvm_version} = {basename}".format(
-                            arch = arch,
-                            os = os,
-                            dist_name = "," + dist.name if os == "linux" else "",
-                            dist_version = "," + dist.version if os == "linux" else "",
-                            requirement = requirement,
-                            llvm_version = llvm_version,
-                            basename = basename,
-                        ))
-                    else:
-                        result.append("[{arch},{os},\"{requirement}\"]: {error}".format(
-                            arch = arch,
-                            os = os,
-                            requirement = requirement,
-                            llvm_version = llvm_version,
-                            basename = basename,
-                            error = error or "ERROR: N/A",
-                        ))
-    ctx.actions.write(ctx.outputs.result, "\n".join(result) + "\n")
-
-requirements_test_writer = rule(
-    implementation = _requirements_test_writer_impl,
-    attrs = {
-        "result": attr.output(mandatory = True),
-    },
-)
-
-def _prerelease_test_writer_impl(ctx):
-    # Exercise the checked-in release table so this also proves that published
-    # prereleases are bundled, not merely supported through user-supplied data.
-    distributions = _llvm_distributions
-    host = struct(
-        arch = "x86_64",
-        os = "linux",
-        dist = struct(name = "ubuntu", version = "24.04"),
-    )
-    result = []
-
-    for requested in ["23.1.0-rc3", "22.1.8"]:
-        available = _get_all_llvm_distributions(
-            llvm_distributions = distributions,
-            extra_llvm_distributions = {},
-            parsed_llvm_version = _parse_version(requested),
-        )
-        basename, error = _find_llvm_basename_or_error(requested, available, host)
-        result.append("exact {version}: {result}".format(
-            version = requested,
-            result = error or basename,
-        ))
-
-    all_distributions = _get_all_llvm_distributions(
-        llvm_distributions = distributions,
-        extra_llvm_distributions = {},
-        parsed_llvm_version = None,
-    )
-    for requested in ["latest", "latest:>=23", "latest:>22", "latest:>=23.1.0-rc1"]:
-        version, basename, error = _required_llvm_release_name(
-            version_or_requirements = requested,
-            all_llvm_distributions = all_distributions,
-            host_info = host,
-        )
-        result.append("{requested}: {result}".format(
-            requested = requested,
-            result = error or "{} = {}".format(version, basename),
-        ))
-
-    # With built-ins suppressed, version resolution must see only the user
-    # entries. In particular, `latest` must not leak a newer bundled release.
-    custom_only = _get_all_llvm_distributions(
-        llvm_distributions = {},
-        extra_llvm_distributions = {
-            "https://example.com/LLVM-20.1.4-Linux-X64.tar.xz": "3" * 64,
-        },
-        parsed_llvm_version = None,
-    )
-    version, basename, error = _required_llvm_release_name(
-        version_or_requirements = "latest",
-        all_llvm_distributions = custom_only,
-        host_info = host,
-    )
-    result.append("custom-only latest: {result}".format(
-        result = error or "{} = {}".format(version, basename),
-    ))
-    builtin_basename = "LLVM-22.1.8-Linux-X64.tar.xz"
-    result.append("custom-only bundled URL: {}".format(
-        _configured_distribution_url(
-            basename = builtin_basename,
-            use_builtin_llvm_distributions = False,
-            user_distribution_urls = {},
-        ) or "suppressed",
-    ))
-    ctx.actions.write(ctx.outputs.result, "\n".join(result) + "\n")
-
-prerelease_test_writer = rule(
-    implementation = _prerelease_test_writer_impl,
-    attrs = {
-        "result": attr.output(mandatory = True),
-    },
+# Internal test access only; not a supported toolchain API. Keep production
+# helpers private and test implementations in llvm_distributions_test.bzl.
+testing = struct(
+    configured_distribution_url = _configured_distribution_url,
+    distribution_basename = _distribution_basename,
+    distribution_version_string = _distribution_version_string,
+    find_llvm_basename_list = _find_llvm_basename_list,
+    find_llvm_basename_or_error = _find_llvm_basename_or_error,
+    get_all_llvm_distributions = _get_all_llvm_distributions,
+    normalize_and_check_sha256 = _normalize_and_check_sha256,
+    required_llvm_release_name = _required_llvm_release_name,
 )
