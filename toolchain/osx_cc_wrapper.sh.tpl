@@ -99,13 +99,13 @@ function parse_option() {
 # `wrapper_bin_prefix` for why this wrapper is needed.
 
 # this script is located at either
-# - <execroot>/external/<repo_name>/bin/cc_wrapper.sh
-# - <runfiles>/<repo_name>/bin/cc_wrapper.sh
-# The clang is located at
-# - <execroot>/external/<repo_name2>/bin/clang
-# - <runfiles>/<repo_name2>/bin/clang
+# - <execroot>/external/<repo_name>/bin/<wrapper>
+# - <runfiles>/<repo_name>/bin/<wrapper>
+# The tool is located at
+# - <execroot>/external/<repo_name2>/bin/%{tool_name}
+# - <runfiles>/<repo_name2>/bin/%{tool_name}
 #
-# In both cases, getting to clang can be done via
+# In both cases, getting to the tool can be done via
 # Finding the current dir of this script,
 # - <execroot>/external/<repo_name>/bin/
 # - <runfiles>/<repo_name>/bin/
@@ -113,7 +113,7 @@ function parse_option() {
 # - <execroot>/external
 # - <runfiles>
 #
-# Going into %{toolchain_path_prefix} without the `external/` prefix + `bin/clang`
+# Going into %{toolchain_path_prefix} without the `external/` prefix + `bin/%{tool_name}`
 #
 
 dirname_shim() {
@@ -152,6 +152,12 @@ if [[ ${toolchain_path_prefix} != /* ]]; then
   toolchain_path_prefix_abs="$(cd "${toolchain_path_prefix}" && pwd -P)/"
 else
   toolchain_path_prefix_abs="${toolchain_path_prefix}"
+fi
+
+# Auxiliary tools share the path lookup, but need their arguments passed unchanged.
+tool_name="%{tool_name}"
+if [[ ${tool_name} != "clang" ]]; then
+  exec "${toolchain_path_prefix}bin/${tool_name}" "$@"
 fi
 
 if [[ ! -f ${toolchain_path_prefix}bin/clang ]]; then

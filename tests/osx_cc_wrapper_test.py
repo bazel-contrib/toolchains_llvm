@@ -58,6 +58,7 @@ class DarwinLtoLibraryTest(unittest.TestCase):
     def write_wrapper(self, prefix):
         self.wrapper.write_text(
             WRAPPER_TEMPLATE.read_text().replace("%{toolchain_path_prefix}", prefix)
+            .replace("%{tool_name}", "clang")
         )
 
     def invoke(self, args, response_file=False):

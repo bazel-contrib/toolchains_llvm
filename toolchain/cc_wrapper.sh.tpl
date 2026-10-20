@@ -32,13 +32,13 @@ trap cleanup EXIT
 # `wrapper_bin_prefix` for why this wrapper is needed.
 
 # this script is located at either
-# - <execroot>/external/<repo_name>/bin/cc_wrapper.sh
-# - <runfiles>/<repo_name>/bin/cc_wrapper.sh
-# The clang is located at
-# - <execroot>/external/<repo_name2>/bin/clang
-# - <runfiles>/<repo_name2>/bin/clang
+# - <execroot>/external/<repo_name>/bin/<wrapper>
+# - <runfiles>/<repo_name>/bin/<wrapper>
+# The tool is located at
+# - <execroot>/external/<repo_name2>/bin/%{tool_name}
+# - <runfiles>/<repo_name2>/bin/%{tool_name}
 #
-# In both cases, getting to clang can be done via
+# In both cases, getting to the tool can be done via
 # Finding the current dir of this script,
 # - <execroot>/external/<repo_name>/bin/
 # - <runfiles>/<repo_name>/bin/
@@ -46,7 +46,7 @@ trap cleanup EXIT
 # - <execroot>/external
 # - <runfiles>
 #
-# Going into %{toolchain_path_prefix} without the `external/` prefix + `bin/clang`
+# Going into %{toolchain_path_prefix} without the `external/` prefix + `bin/%{tool_name}`
 #
 
 dirname_shim() {
@@ -83,6 +83,12 @@ toolchain_path_prefix="%{toolchain_path_prefix}"
 if [[ ${toolchain_path_prefix} != /* ]]; then
   # shellcheck disable=SC2312
   toolchain_path_prefix="$(dirname_shim "$(dirname_shim "${script_dir}")")/${toolchain_path_prefix#external/}"
+fi
+
+# Auxiliary tools share the path lookup, but need their arguments passed unchanged.
+tool_name="%{tool_name}"
+if [[ ${tool_name} != "clang" ]]; then
+  exec "${toolchain_path_prefix}bin/${tool_name}" "$@"
 fi
 
 if [[ ! -f ${toolchain_path_prefix}bin/clang ]]; then

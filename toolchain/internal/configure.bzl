@@ -231,6 +231,12 @@ def llvm_config_impl(rctx):
     if not toolchain_path_prefix:
         toolchain_path_prefix = llvm_dist_path_prefix
 
+    if os == "darwin":
+        cc_wrapper_tpl = rctx.attr._darwin_cc_wrapper_sh_tpl
+    else:
+        cc_wrapper_tpl = rctx.attr._cc_wrapper_sh_tpl
+
+    tool_inputs = []
     if not use_absolute_paths_llvm:
         llvm_dist_rel_path = _canonical_dir_path(paths.join("../..", llvm_dist_path_prefix))
         llvm_dist_label_prefix = toolchain_root + ":"
@@ -239,23 +245,38 @@ def llvm_config_impl(rctx):
         # config_repo_path, because their paths are relative to the package
         # defining cc_toolchain, and cannot contain '..'.
         # https://github.com/bazelbuild/bazel/issues/7746.  To work around
-        # this, we symlink the needed tools under the package so that they (except
-        # clang) can be called with normalized relative paths. For clang
-        # however, using a path with symlinks interferes with the header file
+        # this, we generate wrappers under the package so that the tools
+        # can be called with normalized relative paths. For clang,
+        # using a path with symlinks interferes with the header file
         # inclusion validation checks, because clang frontend will infer the
         # InstalledDir to be the symlinked path, and will look for header files
         # in the symlinked path, but that seems to fail the inclusion
         # validation check. So we always use a cc_wrapper (which is called
         # through a normalized relative path), and then call clang with the not
         # symlinked path from the wrapper.
+        #
+        # Auxiliary tools use the same wrapper: Bazel dereferences repository
+        # symlinks when preparing remote inputs. The resulting executables would
+        # live in this config repo, breaking their $ORIGIN-relative library
+        # lookup. The wrapper executes them from the original LLVM installation.
         wrapper_bin_prefix = "bin/"
         tools_path_prefix = "bin/"
         tools = _toolchain_tools(os)
-        for tool_name, symlink_name in tools.items():
-            rctx.symlink(paths.join(llvm_dist_rel_path, "bin", tool_name), paths.join(tools_path_prefix, symlink_name))
+        for tool_name, wrapper_name in tools.items():
+            rctx.template(
+                paths.join(tools_path_prefix, wrapper_name),
+                cc_wrapper_tpl,
+                {
+                    "%{toolchain_path_prefix}": llvm_dist_path_prefix,
+                    "%{tool_name}": tool_name,
+                },
+            )
+            tool_inputs.append(llvm_dist_label_prefix + "bin/" + tool_name)
+        if not rctx.attr.toolchain_roots:
+            tool_inputs.append(llvm_dist_label_prefix + "runtime_shared_libraries")
         symlinked_tools_str = "".join([
-            "\n" + (" " * 8) + "\"" + paths.join(tools_path_prefix, symlink_name) + "\","
-            for symlink_name in tools.values()
+            "\n" + (" " * 8) + "\"" + paths.join(tools_path_prefix, wrapper_name) + "\","
+            for wrapper_name in tools.values()
         ])
     else:
         llvm_dist_rel_path = llvm_dist_path_prefix
@@ -385,21 +406,19 @@ def llvm_config_impl(rctx):
             "%{cc_toolchain_config_bzl}": str(rctx.attr._cc_toolchain_config_bzl),
             "%{cc_toolchains}": cc_toolchains_str,
             "%{symlinked_tools}": symlinked_tools_str,
+            "%{tool_inputs}": ", ".join([repr(label) for label in tool_inputs]),
             "%{tools_dir}": wrapper_bin_prefix.removesuffix("/"),
             "%{convenience_targets}": convenience_targets_str,
         },
     )
 
-    # CC wrapper script; see comments near the definition of `wrapper_bin_prefix`.
-    if os == "darwin":
-        cc_wrapper_tpl = rctx.attr._darwin_cc_wrapper_sh_tpl
-    else:
-        cc_wrapper_tpl = rctx.attr._cc_wrapper_sh_tpl
+    # Enable the compiler-specific handling in the shared wrapper template.
     rctx.template(
         "bin/cc_wrapper.sh",
         cc_wrapper_tpl,
         {
             "%{toolchain_path_prefix}": llvm_dist_path_prefix,
+            "%{tool_name}": "clang",
         },
     )
     rctx.template(
