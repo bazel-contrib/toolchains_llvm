@@ -20,16 +20,10 @@ attributes to `llvm_toolchain`.
 
 ### Upgrading to 1.13.0
 
-Previously, `first` / `latest` selectors admitted prereleases only when a
-requirement explicitly specified a prerelease version, and only for that same
-major/minor/patch release. In 1.13.0, that explicit requirement is no longer
-sufficient: also set `llvm_version_allow_prereleases = True` for LLVM, or
-`linker_version_allow_prereleases = True` for catalogued linkers. Exact pins
-(including RC pins) are unchanged. The flag now controls prerelease eligibility
-separately from the constraints, which no longer need to name an RC.
-See the [migration notes](CHANGELOG.md#1130)
-and [requirements examples](#requirements) before upgrading configurations
-that select prereleases.
+`first` / `latest` selectors now require an explicit opt-in to select
+prereleases. Exact pins, including RC pins, are unchanged. Read the
+[1.13.0 migration guide](docs/migration-1.13.0.md) for the required configuration
+changes, range choices, and RC ordering under SemVer.
 
 ## Advanced Usage
 
@@ -307,7 +301,7 @@ Function clauses such as `major()==23` and more advanced inspection are document
 default to `False`. They independently control bare and constrained
 `first`/`latest` selectors for LLVM and catalogued linkers, respectively.
 The flag controls whether prereleases are eligible; the requirements control
-which versions qualify. Constraints no longer need to name an RC, and naming
+which versions qualify. Constraints do not need to name an RC, and naming
 one does not by itself enable prereleases. Requirements and host availability
 always apply. Exact version pins are unaffected.
 
@@ -321,29 +315,10 @@ llvm.toolchain(
 
 This selects the newest matching LLVM 23.1.0 release candidate, then the final
 23.1.0 release once its archive is in the configured catalogue for the execution
-host. Use `latest:>23.0,<23.1` instead to exclude that final release.
-The bound `<=23.1` means `<=23.1.0`: it excludes 23.1.1 and its prereleases.
-To follow all 23.1.x patches and their prereleases, use
-`latest:major==23,minor==1` with the same prerelease flag.
-
-Stable releases within the constraints remain eligible; append
-`,is_prerelease()==True` if selection must be strictly prerelease-only.
-With the flag set to `False`, only matching
-stable releases are eligible. Conversely, `is_prerelease()==False` restricts a
-particular selector to stable releases even when the flag is enabled.
-
-[SemVer compares dot-separated prerelease identifiers](https://semver.org/#spec-item-11)
-numerically when they contain only digits (`rc.2 < rc.10`), but lexically when
-they contain letters (`rc10 < rc2`). LLVM currently uses the undotted form,
-for example [23.1.0-rc3](https://github.com/llvm/llvm-project/releases/tag/llvmorg-23.1.0-rc3),
-not `23.1.0-rc.3`. Between matching `23.1.0-rc2` and hypothetical `23.1.0-rc10`,
-`latest` would choose `rc2`. If LLVM instead used `23.1.0-rc.2` and
-`23.1.0-rc.10`, `latest` would choose `rc.10`. Both spellings are valid SemVer;
-they are not normalized into one another. Mixing forms also matters:
-`23.1.0-rc.10 < 23.1.0-rc9`, because the first identifier `rc` sorts before
-`rc9`. Switching from `rc9` to `rc.10` would therefore leave `latest` selecting
-`rc9` if both remain eligible. Use an exact pin if SemVer ordering differs
-from the intended upstream RC order.
+host. The bound `<=23.1` means `<=23.1.0`, not all 23.1.x patches.
+See the migration guide for [other RC upgrade policies](docs/migration-1.13.0.md#choose-the-scope-of-rc-upgrades)
+and [SemVer RC ordering](docs/migration-1.13.0.md#check-rc-ordering-under-semver),
+including the difference between `rc10` and `rc.10`.
 
 Linker selectors use the same bzl SemVer comparisons, requirement expressions,
 projection constants, and first/latest selection as LLVM. For example:

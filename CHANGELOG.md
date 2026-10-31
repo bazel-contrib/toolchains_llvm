@@ -11,32 +11,10 @@ for release artifacts and the [README](README.md) for configuration and requirem
 
 ### Migration required for prerelease selectors
 
-- Previously, `first` / `latest` selectors admitted prereleases only when a
-  requirement explicitly specified a prerelease version, and only for that
-  same major/minor/patch release. Starting with 1.13.0, explicitly specifying
-  an RC in a requirement is no longer sufficient: also set
-  `llvm_version_allow_prereleases = True` for LLVM, or
-  `linker_version_allow_prereleases = True` for catalogued linkers. Both options
-  default to `False` and are independent. Exact pins, including RC pins, are
-  unchanged.
-- Prerelease eligibility and version constraints are now separate: enable
-  prereleases with the corresponding flag, then use ordinary constraints
-  without naming a particular RC. For example,
-  `llvm_version = "latest:>23.0,<=23.1"` together with
-  `llvm_version_allow_prereleases = True` follows LLVM 23.1.0 RCs and then
-  selects the final 23.1.0 release once available for the host. Use `<23.1`
-  instead to exclude that final release. The bound `<=23.1` means `<=23.1.0`,
-  not all 23.1.x patches; use `latest:major==23,minor==1` to follow those too.
-  The flag admits all prereleases within the constraints,
-  rather than only those with a release tuple explicitly named in them.
-- Version comparisons now use bzl's SemVer mode. Under
-  [SemVer's prerelease ordering rules](https://semver.org/#spec-item-11),
-  dot-separated numeric identifiers compare numerically (`rc.2 < rc.10`),
-  but identifiers containing letters compare lexically (`rc10 < rc2`).
-  LLVM currently uses undotted RC identifiers, such as `23.1.0-rc3`.
-  A hypothetical `23.1.0-rc10` would therefore sort before `23.1.0-rc2`;
-  mixing forms also gives `23.1.0-rc.10 < 23.1.0-rc9`. Use an exact pin
-  if that differs from the intended upstream RC order.
+- `first` / `latest` prerelease selection now requires an explicit opt-in;
+  specifying an RC in a requirement no longer suffices. Exact pins are unchanged.
+  See the [1.13.0 migration guide](docs/migration-1.13.0.md) for the required
+  flags, range choices, and changed RC ordering under SemVer.
 
 ### Version selection
 
