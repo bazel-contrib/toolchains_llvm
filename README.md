@@ -329,8 +329,16 @@ particular selector to stable releases even when the flag is enabled.
 
 [SemVer compares dot-separated prerelease identifiers](https://semver.org/#spec-item-11)
 numerically when they contain only digits (`rc.2 < rc.10`), but lexically when
-they contain letters (`rc10 < rc2`). Consequently, `23.1.0-rc10` sorts before
-`23.1.0-rc2`. Use an exact pin if that differs from the intended upstream RC order.
+they contain letters (`rc10 < rc2`). LLVM currently uses the undotted form,
+for example [23.1.0-rc3](https://github.com/llvm/llvm-project/releases/tag/llvmorg-23.1.0-rc3),
+not `23.1.0-rc.3`. Between matching `23.1.0-rc2` and hypothetical `23.1.0-rc10`,
+`latest` would choose `rc2`. If LLVM instead used `23.1.0-rc.2` and
+`23.1.0-rc.10`, `latest` would choose `rc.10`. Both spellings are valid SemVer;
+they are not normalized into one another. Mixing forms also matters:
+`23.1.0-rc.10 < 23.1.0-rc9`, because the first identifier `rc` sorts before
+`rc9`. Switching from `rc9` to `rc.10` would therefore leave `latest` selecting
+`rc9` if both remain eligible. Use an exact pin if SemVer ordering differs
+from the intended upstream RC order.
 
 Linker selectors use the same bzl SemVer comparisons, requirement expressions,
 projection constants, and first/latest selection as LLVM. For example:
