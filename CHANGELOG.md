@@ -22,10 +22,13 @@ for release artifacts and the [README](README.md) for configuration and requirem
 - Prerelease eligibility and version constraints are now separate: enable
   prereleases with the corresponding flag, then use ordinary constraints
   without naming a particular RC. For example,
-  `llvm_version = "latest:>23.0,<23.1"` together with
-  `llvm_version_allow_prereleases = True` admits LLVM 23.1.0 RCs but excludes
-  the final 23.1.0 release. The flag admits all prereleases within the range,
-  rather than only those with a release tuple explicitly named in it.
+  `llvm_version = "latest:>23.0,<=23.1"` together with
+  `llvm_version_allow_prereleases = True` follows LLVM 23.1.0 RCs and then
+  selects the final 23.1.0 release once available for the host. Use `<23.1`
+  instead to exclude that final release. The bound `<=23.1` means `<=23.1.0`,
+  not all 23.1.x patches; use `latest:major==23,minor==1` to follow those too.
+  The flag admits all prereleases within the constraints,
+  rather than only those with a release tuple explicitly named in them.
 - Version comparisons now use bzl's SemVer mode. Under
   [SemVer's prerelease ordering rules](https://semver.org/#spec-item-11),
   dot-separated numeric identifiers compare numerically (`rc.2 < rc.10`),

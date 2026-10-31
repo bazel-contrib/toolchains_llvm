@@ -314,16 +314,21 @@ always apply. Exact version pins are unaffected.
 ```starlark
 llvm.toolchain(
     name = "llvm_rc",
-    llvm_version = "latest:>23.0,<23.1",
+    llvm_version = "latest:>23.0,<=23.1",
     llvm_version_allow_prereleases = True,
 )
 ```
 
-This admits LLVM 23.1.0 release candidates without naming a particular RC and
-excludes the final 23.1.0 release (`23.1` means `23.1.0`). It selects the newest
-matching version available for the execution host. Stable releases within
-the range remain eligible; append `,is_prerelease()==True` if selection
-must be strictly prerelease-only. With the flag set to `False`, only matching
+This selects the newest matching LLVM 23.1.0 release candidate, then the final
+23.1.0 release once its archive is in the configured catalogue for the execution
+host. Use `latest:>23.0,<23.1` instead to exclude that final release.
+The bound `<=23.1` means `<=23.1.0`: it excludes 23.1.1 and its prereleases.
+To follow all 23.1.x patches and their prereleases, use
+`latest:major==23,minor==1` with the same prerelease flag.
+
+Stable releases within the constraints remain eligible; append
+`,is_prerelease()==True` if selection must be strictly prerelease-only.
+With the flag set to `False`, only matching
 stable releases are eligible. Conversely, `is_prerelease()==False` restricts a
 particular selector to stable releases even when the flag is enabled.
 
