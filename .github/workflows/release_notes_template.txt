@@ -1,11 +1,12 @@
 Minimum bazel version: **7.0.0**
 
 See the [changelog](https://github.com/bazel-contrib/toolchains_llvm/blob/{tag}/CHANGELOG.md)
-for changes and migration notes for this release. Upgrading from 1.12.x to
-1.13.0 changes prerelease selectors: to keep prereleases eligible, requirements
-naming an RC now also need `llvm_version_allow_prereleases = True`, or
-`linker_version_allow_prereleases = True` for catalogued linkers. Exact pins,
-including RC pins, are unchanged.
+for changes and migration notes for this release. In 1.12.x, `first` / `latest`
+selectors admitted prereleases only when a requirement explicitly specified a
+prerelease version, and only for that same major/minor/patch release. In 1.13.0,
+that explicit requirement is no longer sufficient: also set
+`llvm_version_allow_prereleases = True`, or `linker_version_allow_prereleases = True`
+for catalogued linkers. Exact pins, including RC pins, are unchanged.
 
 If you're using `bzlmod`, add the following to `MODULE.bazel`:
 

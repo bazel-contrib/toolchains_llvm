@@ -20,9 +20,10 @@ attributes to `llvm_toolchain`.
 
 ### Upgrading to 1.13.0
 
-Version selection has an intentional compatibility change: `first` / `latest`
-requirements that mention an RC no longer enable prereleases implicitly. To keep
-prereleases eligible, add `llvm_version_allow_prereleases = True` for LLVM, or
+Previously, `first` / `latest` selectors admitted prereleases only when a
+requirement explicitly specified a prerelease version, and only for that same
+major/minor/patch release. In 1.13.0, that explicit requirement is no longer
+sufficient: also set `llvm_version_allow_prereleases = True` for LLVM, or
 `linker_version_allow_prereleases = True` for catalogued linkers. Exact pins
 (including RC pins) are unchanged. See the [migration notes](CHANGELOG.md#1130)
 and [requirements examples](#requirements) before upgrading configurations
@@ -303,9 +304,9 @@ Function clauses such as `major()==23` and more advanced inspection are document
 `llvm_version_allow_prereleases` and `linker_version_allow_prereleases` each
 default to `False`. They independently control bare and constrained
 `first`/`latest` selectors for LLVM and catalogued linkers, respectively. Requirements always
-apply; enabling prereleases does not bypass ranges or host availability. Naming
-an RC in a requirement does not implicitly enable prereleases. Exact version pins
-are unaffected.
+apply; enabling prereleases does not bypass ranges or host availability.
+Explicitly specifying an RC version in a requirement does not by itself enable
+prereleases. Exact version pins are unaffected.
 
 ```starlark
 llvm.toolchain(
