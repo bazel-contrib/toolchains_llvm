@@ -11,11 +11,14 @@ for release artifacts and the [README](README.md) for configuration and requirem
 
 ### Migration required for prerelease selectors
 
-- `first` and `latest` no longer enable prereleases implicitly when a
-  requirement names an RC. Set `llvm_version_allow_prereleases = True` for LLVM,
-  or `linker_version_allow_prereleases = True` for catalogued linkers, to admit
-  matching prereleases. Both options default to `False` and are independent.
-  Exact pins, including RC pins, are unchanged.
+- Previously, `first` / `latest` selectors admitted prereleases only when a
+  requirement explicitly specified a prerelease version, and only for that
+  same major/minor/patch release. Starting with 1.13.0, explicitly specifying
+  an RC in a requirement is no longer sufficient: also set
+  `llvm_version_allow_prereleases = True` for LLVM, or
+  `linker_version_allow_prereleases = True` for catalogued linkers. Both options
+  default to `False` and are independent. Exact pins, including RC pins, are
+  unchanged.
 - Enabling either option admits every prerelease satisfying the requirements,
   rather than only prereleases with a release tuple named in the requirement.
   Use an upper bound when following RCs for one release, for example
