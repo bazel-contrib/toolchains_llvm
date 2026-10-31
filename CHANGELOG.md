@@ -7,6 +7,80 @@ exhaustive list of fixes, dependency updates, or newly catalogued LLVM archives.
 See the [GitHub releases](https://github.com/bazel-contrib/toolchains_llvm/releases)
 for release artifacts and the [README](README.md) for configuration and requirements.
 
+## 1.13.0
+
+### Migration required for prerelease selectors
+
+- Previously, `first` / `latest` selectors admitted prereleases only when a
+  requirement explicitly specified a prerelease version, and only for that
+  same major/minor/patch release. Starting with 1.13.0, explicitly specifying
+  an RC in a requirement is no longer sufficient: also set
+  `llvm_version_allow_prereleases = True` for LLVM, or
+  `linker_version_allow_prereleases = True` for catalogued linkers. Both options
+  default to `False` and are independent. Exact pins, including RC pins, are
+  unchanged.
+- Prerelease eligibility and version constraints are now separate: enable
+  prereleases with the corresponding flag, then use ordinary constraints
+  without naming a particular RC. For example,
+  `llvm_version = "latest:>23.0,<23.1"` together with
+  `llvm_version_allow_prereleases = True` admits LLVM 23.1.0 RCs but excludes
+  the final 23.1.0 release. The flag admits all prereleases within the range,
+  rather than only those with a release tuple explicitly named in it.
+- Version comparisons now use bzl's SemVer mode. Under
+  [SemVer's prerelease ordering rules](https://semver.org/#spec-item-11),
+  dot-separated numeric identifiers compare numerically (`rc.2 < rc.10`),
+  but identifiers containing letters compare lexically (`rc10 < rc2`).
+  LLVM currently uses undotted RC identifiers, such as `23.1.0-rc3`.
+  A hypothetical `23.1.0-rc10` would therefore sort before `23.1.0-rc2`;
+  mixing forms also gives `23.1.0-rc.10 < 23.1.0-rc9`. Use an exact pin
+  if that differs from the intended upstream RC order.
+
+### Version selection
+
+- Shared expression-based LLVM and linker version selectors, including
+  `major`, `minor`, and `patch` constants, function expressions, wildcards,
+  and compatible-release comparisons. Candidates must have an artifact for
+  the execution platform before version selection.
+- Environment-derived linker versions through `getenv(NAME,fallback)`, matching
+  LLVM version selection.
+- Independent prerelease policies in feature overrides; linker-only policy
+  changes can reuse the base LLVM archive.
+
+### Dependencies and publishing
+
+- WORKSPACE dependencies: `rules_cc` 0.2.27, `apple_support` 2.11.0, and
+  `bazel_features` 1.54.1.
+- Test dependencies, including `rules_python` 2.4.6, `rules_go` 0.65.0,
+  `rules_foreign_cc` 0.17.0, `rules_rust` 0.75.0, and BoringSSL 0.20261020.0.
+- BCR publishing workflow to `publish-to-bcr` 1.6.0.
+
+## 1.12.0
+
+- Add checksum-pinned LLVM 23.1.4 archives for Linux ARM64/x86_64, macOS ARM64,
+  and Windows ARM64/x86_64. Both xz and zstd metadata are retained; automatic
+  selection continues to use xz. Existing LLVM and mold entries are preserved.
+- Fix remote execution of dynamically linked LLVM tools: wrappers execute
+  auxiliary tools from their original distribution paths, preserving relative
+  shared-library lookup. Downloaded distributions supply the relevant LLVM,
+  Clang, and libc++ shared libraries as tool inputs.
+- Explicit `archive_flags`, `link_libs`, optimization/debug/fastbuild flags,
+  coverage flags, and `unfiltered_compile_flags` replace their corresponding
+  defaults. Use the corresponding `extra_*` attribute where available for
+  additive behavior. `compile_flags`, `cxx_flags`, and `link_flags` still append
+  to their computed defaults.
+- Use `-fstack-protector-strong` instead of `-fstack-protector` by default.
+- Report Linux `target_libc` as `glibc` instead of `glibc_unknown`.
+- Upgrade `mboworks_bzl` to 0.8.0 and the WORKSPACE test dependency Google
+  Benchmark to 1.10.0. The new selector expressions and explicit prerelease
+  controls are introduced in 1.13.0, not in this dependency upgrade.
+
+## 1.11.3
+
+- Recognize LLVM 23.1.3's bundled macOS linker fix. The SDK/TAPI warning now
+  applies only to LLVM 23.1.0 through 23.1.2, not all LLVM 23 releases.
+- Update WORKSPACE dependencies to `apple_support` 2.10.1 and `bazel_features`
+  1.52.0, and test dependencies to `rules_python` 2.4.2 and `rules_go` 0.64.2.
+
 ## 1.11.2
 
 - Honor the empty-key fallback in `conly_flags` for every target, matching the
