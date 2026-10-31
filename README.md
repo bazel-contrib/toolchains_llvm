@@ -7,7 +7,7 @@ for how to get started, and the [changelog](CHANGELOG.md) for feature availabili
 
 NOTE: For releases prior to 0.10.1, please also see [these notes](REPO_RENAME.md).
 
-<!-- Release Notes template is at .github/workflows/release_prep.sh -->
+<!-- Release notes template: .github/workflows/release_notes_template.txt -->
 
 ## Basic Usage
 
@@ -17,6 +17,16 @@ below for more options.
 
 See in-code documentation in [rules.bzl](toolchain/rules.bzl) for available
 attributes to `llvm_toolchain`.
+
+### Upgrading to 1.13.0
+
+Version selection has an intentional compatibility change: `first` / `latest`
+requirements that mention an RC no longer enable prereleases implicitly. To keep
+prereleases eligible, add `llvm_version_allow_prereleases = True` for LLVM, or
+`linker_version_allow_prereleases = True` for catalogued linkers. Exact pins
+(including RC pins) are unchanged. See the [migration notes](CHANGELOG.md#1130)
+and [requirements examples](#requirements) before upgrading configurations
+that select prereleases.
 
 ## Advanced Usage
 
@@ -236,6 +246,11 @@ for how CC toolchains work in general.
 
 ### Requirements
 
+Expression-based selectors and the independent prerelease controls below are
+available starting with toolchains_llvm 1.13.0. Basic `first` / `latest`
+comparisons were introduced in 1.6.0; see the [changelog](CHANGELOG.md) for
+earlier feature availability.
+
 Version requirements let projects bind automatic LLVM upgrades to deliberate `toolchains_llvm`
 release upgrades. A `toolchains_llvm` release can add new LLVM release identifiers to its
 checksummed catalogue. Upgrading the pinned module then makes those releases eligible without a
@@ -270,7 +285,7 @@ linker versions, and lets one configuration accommodate hosts whose available ar
 Conditions are comma-separated and combined with AND. toolchains_llvm supplies `major`, `minor`,
 and `patch` as numeric release-component constants, so `latest:major==23,minor>=2` stays within
 LLVM 23 and requires a minor version of at least 2. Comparisons and function expressions use
-[mboworks_bzl's SemVer mode](https://mboworks.github.io/bzl/site/tag/0.7.0/docs/versions.html#semver).
+[mboworks_bzl's SemVer mode](https://mboworks.github.io/bzl/site/tag/0.8.0/docs/versions.html#semver).
 
 <!-- prettier-ignore -->
 | Selector                    | Selection policy                               |
@@ -281,9 +296,9 @@ LLVM 23 and requires a minor version of at least 2. Comparisons and function exp
 | `first:>=22,<23`            | Oldest stable LLVM 22 release for the host     |
 
 For all comparison operators, wildcard matching and compatible-release boundaries, see
-[Compatible and matching requirements](https://mboworks.github.io/bzl/site/tag/0.7.0/docs/versions.html#compatible-and-matching-requirements).
+[Compatible and matching requirements](https://mboworks.github.io/bzl/site/tag/0.8.0/docs/versions.html#compatible-and-matching-requirements).
 Function clauses such as `major()==23` and more advanced inspection are documented under
-[Requirement expressions and constants](https://mboworks.github.io/bzl/site/tag/0.7.0/docs/versions.html#requirement-expressions-and-constants).
+[Requirement expressions and constants](https://mboworks.github.io/bzl/site/tag/0.8.0/docs/versions.html#requirement-expressions-and-constants).
 
 `llvm_version_allow_prereleases` and `linker_version_allow_prereleases` each
 default to `False`. They independently control bare and constrained
@@ -302,6 +317,10 @@ llvm.toolchain(
 
 This selects the newest matching release candidate available for the execution
 host. With `llvm_version_allow_prereleases = False`, that RC-only range has no matching release.
+Enabling prereleases admits all versions satisfying the requirement, so retain
+the upper bound when following RCs for one release. SemVer compares alphanumeric
+prerelease identifiers lexically: `23.1.0-rc10` sorts before `23.1.0-rc2`.
+Use an exact pin when the upstream RC numbering does not follow that ordering.
 With the option enabled, expressions such as `is_prerelease()==True` can further
 restrict selection to prereleases; `is_prerelease()==False` can restrict a
 particular selector to stable releases.
@@ -334,12 +353,11 @@ reuse the base LLVM archive.
 It is further possible to provide the version or requirement from an environment
 variable with a fallback version or requirement. This works for both LLVM and
 linker versions, for example `linker_version = "getenv(MOLD_VERSION,latest:major==3)"`
-with `--repo_env=MOLD_VERSION=3.0.0`. In this case it is important to
-also use the bazel flag `--repo_env=LLVM_VERSION=version_or_requirement`. It is
-important to use both correctly because otherwise the resulting builds are not
-reproducible. The main purpose of using an environment variable to encode the
-version for integration or batch testing on multiple platforms where multiple
-LLVM versions should be tested.
+with `--repo_env=MOLD_VERSION=3.0.0`. Set the same variable named in `getenv`
+through Bazel's `--repo_env=NAME=value`; for LLVM examples below, use
+`--repo_env=LLVM_VERSION=version_or_requirement`. This makes the selected input
+explicit. Environment-based selection is useful for integration or batch
+testing across multiple LLVM or linker versions.
 
 - `getenv(ENVIRONMENT_VARIABLE_NAME,fallback)`
 
