@@ -25,7 +25,9 @@ requirement explicitly specified a prerelease version, and only for that same
 major/minor/patch release. In 1.13.0, that explicit requirement is no longer
 sufficient: also set `llvm_version_allow_prereleases = True` for LLVM, or
 `linker_version_allow_prereleases = True` for catalogued linkers. Exact pins
-(including RC pins) are unchanged. See the [migration notes](CHANGELOG.md#1130)
+(including RC pins) are unchanged. The flag now controls prerelease eligibility
+separately from the constraints, which no longer need to name an RC.
+See the [migration notes](CHANGELOG.md#1130)
 and [requirements examples](#requirements) before upgrading configurations
 that select prereleases.
 
@@ -303,28 +305,32 @@ Function clauses such as `major()==23` and more advanced inspection are document
 
 `llvm_version_allow_prereleases` and `linker_version_allow_prereleases` each
 default to `False`. They independently control bare and constrained
-`first`/`latest` selectors for LLVM and catalogued linkers, respectively. Requirements always
-apply; enabling prereleases does not bypass ranges or host availability.
-Explicitly specifying an RC version in a requirement does not by itself enable
-prereleases. Exact version pins are unaffected.
+`first`/`latest` selectors for LLVM and catalogued linkers, respectively.
+The flag controls whether prereleases are eligible; the requirements control
+which versions qualify. Constraints no longer need to name an RC, and naming
+one does not by itself enable prereleases. Requirements and host availability
+always apply. Exact version pins are unaffected.
 
 ```starlark
 llvm.toolchain(
     name = "llvm_rc",
-    llvm_version = "latest:>=23.1.0-rc1,<23.1.0",
+    llvm_version = "latest:>23.0,<23.1",
     llvm_version_allow_prereleases = True,
 )
 ```
 
-This selects the newest matching release candidate available for the execution
-host. With `llvm_version_allow_prereleases = False`, that RC-only range has no matching release.
-Enabling prereleases admits all versions satisfying the requirement, so retain
-the upper bound when following RCs for one release. SemVer compares alphanumeric
-prerelease identifiers lexically: `23.1.0-rc10` sorts before `23.1.0-rc2`.
-Use an exact pin when the upstream RC numbering does not follow that ordering.
-With the option enabled, expressions such as `is_prerelease()==True` can further
-restrict selection to prereleases; `is_prerelease()==False` can restrict a
-particular selector to stable releases.
+This admits LLVM 23.1.0 release candidates without naming a particular RC and
+excludes the final 23.1.0 release (`23.1` means `23.1.0`). It selects the newest
+matching version available for the execution host. Stable releases within
+the range remain eligible; append `,is_prerelease()==True` if selection
+must be strictly prerelease-only. With the flag set to `False`, only matching
+stable releases are eligible. Conversely, `is_prerelease()==False` restricts a
+particular selector to stable releases even when the flag is enabled.
+
+[SemVer compares dot-separated prerelease identifiers](https://semver.org/#spec-item-11)
+numerically when they contain only digits (`rc.2 < rc.10`), but lexically when
+they contain letters (`rc10 < rc2`). Consequently, `23.1.0-rc10` sorts before
+`23.1.0-rc2`. Use an exact pin if that differs from the intended upstream RC order.
 
 Linker selectors use the same bzl SemVer comparisons, requirement expressions,
 projection constants, and first/latest selection as LLVM. For example:

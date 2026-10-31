@@ -19,14 +19,19 @@ for release artifacts and the [README](README.md) for configuration and requirem
   `linker_version_allow_prereleases = True` for catalogued linkers. Both options
   default to `False` and are independent. Exact pins, including RC pins, are
   unchanged.
-- Enabling either option admits every prerelease satisfying the requirements,
-  rather than only prereleases with a release tuple named in the requirement.
-  Use an upper bound when following RCs for one release, for example
-  `llvm_version = "latest:>=23.1.0-rc1,<23.1.0"` together with
-  `llvm_version_allow_prereleases = True`.
-- Version comparisons now use bzl's SemVer mode. Alphanumeric prerelease
-  identifiers compare lexically: `23.1.0-rc10` sorts before `23.1.0-rc2`.
-  Use an exact pin when the upstream RC numbering does not follow that ordering.
+- Prerelease eligibility and version constraints are now separate: enable
+  prereleases with the corresponding flag, then use ordinary constraints
+  without naming a particular RC. For example,
+  `llvm_version = "latest:>23.0,<23.1"` together with
+  `llvm_version_allow_prereleases = True` admits LLVM 23.1.0 RCs but excludes
+  the final 23.1.0 release. The flag admits all prereleases within the range,
+  rather than only those with a release tuple explicitly named in it.
+- Version comparisons now use bzl's SemVer mode. Under
+  [SemVer's prerelease ordering rules](https://semver.org/#spec-item-11),
+  dot-separated numeric identifiers compare numerically (`rc.2 < rc.10`),
+  but identifiers containing letters compare lexically (`rc10 < rc2`).
+  Thus `23.1.0-rc10` sorts before `23.1.0-rc2`; use an exact pin if that
+  differs from the intended upstream RC order.
 
 ### Version selection
 

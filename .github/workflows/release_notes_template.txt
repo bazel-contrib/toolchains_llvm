@@ -6,7 +6,9 @@ selectors admitted prereleases only when a requirement explicitly specified a
 prerelease version, and only for that same major/minor/patch release. In 1.13.0,
 that explicit requirement is no longer sufficient: also set
 `llvm_version_allow_prereleases = True`, or `linker_version_allow_prereleases = True`
-for catalogued linkers. Exact pins, including RC pins, are unchanged.
+for catalogued linkers. These flags separate prerelease eligibility from version
+constraints, which no longer need to name an RC. Exact pins, including RC pins,
+are unchanged.
 
 If you're using `bzlmod`, add the following to `MODULE.bazel`:
 
