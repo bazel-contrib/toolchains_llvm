@@ -30,8 +30,10 @@ for release artifacts and the [README](README.md) for configuration and requirem
   [SemVer's prerelease ordering rules](https://semver.org/#spec-item-11),
   dot-separated numeric identifiers compare numerically (`rc.2 < rc.10`),
   but identifiers containing letters compare lexically (`rc10 < rc2`).
-  Thus `23.1.0-rc10` sorts before `23.1.0-rc2`; use an exact pin if that
-  differs from the intended upstream RC order.
+  LLVM currently uses undotted RC identifiers, such as `23.1.0-rc3`.
+  A hypothetical `23.1.0-rc10` would therefore sort before `23.1.0-rc2`;
+  mixing forms also gives `23.1.0-rc.10 < 23.1.0-rc9`. Use an exact pin
+  if that differs from the intended upstream RC order.
 
 ### Version selection
 
