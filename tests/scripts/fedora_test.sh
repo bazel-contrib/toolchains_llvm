@@ -28,7 +28,9 @@ for image in "${images[@]}"; do
 set -exuo pipefail
 
 # Need system glibc headers (e.g. features.h).
-dnf install -qy glibc-headers ncurses-compat-libs
+# Request the legacy XML ABI used by the prebuilt LLVM linker, not the newer
+# libxml2.so.16 ABI supplied by current Fedora's default libxml2 package.
+dnf install -qy glibc-headers ncurses-compat-libs 'libxml2.so.2()(64bit)'
 
 # Run tests
 cd /src
