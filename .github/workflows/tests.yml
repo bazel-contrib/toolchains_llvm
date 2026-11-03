@@ -55,6 +55,11 @@ jobs:
       - uses: actions/checkout@v7
       - if: startsWith(matrix.os, 'ubuntu')
         run: tests/scripts/ubuntu_install_libtinfo.sh
+      - name: Configure sanitizer address space
+        if: startsWith(matrix.os, 'ubuntu')
+        # Older sanitizer runtimes cannot reserve their shadow memory with
+        # 32-bit mmap entropy. Limit it on this disposable CI runner only.
+        run: sudo sysctl -w vm.mmap_rnd_bits=28
       - run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android
       - name: Test
         env:
@@ -87,6 +92,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
+      - if: startsWith(matrix.os, 'ubuntu')
+        run: tests/scripts/ubuntu_install_libtinfo.sh
       - name: Test C++ modules with LLVM 22
         env:
           USE_BAZEL_VERSION: 9.2.0
@@ -260,6 +267,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+      - name: Configure sanitizer address space
+        # Containers share the runner's kernel. Keep older ASan/TSan shadow
+        # mappings usable without disabling Docker's seccomp profile.
+        run: sudo sysctl -w vm.mmap_rnd_bits=28
       - run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android
       - name: Test
         env:
