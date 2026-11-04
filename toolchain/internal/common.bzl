@@ -153,7 +153,7 @@ def os_from_rctx(rctx):
         return "darwin"
     elif name.startswith("windows"):
         return "windows"
-    fail("Unsupported OS: " + name)
+    return name
 
 def os_bzl(os):
     # Return the OS string as used in bazel platform constraints.

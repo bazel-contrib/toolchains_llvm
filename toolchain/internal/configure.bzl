@@ -163,7 +163,7 @@ def llvm_config_impl(rctx):
     _check_os_arch_keys(rctx.attr.linker_versions)
 
     os = _os(rctx)
-    if os == "windows":
+    if os not in ("linux", "darwin"):
         _empty_repository(rctx)
         return None
     arch = _arch(rctx)

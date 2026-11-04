@@ -565,7 +565,7 @@ llvm_config_attrs.update({
 
 def llvm_repo_impl(rctx):
     os = _os(rctx)
-    if os == "windows":
+    if os not in ("linux", "darwin"):
         rctx.file("BUILD.bazel", executable = False)
         return None
 
