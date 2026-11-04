@@ -237,6 +237,7 @@ def llvm_config_impl(rctx):
         cc_wrapper_tpl = rctx.attr._cc_wrapper_sh_tpl
 
     tool_inputs = []
+    tool_libraries = []
     if not use_absolute_paths_llvm:
         llvm_dist_rel_path = _canonical_dir_path(paths.join("../..", llvm_dist_path_prefix))
         llvm_dist_label_prefix = toolchain_root + ":"
@@ -273,7 +274,7 @@ def llvm_config_impl(rctx):
             )
             tool_inputs.append(llvm_dist_label_prefix + "bin/" + tool_name)
         if not rctx.attr.toolchain_roots:
-            tool_inputs.append(llvm_dist_label_prefix + "runtime_shared_libraries")
+            tool_libraries.append(llvm_dist_label_prefix + "runtime_shared_libraries")
         symlinked_tools_str = "".join([
             "\n" + (" " * 8) + "\"" + paths.join(tools_path_prefix, wrapper_name) + "\","
             for wrapper_name in tools.values()
@@ -407,6 +408,7 @@ def llvm_config_impl(rctx):
             "%{cc_toolchains}": cc_toolchains_str,
             "%{symlinked_tools}": symlinked_tools_str,
             "%{tool_inputs}": ", ".join([repr(label) for label in tool_inputs]),
+            "%{tool_libraries}": ", ".join([repr(label) for label in tool_libraries]),
             "%{tools_dir}": wrapper_bin_prefix.removesuffix("/"),
             "%{convenience_targets}": convenience_targets_str,
         },
@@ -898,14 +900,14 @@ filegroup(
 filegroup(
     name = "all-components-{suffix}",
     srcs = [
-        "{toolchain_root}:bin",
+        ":internal-use-tool-binaries",
         ":compiler-components-{suffix}",
         ":linker-components-{suffix}",
     ],
 )
 
 filegroup(name = "all-files-{suffix}", srcs = [":all-components-{suffix}", {extra_files_str}])
-filegroup(name = "archiver-files-{suffix}", srcs = ["{llvm_dist_label_prefix}ar", {extra_files_str}])
+filegroup(name = "archiver-files-{suffix}", srcs = ["{llvm_dist_label_prefix}{ar_label}", {extra_files_str}])
 filegroup(name = "assembler-files-{suffix}", srcs = ["{llvm_dist_label_prefix}as", {extra_files_str}])
 filegroup(name = "compiler-files-{suffix}", srcs = [":compiler-components-{suffix}", {extra_files_str}])
 filegroup(name = "dwp-files-{suffix}", srcs = ["{llvm_dist_label_prefix}dwp", {extra_files_str}])
@@ -1057,6 +1059,8 @@ filegroup(
         cxx_builtin_include_directories = _list_to_string(filtered_cxx_builtin_include_directories),
         cxx_builtin_include_label = "cxx_builtin_include" if bazel_features.rules.merkle_cache_v2 else "include",
         lib_label = "lib" if bazel_features.rules.merkle_cache_v2 else "lib_legacy",
+        # Darwin-to-Darwin archives with llvm-libtool-darwin; see use_libtool in cc_toolchain_config.bzl.
+        ar_label = "bin/llvm-libtool-darwin" if exec_os == "darwin" and target_os == "darwin" else "ar",
         extra_compiler_files = ("\"%s\"," % _extra_compiler_label) if _extra_compiler_label else "",
         llvm_version = llvm_version,
         linker_path = repr(linker.path),

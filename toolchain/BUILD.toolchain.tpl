@@ -27,7 +27,7 @@ exports_files(["toolchain_manifest.json"])
 # Tools wrapped and symlinked through this repo. This target is for internal use in the toolchain only.
 filegroup(
     name = "internal-use-tools",
-    srcs = ["%{tools_dir}"] + [%{tool_inputs}],
+    srcs = ["%{tools_dir}"] + [%{tool_libraries}],
     visibility = ["//visibility:private"],
 )
 
@@ -36,7 +36,14 @@ filegroup(
     srcs = [%{symlinked_tools}
         "%{tools_dir}/cc_wrapper.sh",
         "%{tools_dir}/cpp_module_deps_scanner.sh",
-    ] + [%{tool_inputs}],
+    ] + [%{tool_libraries}],
+    visibility = ["//visibility:private"],
+)
+
+# Binaries behind the wrappers, for all-files; other file groups list the ones their actions run.
+filegroup(
+    name = "internal-use-tool-binaries",
+    srcs = [%{tool_inputs}],
     visibility = ["//visibility:private"],
 )
 
