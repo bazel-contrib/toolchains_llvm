@@ -27,12 +27,19 @@ for release artifacts and the [README](README.md) for configuration and requirem
 - Independent prerelease policies in feature overrides; linker-only policy
   changes can reuse the base LLVM archive.
 
+### LLVM distributions
+
+- Add checksum-pinned LLVM 23.1.5 archives for Linux ARM64/x86_64, macOS ARM64,
+  and Windows ARM64/x86_64. Both xz and zstd metadata are retained; automatic
+  selection continues to use xz. Existing LLVM and mold entries are preserved.
+
 ### Dependencies and publishing
 
 - WORKSPACE dependencies: `rules_cc` 0.2.27, `apple_support` 2.11.0, and
   `bazel_features` 1.54.1.
 - Test dependencies, including `rules_python` 2.4.6, `rules_go` 0.65.0,
-  `rules_foreign_cc` 0.17.0, `rules_rust` 0.75.0, and BoringSSL 0.20261020.0.
+  `rules_foreign_cc` 0.17.0, `rules_rust` 0.75.0, BoringSSL 0.20261020.0,
+  and WORKSPACE `aspect_bazel_lib` 3.8.0.
 - BCR publishing workflow to `publish-to-bcr` 1.6.0.
 
 ## 1.12.0
