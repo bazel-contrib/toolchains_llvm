@@ -268,8 +268,24 @@ def attr_dict(attr):
 
     return dict(tuples)
 
-def toolchain_tools(os):
+def toolchain_tools(os, llvm_bin = None):
     tools = dict(_toolchain_tools)
     if os == "darwin":
         tools.update(_toolchain_tools_darwin)
+    if llvm_bin != None:
+        # Slim distributions may omit these tools. Keep required tools as
+        # inputs even when missing, so an incomplete compiler still fails.
+        optional_tools = [
+            "clang-format",
+            "clang-tidy",
+            "clangd",
+            "llvm-cov",
+            "llvm-dwp",
+            "llvm-profdata",
+        ]
+        tools = {
+            tool: wrapper
+            for tool, wrapper in tools.items()
+            if tool not in optional_tools or llvm_bin.get_child(tool).exists
+        }
     return tools
