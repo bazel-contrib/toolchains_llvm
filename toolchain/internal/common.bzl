@@ -178,6 +178,21 @@ def arch_from_rctx(rctx):
         return "x86_64"
     return arch
 
+def platform_is_supported(rctx):
+    # Whether to configure the toolchain on this platform rather than
+    # emit an empty repository. Fails on an unknown OS unless
+    # `supported_platforms` leaves that platform out.
+    platforms = rctx.attr.supported_platforms
+    check_os_arch_keys([p for p in platforms if p not in ("linux", "darwin")])
+    _os = os(rctx)
+    if platforms and _os not in platforms and "%s-%s" % (_os, arch(rctx)) not in platforms:
+        return False
+    if _os == "windows":
+        return False
+    if _os not in ("linux", "darwin", "none"):
+        fail("Unsupported OS: " + _os)
+    return True
+
 def is_standalone_arch(os, arch):
     return os == "none" and arch in ["wasm32", "wasm64"]
 
