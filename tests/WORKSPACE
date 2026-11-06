@@ -367,9 +367,9 @@ http_archive(
     name = "boringssl",
     patch_args = ["-p1"],
     patches = ["//:boringssl-20260413.0.patch"],
-    sha256 = "fb43aac7fbd323c9dfa1f45fe92a1c01142433c05b23fe34f61d6ba8b13b642e",
-    strip_prefix = "boringssl-0.20261020.0",
-    urls = ["https://github.com/google/boringssl/releases/download/0.20261020.0/boringssl-0.20261020.0.tar.gz"],
+    sha256 = "2df2b287f3406a3d2f7f51dccb82cffbddf6cf981811e8edcfffe8fbf02c3ac4",
+    strip_prefix = "boringssl-0.20261105.0",
+    urls = ["https://github.com/google/boringssl/releases/download/0.20261105.0/boringssl-0.20261105.0.tar.gz"],
 )
 
 http_archive(
