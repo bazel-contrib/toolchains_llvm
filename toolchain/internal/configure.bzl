@@ -846,15 +846,6 @@ filegroup(
     ],
 )
 
-filegroup(
-    name = "all-components-{suffix}",
-    srcs = [
-        ":compiler-components-{suffix}",
-        ":linker-components-{suffix}",
-    ],
-)
-
-filegroup(name = "all-files-{suffix}", srcs = [":all-components-{suffix}", {extra_files_str}])
 filegroup(name = "archiver-files-{suffix}", srcs = [{extra_files_str}])
 filegroup(name = "assembler-files-{suffix}", srcs = [{extra_files_str}])
 filegroup(name = "compiler-files-{suffix}", srcs = [":compiler-components-{suffix}", {extra_files_str}])
@@ -897,16 +888,6 @@ filegroup(
     ],
 )
 
-filegroup(
-    name = "all-components-{suffix}",
-    srcs = [
-        ":internal-use-tool-binaries",
-        ":compiler-components-{suffix}",
-        ":linker-components-{suffix}",
-    ],
-)
-
-filegroup(name = "all-files-{suffix}", srcs = [":all-components-{suffix}", {extra_files_str}])
 filegroup(name = "archiver-files-{suffix}", srcs = ["{llvm_dist_label_prefix}{ar_label}", {extra_files_str}])
 filegroup(name = "assembler-files-{suffix}", srcs = ["{llvm_dist_label_prefix}as", {extra_files_str}])
 filegroup(name = "compiler-files-{suffix}", srcs = [":compiler-components-{suffix}", {extra_files_str}])
@@ -917,6 +898,21 @@ filegroup(name = "strip-files-{suffix}", srcs = ["{llvm_dist_label_prefix}strip"
 """
 
     template = template + """
+# Bazel assumes all_files is a superset of the other file groups.
+filegroup(
+    name = "all-files-{suffix}",
+    srcs = [
+        ":archiver-files-{suffix}",
+        ":assembler-files-{suffix}",
+        ":compiler-files-{suffix}",
+        ":dwp-files-{suffix}",
+        ":linker-files-{suffix}",
+        ":objcopy-files-{suffix}",
+        ":strip-files-{suffix}",
+        ":internal-use-tool-binaries",
+    ],
+)
+
 system_module_map(
     name = "module-{suffix}",
     cxx_builtin_include_files = ":cxx_builtin_include_files-{suffix}",
