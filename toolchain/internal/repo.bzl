@@ -14,7 +14,7 @@
 load(
     "//toolchain/internal:common.bzl",
     _attr_dict = "attr_dict",
-    _os = "os",
+    _platform_is_supported = "platform_is_supported",
     _supported_os_arch_keys = "supported_os_arch_keys",
 )
 load(
@@ -68,6 +68,14 @@ common_attrs = {
     "exec_arch": attr.string(
         mandatory = False,
         doc = "Execution platform architecture, if different from host arch.",
+    ),
+    "supported_platforms": attr.string_list(
+        mandatory = False,
+        doc = ("Platforms this toolchain is configured on, e.g., linux, " +
+               "darwin-aarch64. On any other platform the repository is empty " +
+               "and the host's locally configured C++ toolchain is used " +
+               "instead. If empty, the toolchain is configured on every " +
+               "platform, and an unsupported OS is an error."),
     ),
 }
 
@@ -564,8 +572,7 @@ llvm_config_attrs.update({
 })
 
 def llvm_repo_impl(rctx):
-    os = _os(rctx)
-    if os == "windows":
+    if not _platform_is_supported(rctx):
         rctx.file("BUILD.bazel", executable = False)
         return None
 
