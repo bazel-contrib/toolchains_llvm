@@ -340,3 +340,100 @@ def _stdlib_flags_test_impl(ctx):
 # //:all across the default builtin-libc++ toolchain and the stdc++/sysroot
 # toolchains used by the container tests, on Linux and macOS.
 stdlib_flags_test = analysistest.make(_stdlib_flags_test_impl)
+
+# LLVM binaries that each file group must carry when the distribution has them,
+# because its actions run them, and those it may also carry.
+_GROUP_BINARIES = {
+    "archiver": (["llvm-ar"], []),
+    "assembler": (["clang"], ["llvm-as"]),
+    "compiler": (["clang", "clang-scan-deps"], ["clang++", "clang-cpp"]),
+    "dwp": (["llvm-dwp"], []),
+    "linker": (["clang", "ld.lld"], ["clang++", "clang-cpp", "clang-scan-deps", "ld64.lld", "llvm-ar", "wasm-ld"]),
+    "objcopy": (["llvm-objcopy"], []),
+    "strip": (["llvm-strip"], []),
+}
+
+# all-files also carries the tools behind make variables and coverage, and the
+# other wrapped tools.
+_ALL_FILES_BINARIES = (
+    ["llvm-cov", "llvm-nm", "llvm-objdump", "llvm-profdata"],
+    ["clang-format", "clang-tidy", "clangd"],
+)
+
+def _check_binaries(env, group, files, llvm_bin, required, optional):
+    binaries = [f.basename for f in files if f.dirname == llvm_bin[0].dirname]
+    available = [f.basename for f in llvm_bin]
+    asserts.equals(
+        env,
+        [],
+        [b for b in required if b in available and b not in binaries],
+        "binaries missing from {}-files".format(group),
+    )
+    asserts.equals(
+        env,
+        [],
+        sorted([b for b in binaries if b not in required + optional]),
+        "unrelated binaries in {}-files".format(group),
+    )
+
+def _toolchain_files_test_impl(ctx):
+    env = analysistest.begin(ctx)
+    all_files = analysistest.target_under_test(env)[DefaultInfo].files.to_list()
+    all_paths = {f.path: None for f in all_files}
+    all_required, all_optional = _ALL_FILES_BINARIES
+    for target, group in ctx.attr.groups.items():
+        files = target[DefaultInfo].files.to_list()
+        paths = {f.path: None for f in files}
+        asserts.equals(
+            env,
+            [],
+            [f.path for f in ctx.files.runtime_libraries if f.path not in paths],
+            "runtime libraries missing from {}-files".format(group),
+        )
+        asserts.equals(
+            env,
+            [],
+            [f.path for f in files if f.path not in all_paths],
+            "files of {}-files missing from all-files".format(group),
+        )
+        required, optional = _GROUP_BINARIES[group]
+        _check_binaries(env, group, files, ctx.files.llvm_bin, required, optional)
+        all_required = all_required + required
+        all_optional = all_optional + optional
+    _check_binaries(env, "all", all_files, ctx.files.llvm_bin, all_required, all_optional)
+    return analysistest.end(env)
+
+_toolchain_files_test = analysistest.make(
+    _toolchain_files_test_impl,
+    attrs = {
+        "groups": attr.label_keyed_string_dict(),
+        "llvm_bin": attr.label(allow_files = True),
+        "runtime_libraries": attr.label(allow_files = True),
+    },
+)
+
+def toolchain_files_test(name, toolchain, suffix, **kwargs):
+    """Checks the LLVM binaries and libraries in a toolchain's file groups.
+
+    Each action-specific group must carry the binaries its actions run, the
+    libraries those binaries load, and no other binaries; all-files must be a
+    superset of them.
+
+    Args:
+      name: The test name.
+      toolchain: The toolchain repository, e.g. "@llvm_toolchain". Its LLVM
+        distribution is the repository with the "_llvm" suffix.
+      suffix: The file groups' suffix, e.g. "x86_64-linux".
+      **kwargs: Common test attributes.
+    """
+    _toolchain_files_test(
+        name = name,
+        target_under_test = "{}//:all-files-{}".format(toolchain, suffix),
+        groups = {
+            "{}//:{}-files-{}".format(toolchain, group, suffix): group
+            for group in _GROUP_BINARIES
+        },
+        llvm_bin = "{}_llvm//:bin".format(toolchain),
+        runtime_libraries = "{}_llvm//:runtime_shared_libraries".format(toolchain),
+        **kwargs
+    )

@@ -15,7 +15,7 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
-load(":transitions.bzl", "darwin_linker_test", "dwp_file", "msan_c_flags_test", "msan_flags_test", "sanitizer_combo_flags_test", "sanitizer_test", "stdlib_flags_test", "transition_library_to_platform")
+load(":transitions.bzl", "darwin_linker_test", "dwp_file", "msan_c_flags_test", "msan_flags_test", "sanitizer_combo_flags_test", "sanitizer_test", "stdlib_flags_test", "toolchain_files_test", "transition_library_to_platform")
 
 exports_files(["linkers.jsonc"])
 
@@ -77,6 +77,16 @@ build_test(
     targets = [
         "@llvm_toolchain//:all-files-x86_64-linux",
     ],
+)
+
+toolchain_files_test(
+    name = "toolchain_files_test",
+    suffix = "x86_64-linux",
+    target_compatible_with = [
+        "@platforms//cpu:x86_64",
+        "@platforms//os:linux",
+    ],
+    toolchain = "@llvm_toolchain",
 )
 
 # Verifies that extra_compiler_files actually makes the file available in the
