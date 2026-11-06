@@ -34,6 +34,7 @@ load(
     _os_bzl = "os_bzl",
     _os_from_rctx = "os_from_rctx",
     _pkg_path_from_label = "pkg_path_from_label",
+    _platform_is_supported = "platform_is_supported",
     _supported_no_sysroot_targets = "SUPPORTED_NO_SYSROOT_TARGETS",
     _supported_targets = "SUPPORTED_TARGETS",
     _toolchain_tools = "toolchain_tools",
@@ -163,7 +164,7 @@ def llvm_config_impl(rctx):
     _check_os_arch_keys(rctx.attr.linker_versions)
 
     os = _os(rctx)
-    if os == "windows":
+    if not _platform_is_supported(rctx):
         _empty_repository(rctx)
         return None
     arch = _arch(rctx)
