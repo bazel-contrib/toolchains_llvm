@@ -385,6 +385,41 @@ For specifying unregistered toolchains on the command line, please use the
 `--extra_toolchains` flag. For example,
 `--extra_toolchains=@llvm_toolchain//:cc-toolchain-x86_64-linux`.
 
+### Restricting configuration to selected platforms
+
+Use `supported_platforms` when a shared build configuration should configure LLVM
+only on selected platforms, allowing other hosts to use another C++ toolchain:
+
+```starlark
+llvm.toolchain(
+    name = "llvm_toolchain",
+    llvm_version = "23.1.5",
+    supported_platforms = ["linux", "darwin-aarch64"],
+)
+use_repo(llvm, "llvm_toolchain")
+register_toolchains("@llvm_toolchain//:all")
+```
+
+Here, `linux` matches any Linux architecture, while `darwin-aarch64` matches only
+Apple Silicon Macs. `linux` and `darwin` are explicit OS-wide values, not string
+prefixes. Other entries must be exact supported OS/architecture keys, such as
+`linux-x86_64` or `darwin-aarch64` (use `aarch64`, not `arm64`, in this list).
+Values such as `lin`, `linux-*`, and `ubuntu-22.04-x86_64` are invalid.
+Matching uses the host OS and architecture unless overridden by `exec_os` and
+`exec_arch`; it does not restrict cross-compilation targets.
+An omitted or empty list preserves normal platform validation, including errors
+for unknown operating systems. Included platforms still require an available
+LLVM distribution.
+
+On excluded platforms, that configuration contributes no LLVM toolchain. Bazel
+may select another registered C++ toolchain, often the system compiler, which
+does not inherit the configured LLVM version or options. Resolution fails if no
+compatible toolchain is available. Register `@llvm_toolchain//:all` rather than
+specific toolchain labels, which will not exist on excluded platforms.
+
+For WORKSPACE, set the same attribute on `llvm_toolchain` and use its generated
+`llvm_register_toolchains` macro.
+
 ### Feature-based toolchain overrides
 
 Keep one toolchain name and use its ordinary configuration as the fallback.
