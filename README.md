@@ -401,8 +401,12 @@ register_toolchains("@llvm_toolchain//:all")
 ```
 
 Here, `linux` matches any Linux architecture, while `darwin-aarch64` matches only
-Apple Silicon Macs. Matching uses the host OS and architecture unless overridden
-by `exec_os` and `exec_arch`; it does not restrict cross-compilation targets.
+Apple Silicon Macs. `linux` and `darwin` are explicit OS-wide values, not string
+prefixes. Other entries must be exact supported OS/architecture keys, such as
+`linux-x86_64` or `darwin-aarch64` (use `aarch64`, not `arm64`, in this list).
+Values such as `lin`, `linux-*`, and `ubuntu-22.04-x86_64` are invalid.
+Matching uses the host OS and architecture unless overridden by `exec_os` and
+`exec_arch`; it does not restrict cross-compilation targets.
 An omitted or empty list preserves normal platform validation, including errors
 for unknown operating systems. Included platforms still require an available
 LLVM distribution.
