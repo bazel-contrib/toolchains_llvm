@@ -275,6 +275,14 @@ llvm_toolchain(
     urls = {"": ["https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.6/clang+llvm-17.0.6-x86_64-linux-gnu-ubuntu-22.04.tar.xz"]},
 )
 
+# Toolchain configuration inspects the LLVM archive, including its runtime
+# overlays. Declare the Wasm dependencies before loading toolchains.bzl.
+load("//wasm:wasi_sdk.bzl", "libclang_rt_wasm32", "wasi_sdk_sysroots")
+
+libclang_rt_wasm32(name = "libclang_rt_wasm32")
+
+wasi_sdk_sysroots(name = "wasi_sdk_sysroots")
+
 # Toolchain example for WebAssembly wasm* targets.
 llvm_toolchain(
     name = "llvm_toolchain_wasm",
@@ -330,12 +338,6 @@ load(
 )
 
 llvm_register_toolchains_wasm_wasi()
-
-load("//wasm:wasi_sdk.bzl", "libclang_rt_wasm32", "wasi_sdk_sysroots")
-
-libclang_rt_wasm32(name = "libclang_rt_wasm32")
-
-wasi_sdk_sysroots(name = "wasi_sdk_sysroots")
 
 ## Test dependencies.
 
