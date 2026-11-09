@@ -51,7 +51,50 @@ def catalogue_metadata(meta, basename, version):
     for target in stdlibs:
         if target and target not in SUPPORTED_PLATFORM_KEYS:
             fail("unsupported catalogue stdlib target key '{}'".format(target))
+    if "overlays" in meta:
+        result["overlays"] = _catalogue_overlays(meta["overlays"], version)
     return result
+
+def _catalogue_overlays(overlays, version):
+    if type(overlays) != "dict":
+        fail("catalogue overlays must map output directories to version/platform archives")
+    result = {}
+    for output, releases in overlays.items():
+        if not output or output.startswith(".") or any([c not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-" for c in output.elems()]):
+            fail("invalid catalogue overlay directory '{}': use a simple directory name".format(output))
+        if type(releases) != "dict" or version not in releases:
+            fail("catalogue overlay '{}' has no archive matching LLVM {}".format(output, version))
+        platforms = releases[version]
+        if type(platforms) != "dict" or not platforms:
+            fail("catalogue overlay '{}' must map execution platforms to archive descriptors".format(output))
+        result[output] = {}
+        for platform, entry in platforms.items():
+            if platform not in SUPPORTED_PLATFORM_KEYS:
+                fail("unsupported catalogue overlay execution-platform key '{}'".format(platform))
+            if type(entry) != "dict" or any([key not in ["url", "sha256", "strip_prefix"] for key in entry]):
+                fail("catalogue overlay descriptors accept only url, sha256 and strip_prefix")
+            url = entry.get("url")
+            sha256 = entry.get("sha256")
+            if type(url) != "string" or not url:
+                fail("catalogue overlay '{}' requires a download URL".format(output))
+            if type(sha256) != "string" or len(sha256) != 64 or any([c not in "0123456789abcdef" for c in sha256.lower().elems()]):
+                fail("catalogue overlay '{}' requires a 64-character hexadecimal SHA-256".format(output))
+            if type(entry.get("strip_prefix", "")) != "string":
+                fail("catalogue overlay strip_prefix must be a string")
+            result[output][platform] = dict(entry, url = url.format(version = version))
+    return result
+
+def resolve_distribution_overlays(metadata, platform, libcxx_url = ""):
+    """Select exact-version companion archives before downloading a compiler."""
+    overlays = metadata.get("overlays", {})
+    if libcxx_url and "libcxx-msan" in overlays:
+        fail("catalogue already supplies libcxx-msan; remove libcxx_url/libcxx_sha256 rather than mixing runtime sources")
+    selected = {}
+    for output, platforms in overlays.items():
+        if platform not in platforms:
+            fail("catalogue overlay '{}' has no archive for execution platform {}".format(output, platform))
+        selected[output] = platforms[platform]
+    return selected
 
 def check_distribution_requirements(distribution, requirements, target, stdlib, features, disabled_features = []):
     """Reject a selected archive's incompatible configuration during analysis."""

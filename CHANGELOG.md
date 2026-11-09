@@ -16,6 +16,10 @@ for release artifacts and the [README](README.md) for configuration and requirem
   auxiliary tools. Add an opt-in, checksum-pinned hermetic-llvm 23.1.2 catalogue:
   Linux uses host/sysroot libstdc++/libgcc; macOS uses Apple SDK libc++.
   The supplied compiler-only profile excludes sanitizers.
+- Add an opt-in MSan catalogue pairing LLVM 22.1.8 with checksum-pinned,
+  instrumented libc++ for native Linux x86_64 and AArch64. Generic header
+  overlays follow the compiler's exact version/platform automatically;
+  MSan-only profiles require the `msan` feature.
 
 ## 1.13.0
 

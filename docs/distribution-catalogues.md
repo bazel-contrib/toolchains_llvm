@@ -46,16 +46,50 @@ metadata file retain their existing behavior.
 
 ## MSan-specific distributions
 
-For a complete archive intended only for MemorySanitizer builds, declare:
+The opt-in `@toolchains_llvm//toolchain/distributions:msan.jsonc` catalogue
+provides matched LLVM 22.1.8 compiler and MSan-instrumented libc++ packages from
+[RealtimeRoboticsGroup/toolchains](https://github.com/RealtimeRoboticsGroup/toolchains/releases/tag/22.1.8).
+It supports native Linux x86_64 and AArch64. Both archives are checksum-pinned;
+the overlay is selected by the compiler's exact version and execution platform,
+then extracted into `libcxx-msan/` automatically. There are no separate runtime
+version selectors or caller-provided runtime URLs/checksums to keep in sync.
+
+Select this catalogue through an `llvm.feature_override` with
+`features = ["msan"]`, as shown in the README. The profile requires MSan and
+`builtin-libc++`; it rejects incompatible sanitizer combinations. Keep an ordinary
+compiler as the default for non-MSan targets and execution tools. The catalogue
+is curated separately from the official LLVM updater.
+
+For another complete archive intended only for MemorySanitizer builds, declare:
 
 ```jsonc
 "requirements": { "features": ["msan"] }
 ```
 
-Select that catalogue through an existing `llvm.feature_override` with
-`features = ["msan"]`. Keep the ordinary compiler as the default so execution
-tools and non-MSan targets use an appropriate distribution. The requirement
-validates usage; it does not enable instrumentation or provide runtimes.
+The requirement validates usage; it does not enable instrumentation. Companion
+archives can be declared in the same header:
+
+```jsonc
+"overlays": {
+  "libcxx-msan": {
+    "22.1.8": {
+      "linux-x86_64": {
+        "url": "https://example.org/{version}/libcxx-msan-{version}.tar.zst",
+        "sha256": "<64 hexadecimal characters>",
+        "strip_prefix": "", // optional; the archive root is used by default
+      },
+    },
+  },
+}
+```
+
+The structure is output directory → exact LLVM version → execution platform →
+archive descriptor. Output names must be simple directory names, not paths.
+URLs may contain `{version}`; every overlay requires a SHA-256. A missing version
+or platform is an error, not a fallback to another runtime. Target platforms do
+not select these overlays; cross-target runtime packaging is not provided by
+this native MSan catalogue. Specifying `libcxx_url` together with a catalogued
+`libcxx-msan` overlay is rejected rather than combining two runtime sources.
 
 An optional `libcxx_url` overlay is different: the base compiler remains usable
 without MSan, and the existing `msan` feature selects the instrumented libc++.

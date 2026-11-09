@@ -26,6 +26,7 @@ load(
     "exec_os_arch_dict_value",
     "host_info",
 )
+load("//toolchain/internal:distribution_metadata.bzl", "resolve_distribution_overlays")
 load("//toolchain/internal:distributions_repo.bzl", "archive_version", "load_distribution_files")
 load("//toolchain/internal:version_selectors.bzl", "version_selectors")
 
@@ -145,6 +146,9 @@ def download_llvm(rctx):
     if shaerr:
         fail("ERROR: " + shaerr)
 
+    host = host_info(rctx)
+    overlays = resolve_distribution_overlays(metadata, "{}-{}".format(host.os, host.arch), rctx.attr.libcxx_url)
+
     res = rctx.download_and_extract(
         [_full_url(url) for url in urls],
         sha256 = sha256,
@@ -152,6 +156,15 @@ def download_llvm(rctx):
         auth = _get_auth(rctx, urls),
     )
     rctx.file("distribution_metadata.json", json.encode(dict(metadata, archive = _distribution_basename(urls[0]))))
+
+    for output, entry in overlays.items():
+        rctx.download_and_extract(
+            [_full_url(entry["url"])],
+            sha256 = entry["sha256"],
+            output = output,
+            stripPrefix = entry.get("strip_prefix", ""),
+            auth = _get_auth(rctx, [entry["url"]]),
+        )
 
     if rctx.attr.libclang_rt:
         clang_versions = rctx.path("lib/clang").readdir()

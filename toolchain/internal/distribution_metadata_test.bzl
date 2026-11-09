@@ -15,7 +15,7 @@
 """Catalogue profiles, host selection, and incompatible configuration tests."""
 
 load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts", "unittest")
-load(":distribution_metadata.bzl", "catalogue_metadata", "check_distribution_requirements", "distribution_requirements")
+load(":distribution_metadata.bzl", "catalogue_metadata", "check_distribution_requirements", "distribution_requirements", "resolve_distribution_overlays")
 load(":distributions_repo.bzl", "archive_version", "load_distribution_files")
 load(":llvm_distributions.bzl", "testing")
 
@@ -25,6 +25,19 @@ _META = {
     "platforms": {"linux-x86_64": "llvm-toolchain-minimal-{version}-linux-amd64-musl.tar.zst"},
     "requirements": {"features": ["-asan"], "stdlib": {"linux-x86_64": ["stdc++", "dynamic-stdc++"]}},
 }
+
+_OVERLAY = {"url": "https://example.test/{version}/libcxx-msan.tar.zst", "sha256": "0" * 64}
+_OVERLAYS = {"libcxx-msan": {"23.1.2": {"linux-x86_64": _OVERLAY}}}
+
+def _overlay_test_impl(ctx):
+    env = unittest.begin(ctx)
+    metadata = catalogue_metadata(dict(_META, overlays = _OVERLAYS), _ARCHIVE, "23.1.2")
+    selected = resolve_distribution_overlays(metadata, "linux-x86_64")
+    asserts.equals(env, ["libcxx-msan"], selected.keys())
+    asserts.equals(env, "https://example.test/23.1.2/libcxx-msan.tar.zst", selected["libcxx-msan"]["url"])
+    asserts.equals(env, "0" * 64, selected["libcxx-msan"]["sha256"])
+    asserts.equals(env, {}, resolve_distribution_overlays({}, "linux-x86_64", "https://legacy.test/libcxx.tar.gz"))
+    return unittest.end(env)
 
 def _metadata_test_impl(ctx):
     env = unittest.begin(ctx)
@@ -107,10 +120,18 @@ _metadata_test = unittest.make(_metadata_test_impl)
 _merge_test = unittest.make(_merge_test_impl)
 _selection_test = unittest.make(_selection_test_impl)
 _requirements_test = unittest.make(_requirements_test_impl)
+_overlay_test = unittest.make(_overlay_test_impl)
+
+def _invalid_overlay_impl(ctx):
+    metadata = catalogue_metadata({"overlays": _OVERLAYS}, _ARCHIVE, "23.1.2")
+    resolve_distribution_overlays(metadata, ctx.attr.platform, ctx.attr.libcxx_url)
+    return []
+
+_invalid_overlay = rule(implementation = _invalid_overlay_impl, attrs = {"platform": attr.string(), "libcxx_url": attr.string()})
 
 def distribution_metadata_test_suite(name):
     """Validate profiles without downloading LLVM, including analysis errors."""
-    unittest.suite(name + "_unit", _metadata_test, _merge_test, _selection_test, _requirements_test)
+    unittest.suite(name + "_unit", _metadata_test, _merge_test, _selection_test, _requirements_test, _overlay_test)
     tests = [name + "_unit"]
     for case, features, test_rule in [("msan_enabled", ["msan"], _msan_enabled_test), ("asan_disabled", ["-asan"], _asan_disabled_test)]:
         subject = name + "_" + case + "_subject"
@@ -138,10 +159,22 @@ def distribution_metadata_test_suite(name):
         ("unmatched_platform", {"platforms": {"linux-x86_64": "typo-{version}.tar.zst"}}, "do not match archive"),
         ("platform_alias", {"platforms": {"linux-arm64": _ARCHIVE}}, "unsupported catalogue execution-platform key"),
         ("stdlib_target_typo", {"requirements": {"stdlib": {"linux-arm64": ["stdc++"]}}}, "unsupported catalogue stdlib target key"),
+        ("overlay_version", {"overlays": {"libcxx-msan": {"22.1.8": {"linux-x86_64": _OVERLAY}}}}, "no archive matching LLVM 23.1.2"),
+        ("overlay_path", {"overlays": {"../lib": {"23.1.2": {"linux-x86_64": _OVERLAY}}}}, "invalid catalogue overlay directory"),
+        ("overlay_sha", {"overlays": {"libcxx-msan": {"23.1.2": {"linux-x86_64": dict(_OVERLAY, sha256 = "bad")}}}}, "hexadecimal SHA-256"),
     ]:
         subject = name + "_" + case + "_subject"
         test = name + "_" + case + "_test"
         _invalid_metadata(name = subject, metadata = json.encode(metadata), tags = ["manual"])
+        _failure_test(name = test, target_under_test = subject, message = message)
+        tests.append(test)
+    for case, platform, libcxx_url, message in [
+        ("overlay_platform", "linux-aarch64", "", "no archive for execution platform linux-aarch64"),
+        ("overlay_conflict", "linux-x86_64", "https://legacy.test/libcxx.tar.gz", "rather than mixing runtime sources"),
+    ]:
+        subject = name + "_" + case + "_subject"
+        test = name + "_" + case + "_test"
+        _invalid_overlay(name = subject, platform = platform, libcxx_url = libcxx_url, tags = ["manual"])
         _failure_test(name = test, target_under_test = subject, message = message)
         tests.append(test)
     native.test_suite(name = name, tests = tests)

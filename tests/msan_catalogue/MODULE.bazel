@@ -1,0 +1,38 @@
+module(name = "msan_catalogue_tests")
+
+bazel_dep(name = "toolchains_llvm", version = "0.0.0")
+local_path_override(
+    module_name = "toolchains_llvm",
+    path = "../..",
+)
+
+bazel_dep(name = "rules_cc", version = "0.2.28")
+
+llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
+llvm.toolchain(
+    name = "llvm_toolchain",
+    extra_llvm_distribution_files = ["@toolchains_llvm//toolchain/distributions:hermetic_llvm.jsonc"],
+    llvm_version = "23.1.2",
+    stdlib = {
+        "linux-x86_64": "stdc++",
+        "linux-aarch64": "stdc++",
+    },
+    use_builtin_llvm_distributions = False,
+)
+llvm.feature_override(
+    name = "llvm_toolchain",
+    extra_llvm_distribution_files = ["@toolchains_llvm//toolchain/distributions:msan.jsonc"],
+    features = ["msan"],
+    llvm_version = "22.1.8",
+    stdlib = {
+        "linux-x86_64": "builtin-libc++",
+        "linux-aarch64": "builtin-libc++",
+    },
+    targets = [
+        "linux-x86_64",
+        "linux-aarch64",
+    ],
+)
+use_repo(llvm, "llvm_toolchain", "llvm_toolchain_llvm")
+
+register_toolchains("@llvm_toolchain//:all")

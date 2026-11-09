@@ -955,8 +955,34 @@ with a fatal error instead of silently producing an uninstrumented build.
 MemorySanitizer reports false positives unless the C++ standard library is also
 instrumented, so `msan` swaps the toolchain's libc++ for an instrumented build
 (headers under `libcxx-msan/include`, libraries under `libcxx-msan/lib`).
-There is no official prebuilt instrumented libc++; you must build one from the
-matching LLVM sources and point the distribution at it with the `libcxx_url`
+For matched prebuilt LLVM 22.1.8 and instrumented libc++ packages on native Linux
+x86_64/AArch64, use the opt-in
+[`msan.jsonc`](toolchain/distributions/msan.jsonc) catalogue:
+
+```starlark
+llvm.feature_override(
+    name = "llvm_toolchain",
+    features = ["msan"],
+    targets = ["linux-x86_64", "linux-aarch64"],
+    llvm_version = "22.1.8",
+    use_builtin_llvm_distributions = False,
+    extra_llvm_distribution_files = [
+        "@toolchains_llvm//toolchain/distributions:msan.jsonc",
+    ],
+    stdlib = {"linux-x86_64": "builtin-libc++", "linux-aarch64": "builtin-libc++"},
+    linker = {"linux-x86_64": "", "linux-aarch64": ""},
+)
+```
+
+The catalogue pins both compiler and runtime checksums, downloads the matching
+`libcxx-msan` overlay automatically, and requires `--features=msan`. The default
+toolchain remains unchanged for non-MSan builds and execution tools. Do not also
+set `libcxx_url`/`libcxx_sha256` on this variant. See
+[catalogue profiles](docs/distribution-catalogues.md#msan-specific-distributions)
+for the package source, matching rules and limitations.
+
+For a custom instrumented libc++, build it from matching LLVM sources and
+point the distribution at it with the `libcxx_url`
 and `libcxx_sha256` attributes (`llvm`/`llvm_toolchain` rules, or the
 `llvm.toolchain` module extension tag):
 
@@ -992,7 +1018,7 @@ ninja && ninja install
 
 The list of LLVM releases this toolchain knows about lives as JSONC data
 under [`toolchain/distributions/`](toolchain/distributions). A repository
-rule merges every JSONC file into a single lookup table at module-load time:
+rule merges the four default catalogues into a single lookup table:
 
 | file                                                                 | role                                                                                                                                       |
 | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -1000,6 +1026,11 @@ rule merges every JSONC file into a single lookup table at module-load time:
 | [`github_legacy.jsonc`](toolchain/distributions/github_legacy.jsonc) | LLVM 10.x–18.x with pre-19.x irregular naming. Hand-maintained, frozen.                                                                    |
 | [`github.jsonc`](toolchain/distributions/github.jsonc)               | LLVM 19.x and newer. Regenerated end-to-end by `utils/update_distributions.sh`.                                                            |
 | [`extra.jsonc`](toolchain/distributions/extra.jsonc)                 | Empty by default. Downstream slot for additional bundled releases; loaded last, so any key here overrides the same key in the other files. |
+
+The optional [`hermetic_llvm.jsonc`](toolchain/distributions/hermetic_llvm.jsonc)
+and [`msan.jsonc`](toolchain/distributions/msan.jsonc) catalogues are loaded only
+when selected through `extra_llvm_distribution_files`; see
+[distribution catalogue profiles](docs/distribution-catalogues.md).
 
 Each file has the shape:
 
