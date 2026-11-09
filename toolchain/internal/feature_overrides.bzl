@@ -89,6 +89,7 @@ def feature_conditions(name, overrides):
     _feature_selection(
         name = name,
         overrides = json.encode(overrides),
+        visibility = ["//visibility:public"],
     )
     for variant in ["default"] + [str(index) for index in range(len(overrides))]:
         native.config_setting(

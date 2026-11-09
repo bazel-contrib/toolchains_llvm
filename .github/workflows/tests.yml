@@ -118,6 +118,24 @@ jobs:
           USE_BAZEL_VERSION: latest
           USE_BZLMOD: true
         run: tests/scripts/run_llvm_23_archive_test.sh
+  hermetic_llvm_test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+        bazel_version: [7.*, 9.*]
+        bzlmod: [true, false]
+        exclude:
+          - bazel_version: 9.*
+            bzlmod: false
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Test compiler-only catalogue with system C++ runtime
+        env:
+          USE_BAZEL_VERSION: ${{ matrix.bazel_version }}
+          USE_BZLMOD: ${{ matrix.bzlmod }}
+        run: tests/scripts/run_hermetic_llvm_tests.sh
   darwin_thin_lto_test:
     strategy:
       fail-fast: false
@@ -373,6 +391,7 @@ jobs:
       - lsan_macos_test
       - cpp_modules_test
       - llvm_23_archive_test
+      - hermetic_llvm_test
       - darwin_thin_lto_test
       - toolchain_test
       - feature_override_test

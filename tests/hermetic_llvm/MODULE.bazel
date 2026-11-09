@@ -1,0 +1,37 @@
+module(name = "hermetic_llvm_tests")
+
+bazel_dep(name = "toolchains_llvm", version = "0.0.0")
+local_path_override(
+    module_name = "toolchains_llvm",
+    path = "../..",
+)
+
+bazel_dep(name = "rules_cc", version = "0.2.28")
+
+llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
+llvm.toolchain(
+    name = "llvm_toolchain",
+    cxx_standard = {"": "c++17"},
+    extra_llvm_distribution_files = ["@toolchains_llvm//toolchain/distributions:hermetic_llvm.jsonc"],
+    linker = {
+        "darwin-aarch64": "auto",
+        "darwin-x86_64": "auto",
+    },
+    llvm_version = "latest:major==23",
+    stdlib = {
+        "linux-aarch64": "stdc++",
+        "linux-x86_64": "stdc++",
+    },
+    use_builtin_llvm_distributions = False,
+)
+llvm.feature_override(
+    name = "llvm_toolchain",
+    features = ["test_bad_stdlib"],
+    stdlib = {
+        "linux-aarch64": "builtin-libc++",
+        "linux-x86_64": "builtin-libc++",
+    },
+)
+use_repo(llvm, "llvm_toolchain", "llvm_toolchain_llvm")
+
+register_toolchains("@llvm_toolchain//:all")

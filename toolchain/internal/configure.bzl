@@ -263,7 +263,8 @@ def llvm_config_impl(rctx):
         # lookup. The wrapper executes them from the original LLVM installation.
         wrapper_bin_prefix = "bin/"
         tools_path_prefix = "bin/"
-        tools = _toolchain_tools(os)
+        llvm_bin = rctx.path(Label(toolchain_root + ":BUILD.bazel")).dirname.get_child("bin")
+        tools = _toolchain_tools(os, llvm_bin)
         for tool_name, wrapper_name in tools.items():
             rctx.template(
                 paths.join(tools_path_prefix, wrapper_name),
@@ -318,7 +319,11 @@ def llvm_config_impl(rctx):
     )
 
     workspace_name = rctx.name
+    metadata_root = rctx.path(toolchain_root) if system_llvm else rctx.path(Label(toolchain_root + ":BUILD.bazel")).dirname
+    metadata_file = metadata_root.get_child("distribution_metadata.json")
+    distribution_metadata = json.decode(rctx.read(metadata_file)) if metadata_file.exists else {}
     toolchain_info = struct(
+        distribution_metadata = distribution_metadata,
         os = os,
         arch = arch,
         llvm_dist_label_prefix = llvm_dist_label_prefix,
@@ -501,6 +506,8 @@ def _toolchain_registration(rctx, suffix, target_os, target_arch, toolchain_info
     settings = _dict_value(toolchain_info.target_settings_dict, target_pair, [])
     if rctx.attr.feature_condition:
         settings = settings + [str(rctx.attr.feature_condition)]
+    if toolchain_info.distribution_metadata.get("requirements"):
+        settings = settings + ["{}@{}//:distribution-compatible-{}".format("@" if BZLMOD_ENABLED else "", rctx.name, suffix)]
     return {
         "name": "cc-toolchain-" + suffix,
         "exec_compatible_with": [
@@ -1005,7 +1012,30 @@ filegroup(
             use_tsan = str(Label("//toolchain/config:use_tsan")),
         )
 
+    if toolchain_info.distribution_metadata.get("requirements"):
+        template += """
+distribution_requirements(
+    name = "distribution-requirements-{suffix}",
+    distribution = {distribution_name},
+    requirements = {distribution_requirements},
+    target = "{target_os}-{target_arch}",
+    stdlib = "{stdlib}",
+    selection = {distribution_selection},
+    variant = {distribution_variant},
+    target_constraints = {distribution_target_constraints},
+)
+config_setting(
+    name = "distribution-compatible-{suffix}",
+    flag_values = {{":distribution-requirements-{suffix}": "compatible"}},
+)
+"""
+    condition = str(rctx.attr.feature_condition) if rctx.attr.feature_condition else ""
     return template.format(
+        distribution_selection = repr(condition.rsplit(":", 1)[0] + ":selection") if condition else "None",
+        distribution_variant = repr(condition.rsplit(":", 1)[-1].removeprefix("variant_")),
+        distribution_target_constraints = repr(_toolchain_registration(rctx, suffix, target_os, target_arch, toolchain_info)["target_compatible_with"]),
+        distribution_name = repr(toolchain_info.distribution_metadata.get("archive", toolchain_info.toolchain_root)),
+        distribution_requirements = repr(json.encode(toolchain_info.distribution_metadata.get("requirements", {}))),
         toolchain_registration = _registration_str(_toolchain_registration(rctx, suffix, target_os, target_arch, toolchain_info)),
         suffix = suffix,
         target_os = target_os,

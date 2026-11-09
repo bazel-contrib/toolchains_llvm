@@ -7,6 +7,16 @@ exhaustive list of fixes, dependency updates, or newly catalogued LLVM archives.
 See the [GitHub releases](https://github.com/bazel-contrib/toolchains_llvm/releases)
 for release artifacts and the [README](README.md) for configuration and requirements.
 
+## 1.14.0
+
+- Add optional catalogue-header metadata for archive platform mappings, layouts,
+  feature requirements and standard-library restrictions, with explicit errors
+  for incompatible configurations during toolchain selection.
+- Support compiler-only packages without bundled C++/compiler runtimes or
+  auxiliary tools. Add an opt-in, checksum-pinned hermetic-llvm 23.1.2 catalogue:
+  Linux uses host/sysroot libstdc++/libgcc; macOS uses Apple SDK libc++.
+  The supplied compiler-only profile excludes sanitizers.
+
 ## 1.13.0
 
 ### Migration required for prerelease selectors

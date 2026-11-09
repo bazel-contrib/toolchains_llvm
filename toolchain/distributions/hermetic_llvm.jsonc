@@ -1,0 +1,27 @@
+// Opt-in compiler-only packages. Not merged into the default LLVM catalogue.
+// Checksums from hermeticbuild/hermetic-llvm's llvm-23.1.2-2 / SHA256.txt.
+{
+  "_meta": {
+    "base_url": {
+      "": "https://github.com/hermeticbuild/hermetic-llvm/releases/download/llvm-{version}-2/"
+    },
+    "platforms": {
+      "darwin-aarch64": "llvm-toolchain-minimal-{version}-darwin-arm64.tar.zst",
+      "darwin-x86_64": "llvm-toolchain-minimal-{version}-darwin-amd64.tar.zst",
+      "linux-aarch64": "llvm-toolchain-minimal-{version}-linux-arm64-musl.tar.zst",
+      "linux-x86_64": "llvm-toolchain-minimal-{version}-linux-amd64-musl.tar.zst"
+    },
+    "strip_prefix": "",
+    "requirements": {
+      "features": ["-asan", "-lsan", "-msan", "-tsan", "-ubsan", "-hwasan"],
+      "stdlib": {
+        "linux-aarch64": ["stdc++", "dynamic-stdc++"],
+        "linux-x86_64": ["stdc++", "dynamic-stdc++"]
+      }
+    }
+  },
+  "llvm-toolchain-minimal-23.1.2-darwin-amd64.tar.zst": "96fee0c3a2c09829ffbc6caf44801be0287d1b1ab8562f029c3dce00e019a99d",
+  "llvm-toolchain-minimal-23.1.2-darwin-arm64.tar.zst": "33d85026091995965da9f49fa88af9298219d8fc25e8d409525a3b25d403ffa5",
+  "llvm-toolchain-minimal-23.1.2-linux-amd64-musl.tar.zst": "2808ea0503af3656373fc141ddc7d082b53c7f858efd5245aed0241734257348",
+  "llvm-toolchain-minimal-23.1.2-linux-arm64-musl.tar.zst": "4071594ac1f4487f8f68129019ab789348c94d117ff1aa940baa373cef679022"
+}

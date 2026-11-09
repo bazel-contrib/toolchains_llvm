@@ -181,6 +181,39 @@ another repository, for example
 list order; later files replace earlier checksums and covered URL templates.
 The inline `extra_llvm_distributions` dictionary is merged last.
 
+#### Compiler-only and constrained distributions
+
+Catalogue headers can declare custom archive names/platform mappings, extraction
+layout, required or excluded features, and allowed standard libraries. Requirements
+are checked during toolchain selection in the consuming configuration; incompatible
+settings produce an `INCOMPATIBLE LLVM DISTRIBUTION` error. See
+[distribution catalogue profiles](docs/distribution-catalogues.md) for the schema
+and MSan-specific configuration.
+
+An opt-in catalogue of checksum-pinned
+[hermetic-llvm compiler packages](https://github.com/hermeticbuild/hermetic-llvm/releases/tag/llvm-23.1.2-2)
+is provided:
+
+```starlark
+llvm.toolchain(
+    name = "llvm_toolchain",
+    llvm_version = "23.1.2",
+    use_builtin_llvm_distributions = False,
+    extra_llvm_distribution_files = [
+        "@toolchains_llvm//toolchain/distributions:hermetic_llvm.jsonc",
+    ],
+    stdlib = {"linux-x86_64": "stdc++", "linux-aarch64": "stdc++"},
+    linker = {"darwin-aarch64": "auto", "darwin-x86_64": "auto"},
+)
+```
+
+Linux requires libstdc++/libgcc and C runtime headers/libraries from the host or
+sysroot (`dynamic-stdc++` is also supported); macOS uses the Apple SDK's libc++.
+These packages are compiler-only, not complete hermetic target environments.
+The supplied profile rejects sanitizer features because it provides no sanitizer
+runtimes. Its zstd archives work with the tested Bazel 7/9 versions; automatic
+selection of official LLVM's unsupported large-window zstd archives remains disabled.
+
 For complete control over the archive selected for each execution platform,
 use the lower-level `urls`, `sha256`, and `strip_prefix` attributes instead.
 
