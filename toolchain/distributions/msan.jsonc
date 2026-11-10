@@ -6,10 +6,16 @@
       "": "https://github.com/RealtimeRoboticsGroup/toolchains/releases/download/{version}/"
     },
     "platforms": {
+      "darwin-aarch64": "clang+llvm-{version}-aarch64-apple-darwin.tar.zst",
+      "linux-aarch64": "clang+llvm-{version}-aarch64-linux-gnu.tar.zst",
+      "linux-x86_64": "clang+llvm-{version}-x86_64-linux-gnu-ubuntu-22.04.tar.zst"
+    },
+    "target_runtimes": {
       "linux-aarch64": "clang+llvm-{version}-aarch64-linux-gnu.tar.zst",
       "linux-x86_64": "clang+llvm-{version}-x86_64-linux-gnu-ubuntu-22.04.tar.zst"
     },
     "requirements": {
+      "targets": ["linux-aarch64", "linux-x86_64"],
       "features": ["msan", "-asan", "-lsan", "-tsan"],
       "stdlib": { "": ["builtin-libc++"] }
     },
@@ -28,6 +34,7 @@
       }
     }
   },
+  "clang+llvm-22.1.8-aarch64-apple-darwin.tar.zst": "9f6bab6fc328d3e7a45ddd165233f2d84118baa491f0be1150a52864a060524b",
   "clang+llvm-22.1.8-aarch64-linux-gnu.tar.zst": "50bce7e8afe6764ed4d11042dc2bcc70e511db58d66e39ffa820bdf2325d03fa",
   "clang+llvm-22.1.8-x86_64-linux-gnu-ubuntu-22.04.tar.zst": "82fd4fe320aae577f971b38a1371832cb8f88876c95928baf55e0fb50522cf8a"
 }

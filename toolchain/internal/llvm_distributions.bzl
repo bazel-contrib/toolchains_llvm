@@ -26,7 +26,7 @@ load(
     "exec_os_arch_dict_value",
     "host_info",
 )
-load("//toolchain/internal:distribution_metadata.bzl", "resolve_distribution_overlays")
+load("//toolchain/internal:distribution_metadata.bzl", "resolve_distribution_overlays", "resolve_target_runtime_archives")
 load("//toolchain/internal:distributions_repo.bzl", "archive_version", "load_distribution_files")
 load("//toolchain/internal:version_selectors.bzl", "version_selectors")
 
@@ -146,6 +146,7 @@ def download_llvm(rctx):
     if shaerr:
         fail("ERROR: " + shaerr)
 
+    metadata = _target_runtime_metadata(rctx, metadata, _distribution_basename(urls[0]))
     host = host_info(rctx)
     overlays = resolve_distribution_overlays(metadata, "{}-{}".format(host.os, host.arch), rctx.attr.libcxx_url)
 
@@ -690,9 +691,35 @@ def _distribution_urls(rctx):
     entry_metadata = dist_info.metadata if dist_info else {}
     if not strip_prefix:
         strip_prefix = entry_metadata["strip_prefix"] if "strip_prefix" in entry_metadata else _strip_prefix(basename = basename, strip_suffix = "-rhel86")
-    if basename != distribution:
-        return [distribution], sha256, strip_prefix, entry_metadata
+    return _archive_urls(rctx, llvm_version, basename, distribution, user_distribution_urls), sha256, strip_prefix, entry_metadata
 
+def _target_runtime_metadata(rctx, metadata, basename):
+    if not metadata.get("target_runtimes"):
+        return metadata
+    builtins, extras, urls, profiles = _configured_distribution_data(rctx)
+    distributions = _get_all_llvm_distributions(llvm_distributions = builtins, extra_llvm_distributions = extras, parsed_llvm_version = None, metadata = profiles)
+    compiler = distributions[basename]
+    entry_metadata = dict(metadata)
+    runtime_archives = resolve_target_runtime_archives(entry_metadata, distributions, compiler.version_string)
+    if runtime_archives:
+        entry_metadata["target_runtimes"] = {}
+        for target, runtime in runtime_archives.items():
+            runtime_sha, error = _normalize_and_check_sha256(runtime.sha256)
+            if error or not runtime_sha:
+                fail("invalid catalogue target runtime '{}': {}".format(runtime.distribution, error))
+            entry_metadata["target_runtimes"][target] = dict(
+                archive = _distribution_basename(runtime.distribution),
+                version = runtime.version_string,
+                sha256 = runtime_sha,
+                urls = _archive_urls(rctx, runtime.version_string, _distribution_basename(runtime.distribution), runtime.distribution, urls),
+                strip_prefix = runtime.metadata.get("strip_prefix", _strip_prefix(basename = _distribution_basename(runtime.distribution), strip_suffix = "-rhel86")),
+                overlays = resolve_distribution_overlays(runtime.metadata, target),
+            )
+    return entry_metadata
+
+def _archive_urls(rctx, llvm_version, basename, distribution, user_distribution_urls):
+    if basename != distribution:
+        return [distribution]
     urls = []
     url_suffix = "{0}/{1}".format(llvm_version, basename).replace("+", "%2B")
     if rctx.attr.llvm_mirror:
@@ -717,7 +744,7 @@ def _distribution_urls(rctx):
             basename.replace("+", "%2B"),
         )
 
-    return urls, sha256, strip_prefix, entry_metadata
+    return urls
 
 # Internal test access only; not a supported toolchain API. Keep production
 # helpers private and test implementations in llvm_distributions_test.bzl.

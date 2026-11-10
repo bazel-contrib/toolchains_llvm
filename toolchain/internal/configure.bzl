@@ -39,6 +39,7 @@ load(
     _supported_targets = "SUPPORTED_TARGETS",
     _toolchain_tools = "toolchain_tools",
 )
+load("//toolchain/internal:distribution_metadata.bzl", "catalogue_target_roots")
 load(
     "//toolchain/internal:linker_distributions.bzl",
     _llvm_23_macos_uses_bundled_linker = "llvm_23_macos_uses_bundled_linker",
@@ -193,6 +194,19 @@ def llvm_config_impl(rctx):
     if system_llvm:
         use_absolute_paths_llvm = True
 
+    metadata_root = rctx.path(toolchain_root) if system_llvm else rctx.path(Label(toolchain_root + ":BUILD.bazel")).dirname
+    metadata_file = metadata_root.get_child("distribution_metadata.json")
+    distribution_metadata = json.decode(rctx.read(metadata_file)) if metadata_file.exists else {}
+    runtime_repositories = {target: str(label).rsplit(":", 1)[0] for label, target in rctx.attr.catalogue_runtime_roots.items()}
+    target_toolchain_roots = catalogue_target_roots(
+        distribution_metadata,
+        runtime_repositories,
+        target_toolchain_roots,
+        rctx.attr.target_toolchain_roots,
+        _os_arch_pair(os, arch),
+        rctx.attr.sysroot,
+    )
+
     # Make sure the toolchain root and target toolchain roots either are both absolute or both not.
     for target_toolchain_root in target_toolchain_roots.values():
         if _is_absolute(toolchain_root) != _is_absolute(target_toolchain_root):
@@ -319,9 +333,6 @@ def llvm_config_impl(rctx):
     )
 
     workspace_name = rctx.name
-    metadata_root = rctx.path(toolchain_root) if system_llvm else rctx.path(Label(toolchain_root + ":BUILD.bazel")).dirname
-    metadata_file = metadata_root.get_child("distribution_metadata.json")
-    distribution_metadata = json.decode(rctx.read(metadata_file)) if metadata_file.exists else {}
     toolchain_info = struct(
         distribution_metadata = distribution_metadata,
         os = os,
@@ -785,6 +796,7 @@ cc_toolchain_config(
     compiler_configuration = {{
       "sysroot_path": "{sysroot_path}",
       "stdlib": "{stdlib}",
+      "has_target_runtime": {has_target_runtime},
       "multiarch": "{multiarch_override}",
       "cxx_include_layout": "{cxx_include_layout}",
       "cxx_standard": "{cxx_standard}",
@@ -1053,6 +1065,7 @@ config_setting(
         sysroot_label_str = sysroot_label_str,
         sysroot_path = sysroot_path,
         stdlib = stdlib,
+        has_target_runtime = repr(target_toolchain_root != toolchain_info.toolchain_root),
         multiarch_override = toolchain_info.multiarch_dict.get(target_pair, ""),
         cxx_include_layout = toolchain_info.cxx_include_layout_dict.get(target_pair, ""),
         cxx_standard = _dict_value(toolchain_info.cxx_standard_dict, target_pair, "c++17"),

@@ -369,15 +369,22 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - bazel_version: 9.*
+          - os: ubuntu-latest
+            bazel_version: 9.*
             bzlmod: true
-          - bazel_version: 7.*
+          - os: ubuntu-latest
+            bazel_version: 7.*
             bzlmod: false
-    runs-on: ubuntu-latest
+          - os: macos-latest
+            bazel_version: 9.*
+            bzlmod: true
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
-      - run: tests/scripts/ubuntu_install_libtinfo.sh
+      - if: startsWith(matrix.os, 'ubuntu')
+        run: tests/scripts/ubuntu_install_libtinfo.sh
       - name: Configure sanitizer address space
+        if: startsWith(matrix.os, 'ubuntu')
         run: sudo sysctl -w vm.mmap_rnd_bits=28
       - name: Test matched MSan compiler and libc++ catalogue
         env:

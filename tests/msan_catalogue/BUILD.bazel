@@ -1,5 +1,13 @@
 load("@rules_cc//cc:defs.bzl", "cc_test")
 
+platform(
+    name = "linux_arm64",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:aarch64",
+    ],
+)
+
 cc_test(
     name = "stdlib_test",
     srcs = ["stdlib_test.cc"],

@@ -17,6 +17,16 @@ load("@rules_cc//cc:extensions.bzl", "compatibility_proxy_repo")
 
 compatibility_proxy_repo()
 
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "msan_arm64_sysroot",
+    build_file_content = 'filegroup(name = "sysroot", srcs = ["."], visibility = ["//visibility:public"])',
+    sha256 = "278c36fe3a785d7f89fbe3f46956899a3bd49fe665f68dc667d6f626a951fcd6",
+    type = "tar.xz",
+    urls = ["https://commondatastorage.googleapis.com/chrome-linux-sysroot/278c36fe3a785d7f89fbe3f46956899a3bd49fe665f68dc667d6f626a951fcd6"],
+)
+
 load("@toolchains_llvm//toolchain:rules.bzl", "llvm_feature_override", "llvm_toolchain")
 
 llvm_toolchain(
@@ -35,11 +45,13 @@ llvm_toolchain(
             "linux-aarch64",
         ],
     )],
+    linker = {"darwin-aarch64": "auto"},
     llvm_version = "23.1.2",
     stdlib = {
         "linux-x86_64": "stdc++",
         "linux-aarch64": "stdc++",
     },
+    sysroot = {"linux-aarch64": "@msan_arm64_sysroot//:sysroot"},
     use_builtin_llvm_distributions = False,
 )
 

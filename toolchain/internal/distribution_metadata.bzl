@@ -37,8 +37,11 @@ def catalogue_metadata(meta, basename, version):
         if not result["platforms"]:
             fail("catalogue platforms do not match archive '{}'".format(basename))
     requirements = result.get("requirements", {})
-    if type(requirements) != "dict" or any([k not in ["features", "stdlib"] for k in requirements]):
-        fail("catalogue requirements must contain only features and stdlib")
+    if type(requirements) != "dict" or any([k not in ["features", "stdlib", "targets"] for k in requirements]):
+        fail("catalogue requirements must contain only features and stdlib and targets")
+    targets = requirements.get("targets", [])
+    if type(targets) != "list" or any([t not in SUPPORTED_PLATFORM_KEYS for t in targets]):
+        fail("catalogue targets must be a list of supported target-platform keys")
     features = requirements.get("features", [])
     if type(features) != "list" or any([type(f) != "string" or not f or f.startswith("--") or f == "-" for f in features]):
         fail("catalogue features must be a list of names or '-name' exclusions")
@@ -51,6 +54,17 @@ def catalogue_metadata(meta, basename, version):
     for target in stdlibs:
         if target and target not in SUPPORTED_PLATFORM_KEYS:
             fail("unsupported catalogue stdlib target key '{}'".format(target))
+    if "target_runtimes" in meta:
+        runtimes = meta["target_runtimes"]
+        if type(runtimes) != "dict" or not runtimes:
+            fail("catalogue target_runtimes must map target-platform keys to archive filename templates")
+        result["target_runtimes"] = {}
+        for target, archive in runtimes.items():
+            if target not in SUPPORTED_PLATFORM_KEYS:
+                fail("unsupported catalogue runtime target-platform key '{}'".format(target))
+            if type(archive) != "string" or not archive:
+                fail("catalogue target runtime archive must be a nonempty filename template")
+            result["target_runtimes"][target] = archive.format(version = version)
     if "overlays" in meta:
         result["overlays"] = _catalogue_overlays(meta["overlays"], version)
     return result
@@ -92,12 +106,32 @@ def resolve_distribution_overlays(metadata, platform, libcxx_url = ""):
     selected = {}
     for output, platforms in overlays.items():
         if platform not in platforms:
+            # A cross-only compiler (e.g. macOS -> Linux MSan) has no native
+            # overlay. Its target runtime repositories supply the overlays.
+            if metadata.get("target_runtimes") and platform not in metadata["target_runtimes"]:
+                continue
             fail("catalogue overlay '{}' has no archive for execution platform {}".format(output, platform))
         selected[output] = platforms[platform]
     return selected
 
+def resolve_target_runtime_archives(metadata, distributions, version):
+    """Resolve companion runtime archives from the same pinned catalogue data."""
+    result = {}
+    for target, archive in metadata.get("target_runtimes", {}).items():
+        if archive not in distributions:
+            fail("catalogue target runtime '{}' for {} is not in the selected distribution data".format(archive, target))
+        info = distributions[archive]
+        if info.version_string != version:
+            fail("catalogue target runtime '{}' must match compiler LLVM {}, not {}".format(archive, version, info.version_string))
+        if target not in info.metadata.get("platforms", []):
+            fail("catalogue target runtime '{}' does not declare platform {}".format(archive, target))
+        result[target] = info
+    return result
+
 def check_distribution_requirements(distribution, requirements, target, stdlib, features, disabled_features = []):
     """Reject a selected archive's incompatible configuration during analysis."""
+    if requirements.get("targets") and target not in requirements["targets"]:
+        fail("INCOMPATIBLE LLVM DISTRIBUTION '{}': target {} is not supported; use one of {}.".format(distribution, target, requirements["targets"]))
     active = [f for f in features if f not in disabled_features]
     for feature in requirements.get("features", []):
         excluded = feature.startswith("-")
@@ -109,6 +143,19 @@ def check_distribution_requirements(distribution, requirements, target, stdlib, 
     family = "dynamic-stdc++" if stdlib.startswith("dynamic-stdc++-") else "stdc++" if stdlib.startswith("stdc++-") else stdlib
     if allowed and stdlib not in allowed and family not in allowed:
         fail("INCOMPATIBLE LLVM DISTRIBUTION '{}': stdlib '{}' is not supported for {}; use one of {}.".format(distribution, stdlib, target, allowed))
+
+def catalogue_target_roots(metadata, repositories, roots, explicit_roots, execution_platform, sysroots):
+    """Add target runtimes only for configured cross targets, respecting user roots."""
+    result = dict(roots)
+    for target in metadata.get("target_runtimes", {}):
+        if target == execution_platform or explicit_roots.get(target, explicit_roots.get("")):
+            continue
+        if not sysroots.get(target, sysroots.get("")):
+            continue
+        if target not in repositories:
+            fail("no runtime repository declared for catalogue target {}".format(target))
+        result[target] = repositories[target]
+    return result
 
 def _requirements_impl(ctx):
     # Toolchain target_settings are evaluated in the consuming configuration,

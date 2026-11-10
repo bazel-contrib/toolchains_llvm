@@ -27,8 +27,10 @@ in that file. Existing catalogues require no changes.
 | `platforms`             | Execution OS/architecture keys mapped to exact archive filename templates using `{version}`. No wildcard/prefix matching. Every entry must match at least one template. Explicit mappings take precedence over conventional-name discovery. |
 | `version`               | Optional explicit LLVM version for archives whose names do not contain it. Otherwise the first numeric hyphen-separated segment supplies the version, including a following LLVM-style `rcN` segment.                                       |
 | `strip_prefix`          | Directory to strip during extraction; `""` means the archive already has `bin/` and `lib/` at its root. Omission preserves conventional prefix inference.                                                                                   |
+| `target_runtimes`       | Target OS/architecture keys mapped to exact archive filename templates using `{version}`. References checksum entries in the enabled catalogue data, with matching LLVM versions and platform metadata.                                     |
 | `requirements.features` | Signed configuration-level feature names, as in feature overrides: `"msan"` requires it, `"-asan"` excludes it. All must match. Explicitly disabled features take precedence.                                                               |
 | `requirements.stdlib`   | Target OS/architecture keys (or `""` fallback) mapped to allowed standard libraries. A missing target entry is unrestricted. `stdc++`/`dynamic-stdc++` also admit their version-suffixed forms.                                             |
+| `requirements.targets`  | Optional list of supported target OS/architecture keys. Other targets fail during toolchain resolution.                                                                                                                                     |
 
 Use separate files when package families have different requirements or layouts.
 Later files replace earlier checksums; a checksum-only override retains the
@@ -49,10 +51,21 @@ metadata file retain their existing behavior.
 The opt-in `@toolchains_llvm//toolchain/distributions:msan.jsonc` catalogue
 provides matched LLVM 22.1.8 compiler and MSan-instrumented libc++ packages from
 [RealtimeRoboticsGroup/toolchains](https://github.com/RealtimeRoboticsGroup/toolchains/releases/tag/22.1.8).
-It supports native Linux x86_64 and AArch64. Both archives are checksum-pinned;
-the overlay is selected by the compiler's exact version and execution platform,
-then extracted into `libcxx-msan/` automatically. There are no separate runtime
-version selectors or caller-provided runtime URLs/checksums to keep in sync.
+It supports Linux x86_64 and AArch64, including cross-compilation between them.
+The catalogue also provides a macOS AArch64 compiler for cross-building these
+Linux targets. This does not enable native macOS MemorySanitizer.
+The executable compiler follows the execution platform. Headers, compiler-rt
+(including sanitizer runtimes and builtins), libc++ and its instrumented overlay
+follow the target platform. All archives are checksum-pinned to the compiler's
+exact LLVM version. There are no separate runtime version selectors or
+caller-provided runtime URLs/checksums to keep in sync.
+
+Cross-compilation still requires a target sysroot containing the C library and
+startup objects, configured through the normal `llvm.sysroot` tag / `sysroot`
+attribute. The compiler/runtime catalogue does not supply an operating-system
+sysroot. Existing sysroot, multiarch, flag and linker configuration remains
+available; an explicit `target_toolchain_roots` entry takes precedence over the
+catalogued target runtime.
 
 Select this catalogue through an `llvm.feature_override` with
 `features = ["msan"]`, as shown in the README. The profile requires MSan and
@@ -83,13 +96,31 @@ archives can be declared in the same header:
 }
 ```
 
-The structure is output directory → exact LLVM version → execution platform →
+The structure is output directory → exact LLVM version → archive platform →
 archive descriptor. Output names must be simple directory names, not paths.
 URLs may contain `{version}`; every overlay requires a SHA-256. A missing version
-or platform is an error, not a fallback to another runtime. Target platforms do
-not select these overlays; cross-target runtime packaging is not provided by
-this native MSan catalogue. Specifying `libcxx_url` together with a catalogued
+or platform is an error, not a fallback to another runtime. The main compiler's
+overlay uses the execution platform; a target runtime's overlay uses its target
+platform. Specifying `libcxx_url` together with a catalogued
 `libcxx-msan` overlay is rejected rather than combining two runtime sources.
+
+Declare target runtime archives in the header, referring to ordinary checksum
+entries in the enabled distribution data:
+
+```jsonc
+"target_runtimes": {
+  "linux-x86_64": "clang+llvm-{version}-x86_64-linux-gnu-ubuntu-22.04.tar.zst",
+  "linux-aarch64": "clang+llvm-{version}-aarch64-linux-gnu.tar.zst",
+}
+```
+
+Each referenced archive must declare the matching `platforms` key and the exact
+same LLVM version as the selected compiler. Its own layout, URL and overlays
+are used. The archive supplies target headers/libraries; its executables are
+never used as cross-build tools. The native target reuses the compiler archive.
+Other runtime archives are materialized only for configured cross targets with
+a sysroot, not merely because they are listed in the catalogue. Compiler-only
+catalogues without `target_runtimes` retain the existing sysroot/libstdc++ path.
 
 An optional `libcxx_url` overlay is different: the base compiler remains usable
 without MSan, and the existing `msan` feature selects the instrumented libc++.

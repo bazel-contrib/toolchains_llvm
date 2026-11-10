@@ -169,6 +169,9 @@ llvm_repo_attrs.update({
 })
 
 _compiler_configuration_attrs = {
+    "catalogue_runtime_roots": attr.label_keyed_string_dict(
+        doc = "Internal: target runtime repositories declared by llvm_toolchain.",
+    ),
     "sysroot": attr.string_dict(
         mandatory = False,
         doc = ("System path or fileset, for each target OS and arch pair you want to support " +

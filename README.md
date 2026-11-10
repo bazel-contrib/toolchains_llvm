@@ -955,7 +955,7 @@ with a fatal error instead of silently producing an uninstrumented build.
 MemorySanitizer reports false positives unless the C++ standard library is also
 instrumented, so `msan` swaps the toolchain's libc++ for an instrumented build
 (headers under `libcxx-msan/include`, libraries under `libcxx-msan/lib`).
-For matched prebuilt LLVM 22.1.8 and instrumented libc++ packages on native Linux
+For matched prebuilt LLVM 22.1.8 and instrumented libc++ packages on Linux
 x86_64/AArch64, use the opt-in
 [`msan.jsonc`](toolchain/distributions/msan.jsonc) catalogue:
 
@@ -980,6 +980,13 @@ toolchain remains unchanged for non-MSan builds and execution tools. Do not also
 set `libcxx_url`/`libcxx_sha256` on this variant. See
 [catalogue profiles](docs/distribution-catalogues.md#msan-specific-distributions)
 for the package source, matching rules and limitations.
+
+For cross-compilation, keep the target sysroot in the normal toolchain
+configuration. The catalogue automatically selects the target's headers,
+compiler-rt/builtins and instrumented libc++, while using the execution
+platform's compiler and linker. No manual target runtime roots are needed.
+The catalogue includes execution tools for Linux x86_64/AArch64 and macOS
+AArch64; MSan targets remain Linux-only.
 
 For a custom instrumented libc++, build it from matching LLVM sources and
 point the distribution at it with the `libcxx_url`

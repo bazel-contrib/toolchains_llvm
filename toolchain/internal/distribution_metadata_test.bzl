@@ -15,7 +15,7 @@
 """Catalogue profiles, host selection, and incompatible configuration tests."""
 
 load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts", "unittest")
-load(":distribution_metadata.bzl", "catalogue_metadata", "check_distribution_requirements", "distribution_requirements", "resolve_distribution_overlays")
+load(":distribution_metadata.bzl", "catalogue_metadata", "catalogue_target_roots", "check_distribution_requirements", "distribution_requirements", "resolve_distribution_overlays", "resolve_target_runtime_archives")
 load(":distributions_repo.bzl", "archive_version", "load_distribution_files")
 load(":llvm_distributions.bzl", "testing")
 
@@ -29,6 +29,34 @@ _META = {
 _OVERLAY = {"url": "https://example.test/{version}/libcxx-msan.tar.zst", "sha256": "0" * 64}
 _OVERLAYS = {"libcxx-msan": {"23.1.2": {"linux-x86_64": _OVERLAY}}}
 
+def _runtime_test_impl(ctx):
+    env = unittest.begin(ctx)
+    archive = "target-23.1.2-linux-aarch64.tar.zst"
+    meta = catalogue_metadata({"target_runtimes": {"linux-aarch64": "target-{version}-linux-aarch64.tar.zst"}}, _ARCHIVE, "23.1.2")
+    runtime = struct(version_string = "23.1.2", sha256 = "1" * 64, metadata = {"platforms": ["linux-aarch64"]})
+    selected = resolve_target_runtime_archives(meta, {archive: runtime}, "23.1.2")
+    asserts.equals(env, runtime, selected["linux-aarch64"])
+    asserts.equals(env, {}, resolve_target_runtime_archives({}, {}, "23.1.2"))
+    repositories = {"linux-aarch64": "@target_arm64//"}
+    fallback = {"": "@compiler_x86//"}
+    sysroots = {"linux-aarch64": "@arm_sysroot//:root"}
+    asserts.equals(env, {"": "@compiler_x86//", "linux-aarch64": "@target_arm64//"}, catalogue_target_roots(meta, repositories, fallback, {}, "linux-x86_64", sysroots))
+    asserts.equals(env, fallback, catalogue_target_roots(meta, repositories, fallback, {}, "linux-aarch64", sysroots))
+    asserts.equals(env, fallback, catalogue_target_roots(meta, repositories, fallback, {}, "linux-x86_64", {}))
+    explicit = {"linux-aarch64": "@user_runtime//"}
+    asserts.equals(env, explicit, catalogue_target_roots(meta, repositories, explicit, explicit, "linux-x86_64", sysroots))
+    asserts.equals(env, fallback, catalogue_target_roots(meta, repositories, fallback, fallback, "linux-x86_64", sysroots))
+    asserts.equals(env, {"": "@compiler_x86//"}, fallback)
+    return unittest.end(env)
+
+def _invalid_runtime_impl(ctx):
+    archive = "target-23.1.2-linux-aarch64.tar.zst"
+    runtime = struct(version_string = "22.1.8" if ctx.attr.case == "version" else "23.1.2", metadata = {"platforms": ["linux-x86_64" if ctx.attr.case == "platform" else "linux-aarch64"]})
+    resolve_target_runtime_archives({"target_runtimes": {"linux-aarch64": archive}}, {} if ctx.attr.case == "missing" else {archive: runtime}, "23.1.2")
+    return []
+
+_invalid_runtime = rule(implementation = _invalid_runtime_impl, attrs = {"case": attr.string()})
+
 def _overlay_test_impl(ctx):
     env = unittest.begin(ctx)
     metadata = catalogue_metadata(dict(_META, overlays = _OVERLAYS), _ARCHIVE, "23.1.2")
@@ -37,6 +65,9 @@ def _overlay_test_impl(ctx):
     asserts.equals(env, "https://example.test/23.1.2/libcxx-msan.tar.zst", selected["libcxx-msan"]["url"])
     asserts.equals(env, "0" * 64, selected["libcxx-msan"]["sha256"])
     asserts.equals(env, {}, resolve_distribution_overlays({}, "linux-x86_64", "https://legacy.test/libcxx.tar.gz"))
+    cross_only = dict(metadata, target_runtimes = {"linux-x86_64": "runtime"})
+    asserts.equals(env, {}, resolve_distribution_overlays(cross_only, "darwin-aarch64"))
+    asserts.equals(env, selected, resolve_distribution_overlays(cross_only, "linux-x86_64"))
     return unittest.end(env)
 
 def _metadata_test_impl(ctx):
@@ -121,6 +152,7 @@ _merge_test = unittest.make(_merge_test_impl)
 _selection_test = unittest.make(_selection_test_impl)
 _requirements_test = unittest.make(_requirements_test_impl)
 _overlay_test = unittest.make(_overlay_test_impl)
+_runtime_test = unittest.make(_runtime_test_impl)
 
 def _invalid_overlay_impl(ctx):
     metadata = catalogue_metadata({"overlays": _OVERLAYS}, _ARCHIVE, "23.1.2")
@@ -131,7 +163,7 @@ _invalid_overlay = rule(implementation = _invalid_overlay_impl, attrs = {"platfo
 
 def distribution_metadata_test_suite(name):
     """Validate profiles without downloading LLVM, including analysis errors."""
-    unittest.suite(name + "_unit", _metadata_test, _merge_test, _selection_test, _requirements_test, _overlay_test)
+    unittest.suite(name + "_unit", _metadata_test, _merge_test, _selection_test, _requirements_test, _overlay_test, _runtime_test)
     tests = [name + "_unit"]
     for case, features, test_rule in [("msan_enabled", ["msan"], _msan_enabled_test), ("asan_disabled", ["-asan"], _asan_disabled_test)]:
         subject = name + "_" + case + "_subject"
@@ -142,6 +174,7 @@ def distribution_metadata_test_suite(name):
     for case, requirements, stdlib, message in [
         ("missing_msan", {"features": ["msan"]}, "builtin-libc++", "feature 'msan' must be enabled"),
         ("wrong_stdlib", _META["requirements"], "builtin-libc++", "stdlib 'builtin-libc++' is not supported"),
+        ("unsupported_target", {"targets": ["linux-aarch64"]}, "builtin-libc++", "target linux-x86_64 is not supported"),
     ]:
         subject = name + "_" + case + "_subject"
         test = name + "_" + case + "_test"
@@ -162,6 +195,10 @@ def distribution_metadata_test_suite(name):
         ("overlay_version", {"overlays": {"libcxx-msan": {"22.1.8": {"linux-x86_64": _OVERLAY}}}}, "no archive matching LLVM 23.1.2"),
         ("overlay_path", {"overlays": {"../lib": {"23.1.2": {"linux-x86_64": _OVERLAY}}}}, "invalid catalogue overlay directory"),
         ("overlay_sha", {"overlays": {"libcxx-msan": {"23.1.2": {"linux-x86_64": dict(_OVERLAY, sha256 = "bad")}}}}, "hexadecimal SHA-256"),
+        ("bad_runtime_map", {"target_runtimes": []}, "map target-platform keys"),
+        ("bad_runtime_target", {"target_runtimes": {"linux-arm64": "foo"}}, "unsupported catalogue runtime target-platform key"),
+        ("bad_runtime_archive", {"target_runtimes": {"linux-aarch64": []}}, "nonempty filename template"),
+        ("bad_targets", {"requirements": {"targets": ["linux-arm64"]}}, "supported target-platform keys"),
     ]:
         subject = name + "_" + case + "_subject"
         test = name + "_" + case + "_test"
@@ -175,6 +212,12 @@ def distribution_metadata_test_suite(name):
         subject = name + "_" + case + "_subject"
         test = name + "_" + case + "_test"
         _invalid_overlay(name = subject, platform = platform, libcxx_url = libcxx_url, tags = ["manual"])
+        _failure_test(name = test, target_under_test = subject, message = message)
+        tests.append(test)
+    for case, message in [("missing", "not in the selected distribution data"), ("version", "must match compiler LLVM 23.1.2"), ("platform", "does not declare platform linux-aarch64")]:
+        subject = name + "_runtime_" + case + "_subject"
+        test = name + "_runtime_" + case + "_test"
+        _invalid_runtime(name = subject, case = case, tags = ["manual"])
         _failure_test(name = test, target_under_test = subject, message = message)
         tests.append(test)
     native.test_suite(name = name, tests = tests)

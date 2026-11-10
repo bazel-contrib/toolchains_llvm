@@ -436,16 +436,15 @@ def cc_toolchain_config(
 
     is_xcompile = not (exec_os == target_os and exec_arch == target_arch)
 
-    # We only support getting libc++ from the toolchain for now. Is it worth
-    # supporting libc++ from the sysroot? Or maybe just part of a LLVM distribution
-    # that's built for the target?
     if not stdlib and is_xcompile:
         # buildifier: disable=print
         print("WARNING: Using libc++ for host architecture while cross compiling, this is " +
               "probably not what you want. Explicitly set standard_libraries to libc++ to silence.")
 
-    # Darwin has a universal sysroot so the builtin can compile cross-arch.
-    if stdlib == "builtin-libc++" and is_xcompile and not is_darwin_exec_and_target:
+    # A distinct target runtime root supplies target-architecture libc++.
+    # Without one, retain the legacy sysroot/libstdc++ cross-build fallback.
+    # Darwin's SDK is universal and does not need a distinct runtime root.
+    if stdlib == "builtin-libc++" and is_xcompile and not is_darwin_exec_and_target and not compiler_configuration.get("has_target_runtime", False):
         stdlib = "stdc++"
 
     # "dynamic-stdc++"[-<ver>] is libstdc++ linked dynamically rather than

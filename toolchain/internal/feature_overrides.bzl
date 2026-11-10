@@ -31,7 +31,7 @@ def make_override(features = [], targets = [], reset = [], **settings):
         if not target or target not in supported_os_arch_keys():
             fail("invalid feature override target '{}'".format(target))
     for key in list(settings.keys()) + reset:
-        if key.startswith("_") or key in ["feature_condition", "feature_variants", "feature_base_llvm"] or (key not in llvm_config_attrs and key not in llvm_repo_attrs):
+        if key.startswith("_") or key in ["feature_condition", "feature_variants", "feature_base_llvm", "catalogue_runtime_roots"] or (key not in llvm_config_attrs and key not in llvm_repo_attrs):
             fail("unknown or internal toolchain override attribute '{}'".format(key))
     return dict(features = features, targets = targets, reset = reset, settings = settings)
 
