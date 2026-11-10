@@ -16,6 +16,7 @@
 
 load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts", "unittest")
 load(":feature_overrides.bzl", "can_share_llvm_archive", "merge_override", "select_override", llvm_feature_override = "make_override")
+load(":repo.bzl", "llvm_repo_attrs")
 
 def _selection_test_impl(ctx):
     env = unittest.begin(ctx)
@@ -105,6 +106,66 @@ def _invalid_impl(ctx):
         llvm_feature_override(features = ["--a"])
     return []
 
+def _distribution_roots_test_impl(ctx):
+    env = unittest.begin(ctx)
+    base = dict(
+        llvm_version = "23.1.2",
+        toolchain_roots = {"": "@llvm_k8//", "linux-aarch64": "@llvm_arm64//"},
+        target_toolchain_roots = {"": "@llvm_k8//", "linux-aarch64": "@llvm_arm64//"},
+        sysroot = {"linux-aarch64": "@arm64_sysroot//:root"},
+    )
+    selection = {
+        "llvm_version": "22.1.8",
+        "llvm_versions": {"": "22.1.8"},
+        "distribution": "clang+llvm-22.1.8.tar.xz",
+        "urls": {"": ["https://example.test/llvm.tar.xz"]},
+        "extra_llvm_distribution_files": [Label("//:MODULE.bazel")],
+        "extra_llvm_distributions": {"llvm.tar.xz": "sha256"},
+        "use_builtin_llvm_distributions": False,
+        "libcxx_url": "https://example.test/libcxx-msan.tar.xz",
+    }
+    for key, value in selection.items():
+        merged = merge_override(base, {key: value})
+        asserts.false(env, "toolchain_roots" in merged, key)
+        asserts.false(env, "target_toolchain_roots" in merged, key)
+        asserts.equals(env, value, merged[key])
+        asserts.equals(env, base["sysroot"], merged["sysroot"])
+        asserts.false(env, can_share_llvm_archive(base, {key: value}))
+    for key in llvm_repo_attrs:
+        # A reset to a download/selection default must not keep old roots either.
+        merged = merge_override(base, {}, reset = [key])
+        if key in ["exec_os", "exec_arch", "supported_platforms"]:
+            asserts.equals(env, base["toolchain_roots"], merged["toolchain_roots"])
+            asserts.equals(env, base["target_toolchain_roots"], merged["target_toolchain_roots"])
+        else:
+            asserts.false(env, "toolchain_roots" in merged, key)
+            asserts.false(env, "target_toolchain_roots" in merged, key)
+    for settings in [
+        {},
+        {"extra_compile_flags": {"": ["-DVARIANT"]}},
+        {"linker": {"": "mold"}, "linker_version": "latest"},
+        {"exec_os": "linux", "exec_arch": "aarch64", "supported_platforms": ["linux"]},
+    ]:
+        merged = merge_override(base, settings)
+        asserts.equals(env, base["toolchain_roots"], merged["toolchain_roots"])
+        asserts.equals(env, base["target_toolchain_roots"], merged["target_toolchain_roots"])
+
+    # Explicit roots belong to the new distribution; do not merge old entries.
+    explicit = dict(toolchain_roots = {"": "@new_compiler//"}, target_toolchain_roots = {"linux-aarch64": "@new_runtime//"})
+    for keys in [["toolchain_roots"], ["target_toolchain_roots"], explicit.keys()]:
+        settings = dict({key: explicit[key] for key in keys}, llvm_version = "22.1.8")
+        merged = merge_override(base, settings)
+        for key in explicit:
+            if key in settings:
+                asserts.equals(env, explicit[key], merged[key])
+            else:
+                asserts.false(env, key in merged)
+
+    # Never mutate the default configuration.
+    asserts.equals(env, "@llvm_k8//", base["toolchain_roots"][""])
+    asserts.equals(env, "@llvm_arm64//", base["target_toolchain_roots"]["linux-aarch64"])
+    return unittest.end(env)
+
 def _archive_sharing_test_impl(ctx):
     env = unittest.begin(ctx)
     base = dict(llvm_version = "23.1.2")
@@ -145,6 +206,7 @@ _selection_test = unittest.make(_selection_test_impl)
 _signed_features_test = unittest.make(_signed_features_test_impl)
 _inheritance_test = unittest.make(_inheritance_test_impl)
 _archive_sharing_test = unittest.make(_archive_sharing_test_impl)
+_distribution_roots_test = unittest.make(_distribution_roots_test_impl)
 
 def feature_overrides_test_suite(name):
     """Test positive, negative and ambiguous predicates, and attribute merging."""
@@ -168,4 +230,5 @@ def feature_overrides_test_suite(name):
     _signed_features_test(name = name + "_signed_features_test")
     _inheritance_test(name = name + "_inheritance_test")
     _archive_sharing_test(name = name + "_archive_sharing_test")
-    native.test_suite(name = name, tests = tests + [name + "_selection_test", name + "_signed_features_test", name + "_inheritance_test", name + "_archive_sharing_test"])
+    _distribution_roots_test(name = name + "_distribution_roots_test")
+    native.test_suite(name = name, tests = tests + [name + "_selection_test", name + "_signed_features_test", name + "_inheritance_test", name + "_archive_sharing_test", name + "_distribution_roots_test"])

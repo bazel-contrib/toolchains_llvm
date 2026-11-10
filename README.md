@@ -458,6 +458,14 @@ booleans that module-extension tags cannot distinguish from omitted arguments.
 A scalar `llvm_version` or `linker_version` replaces its inherited plural map,
 and vice versa.
 
+Selecting an LLVM distribution in an override (for example, setting
+`llvm_version`, `urls`, or `extra_llvm_distribution_files`) automatically drops
+inherited `toolchain_roots` and `target_toolchain_roots`. The variant uses its
+own compiler, headers and runtime libraries; no root `reset` is needed.
+Roots explicitly supplied by that override replace the inherited maps.
+Configuration-only overrides, such as linker or flag changes, retain the roots.
+Sysroots remain independently configured and are not cleared automatically.
+
 Selection happens during toolchain resolution from the build configuration's
 `--features` (and `--host_features` for build tools), not from per-rule features,
 implied C++ features, or compiler flags such as `-flto=thin`. Pass multiple

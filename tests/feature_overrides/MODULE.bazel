@@ -19,6 +19,22 @@ local_path_override(module_name = "toolchains_llvm", path = "../..")
 bazel_dep(name = "rules_cc", version = "0.2.28")
 
 llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
+# Model a consumer that supplies its default compiler and runtime via roots.
+# Distribution overrides below must not inherit either root; flag/linker-only
+# overrides must continue to use them.
+llvm.toolchain(
+    name = "llvm_root_source",
+    llvm_version = "23.1.2",
+)
+use_repo(llvm, "llvm_root_source_llvm")
+llvm.toolchain_root(
+    name = "llvm_toolchain",
+    label = "@llvm_root_source_llvm//:BUILD.bazel",
+)
+llvm.target_toolchain_root(
+    name = "llvm_toolchain",
+    label = "@llvm_root_source_llvm//:BUILD.bazel",
+)
 llvm.toolchain(
     name = "llvm_toolchain",
     llvm_version = "23.1.2",

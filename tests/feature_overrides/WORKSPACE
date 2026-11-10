@@ -31,7 +31,14 @@ load("@rules_cc//cc:extensions.bzl", "compatibility_proxy_repo")
 
 compatibility_proxy_repo()
 
-load("@toolchains_llvm//toolchain:rules.bzl", "llvm_feature_override", "llvm_toolchain")
+load("@toolchains_llvm//toolchain:rules.bzl", "llvm", "llvm_feature_override", "llvm_toolchain")
+
+# The default uses caller-provided compiler/runtime roots. A distribution
+# override must select its own archive without a manual reset of either root.
+llvm(
+    name = "llvm_root_source_llvm",
+    llvm_versions = {"": "23.1.2"},
+)
 
 llvm_toolchain(
     name = "llvm_toolchain",
@@ -83,6 +90,8 @@ llvm_toolchain(
     },
     linker_version = "2.40.4",
     llvm_version = "23.1.2",
+    target_toolchain_roots = {"": "@llvm_root_source_llvm//"},
+    toolchain_roots = {"": "@llvm_root_source_llvm//"},
 )
 
 load("@llvm_toolchain//:toolchains.bzl", "llvm_register_toolchains")
