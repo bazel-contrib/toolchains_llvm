@@ -127,26 +127,22 @@ llvm.toolchain(
 use_repo(llvm, "llvm_toolchain_local_linker")
 
 # MemorySanitizer end-to-end toolchain. Pinned to the exact LLVM build that the
-# instrumented libc++ overlay (libcxx_url) was compiled against, so the linked
+# instrumented libc++ overlay was compiled against, so the linked
 # libc++ is itself instrumented and ABI-compatible. Used only by the msan tests
 # via --extra_toolchains (see tests/scripts/run_msan_tests.sh); deliberately not
 # registered globally. Linux x86_64 only.
 MSAN_LLVM_VERSION = "22.1.8"
 
-MSAN_DISTRIBUTION = "clang+llvm-%s-x86_64-linux-gnu-ubuntu-22.04.tar.zst" % MSAN_LLVM_VERSION
-
 llvm.toolchain(
     name = "llvm_toolchain_msan",
-    alternative_llvm_sources = [
-        "https://github.com/RealtimeRoboticsGroup/toolchains/releases/download/{llvm_version}/{basename}",
-    ],
-    distribution = MSAN_DISTRIBUTION,
-    extra_llvm_distributions = {
-        MSAN_DISTRIBUTION: "82fd4fe320aae577f971b38a1371832cb8f88876c95928baf55e0fb50522cf8a",
-    },
-    libcxx_sha256 = "fd1ac49eeda4edc6deeda2037998e558718a63a5054fff4fdace7751b270217a",
-    libcxx_url = "https://github.com/RealtimeRoboticsGroup/toolchains/releases/download/%s/libcxx-msan-%s-x86_64-linux-gnu-ubuntu-22.04.tar.zst" % (MSAN_LLVM_VERSION, MSAN_LLVM_VERSION),
     llvm_versions = {"": MSAN_LLVM_VERSION},
+)
+llvm.feature_override(
+    name = "llvm_toolchain_msan",
+    extra_llvm_distribution_files = ["@toolchains_llvm//toolchain/distributions:msan.jsonc"],
+    features = ["msan"],
+    targets = ["linux-x86_64"],
+    use_builtin_llvm_distributions = False,
 )
 use_repo(llvm, "llvm_toolchain_msan")
 

@@ -1,0 +1,54 @@
+module(name = "msan_catalogue_tests")
+
+bazel_dep(name = "toolchains_llvm", version = "0.0.0")
+local_path_override(
+    module_name = "toolchains_llvm",
+    path = "../..",
+)
+
+bazel_dep(name = "rules_cc", version = "0.2.28")
+bazel_dep(name = "platforms", version = "1.1.0")
+
+http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+http_archive(
+    name = "msan_arm64_sysroot",
+    urls = ["https://commondatastorage.googleapis.com/chrome-linux-sysroot/278c36fe3a785d7f89fbe3f46956899a3bd49fe665f68dc667d6f626a951fcd6"],
+    type = "tar.xz",
+    sha256 = "278c36fe3a785d7f89fbe3f46956899a3bd49fe665f68dc667d6f626a951fcd6",
+    build_file_content = 'filegroup(name = "sysroot", srcs = ["."], visibility = ["//visibility:public"])',
+)
+
+llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
+llvm.toolchain(
+    name = "llvm_toolchain",
+    extra_llvm_distribution_files = ["@toolchains_llvm//toolchain/distributions:hermetic_llvm.jsonc"],
+    llvm_version = "23.1.2",
+    linker = {"darwin-aarch64": "auto"},
+    stdlib = {
+        "linux-x86_64": "stdc++",
+        "linux-aarch64": "stdc++",
+    },
+    use_builtin_llvm_distributions = False,
+)
+llvm.sysroot(
+    name = "llvm_toolchain",
+    label = "@msan_arm64_sysroot//:sysroot",
+    targets = ["linux-aarch64"],
+)
+llvm.feature_override(
+    name = "llvm_toolchain",
+    extra_llvm_distribution_files = ["@toolchains_llvm//toolchain/distributions:msan.jsonc"],
+    features = ["msan"],
+    llvm_version = "22.1.8",
+    stdlib = {
+        "linux-x86_64": "builtin-libc++",
+        "linux-aarch64": "builtin-libc++",
+    },
+    targets = [
+        "linux-x86_64",
+        "linux-aarch64",
+    ],
+)
+use_repo(llvm, "llvm_toolchain", "llvm_toolchain_llvm")
+
+register_toolchains("@llvm_toolchain//:all")

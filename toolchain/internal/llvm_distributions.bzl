@@ -16,6 +16,7 @@ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "read_netrc", "use_netrc")
 load(
     "@llvm_distributions_data//:data.bzl",
     "LLVM_DISTRIBUTIONS",
+    "LLVM_DISTRIBUTION_METADATA",
     "LLVM_DISTRIBUTION_URLS",
 )
 load("@mboworks_bzl//bzl/versions:versions.bzl", "versions")
@@ -25,7 +26,8 @@ load(
     "exec_os_arch_dict_value",
     "host_info",
 )
-load("//toolchain/internal:distributions_repo.bzl", "load_distribution_files")
+load("//toolchain/internal:distribution_metadata.bzl", "resolve_distribution_overlays", "resolve_target_runtime_archives")
+load("//toolchain/internal:distributions_repo.bzl", "archive_version", "load_distribution_files")
 load("//toolchain/internal:version_selectors.bzl", "version_selectors")
 
 # The merged distribution table is built at module-load time by the
@@ -70,18 +72,8 @@ def _distribution_basename(distribution):
     return distribution.split("?", 1)[0].split("#", 1)[0].split("/")[-1].split("\\")[-1].replace("%2B", "+")
 
 def _distribution_version_string(distribution):
-    # We assume here that the `distribution` contains a basename of the forms:
-    # - `LLVM-<version>-...`, or
-    # - `clang+llvm-<version>-...`.
-    parts = _distribution_basename(distribution).split("-")
-    version = parts[1]
-    if len(parts) > 2 and parts[2].startswith("rc") and parts[2][2:].isdigit():
-        version += "-" + parts[2]
-    return version
-
-def _distribution_version(distribution):
-    # Return the version string of a distribution.
-    return _parse_version(_distribution_version_string(distribution))
+    # Conventional LLVM names and custom provider names share version parsing.
+    return archive_version(_distribution_basename(distribution))
 
 def _get_auth(ctx, urls):
     """
@@ -130,12 +122,16 @@ def download_llvm(rctx):
     strip_prefix = None
     key = None
     update_sha256 = False
+    metadata = {}
     if rctx.attr.urls:
         urls, sha256, strip_prefix, key = _urls(rctx)
+        if urls:
+            _, _, _, all_metadata = _configured_distribution_data(rctx)
+            metadata = all_metadata.get(_distribution_basename(urls[0]), {})
         if not sha256:
             update_sha256 = True
     if not urls:
-        urls, sha256, strip_prefix = _distribution_urls(rctx)
+        urls, sha256, strip_prefix, metadata = _distribution_urls(rctx)
 
         # The bundled distribution table provides its own sha256, so there
         # is nothing to record back into the rule's attrs. Leaving
@@ -150,12 +146,26 @@ def download_llvm(rctx):
     if shaerr:
         fail("ERROR: " + shaerr)
 
+    metadata = _target_runtime_metadata(rctx, metadata, _distribution_basename(urls[0]))
+    host = host_info(rctx)
+    overlays = resolve_distribution_overlays(metadata, "{}-{}".format(host.os, host.arch), rctx.attr.libcxx_url)
+
     res = rctx.download_and_extract(
         [_full_url(url) for url in urls],
         sha256 = sha256,
         stripPrefix = strip_prefix,
         auth = _get_auth(rctx, urls),
     )
+    rctx.file("distribution_metadata.json", json.encode(dict(metadata, archive = _distribution_basename(urls[0]))))
+
+    for output, entry in overlays.items():
+        rctx.download_and_extract(
+            [_full_url(entry["url"])],
+            sha256 = entry["sha256"],
+            output = output,
+            stripPrefix = entry.get("strip_prefix", ""),
+            auth = _get_auth(rctx, [entry["url"]]),
+        )
 
     if rctx.attr.libclang_rt:
         clang_versions = rctx.path("lib/clang").readdir()
@@ -209,11 +219,13 @@ def _get_llvm_version(rctx):
         )
     return llvm_version
 
-def _get_all_llvm_distributions(*, llvm_distributions, extra_llvm_distributions, parsed_llvm_version):
+def _get_all_llvm_distributions(*, llvm_distributions, extra_llvm_distributions, parsed_llvm_version, metadata = {}):
     distributions = {}
     for dist, sha256 in llvm_distributions.items() + (extra_llvm_distributions.items() if extra_llvm_distributions else []):
         basename = _distribution_basename(dist)
-        version = _distribution_version(basename)
+        entry_metadata = metadata.get(basename, {})
+        version_string = entry_metadata.get("version") or _distribution_version_string(basename)
+        version = _parse_version(version_string)
         if parsed_llvm_version and parsed_llvm_version != version:
             continue
 
@@ -225,21 +237,27 @@ def _get_all_llvm_distributions(*, llvm_distributions, extra_llvm_distributions,
             distribution = dist,
             sha256 = sha256,
             version = version,
+            version_string = version_string,
+            metadata = entry_metadata,
         )
     return distributions
 
 def _configured_distribution_data(rctx):
     """Return the enabled built-ins, merged user entries, and user URL map."""
-    file_distributions, file_urls = load_distribution_files(
+    file_distributions, file_urls, file_metadata = load_distribution_files(
         rctx,
         rctx.attr.extra_llvm_distribution_files,
+        with_metadata = True,
     )
     user_distributions = dict(file_distributions)
     user_distributions.update(rctx.attr.extra_llvm_distributions)
+    metadata = dict(LLVM_DISTRIBUTION_METADATA) if rctx.attr.use_builtin_llvm_distributions else {}
+    metadata.update(file_metadata)
     return (
         _llvm_distributions if rctx.attr.use_builtin_llvm_distributions else {},
         user_distributions,
         file_urls,
+        metadata,
     )
 
 def _configured_distribution_url(*, basename, use_builtin_llvm_distributions, user_distribution_urls):
@@ -377,11 +395,22 @@ def _find_llvm_basenames_by_stem(*, prefixes, all_llvm_distributions, is_prefix 
                         return basenames
     return basenames
 
-def _find_llvm_basename_list(llvm_version, all_llvm_distributions, host_info):
+def _find_llvm_basename_list(llvm_version, all_llvm_distributions, host_info, platform_distributions = None):
     """Lookup (llvm_version, host_info) in `all_llvm_distributions.`"""
     arch = host_info.arch
     os = host_info.os
     dist = host_info.dist
+
+    # Explicit catalogue mappings are authoritative for custom package names
+    # and formats. This does not enable the official large-window zstd files.
+    platform = "{}-{}".format(os, arch)
+    if platform_distributions == None:
+        platform_distributions = [(name, info) for name, info in all_llvm_distributions.items() if "platforms" in getattr(info, "metadata", {})]
+    if platform_distributions:
+        explicit = [name for name, info in platform_distributions if info.version_string == llvm_version and platform in info.metadata["platforms"]]
+        if explicit:
+            return explicit
+        all_llvm_distributions = {name: info for name, info in all_llvm_distributions.items() if "platforms" not in getattr(info, "metadata", {})}
 
     # Prefer new LLVM distributions if available
     if os != "linux" or _is_linux_dist(dist):
@@ -562,10 +591,12 @@ def _required_llvm_release_name(*, version_or_requirements, all_llvm_distributio
 
     # Restrict to unambiguous host-compatible archives before selecting a version.
     available = {}
+    platform_distributions = [(name, info) for name, info in all_llvm_distributions.items() if "platforms" in getattr(info, "metadata", {})]
     for distribution in all_llvm_distributions:
-        version = _distribution_version_string(distribution)
+        info = all_llvm_distributions[distribution]
+        version = info.version_string if hasattr(info, "version_string") else _distribution_version_string(distribution)
         if version not in available:
-            available[version] = _find_llvm_basename_list(version, all_llvm_distributions, host_info)
+            available[version] = _find_llvm_basename_list(version, all_llvm_distributions, host_info, platform_distributions)
     selected = version_selectors.select(
         version_or_requirements,
         [(version, names[0]) for version, names in available.items() if len(names) == 1],
@@ -578,11 +609,12 @@ def _required_llvm_release_name(*, version_or_requirements, all_llvm_distributio
 
 def _required_llvm_release_name_rctx(rctx, llvm_version):
     llvm_version = version_selectors.resolve_environment(rctx, llvm_version)
-    builtin_distributions, user_distributions, _ = _configured_distribution_data(rctx)
+    builtin_distributions, user_distributions, _, metadata = _configured_distribution_data(rctx)
     all_llvm_distributions = _get_all_llvm_distributions(
         llvm_distributions = builtin_distributions,
         extra_llvm_distributions = user_distributions,
         parsed_llvm_version = _parse_version(llvm_version) if not _is_requirement(llvm_version) else None,
+        metadata = metadata,
     )
     return _required_llvm_release_name(
         version_or_requirements = llvm_version,
@@ -616,11 +648,12 @@ def _filter_llvm_distributions(*, llvm_version, all_llvm_distributions):
 def _distribution_urls(rctx):
     """Return LLVM `urls`, `sha256` and `strip_prefix` for the given context."""
     llvm_version = _get_llvm_version(rctx)
-    builtin_distributions, user_distributions, user_distribution_urls = _configured_distribution_data(rctx)
+    builtin_distributions, user_distributions, user_distribution_urls, metadata = _configured_distribution_data(rctx)
     all_llvm_distributions = _get_all_llvm_distributions(
         llvm_distributions = builtin_distributions,
         extra_llvm_distributions = user_distributions,
         parsed_llvm_version = _parse_version(llvm_version) if not _is_requirement(llvm_version) else None,
+        metadata = metadata,
     )
     _, sha256, strip_prefix, _ = _key_attrs(rctx)
 
@@ -655,11 +688,38 @@ def _distribution_urls(rctx):
         else:
             fail("ERROR: Unknown LLVM release: %s\nPlease ensure file name is correct." % distribution)
 
+    entry_metadata = dist_info.metadata if dist_info else {}
     if not strip_prefix:
-        strip_prefix = _strip_prefix(basename = basename, strip_suffix = "-rhel86")
-    if basename != distribution:
-        return [distribution], sha256, strip_prefix
+        strip_prefix = entry_metadata["strip_prefix"] if "strip_prefix" in entry_metadata else _strip_prefix(basename = basename, strip_suffix = "-rhel86")
+    return _archive_urls(rctx, llvm_version, basename, distribution, user_distribution_urls), sha256, strip_prefix, entry_metadata
 
+def _target_runtime_metadata(rctx, metadata, basename):
+    if not metadata.get("target_runtimes"):
+        return metadata
+    builtins, extras, urls, profiles = _configured_distribution_data(rctx)
+    distributions = _get_all_llvm_distributions(llvm_distributions = builtins, extra_llvm_distributions = extras, parsed_llvm_version = None, metadata = profiles)
+    compiler = distributions[basename]
+    entry_metadata = dict(metadata)
+    runtime_archives = resolve_target_runtime_archives(entry_metadata, distributions, compiler.version_string)
+    if runtime_archives:
+        entry_metadata["target_runtimes"] = {}
+        for target, runtime in runtime_archives.items():
+            runtime_sha, error = _normalize_and_check_sha256(runtime.sha256)
+            if error or not runtime_sha:
+                fail("invalid catalogue target runtime '{}': {}".format(runtime.distribution, error))
+            entry_metadata["target_runtimes"][target] = dict(
+                archive = _distribution_basename(runtime.distribution),
+                version = runtime.version_string,
+                sha256 = runtime_sha,
+                urls = _archive_urls(rctx, runtime.version_string, _distribution_basename(runtime.distribution), runtime.distribution, urls),
+                strip_prefix = runtime.metadata.get("strip_prefix", _strip_prefix(basename = _distribution_basename(runtime.distribution), strip_suffix = "-rhel86")),
+                overlays = resolve_distribution_overlays(runtime.metadata, target),
+            )
+    return entry_metadata
+
+def _archive_urls(rctx, llvm_version, basename, distribution, user_distribution_urls):
+    if basename != distribution:
+        return [distribution]
     urls = []
     url_suffix = "{0}/{1}".format(llvm_version, basename).replace("+", "%2B")
     if rctx.attr.llvm_mirror:
@@ -684,7 +744,7 @@ def _distribution_urls(rctx):
             basename.replace("+", "%2B"),
         )
 
-    return urls, sha256, strip_prefix
+    return urls
 
 # Internal test access only; not a supported toolchain API. Keep production
 # helpers private and test implementations in llvm_distributions_test.bzl.

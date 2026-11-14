@@ -13,22 +13,9 @@
 # limitations under the License.
 
 load("@mboworks_bzl//bzl/paths:paths.bzl", "paths")
+load(":platforms.bzl", _SUPPORTED_TARGETS = "SUPPORTED_TARGETS")
 
-SUPPORTED_TARGETS = [
-    ("linux", "x86_64"),
-    ("linux", "aarch64"),
-    ("linux", "armv7"),
-    ("linux", "riscv64"),
-    ("darwin", "x86_64"),
-    ("darwin", "aarch64"),
-    ("none", "riscv32"),
-    ("none", "riscv64"),
-    ("none", "wasm32"),
-    ("none", "wasm64"),
-    ("none", "x86_64"),
-    ("wasip1", "wasm32"),
-    ("wasip1", "wasm64"),
-]
+SUPPORTED_TARGETS = _SUPPORTED_TARGETS
 
 # These are targets that can build without a sysroot.
 SUPPORTED_NO_SYSROOT_TARGETS = [
@@ -283,8 +270,17 @@ def attr_dict(attr):
 
     return dict(tuples)
 
-def toolchain_tools(os):
+def toolchain_tools(os, llvm_bin = None):
     tools = dict(_toolchain_tools)
     if os == "darwin":
         tools.update(_toolchain_tools_darwin)
+    if llvm_bin != None:
+        # Missing auxiliary tools must not prevent ordinary C/C++ builds.
+        # Required tools remain declared so incomplete compilers still fail.
+        optional_tools = ["clang-format", "clang-tidy", "clangd", "llvm-cov", "llvm-dwp", "llvm-profdata"]
+        tools = {
+            tool: wrapper
+            for tool, wrapper in tools.items()
+            if tool not in optional_tools or llvm_bin.get_child(tool).exists
+        }
     return tools
