@@ -263,7 +263,8 @@ def llvm_config_impl(rctx):
         # lookup. The wrapper executes them from the original LLVM installation.
         wrapper_bin_prefix = "bin/"
         tools_path_prefix = "bin/"
-        tools = _toolchain_tools(os)
+        llvm_bin = rctx.path(Label(toolchain_root + ":BUILD.bazel")).dirname.get_child("bin")
+        tools = _toolchain_tools(os, llvm_bin)
         for tool_name, wrapper_name in tools.items():
             rctx.template(
                 paths.join(tools_path_prefix, wrapper_name),

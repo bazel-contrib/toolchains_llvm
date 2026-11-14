@@ -504,6 +504,16 @@ The following mechanisms are available for using an LLVM toolchain:
    a toolchain root specified through the `toolchain_roots` attribute with an
    empty key.
 
+Slim distributions may omit `clang-format`, `clang-tidy`, `clangd`, `llvm-cov`,
+`llvm-dwp`, and `llvm-profdata`. Missing optional tools are not wrapped or added
+to every compile action's inputs; tools that are present remain available.
+Features that require an omitted tool, such as coverage or `.dwp` generation,
+still require a distribution that provides it.
+
+Bundled `include/c++` headers may also be omitted when using a different C++
+standard library, such as `stdlib = {"": "stdc++"}`. Clang's resource headers
+and the compiler, linker, and other required tools must still be provided.
+
 ### Sysroots
 
 A sysroot can be specified through the `sysroot` attribute (without bzlmod) or
