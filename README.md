@@ -435,12 +435,27 @@ llvm.toolchain(
 )
 llvm.feature_override(
     name = "llvm_toolchain",
-    features = ["thin_lto"],
+    features = ["thin_lto", "-msan"],
     linker = {"linux-x86_64": ""},  # Use bundled LLD for LTO, retaining Darwin's auto.
+)
+llvm.feature_override(
+    name = "llvm_toolchain",
+    features = ["msan"],
+    targets = ["linux-x86_64"],
+    llvm_version = "22.1.8",
+    libcxx_url = "https://github.com/RealtimeRoboticsGroup/toolchains/releases/download/22.1.8/libcxx-msan-22.1.8-x86_64-linux-gnu-ubuntu-22.04.tar.zst",
+    libcxx_sha256 = "fd1ac49eeda4edc6deeda2037998e558718a63a5054fff4fdace7751b270217a",
+    linker = {"linux-x86_64": ""},
 )
 use_repo(llvm, "llvm_toolchain")
 register_toolchains("@llvm_toolchain//:all")
 ```
+
+Different build configurations can already select different LLVM versions: this
+example uses LLVM 23 normally, but LLVM 22.1.8 with its matching instrumented
+libc++ for Linux x86-64 MSan builds (`--features=msan`). It needs no external roots
+or root resets. The third-party instrumented libc++ is needed only for MSan; see
+[MemorySanitizer](#memorysanitizer-and-the-instrumented-libc) for its requirements.
 
 Use Bazel's signed feature notation: `features = ["thin_lto", "-msan"]` requires
 `thin_lto` to be enabled and `msan` to be absent or disabled. All entries must
@@ -458,13 +473,42 @@ booleans that module-extension tags cannot distinguish from omitted arguments.
 A scalar `llvm_version` or `linker_version` replaces its inherited plural map,
 and vice versa.
 
-Selecting an LLVM distribution in an override (for example, setting
-`llvm_version`, `urls`, or `extra_llvm_distribution_files`) automatically drops
-inherited `toolchain_roots` and `target_toolchain_roots`. The variant uses its
-own compiler, headers and runtime libraries; no root `reset` is needed.
-Roots explicitly supplied by that override replace the inherited maps.
-Configuration-only overrides, such as linker or flag changes, retain the roots.
-Sysroots remain independently configured and are not cleared automatically.
+#### Distribution overrides and inherited roots
+
+`toolchain_roots` select an existing compiler installation instead of downloading
+LLVM; `target_toolchain_roots` select its target headers and runtime libraries.
+These are optional: the download-based MSan example above works without them.
+If the fallback does have caller-provided roots (including `llvm.toolchain_root`
+and `llvm.target_toolchain_root` tags), keeping them when selecting another LLVM
+could ignore the requested compiler or mix it with the wrong standard library.
+
+An override that explicitly supplies an LLVM download/selection setting, such as
+`llvm_version`, `urls`, or `extra_llvm_distribution_files`, automatically discards
+**both inherited root maps**, across all their platform entries. This also applies
+when the supplied setting equals the fallback's value, or when a download/selection
+setting appears in `reset`. No root `reset` is needed.
+
+| Override contents                                        | Compiler and target roots                                                                                      |
+| -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| LLVM download/selection settings, without explicit roots | Use the override's selected distribution for the compiler and LLVM-provided target files.                      |
+| LLVM download/selection settings, with explicit roots    | Use those explicit root maps in place of the inherited maps; roots not supplied use the selected distribution. |
+| Only linker, flags or other toolchain configuration      | Retain the fallback's roots.                                                                                   |
+| Only root maps, without LLVM download/selection settings | Merge root maps by platform key, like other dictionary settings; use `reset` if replacement is intended.       |
+
+Thus the MSan override above also works with externally supplied LLVM 23 roots:
+it uses LLVM 22.1.8's compiler and instrumented libc++, not those inherited roots.
+The linker-only `thin_lto` override keeps them. Changing only `exec_os`, `exec_arch`
+or `supported_platforms` also does not discard roots.
+
+This changes where LLVM files come from, not the standard-library policy:
+`stdlib` settings still apply, and macOS continues to use the Apple SDK's libc++.
+
+The OS **sysroot is independent** of the LLVM distribution: an SDK or Linux sysroot
+supplies OS headers and libraries, not the compiler installation. It remains
+inherited even when both LLVM root maps are discarded. Supply `sysroot` in the
+override to change particular platform entries, or use `reset = ["sysroot"]` to
+clear the inherited map. Distribution selection does not fetch a new OS sysroot
+or establish that the inherited one is compatible.
 
 Selection happens during toolchain resolution from the build configuration's
 `--features` (and `--host_features` for build tools), not from per-rule features,
