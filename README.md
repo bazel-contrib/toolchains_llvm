@@ -1,29 +1,94 @@
 # LLVM toolchain for Bazel [![Tests](https://github.com/bazel-contrib/toolchains_llvm/actions/workflows/tests.yml/badge.svg)](https://github.com/bazel-contrib/toolchains_llvm/actions/workflows/tests.yml)
 
+`toolchains_llvm` makes Clang and LLVM part of your Bazel build configuration.
+Define the compiler your project needs, share that configuration across developer
+machines and CI, and make toolchain upgrades deliberate, reviewable dependency
+changes.
+
+It automatically selects and downloads checksum-verified, prebuilt LLVM
+distributions for supported platforms, or uses custom distributions and existing
+installations you provide. Pin an exact version or follow a constrained release
+range, and choose the bundled LLVM linker, a native linker, or a separately
+downloaded linker such as mold.
+
+Start with a straightforward C or C++ build, then extend the configuration for
+sanitizers, ThinLTO, cross-compilation, or remote execution. Feature-based overrides
+let specialized builds select different compiler versions, linkers, and runtime
+settings without duplicating the entire toolchain configuration.
+
 ## Quickstart
 
-See notes on the [release](https://github.com/bazel-contrib/toolchains_llvm/releases)
-for how to get started, and the [changelog](CHANGELOG.md) for feature availability.
+This example uses Bazel 8 or 9 with Bzlmod, which is enabled by default. No
+separate LLVM installation is needed. You still need your platform's development
+environment: Xcode Command Line Tools on macOS, or the system C library's
+development headers and libraries on Linux.
 
-NOTE: For releases prior to 0.10.1, please also see [these notes](REPO_RENAME.md).
+### Configure the toolchain
+
+Add the following to `MODULE.bazel` in your project root (or create the file for
+a new project):
+
+```starlark
+bazel_dep(name = "rules_cc", version = "0.2.28")
+bazel_dep(name = "toolchains_llvm", version = "1.13.0")
+
+llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
+llvm.toolchain(
+    name = "llvm_toolchain",
+    llvm_version = "23.1.5",
+)
+use_repo(llvm, "llvm_toolchain")
+register_toolchains("@llvm_toolchain//:all")
+```
+
+Bazel selects and downloads the checksum-verified LLVM archive for your execution
+host. LLVM 23.1.5 has archives for Linux x86-64/ARM64 and macOS ARM64; Intel Mac
+users must select another available LLVM version through
+[`llvm_versions`](#per-host-architecture-llvm-version).
+
+### Build your first target
+
+For a new project, create `BUILD.bazel` next to `MODULE.bazel`:
+
+```starlark
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+
+cc_binary(
+    name = "hello",
+    srcs = ["hello.cc"],
+)
+```
+
+Create `hello.cc` in the same directory:
+
+```cpp
+#include <iostream>
+
+int main() {
+  std::cout << "Hello from Clang " << __clang_major__ << '\n';
+}
+```
+
+Build and run it from that directory:
+
+```sh
+bazel run //:hello
+```
+
+The program prints `Hello from Clang 23`. The first build downloads LLVM; later
+builds reuse the cached distribution. No `CC`, `CXX` or `--config=clang` setting
+is needed for this example.
+
+In an existing project, keep your C/C++ targets and use the usual `bazel build
+//...` or `bazel test //...` commands after configuring and registering the
+toolchain.
+
+See the [release notes](https://github.com/bazel-contrib/toolchains_llvm/releases)
+for WORKSPACE installation, the [changelog](CHANGELOG.md) for feature availability,
+and [rules.bzl](toolchain/rules.bzl) for configuration attributes. To use your own
+LLVM installation or archives, see [Bring Your Own LLVM](#bring-your-own-llvm).
 
 <!-- Release notes template: .github/workflows/release_notes_template.txt -->
-
-## Basic Usage
-
-The toolchain can automatically detect your OS and arch type, and use the right
-pre-built binary LLVM distribution. See the section on "Bring Your Own LLVM"
-below for more options.
-
-See in-code documentation in [rules.bzl](toolchain/rules.bzl) for available
-attributes to `llvm_toolchain`.
-
-### Upgrading to 1.13.0
-
-`first` / `latest` selectors now require an explicit opt-in to select
-prereleases. Exact pins, including RC pins, are unchanged. Read the
-[1.13.0 migration guide](docs/migration-1.13.0.md) for the required configuration
-changes, range choices, and RC ordering under SemVer.
 
 ## Advanced Usage
 
@@ -34,11 +99,10 @@ version. In particular patch versions often come with few prebuilt packages.
 This means that a single version probably is not enough to address all hosts
 one wants to support.
 
-This can be solved by providing a target/version map with a default version.
-The example below selects `15.0.6` as the default version for all targets not
-specified explicitly. This is like providing `llvm_version = "15.0.6"`, just
-like in the example on the top. However, here we provide two more entries that
-map their respective target to a distinct version:
+This can be solved by providing a host/version map with a default version.
+The example below selects `15.0.6` as the default version for all hosts not
+specified explicitly, equivalent to setting `llvm_version = "15.0.6"`.
+Two additional entries select a different version for the macOS hosts:
 
 ```starlark
 llvm_toolchain(
@@ -249,11 +313,13 @@ available starting with toolchains_llvm 1.13.0. Basic `first` / `latest`
 comparisons were introduced in 1.6.0; see the [changelog](CHANGELOG.md) for
 earlier feature availability.
 
-Version requirements let projects bind automatic LLVM upgrades to deliberate `toolchains_llvm`
-release upgrades. A `toolchains_llvm` release can add new LLVM release identifiers to its
-checksummed catalogue. Upgrading the pinned module then makes those releases eligible without a
-separate edit to an exact `llvm_version`. Requirements restrict which of those additions a project
-will adopt, for example by keeping LLVM within major version 23:
+Version requirements preserve reproducibility: selection uses a pinned catalogue,
+not live upstream releases. They let projects bind automatic LLVM upgrades to
+deliberate `toolchains_llvm` release upgrades. A `toolchains_llvm` release can add
+new LLVM release identifiers to its checksummed catalogue. Upgrading the pinned
+module then makes those releases eligible without a separate edit to an exact
+`llvm_version`. Requirements restrict which of those additions a project will
+adopt, for example by keeping LLVM within major version 23:
 
 ```starlark
 llvm.toolchain(
@@ -1088,10 +1154,33 @@ Trunk or the repository's Prettier launcher for formatting.
 `utils/extra_distributions.sh` requires `bash`, `curl`, `jq`, `awk`, and either
 `sha256sum` (Linux, Git Bash) or `shasum` (macOS).
 
-## Prior Art
+## Compatibility and migration notes
 
-Other examples of toolchain configuration:
+### 1.13.0: prerelease selection
 
-https://bazel.build/tutorials/ccp-toolchain-config
+`first` / `latest` selectors now require an explicit opt-in to select
+prereleases. Exact pins, including RC pins, are unchanged. Read the
+[1.13.0 migration guide](docs/migration-1.13.0.md) for the required configuration
+changes, range choices, and RC ordering under SemVer.
 
-https://github.com/vsco/bazel-toolchains
+### Before 0.10.1: repository rename
+
+The repository rename changed the checksums and `strip_prefix` values of generated
+source archives for releases before 0.10.1. Read the
+[repository rename notes](REPO_RENAME.md) for the updated values. Releases starting
+with 0.10.1 provide stable release artifacts instead.
+
+## Related projects and resources
+
+### Prior art
+
+- [Bazel C++ toolchain configuration tutorial](https://bazel.build/tutorials/ccp-toolchain-config).
+- [vsco/bazel-toolchains](https://github.com/vsco/bazel-toolchains).
+
+### Related projects
+
+- [hermeticbuild/hermetic-llvm](https://github.com/hermeticbuild/hermetic-llvm) —
+  a newer project sharing many of `toolchains_llvm`'s goals, with an additional
+  focus on strictly hermetic, fast C/C++ builds and cross-compilation. It combines
+  compact prebuilt compiler tools with Bazel-managed target headers and runtimes,
+  without user-supplied sysroots.
