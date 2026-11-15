@@ -368,8 +368,10 @@ def _llvm_archive_suffixes(bazel_version):
     # Bazel spells RCs without a SemVer separator. Do not discard that suffix:
     # 9.3.0rc1 and older Bazel 10 rolling releases do not contain the fix.
     version = bazel_version.split(" ", 1)[0].replace("rc", "-rc", 1)
-    minimum = "9.3.0" if _semver.major(version) == 9 else "10.0.0-pre.20261001.2"
-    if _semver.ge(version, minimum):
+    major = _semver.major(version)
+    if major == 9 and _semver.ge(version, "9.3.0"):
+        return [".tar.zst"] + suffixes
+    if major >= 10 and _semver.ge(version, "10.0.0-pre.20261001.2"):
         return [".tar.zst"] + suffixes
     return suffixes
 
