@@ -1169,10 +1169,13 @@ with 0.10.1 provide stable release artifacts instead.
 
 ## Related projects and resources
 
-Related projects and examples of toolchain configuration:
+### Prior art
 
 - [Bazel C++ toolchain configuration tutorial](https://bazel.build/tutorials/ccp-toolchain-config).
 - [vsco/bazel-toolchains](https://github.com/vsco/bazel-toolchains).
+
+### Related projects
+
 - [hermeticbuild/hermetic-llvm](https://github.com/hermeticbuild/hermetic-llvm) —
   a newer project sharing many of `toolchains_llvm`'s goals, with an additional
   focus on strictly hermetic, fast C/C++ builds and cross-compilation. It combines
