@@ -1167,7 +1167,7 @@ source archives for releases before 0.10.1. Read the
 [repository rename notes](REPO_RENAME.md) for the updated values. Releases starting
 with 0.10.1 provide stable release artifacts instead.
 
-## Prior Art
+## Related projects and resources
 
 Related projects and examples of toolchain configuration:
 
