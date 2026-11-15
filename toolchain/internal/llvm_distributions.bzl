@@ -355,29 +355,50 @@ def _dist_to_os_names(dist, default_os_names = []):
         ] + _UBUNTU_VERSIONS
     return default_os_names
 
-def _find_llvm_basenames_by_stem(*, prefixes, all_llvm_distributions, is_prefix = False, return_first_match = False):
+def _llvm_archive_suffixes(bazel_version):
+    # LLVM 23 archives use a 1 GiB zstd window. Bazel 9.3.0 raised the
+    # decoder limit; no backport is present in Bazel 7.7.2 or 8.8.2.
+    # https://github.com/bazelbuild/bazel/pull/31410
+    suffixes = [".tar.xz", ".tar.gz"]
+
+    # Unknown development builds conservatively retain the xz/gzip fallback.
+    if not bazel_version or not bazel_version[0].isdigit():
+        return suffixes
+
+    # Bazel spells RCs without a SemVer separator. Do not discard that suffix:
+    # 9.3.0rc1 and older Bazel 10 rolling releases do not contain the fix.
+    version = bazel_version.split(" ", 1)[0].replace("rc", "-rc", 1)
+    minimum = "9.3.0" if _semver.major(version) == 9 else "10.0.0-pre.20261001.2"
+    if _semver.ge(version, minimum):
+        return [".tar.zst"] + suffixes
+    return suffixes
+
+def _find_llvm_basenames_by_stem(*, prefixes, all_llvm_distributions, bazel_version, is_prefix = False, return_first_match = False):
     basenames = []
+    matched_stems = {}
+    suffixes = _llvm_archive_suffixes(bazel_version)
     for prefix in prefixes:
-        # LLVM 23 zstd archives use a 1 GiB window, which released Bazel
-        # versions cannot decode. Keep zstd entries available for a future
-        # Bazel version with large-window support, but do not select them yet.
-        for suffix in [".tar.xz", ".tar.gz"]:
+        for suffix in suffixes:
             basename = prefix + suffix
             if basename in all_llvm_distributions:
                 return [basename]
         if not is_prefix:
             continue
-        for suffix in [".tar.xz", ".tar.gz"]:
+        for suffix in suffixes:
             for basename in all_llvm_distributions.keys():
                 if not basename.startswith(prefix):
                     continue
-                if basename.endswith(suffix) and basename not in basenames:
+                stem = basename.removesuffix(suffix)
+                if basename.endswith(suffix) and stem not in matched_stems:
+                    # Different compressions of one archive are alternatives,
+                    # not ambiguous platform matches.
+                    matched_stems[stem] = True
                     basenames.append(basename)
                     if return_first_match:
                         return basenames
     return basenames
 
-def _find_llvm_basename_list(llvm_version, all_llvm_distributions, host_info):
+def _find_llvm_basename_list(llvm_version, all_llvm_distributions, host_info, *, bazel_version):
     """Lookup (llvm_version, host_info) in `all_llvm_distributions.`"""
     arch = host_info.arch
     os = host_info.os
@@ -401,6 +422,7 @@ def _find_llvm_basename_list(llvm_version, all_llvm_distributions, host_info):
                 ),
             ],
             all_llvm_distributions = all_llvm_distributions,
+            bazel_version = bazel_version,
         )
         if basenames:
             return basenames
@@ -420,6 +442,7 @@ def _find_llvm_basename_list(llvm_version, all_llvm_distributions, host_info):
             ],
             all_llvm_distributions = all_llvm_distributions,
             is_prefix = True,
+            bazel_version = bazel_version,
         )
     elif os == "windows":
         return _find_llvm_basenames_by_stem(
@@ -431,6 +454,7 @@ def _find_llvm_basename_list(llvm_version, all_llvm_distributions, host_info):
                 ),
             ],
             all_llvm_distributions = all_llvm_distributions,
+            bazel_version = bazel_version,
         )
     elif dist.name == "raspbian":
         return _find_llvm_basenames_by_stem(
@@ -443,6 +467,7 @@ def _find_llvm_basename_list(llvm_version, all_llvm_distributions, host_info):
                 for select_os in _dist_to_os_names(dist)
             ],
             all_llvm_distributions = all_llvm_distributions,
+            bazel_version = bazel_version,
         )
     elif os == "linux":
         if arch in ["aarch64", "armv7a", "mips", "mipsel", "sparc64", "sparcv9"]:
@@ -465,6 +490,7 @@ def _find_llvm_basename_list(llvm_version, all_llvm_distributions, host_info):
                     for os_name in os_name_list + os_name_extra_list
                 ],
                 all_llvm_distributions = all_llvm_distributions,
+                bazel_version = bazel_version,
             )
             if basenames or not os_name_list:
                 return basenames
@@ -480,6 +506,7 @@ def _find_llvm_basename_list(llvm_version, all_llvm_distributions, host_info):
                 ],
                 all_llvm_distributions = all_llvm_distributions,
                 is_prefix = True,
+                bazel_version = bazel_version,
             )
 
         arch_alias_list = {
@@ -501,6 +528,7 @@ def _find_llvm_basename_list(llvm_version, all_llvm_distributions, host_info):
                         ),
                     ],
                     all_llvm_distributions = all_llvm_distributions,
+                    bazel_version = bazel_version,
                 )
                 if basenames:
                     return basenames
@@ -510,15 +538,15 @@ def _find_llvm_basename_list(llvm_version, all_llvm_distributions, host_info):
                         arch = arch_alias,
                         dist_name = dist_name,
                     ))
-        return _find_llvm_basenames_by_stem(prefixes = prefixes, all_llvm_distributions = all_llvm_distributions, is_prefix = True, return_first_match = True)
+        return _find_llvm_basenames_by_stem(prefixes = prefixes, all_llvm_distributions = all_llvm_distributions, is_prefix = True, return_first_match = True, bazel_version = bazel_version)
     return []
 
-def _find_llvm_basename_or_error(llvm_version, all_llvm_distributions, host_info):
+def _find_llvm_basename_or_error(llvm_version, all_llvm_distributions, host_info, *, bazel_version):
     all_llvm_distributions = _filter_llvm_distributions(
         llvm_version = llvm_version,
         all_llvm_distributions = all_llvm_distributions,
     )
-    basenames = _find_llvm_basename_list(llvm_version, all_llvm_distributions, host_info)
+    basenames = _find_llvm_basename_list(llvm_version, all_llvm_distributions, host_info, bazel_version = bazel_version)
     if len(basenames) > 1:
         return None, "ERROR: Multiple configurations found for version {llvm_version} on {os}/{dist_name}/{dist_version} with arch {arch}: [{basenames}].".format(
             llvm_version = llvm_version,
@@ -555,9 +583,9 @@ def _is_requirement(version_or_requirements):
             return True
     return False
 
-def _required_llvm_release_name(*, version_or_requirements, all_llvm_distributions, host_info, allow_prereleases = False):
+def _required_llvm_release_name(*, version_or_requirements, all_llvm_distributions, host_info, bazel_version, allow_prereleases = False):
     if not _is_requirement(version_or_requirements):
-        basename, error = _find_llvm_basename_or_error(version_or_requirements, all_llvm_distributions, host_info)
+        basename, error = _find_llvm_basename_or_error(version_or_requirements, all_llvm_distributions, host_info, bazel_version = bazel_version)
         return version_or_requirements, basename, error
 
     # Restrict to unambiguous host-compatible archives before selecting a version.
@@ -565,7 +593,7 @@ def _required_llvm_release_name(*, version_or_requirements, all_llvm_distributio
     for distribution in all_llvm_distributions:
         version = _distribution_version_string(distribution)
         if version not in available:
-            available[version] = _find_llvm_basename_list(version, all_llvm_distributions, host_info)
+            available[version] = _find_llvm_basename_list(version, all_llvm_distributions, host_info, bazel_version = bazel_version)
     selected = version_selectors.select(
         version_or_requirements,
         [(version, names[0]) for version, names in available.items() if len(names) == 1],
@@ -588,6 +616,7 @@ def _required_llvm_release_name_rctx(rctx, llvm_version):
         version_or_requirements = llvm_version,
         all_llvm_distributions = all_llvm_distributions,
         host_info = host_info(rctx),
+        bazel_version = native.bazel_version,
         allow_prereleases = rctx.attr.llvm_version_allow_prereleases,
     )
 
@@ -632,10 +661,11 @@ def _distribution_urls(rctx):
                 version_or_requirements = llvm_version,
                 all_llvm_distributions = all_llvm_distributions,
                 host_info = rctx_host_info,
+                bazel_version = native.bazel_version,
                 allow_prereleases = rctx.attr.llvm_version_allow_prereleases,
             )
         else:
-            basename, error = _find_llvm_basename_or_error(llvm_version, all_llvm_distributions, rctx_host_info)
+            basename, error = _find_llvm_basename_or_error(llvm_version, all_llvm_distributions, rctx_host_info, bazel_version = native.bazel_version)
         if error:
             fail(error)
         dist_info = all_llvm_distributions[basename]
@@ -695,6 +725,7 @@ testing = struct(
     find_llvm_basename_list = _find_llvm_basename_list,
     find_llvm_basename_or_error = _find_llvm_basename_or_error,
     get_all_llvm_distributions = _get_all_llvm_distributions,
+    llvm_archive_suffixes = _llvm_archive_suffixes,
     normalize_and_check_sha256 = _normalize_and_check_sha256,
     required_llvm_release_name = _required_llvm_release_name,
 )
