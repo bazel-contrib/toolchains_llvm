@@ -18,19 +18,77 @@ settings without duplicating the entire toolchain configuration.
 
 ## Quickstart
 
-See notes on the [release](https://github.com/bazel-contrib/toolchains_llvm/releases)
-for how to get started, and the [changelog](CHANGELOG.md) for feature availability.
+This example uses Bazel 8 or 9 with Bzlmod, which is enabled by default. No
+separate LLVM installation is needed. You still need your platform's development
+environment: Xcode Command Line Tools on macOS, or the system C library's
+development headers and libraries on Linux.
+
+### Configure the toolchain
+
+Add the following to `MODULE.bazel` in your project root (or create the file for
+a new project):
+
+```starlark
+bazel_dep(name = "rules_cc", version = "0.2.28")
+bazel_dep(name = "toolchains_llvm", version = "1.13.0")
+
+llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
+llvm.toolchain(
+    name = "llvm_toolchain",
+    llvm_version = "23.1.5",
+)
+use_repo(llvm, "llvm_toolchain")
+register_toolchains("@llvm_toolchain//:all")
+```
+
+Bazel selects and downloads the checksum-verified LLVM archive for your execution
+host. LLVM 23.1.5 has archives for Linux x86-64/ARM64 and macOS ARM64; Intel Mac
+users must select another available LLVM version through
+[`llvm_versions`](#per-host-architecture-llvm-version).
+
+### Build your first target
+
+For a new project, create `BUILD.bazel` next to `MODULE.bazel`:
+
+```starlark
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+
+cc_binary(
+    name = "hello",
+    srcs = ["hello.cc"],
+)
+```
+
+Create `hello.cc` in the same directory:
+
+```cpp
+#include <iostream>
+
+int main() {
+  std::cout << "Hello from Clang " << __clang_major__ << '\n';
+}
+```
+
+Build and run it from that directory:
+
+```sh
+bazel run //:hello
+```
+
+The program prints `Hello from Clang 23`. The first build downloads LLVM; later
+builds reuse the cached distribution. No `CC`, `CXX` or `--config=clang` setting
+is needed for this example.
+
+In an existing project, keep your C/C++ targets and use the usual `bazel build
+//...` or `bazel test //...` commands after configuring and registering the
+toolchain.
+
+See the [release notes](https://github.com/bazel-contrib/toolchains_llvm/releases)
+for WORKSPACE installation, the [changelog](CHANGELOG.md) for feature availability,
+and [rules.bzl](toolchain/rules.bzl) for configuration attributes. To use your own
+LLVM installation or archives, see [Bring Your Own LLVM](#bring-your-own-llvm).
 
 <!-- Release notes template: .github/workflows/release_notes_template.txt -->
-
-## Basic Usage
-
-The toolchain can automatically detect your OS and arch type, and use the right
-pre-built binary LLVM distribution. See the section on "Bring Your Own LLVM"
-below for more options.
-
-See in-code documentation in [rules.bzl](toolchain/rules.bzl) for available
-attributes to `llvm_toolchain`.
 
 ## Advanced Usage
 
@@ -41,11 +99,10 @@ version. In particular patch versions often come with few prebuilt packages.
 This means that a single version probably is not enough to address all hosts
 one wants to support.
 
-This can be solved by providing a target/version map with a default version.
-The example below selects `15.0.6` as the default version for all targets not
-specified explicitly. This is like providing `llvm_version = "15.0.6"`, just
-like in the example on the top. However, here we provide two more entries that
-map their respective target to a distinct version:
+This can be solved by providing a host/version map with a default version.
+The example below selects `15.0.6` as the default version for all hosts not
+specified explicitly, equivalent to setting `llvm_version = "15.0.6"`.
+Two additional entries select a different version for the macOS hosts:
 
 ```starlark
 llvm_toolchain(
