@@ -312,11 +312,13 @@ available starting with toolchains_llvm 1.13.0. Basic `first` / `latest`
 comparisons were introduced in 1.6.0; see the [changelog](CHANGELOG.md) for
 earlier feature availability.
 
-Version requirements let projects bind automatic LLVM upgrades to deliberate `toolchains_llvm`
-release upgrades. A `toolchains_llvm` release can add new LLVM release identifiers to its
-checksummed catalogue. Upgrading the pinned module then makes those releases eligible without a
-separate edit to an exact `llvm_version`. Requirements restrict which of those additions a project
-will adopt, for example by keeping LLVM within major version 23:
+Version requirements preserve reproducibility: selection uses a pinned catalogue,
+not live upstream releases. They let projects bind automatic LLVM upgrades to
+deliberate `toolchains_llvm` release upgrades. A `toolchains_llvm` release can add
+new LLVM release identifiers to its checksummed catalogue. Upgrading the pinned
+module then makes those releases eligible without a separate edit to an exact
+`llvm_version`. Requirements restrict which of those additions a project will
+adopt, for example by keeping LLVM within major version 23:
 
 ```starlark
 llvm.toolchain(
