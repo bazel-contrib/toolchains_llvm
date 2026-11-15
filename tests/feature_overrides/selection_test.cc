@@ -42,4 +42,23 @@ static_assert(__cplusplus == 201703L, "default must retain C++17");
 // Exercise the selected distribution's C++ headers and runtime as well.
 #include <string>
 
+#ifndef _LIBCPP_VERSION
+#error "This fixture must use libc++ (from the SDK on macOS)"
+#endif
+#if EXPECT_VARIANT != 2
+static_assert(__clang_major__ == 23, "fallback compiler must remain LLVM 23");
+#endif
+
+// macOS deliberately uses the SDK's libc++; only Linux uses the distribution's
+// libc++ headers. Root inheritance must not change either platform's policy.
+#ifndef __APPLE__
+#if EXPECT_VARIANT == 2
+static_assert(_LIBCPP_VERSION == 220108,
+              "LLVM 22 override must not inherit LLVM 23 headers");
+#else
+static_assert(_LIBCPP_VERSION == 230102,
+              "fallback and flag/linker-only overrides must retain LLVM 23 headers");
+#endif
+#endif
+
 int main() { return std::string("toolchain").size() == 9 ? 0 : 1; }

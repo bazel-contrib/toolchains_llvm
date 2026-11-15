@@ -114,6 +114,13 @@ feature_conditions_repository = repository_rule(
 def merge_override(base, settings, reset = []):
     """Inherit settings, replacing dictionary entries and all other values."""
     result = dict(base)
+
+    # Roots select an already-materialized distribution and bypass downloads.
+    # An explicit distribution setting must not silently keep the base's
+    # compiler or target libraries. Apply explicit replacement roots below.
+    if any([key in llvm_repo_attrs and key not in ["exec_os", "exec_arch", "supported_platforms"] for key in list(settings.keys()) + reset]):
+        result.pop("toolchain_roots", None)
+        result.pop("target_toolchain_roots", None)
     for key in reset:
         result.pop(key, None)
     for key, value in settings.items():

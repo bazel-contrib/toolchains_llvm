@@ -16,6 +16,7 @@
 
 load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts", "unittest")
 load(":feature_overrides.bzl", "can_share_llvm_archive", "merge_override", "select_override", llvm_feature_override = "make_override")
+load(":repo.bzl", "llvm_repo_attrs")
 
 def _selection_test_impl(ctx):
     env = unittest.begin(ctx)
@@ -105,6 +106,132 @@ def _invalid_impl(ctx):
         llvm_feature_override(features = ["--a"])
     return []
 
+def _external_roots_base():
+    return dict(
+        llvm_version = "23.1.2",
+        toolchain_roots = {"": "@llvm_k8//", "linux-aarch64": "@llvm_arm64//"},
+        target_toolchain_roots = {"": "@llvm_k8//", "linux-aarch64": "@llvm_arm64//"},
+        sysroot = {"linux-aarch64": "@arm64_sysroot//:root"},
+    )
+
+def _download_version_override_test_impl(ctx):
+    env = unittest.begin(ctx)
+
+    # Existing MBO/XFF-style use: ordinary builds download LLVM 23, whereas
+    # MSan selects LLVM 22 and its matching instrumented libc++, without roots.
+    base = dict(llvm_version = "23.1.2", linker = {"linux-x86_64": "mold"})
+    msan = merge_override(base, dict(
+        llvm_version = "22.1.8",
+        libcxx_url = "https://example.test/libcxx-msan-22.1.8.tar.zst",
+        linker = {"linux-x86_64": ""},
+    ))
+    asserts.equals(env, "22.1.8", msan["llvm_version"])
+    asserts.equals(env, {"linux-x86_64": ""}, msan["linker"])
+    asserts.equals(env, "https://example.test/libcxx-msan-22.1.8.tar.zst", msan["libcxx_url"])
+    asserts.false(env, "toolchain_roots" in msan)
+    asserts.false(env, "target_toolchain_roots" in msan)
+    asserts.false(env, can_share_llvm_archive(base, {"llvm_version": "22.1.8"}))
+    asserts.equals(env, "23.1.2", base["llvm_version"])
+    return unittest.end(env)
+
+def _distribution_roots_test_impl(ctx):
+    env = unittest.begin(ctx)
+    base = _external_roots_base()
+    selection = {
+        "llvm_version": "22.1.8",
+        "llvm_versions": {"": "22.1.8"},
+        "distribution": "clang+llvm-22.1.8.tar.xz",
+        "urls": {"": ["https://example.test/llvm.tar.xz"]},
+        "extra_llvm_distribution_files": [Label("//:MODULE.bazel")],
+        "extra_llvm_distributions": {"llvm.tar.xz": "sha256"},
+        "use_builtin_llvm_distributions": False,
+        "libcxx_url": "https://example.test/libcxx-msan.tar.xz",
+    }
+    for key, value in selection.items():
+        merged = merge_override(base, {key: value})
+        asserts.false(env, "toolchain_roots" in merged, key)
+        asserts.false(env, "target_toolchain_roots" in merged, key)
+        asserts.equals(env, value, merged[key])
+        asserts.equals(env, base["sysroot"], merged["sysroot"])
+        asserts.false(env, can_share_llvm_archive(base, {key: value}))
+
+    # Explicit intent, not a value comparison: even the same LLVM version
+    # requests a distribution rather than inheriting a caller's installation.
+    same_version = merge_override(base, {"llvm_version": base["llvm_version"]})
+    asserts.false(env, "toolchain_roots" in same_version)
+    asserts.false(env, "target_toolchain_roots" in same_version)
+    for key in llvm_repo_attrs:
+        # A reset to a download/selection default must not keep old roots either.
+        merged = merge_override(base, {}, reset = [key])
+        if key in ["exec_os", "exec_arch", "supported_platforms"]:
+            asserts.equals(env, base["toolchain_roots"], merged["toolchain_roots"])
+            asserts.equals(env, base["target_toolchain_roots"], merged["target_toolchain_roots"])
+        else:
+            asserts.false(env, "toolchain_roots" in merged, key)
+            asserts.false(env, "target_toolchain_roots" in merged, key)
+
+    # Never mutate the default configuration.
+    asserts.equals(env, "@llvm_k8//", base["toolchain_roots"][""])
+    asserts.equals(env, "@llvm_arm64//", base["target_toolchain_roots"]["linux-aarch64"])
+    return unittest.end(env)
+
+def _configuration_only_roots_test_impl(ctx):
+    env = unittest.begin(ctx)
+    base = _external_roots_base()
+    for settings in [
+        {},
+        {"extra_compile_flags": {"": ["-DVARIANT"]}},
+        {"linker": {"": "mold"}, "linker_version": "latest"},
+        {"exec_os": "linux", "exec_arch": "aarch64", "supported_platforms": ["linux"]},
+    ]:
+        merged = merge_override(base, settings)
+        asserts.equals(env, base["toolchain_roots"], merged["toolchain_roots"])
+        asserts.equals(env, base["target_toolchain_roots"], merged["target_toolchain_roots"])
+        asserts.equals(env, base["sysroot"], merged["sysroot"])
+
+    # Without a distribution setting, explicit root entries still merge by key.
+    roots_only = merge_override(base, {"toolchain_roots": {"": "@replacement_compiler//"}})
+    asserts.equals(env, {"": "@replacement_compiler//", "linux-aarch64": "@llvm_arm64//"}, roots_only["toolchain_roots"])
+    asserts.equals(env, base["target_toolchain_roots"], roots_only["target_toolchain_roots"])
+    return unittest.end(env)
+
+def _distribution_explicit_roots_test_impl(ctx):
+    env = unittest.begin(ctx)
+    base = _external_roots_base()
+
+    # Explicit roots belong to the new distribution; do not merge old entries.
+    explicit = dict(toolchain_roots = {"": "@new_compiler//"}, target_toolchain_roots = {"linux-aarch64": "@new_runtime//"})
+    for keys in [["toolchain_roots"], ["target_toolchain_roots"], explicit.keys()]:
+        settings = dict({key: explicit[key] for key in keys}, llvm_version = "22.1.8")
+        merged = merge_override(base, settings)
+        for key in explicit:
+            if key in settings:
+                asserts.equals(env, explicit[key], merged[key])
+            else:
+                asserts.false(env, key in merged)
+
+    empty_roots = merge_override(base, dict(llvm_version = "22.1.8", toolchain_roots = {}, target_toolchain_roots = {}))
+    asserts.equals(env, {}, empty_roots["toolchain_roots"])
+    asserts.equals(env, {}, empty_roots["target_toolchain_roots"])
+    asserts.equals(env, "@llvm_arm64//", base["toolchain_roots"]["linux-aarch64"])
+    return unittest.end(env)
+
+def _distribution_sysroot_test_impl(ctx):
+    env = unittest.begin(ctx)
+    base = _external_roots_base()
+    for settings, reset, expected in [
+        ({"llvm_version": "22.1.8"}, [], base["sysroot"]),
+        ({"llvm_version": "22.1.8", "sysroot": {"linux-x86_64": "@x86_sysroot//:root"}}, [], {"linux-aarch64": "@arm64_sysroot//:root", "linux-x86_64": "@x86_sysroot//:root"}),
+        ({"llvm_version": "22.1.8", "sysroot": {"linux-aarch64": "@new_arm_sysroot//:root"}}, [], {"linux-aarch64": "@new_arm_sysroot//:root"}),
+        ({"llvm_version": "22.1.8"}, ["sysroot"], None),
+    ]:
+        merged = merge_override(base, settings, reset)
+        asserts.equals(env, expected, merged.get("sysroot"))
+        asserts.false(env, "toolchain_roots" in merged)
+        asserts.false(env, "target_toolchain_roots" in merged)
+    asserts.equals(env, {"linux-aarch64": "@arm64_sysroot//:root"}, base["sysroot"])
+    return unittest.end(env)
+
 def _archive_sharing_test_impl(ctx):
     env = unittest.begin(ctx)
     base = dict(llvm_version = "23.1.2")
@@ -145,6 +272,11 @@ _selection_test = unittest.make(_selection_test_impl)
 _signed_features_test = unittest.make(_signed_features_test_impl)
 _inheritance_test = unittest.make(_inheritance_test_impl)
 _archive_sharing_test = unittest.make(_archive_sharing_test_impl)
+_distribution_roots_test = unittest.make(_distribution_roots_test_impl)
+_download_version_override_test = unittest.make(_download_version_override_test_impl)
+_configuration_only_roots_test = unittest.make(_configuration_only_roots_test_impl)
+_distribution_explicit_roots_test = unittest.make(_distribution_explicit_roots_test_impl)
+_distribution_sysroot_test = unittest.make(_distribution_sysroot_test_impl)
 
 def feature_overrides_test_suite(name):
     """Test positive, negative and ambiguous predicates, and attribute merging."""
@@ -164,8 +296,17 @@ def feature_overrides_test_suite(name):
         _invalid(name = name + "_" + case + "_subject", case = case, tags = ["manual"])
         _invalid_test(name = name + "_" + case + "_test", target_under_test = name + "_" + case + "_subject", message = message)
         tests.append(name + "_" + case + "_test")
-    _selection_test(name = name + "_selection_test")
-    _signed_features_test(name = name + "_signed_features_test")
-    _inheritance_test(name = name + "_inheritance_test")
-    _archive_sharing_test(name = name + "_archive_sharing_test")
-    native.test_suite(name = name, tests = tests + [name + "_selection_test", name + "_signed_features_test", name + "_inheritance_test", name + "_archive_sharing_test"])
+    for suffix, test in {
+        "selection": _selection_test,
+        "signed_features": _signed_features_test,
+        "inheritance": _inheritance_test,
+        "archive_sharing": _archive_sharing_test,
+        "download_version_override": _download_version_override_test,
+        "distribution_roots": _distribution_roots_test,
+        "configuration_only_roots": _configuration_only_roots_test,
+        "distribution_explicit_roots": _distribution_explicit_roots_test,
+        "distribution_sysroot": _distribution_sysroot_test,
+    }.items():
+        test(name = name + "_" + suffix + "_test")
+        tests.append(name + "_" + suffix + "_test")
+    native.test_suite(name = name, tests = tests)
