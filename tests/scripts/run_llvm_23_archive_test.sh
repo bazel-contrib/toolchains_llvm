@@ -24,6 +24,10 @@ scripts_dir="${BASH_SOURCE[0]%/*}"
 source "${scripts_dir}/bazel.sh"
 "${bazel}" version
 
+test_log="$(mktemp "${TMPDIR:-/tmp}/llvm-23-archive-test.XXXXXX")"
+readonly test_log
+trap 'rm -f "${test_log}"' EXIT
+
 cd "${scripts_dir}/.."
 if [[ ${system_name} == "Darwin" ]]; then
   case "${machine}" in
@@ -41,5 +45,19 @@ fi
 "${bazel}" --bazelrc=/dev/null test \
   "${common_test_args[@]}" \
   --extra_toolchains="${toolchain}" \
-  --repo_env="LLVM_VERSION=${llvm_version}" \
-  //:stdlib_test
+  --repo_env="LLVM_VERSION=first:==${llvm_version}" \
+  //:stdlib_test 2>&1 | tee "${test_log}"
+
+if [[ -n ${EXPECTED_LLVM_ARCHIVE_SUFFIX:-} ]]; then
+  # A selector constrained to one release logs the selected archive. Verify
+  # that CI exercised the expected compression, not merely a successful build.
+  resolved_archives="$(grep -F ": LLVM-${llvm_version}-" "${test_log}" || true)"
+  if [[ -z ${resolved_archives} ]]; then
+    # A repeated local run may reuse repositories without resolving or
+    # extracting an archive. CI starts with fresh repositories.
+    echo "Reused cached LLVM repositories; no new archive extraction to check."
+  elif ! grep -F "${EXPECTED_LLVM_ARCHIVE_SUFFIX}" <<<"${resolved_archives}"; then
+    echo "ERROR: Expected LLVM ${llvm_version} to select ${EXPECTED_LLVM_ARCHIVE_SUFFIX}" >&2
+    exit 1
+  fi
+fi
