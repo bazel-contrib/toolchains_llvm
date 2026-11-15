@@ -185,8 +185,9 @@ occasionally publishes platform assets under a different product version.
 By default, extra distributions are merged with the bundled table. An extra
 entry with the same basename replaces the bundled checksum; use a complete URL
 or local path as the key to replace its source as well. Both `.tar.xz` and
-`.tar.zst` assets are retained, but xz is selected until Bazel can unpack
-LLVM's large-window zstd archives.
+`.tar.zst` assets are retained. Bazel 9.3.0 and newer prefer zstd, then xz,
+then gzip; older Bazel versions select only xz or gzip because they cannot
+unpack LLVM's large-window zstd archives.
 
 On macOS, LLVM 23.1.0 to 23.1.2 require a linker override such as
 `linker = {"darwin-aarch64": "auto"}` with current SDKs. Their bundled linker
@@ -1114,10 +1115,12 @@ or a **full URL/path** (used verbatim, bypassing `base_url`). Comments are
 stripped before parsing, and trailing commas are tolerated.
 
 The distribution data and both helper scripts retain `.tar.zst`, `.tar.xz`,
-and `.tar.gz` archives with their checksums. Automatic selection currently
-uses only xz or gzip: released Bazel versions cannot unpack LLVM 23's
-large-window zstd archives. Retaining zstd metadata does not enable its use;
-archive compatibility is decided by the toolchain selector, not the scripts.
+and `.tar.gz` archives with their checksums. Automatic selection prefers zstd
+on Bazel 9.3.0 and newer, with xz and gzip as fallbacks. Older Bazel versions
+skip zstd because they cannot unpack LLVM 23's large-window archives. Archive
+compatibility is decided by the toolchain selector, not the scripts.
+Bazel 10 rolling releases support zstd from `10.0.0-pre.20261001.2`; earlier
+rolling releases and Bazel 9.3.0 RCs retain the xz/gzip fallback.
 
 ### Two helper scripts
 
