@@ -21,8 +21,6 @@ settings without duplicating the entire toolchain configuration.
 See notes on the [release](https://github.com/bazel-contrib/toolchains_llvm/releases)
 for how to get started, and the [changelog](CHANGELOG.md) for feature availability.
 
-NOTE: For releases prior to 0.10.1, please also see [these notes](REPO_RENAME.md).
-
 <!-- Release notes template: .github/workflows/release_notes_template.txt -->
 
 ## Basic Usage
@@ -33,13 +31,6 @@ below for more options.
 
 See in-code documentation in [rules.bzl](toolchain/rules.bzl) for available
 attributes to `llvm_toolchain`.
-
-### Upgrading to 1.13.0
-
-`first` / `latest` selectors now require an explicit opt-in to select
-prereleases. Exact pins, including RC pins, are unchanged. Read the
-[1.13.0 migration guide](docs/migration-1.13.0.md) for the required configuration
-changes, range choices, and RC ordering under SemVer.
 
 ## Advanced Usage
 
@@ -1100,6 +1091,22 @@ authentication when available and `GITHUB_TOKEN` is unset, and optionally uses
 Trunk or the repository's Prettier launcher for formatting.
 `utils/extra_distributions.sh` requires `bash`, `curl`, `jq`, `awk`, and either
 `sha256sum` (Linux, Git Bash) or `shasum` (macOS).
+
+## Compatibility and migration notes
+
+### 1.13.0: prerelease selection
+
+`first` / `latest` selectors now require an explicit opt-in to select
+prereleases. Exact pins, including RC pins, are unchanged. Read the
+[1.13.0 migration guide](docs/migration-1.13.0.md) for the required configuration
+changes, range choices, and RC ordering under SemVer.
+
+### Before 0.10.1: repository rename
+
+The repository rename changed the checksums and `strip_prefix` values of generated
+source archives for releases before 0.10.1. Read the
+[repository rename notes](REPO_RENAME.md) for the updated values. Releases starting
+with 0.10.1 provide stable release artifacts instead.
 
 ## Prior Art
 
