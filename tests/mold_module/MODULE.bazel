@@ -1,6 +1,6 @@
 module(name = "toolchains_llvm_mold_test")
 
-bazel_dep(name = "mold", version = "2.40.4")
+bazel_dep(name = "mold", version = "2.42.1")
 bazel_dep(name = "rules_cc", version = "0.2.28")
 bazel_dep(name = "toolchains_llvm", version = "0.0.0")
 

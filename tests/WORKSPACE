@@ -27,9 +27,9 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "bazel_features",
-    sha256 = "790b660c9cb35adb91071a4f6e62d29988a7383cbb948b39aa7c0065eea1e035",
-    strip_prefix = "bazel_features-1.54.1",
-    url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.54.1/bazel_features-v1.54.1.tar.gz",
+    sha256 = "2ed1fdce7e51ba2149dfab73eab6e402217c8e27d17e1d4a48d4d86bdd9eaef6",
+    strip_prefix = "bazel_features-1.55.0",
+    url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.55.0/bazel_features-v1.55.0.tar.gz",
 )
 
 load("@bazel_features//:deps.bzl", "bazel_features_deps")
@@ -407,9 +407,9 @@ maybe(
 
 http_archive(
     name = "rules_python",
-    sha256 = "4765b9a4a9c6e0fb89f465aac5b5b0ac06589c9477144340859310777ad801a7",
-    strip_prefix = "rules_python-2.4.6",
-    url = "https://github.com/bazelbuild/rules_python/releases/download/2.4.6/rules_python-2.4.6.tar.gz",
+    sha256 = "693759df31e7cd2efa44378207a7d487c40145d32a54878005af47dee27bef72",
+    strip_prefix = "rules_python-2.5.1",
+    url = "https://github.com/bazelbuild/rules_python/releases/download/2.5.1/rules_python-2.5.1.tar.gz",
 )
 
 load("@rules_python//python:repositories.bzl", "py_repositories")
