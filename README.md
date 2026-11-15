@@ -1174,6 +1174,7 @@ Related projects and examples of toolchain configuration:
 - [Bazel C++ toolchain configuration tutorial](https://bazel.build/tutorials/ccp-toolchain-config).
 - [vsco/bazel-toolchains](https://github.com/vsco/bazel-toolchains).
 - [hermeticbuild/hermetic-llvm](https://github.com/hermeticbuild/hermetic-llvm) —
-  a related LLVM-based toolchain focused on fully hermetic, fast C/C++ builds and
-  cross-compilation. It combines compact prebuilt compiler tools with
-  Bazel-managed target headers and runtimes, without user-supplied sysroots.
+  a newer project sharing many of `toolchains_llvm`'s goals, with an additional
+  focus on strictly hermetic, fast C/C++ builds and cross-compilation. It combines
+  compact prebuilt compiler tools with Bazel-managed target headers and runtimes,
+  without user-supplied sysroots.
