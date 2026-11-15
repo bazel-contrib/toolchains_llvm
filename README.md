@@ -1,5 +1,21 @@
 # LLVM toolchain for Bazel [![Tests](https://github.com/bazel-contrib/toolchains_llvm/actions/workflows/tests.yml/badge.svg)](https://github.com/bazel-contrib/toolchains_llvm/actions/workflows/tests.yml)
 
+`toolchains_llvm` makes Clang and LLVM part of your Bazel build configuration.
+Define the compiler your project needs, share that configuration across developer
+machines and CI, and make toolchain upgrades deliberate, reviewable dependency
+changes.
+
+It automatically selects and downloads checksum-verified, prebuilt LLVM
+distributions for supported platforms, or uses custom distributions and existing
+installations you provide. Pin an exact version or follow a constrained release
+range, and choose the bundled LLVM linker, a native linker, or a separately
+downloaded linker such as mold.
+
+Start with a straightforward C or C++ build, then extend the configuration for
+sanitizers, ThinLTO, cross-compilation, or remote execution. Feature-based overrides
+let specialized builds select different compiler versions, linkers, and runtime
+settings without duplicating the entire toolchain configuration.
+
 ## Quickstart
 
 See notes on the [release](https://github.com/bazel-contrib/toolchains_llvm/releases)
