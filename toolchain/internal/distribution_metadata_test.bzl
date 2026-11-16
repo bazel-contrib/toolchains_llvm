@@ -104,16 +104,43 @@ def _selection_test_impl(ctx):
         parsed_llvm_version = None,
         metadata = {_ARCHIVE: catalogue_metadata(_META, _ARCHIVE, "23.1.2")},
     )
-    for os, arch, expected in [("linux", "x86_64", [_ARCHIVE]), ("linux", "aarch64", []), ("darwin", "x86_64", [])]:
-        host = struct(os = os, arch = arch, dist = struct(name = os, version = ""))
-        asserts.equals(env, expected, testing.find_llvm_basename_list("23.1.2", entries, host))
-        version, name, error = testing.required_llvm_release_name(version_or_requirements = "latest:major==23", all_llvm_distributions = entries, host_info = host)
-        if expected:
-            asserts.equals(env, "23.1.2", version)
-            asserts.equals(env, _ARCHIVE, name)
+    for bazel_version in ["7.7.2", "8.8.2", "9.2.0", "9.3.0"]:
+        for os, arch, expected in [("linux", "x86_64", [_ARCHIVE]), ("linux", "aarch64", []), ("darwin", "x86_64", [])]:
+            host = struct(os = os, arch = arch, dist = struct(name = os, version = ""))
+
+            # Explicit mappings retain custom zstd selection on older Bazel:
+            # these archives need not use official LLVM's large zstd window.
+            asserts.equals(env, expected, testing.find_llvm_basename_list("23.1.2", entries, host, bazel_version = bazel_version))
+            version, name, error = testing.required_llvm_release_name(version_or_requirements = "latest:major==23", all_llvm_distributions = entries, host_info = host, bazel_version = bazel_version)
+            if expected:
+                asserts.equals(env, "23.1.2", version)
+                asserts.equals(env, _ARCHIVE, name)
+                asserts.equals(env, None, error)
+            else:
+                asserts.true(env, error != None)
+
+    # Mixing custom mappings and conventional LLVM archives must preserve
+    # mapping precedence and apply the Bazel gate to conventional fallbacks.
+    entries = testing.get_all_llvm_distributions(
+        llvm_distributions = {
+            "LLVM-23.1.2-Linux-{}.tar.{}".format(arch, compression): "1" * 64
+            for arch in ["X64", "ARM64"]
+            for compression in ["xz", "zst"]
+        },
+        extra_llvm_distributions = {_ARCHIVE: "sha"},
+        parsed_llvm_version = None,
+        metadata = {_ARCHIVE: catalogue_metadata(_META, _ARCHIVE, "23.1.2")},
+    )
+    for bazel_version, suffix in [("7.7.2", ".tar.xz"), ("8.8.2", ".tar.xz"), ("9.2.0", ".tar.xz"), ("9.3.0", ".tar.zst")]:
+        for arch, expected in [("x86_64", _ARCHIVE), ("aarch64", "LLVM-23.1.2-Linux-ARM64" + suffix)]:
+            host = struct(os = "linux", arch = arch, dist = struct(name = "ubuntu", version = "24.04"))
+            basename, error = testing.find_llvm_basename_or_error("23.1.2", entries, host, bazel_version = bazel_version)
             asserts.equals(env, None, error)
-        else:
-            asserts.true(env, error != None)
+            asserts.equals(env, expected, basename)
+            version, basename, error = testing.required_llvm_release_name(version_or_requirements = "latest:major==23", all_llvm_distributions = entries, host_info = host, bazel_version = bazel_version)
+            asserts.equals(env, None, error)
+            asserts.equals(env, "23.1.2", version)
+            asserts.equals(env, expected, basename)
     return unittest.end(env)
 
 def _requirements_test_impl(ctx):

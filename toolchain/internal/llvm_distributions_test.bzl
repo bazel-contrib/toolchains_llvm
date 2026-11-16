@@ -20,6 +20,10 @@ load(":llvm_distributions.bzl", _testing = "testing")
 
 _semver = versions.with_mode("semver")
 
+# Keep historical golden files independent of the Bazel running the tests.
+# archive_selection_test.bzl exercises both sides of the zstd version gate.
+_GOLDEN_BAZEL_VERSION = "9.2.0"
+
 def _parse_version(version):
     return tuple(_semver.parse(version))
 
@@ -38,8 +42,7 @@ def _distributions_test_writer_impl(ctx):
 
     # Inject version '0.0.0' that verifies additional behavior using `extra_llvm_distributions`.
     extra_llvm_distributions = {
-        # Keep both formats to verify that automatic selection avoids zstd
-        # until Bazel supports the large windows used by LLVM 23 archives.
+        # The historical golden output exercises the pre-9.3 xz fallback.
         "LLVM-0.0.0-Linux-ARM64.tar.zst": "d6b8679be46bdaa383e0c7f13a473ca8f7a4f87233f2cc0e0a7ab19e1b6265e7",
         "LLVM-0.0.0-Linux-ARM64.tar.xz": "a6b8679be46bdaa383e0c7f13a473ca8f7a4f87233f2cc0e0a7ab19e1b6265e7",
         "/foo/bar/LLVM-0.0.0-Linux-X64.tar.xz?xyz": "0a764a8ca521606532ca9ec4e5745c933b16b7d30f4701a47ee851d448fcdb74",
@@ -181,12 +184,13 @@ def _distributions_test_writer_impl(ctx):
                         os = os,
                         dist = dist,
                     )
-                    basenames = _testing.find_llvm_basename_list(_semver.normalize_string(version), all_llvm_distributions, host_info)
+                    basenames = _testing.find_llvm_basename_list(_semver.normalize_string(version), all_llvm_distributions, host_info, bazel_version = _GOLDEN_BAZEL_VERSION)
                     if version <= MAX_VERSION:
                         predicted, error = _testing.find_llvm_basename_or_error(
                             _semver.normalize_string(version),
                             all_llvm_distributions,
                             host_info,
+                            bazel_version = _GOLDEN_BAZEL_VERSION,
                         )
                         skip_output = False
                         if error:
@@ -306,6 +310,7 @@ def _requirements_test_writer_impl(ctx):
                         version_or_requirements = requirement,
                         all_llvm_distributions = all_llvm_distributions,
                         host_info = host_info,
+                        bazel_version = _GOLDEN_BAZEL_VERSION,
                     )
                     if llvm_version and basename:
                         result.append("[{arch},{os}{dist_name}{dist_version},'{requirement}']: {llvm_version} = {basename}".format(
@@ -356,6 +361,7 @@ def _prerelease_test_writer_impl(ctx):
             version_or_requirements = requested,
             all_llvm_distributions = available,
             host_info = host,
+            bazel_version = _GOLDEN_BAZEL_VERSION,
         )
         result.append("exact {version}: {result}".format(
             version = requested,
@@ -373,6 +379,7 @@ def _prerelease_test_writer_impl(ctx):
                 version_or_requirements = requested,
                 all_llvm_distributions = all_distributions,
                 host_info = host,
+                bazel_version = _GOLDEN_BAZEL_VERSION,
                 allow_prereleases = allow_prereleases,
             )
             result.append("allow_prereleases={allow_prereleases} {requested}: {result}".format(
@@ -411,6 +418,7 @@ def _prerelease_test_writer_impl(ctx):
                     version_or_requirements = requested,
                     all_llvm_distributions = selector_distributions,
                     host_info = selector_host,
+                    bazel_version = _GOLDEN_BAZEL_VERSION,
                     allow_prereleases = allow_prereleases,
                 )
                 result.append("synthetic {} allow_prereleases={} {}: {}".format(
@@ -433,6 +441,7 @@ def _prerelease_test_writer_impl(ctx):
         version_or_requirements = "latest",
         all_llvm_distributions = custom_only,
         host_info = host,
+        bazel_version = _GOLDEN_BAZEL_VERSION,
     )
     result.append("custom-only latest: {result}".format(
         result = error or "{} = {}".format(version, basename),

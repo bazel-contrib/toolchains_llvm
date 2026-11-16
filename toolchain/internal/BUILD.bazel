@@ -13,6 +13,7 @@
 # limitations under the License.
 
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+load(":archive_selection_test.bzl", "archive_selection_test_suite")
 load(":distribution_metadata_test.bzl", "distribution_metadata_test_suite")
 load(":feature_overrides_test.bzl", "feature_overrides_test_suite")
 load("linker_distributions.bzl", "linker_version_test_writer")
@@ -22,6 +23,8 @@ load(":toolchain_tools_test.bzl", "toolchain_tools_test_suite")
 load(":version_selectors_test.bzl", "version_selectors_test_suite")
 
 exports_files(["template.modulemap"])
+
+archive_selection_test_suite(name = "archive_selection_tests")
 
 distribution_metadata_test_suite(name = "distribution_metadata_tests")
 
