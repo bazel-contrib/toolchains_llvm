@@ -103,10 +103,11 @@ cc_library(
 # We rely on this assumption in system_module_map.bzl.
 filegroup(
     name = "cxx_builtin_include",
-    srcs = [
-        "include/c++",
-        "lib/clang/{LLVM_VERSION}/include",
-    ] + glob(
+    srcs = ["lib/clang/{LLVM_VERSION}/include"] + glob(
+        ["include/c++"],
+        exclude_directories = 0,
+        allow_empty = True,
+    ) + glob(
         # Sanitizer ignorelists (e.g. msan_ignorelist.txt) auto-loaded by Clang
         # from the resource directory when a sanitizer is enabled.
         ["lib/clang/{LLVM_VERSION}/share"],
