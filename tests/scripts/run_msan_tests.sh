@@ -15,7 +15,7 @@
 
 # End-to-end MemorySanitizer test. Builds and runs //:msan_libcxx_test with the
 # instrumented-libc++ toolchain (@llvm_toolchain_msan, configured via the
-# `libcxx_url` attribute in tests/MODULE.bazel) and `--features=msan`. This
+# checksum-pinned MSan catalogue in tests/MODULE.bazel) and `--features=msan`. This
 # links and runs an instrumented libc++, so it catches an uninstrumented libc++
 # being linked under msan -- something the analysis-only msan_flags_test cannot.
 #

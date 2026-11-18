@@ -17,6 +17,7 @@ package(default_visibility = ["//visibility:public"])
 load("@bazel_skylib//rules:native_binary.bzl", "native_binary")
 load("@rules_cc//cc:defs.bzl", "cc_import", "cc_toolchain", "cc_toolchain_suite")
 load("@toolchains_llvm//toolchain/internal:system_module_map.bzl", "system_module_map")
+load("@toolchains_llvm//toolchain/internal:distribution_metadata.bzl", "distribution_requirements")
 load("%{cc_toolchain_config_bzl}", "cc_toolchain_config")
 
 exports_files(["toolchain_manifest.json"])

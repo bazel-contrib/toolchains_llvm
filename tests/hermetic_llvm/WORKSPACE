@@ -1,0 +1,47 @@
+workspace(name = "hermetic_llvm_tests")
+
+local_repository(
+    name = "toolchains_llvm",
+    path = "../..",
+)
+
+load("@toolchains_llvm//toolchain:deps.bzl", "bazel_toolchain_dependencies")
+
+bazel_toolchain_dependencies()
+
+load("@bazel_features//:deps.bzl", "bazel_features_deps")
+
+bazel_features_deps()
+
+load("@rules_cc//cc:extensions.bzl", "compatibility_proxy_repo")
+
+compatibility_proxy_repo()
+
+load("@toolchains_llvm//toolchain:rules.bzl", "llvm_feature_override", "llvm_toolchain")
+
+llvm_toolchain(
+    name = "llvm_toolchain",
+    cxx_standard = {"": "c++17"},
+    extra_llvm_distribution_files = ["@toolchains_llvm//toolchain/distributions:hermetic_llvm.jsonc"],
+    feature_overrides = [llvm_feature_override(
+        features = ["test_bad_stdlib"],
+        stdlib = {
+            "linux-aarch64": "builtin-libc++",
+            "linux-x86_64": "builtin-libc++",
+        },
+    )],
+    linker = {
+        "darwin-aarch64": "auto",
+        "darwin-x86_64": "auto",
+    },
+    llvm_version = "latest:major==23",
+    stdlib = {
+        "linux-aarch64": "stdc++",
+        "linux-x86_64": "stdc++",
+    },
+    use_builtin_llvm_distributions = False,
+)
+
+load("@llvm_toolchain//:toolchains.bzl", "llvm_register_toolchains")
+
+llvm_register_toolchains()

@@ -22,6 +22,7 @@ load(
     "catalogued_linker_reference",
     "linker_distributions_repository",
 )
+load("//toolchain/internal:platforms.bzl", "SUPPORTED_PLATFORM_KEYS")
 load(
     "//toolchain/internal:repo.bzl",
     _common_attrs = "common_attrs",
@@ -29,6 +30,7 @@ load(
     _llvm_repo_attrs = "llvm_repo_attrs",
     _llvm_repo_impl = "llvm_repo_impl",
 )
+load("//toolchain/internal:runtime_distributions.bzl", "target_runtime_repository")
 
 llvm = repository_rule(
     attrs = _llvm_repo_attrs,
@@ -133,6 +135,20 @@ def _llvm_toolchain(name, **kwargs):
             if (k not in _llvm_config_attrs.keys()) or (k in _common_attrs.keys())
         }
         llvm(name = name + "_llvm", **llvm_args)
+
+    if not kwargs.get("toolchain_roots"):
+        runtime_roots = {}
+        for target in SUPPORTED_PLATFORM_KEYS:
+            runtime_name = name + "_runtime_" + target.replace("-", "_")
+            target_runtime_repository(
+                name = runtime_name,
+                compiler = kwargs.get("feature_base_llvm") or "@{}//:BUILD.bazel".format(name + "_llvm"),
+                target = target,
+                netrc = kwargs.get("netrc", ""),
+                auth_patterns = kwargs.get("auth_patterns", {}),
+            )
+            runtime_roots["@{}//:BUILD.bazel".format(runtime_name)] = target
+        kwargs["catalogue_runtime_roots"] = runtime_roots
 
     toolchain_args = {
         k: v

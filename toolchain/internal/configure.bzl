@@ -39,6 +39,7 @@ load(
     _supported_targets = "SUPPORTED_TARGETS",
     _toolchain_tools = "toolchain_tools",
 )
+load("//toolchain/internal:distribution_metadata.bzl", "catalogue_target_roots")
 load(
     "//toolchain/internal:linker_distributions.bzl",
     _llvm_23_macos_uses_bundled_linker = "llvm_23_macos_uses_bundled_linker",
@@ -193,6 +194,19 @@ def llvm_config_impl(rctx):
     if system_llvm:
         use_absolute_paths_llvm = True
 
+    metadata_root = rctx.path(toolchain_root) if system_llvm else rctx.path(Label(toolchain_root + ":BUILD.bazel")).dirname
+    metadata_file = metadata_root.get_child("distribution_metadata.json")
+    distribution_metadata = json.decode(rctx.read(metadata_file)) if metadata_file.exists else {}
+    runtime_repositories = {target: str(label).rsplit(":", 1)[0] for label, target in rctx.attr.catalogue_runtime_roots.items()}
+    target_toolchain_roots = catalogue_target_roots(
+        distribution_metadata,
+        runtime_repositories,
+        target_toolchain_roots,
+        rctx.attr.target_toolchain_roots,
+        _os_arch_pair(os, arch),
+        rctx.attr.sysroot,
+    )
+
     # Make sure the toolchain root and target toolchain roots either are both absolute or both not.
     for target_toolchain_root in target_toolchain_roots.values():
         if _is_absolute(toolchain_root) != _is_absolute(target_toolchain_root):
@@ -263,7 +277,8 @@ def llvm_config_impl(rctx):
         # lookup. The wrapper executes them from the original LLVM installation.
         wrapper_bin_prefix = "bin/"
         tools_path_prefix = "bin/"
-        tools = _toolchain_tools(os)
+        llvm_bin = rctx.path(Label(toolchain_root + ":BUILD.bazel")).dirname.get_child("bin")
+        tools = _toolchain_tools(os, llvm_bin)
         for tool_name, wrapper_name in tools.items():
             rctx.template(
                 paths.join(tools_path_prefix, wrapper_name),
@@ -319,6 +334,7 @@ def llvm_config_impl(rctx):
 
     workspace_name = rctx.name
     toolchain_info = struct(
+        distribution_metadata = distribution_metadata,
         os = os,
         arch = arch,
         llvm_dist_label_prefix = llvm_dist_label_prefix,
@@ -501,6 +517,8 @@ def _toolchain_registration(rctx, suffix, target_os, target_arch, toolchain_info
     settings = _dict_value(toolchain_info.target_settings_dict, target_pair, [])
     if rctx.attr.feature_condition:
         settings = settings + [str(rctx.attr.feature_condition)]
+    if toolchain_info.distribution_metadata.get("requirements"):
+        settings = settings + ["{}@{}//:distribution-compatible-{}".format("@" if BZLMOD_ENABLED else "", rctx.name, suffix)]
     return {
         "name": "cc-toolchain-" + suffix,
         "exec_compatible_with": [
@@ -778,6 +796,7 @@ cc_toolchain_config(
     compiler_configuration = {{
       "sysroot_path": "{sysroot_path}",
       "stdlib": "{stdlib}",
+      "has_target_runtime": {has_target_runtime},
       "multiarch": "{multiarch_override}",
       "cxx_include_layout": "{cxx_include_layout}",
       "cxx_standard": "{cxx_standard}",
@@ -1005,7 +1024,30 @@ filegroup(
             use_tsan = str(Label("//toolchain/config:use_tsan")),
         )
 
+    if toolchain_info.distribution_metadata.get("requirements"):
+        template += """
+distribution_requirements(
+    name = "distribution-requirements-{suffix}",
+    distribution = {distribution_name},
+    requirements = {distribution_requirements},
+    target = "{target_os}-{target_arch}",
+    stdlib = "{stdlib}",
+    selection = {distribution_selection},
+    variant = {distribution_variant},
+    target_constraints = {distribution_target_constraints},
+)
+config_setting(
+    name = "distribution-compatible-{suffix}",
+    flag_values = {{":distribution-requirements-{suffix}": "compatible"}},
+)
+"""
+    condition = str(rctx.attr.feature_condition) if rctx.attr.feature_condition else ""
     return template.format(
+        distribution_selection = repr(condition.rsplit(":", 1)[0] + ":selection") if condition else "None",
+        distribution_variant = repr(condition.rsplit(":", 1)[-1].removeprefix("variant_")),
+        distribution_target_constraints = repr(_toolchain_registration(rctx, suffix, target_os, target_arch, toolchain_info)["target_compatible_with"]),
+        distribution_name = repr(toolchain_info.distribution_metadata.get("archive", toolchain_info.toolchain_root)),
+        distribution_requirements = repr(json.encode(toolchain_info.distribution_metadata.get("requirements", {}))),
         toolchain_registration = _registration_str(_toolchain_registration(rctx, suffix, target_os, target_arch, toolchain_info)),
         suffix = suffix,
         target_os = target_os,
@@ -1023,6 +1065,7 @@ filegroup(
         sysroot_label_str = sysroot_label_str,
         sysroot_path = sysroot_path,
         stdlib = stdlib,
+        has_target_runtime = repr(target_toolchain_root != toolchain_info.toolchain_root),
         multiarch_override = toolchain_info.multiarch_dict.get(target_pair, ""),
         cxx_include_layout = toolchain_info.cxx_include_layout_dict.get(target_pair, ""),
         cxx_standard = _dict_value(toolchain_info.cxx_standard_dict, target_pair, "c++17"),

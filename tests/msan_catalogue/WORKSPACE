@@ -1,0 +1,60 @@
+workspace(name = "msan_catalogue_tests")
+
+local_repository(
+    name = "toolchains_llvm",
+    path = "../..",
+)
+
+load("@toolchains_llvm//toolchain:deps.bzl", "bazel_toolchain_dependencies")
+
+bazel_toolchain_dependencies()
+
+load("@bazel_features//:deps.bzl", "bazel_features_deps")
+
+bazel_features_deps()
+
+load("@rules_cc//cc:extensions.bzl", "compatibility_proxy_repo")
+
+compatibility_proxy_repo()
+
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "msan_arm64_sysroot",
+    build_file_content = 'filegroup(name = "sysroot", srcs = ["."], visibility = ["//visibility:public"])',
+    sha256 = "278c36fe3a785d7f89fbe3f46956899a3bd49fe665f68dc667d6f626a951fcd6",
+    type = "tar.xz",
+    urls = ["https://commondatastorage.googleapis.com/chrome-linux-sysroot/278c36fe3a785d7f89fbe3f46956899a3bd49fe665f68dc667d6f626a951fcd6"],
+)
+
+load("@toolchains_llvm//toolchain:rules.bzl", "llvm_feature_override", "llvm_toolchain")
+
+llvm_toolchain(
+    name = "llvm_toolchain",
+    extra_llvm_distribution_files = ["@toolchains_llvm//toolchain/distributions:hermetic_llvm.jsonc"],
+    feature_overrides = [llvm_feature_override(
+        extra_llvm_distribution_files = ["@toolchains_llvm//toolchain/distributions:msan.jsonc"],
+        features = ["msan"],
+        llvm_version = "22.1.8",
+        stdlib = {
+            "linux-x86_64": "builtin-libc++",
+            "linux-aarch64": "builtin-libc++",
+        },
+        targets = [
+            "linux-x86_64",
+            "linux-aarch64",
+        ],
+    )],
+    linker = {"darwin-aarch64": "auto"},
+    llvm_version = "23.1.2",
+    stdlib = {
+        "linux-x86_64": "stdc++",
+        "linux-aarch64": "stdc++",
+    },
+    sysroot = {"linux-aarch64": "@msan_arm64_sysroot//:sysroot"},
+    use_builtin_llvm_distributions = False,
+)
+
+load("@llvm_toolchain//:toolchains.bzl", "llvm_register_toolchains")
+
+llvm_register_toolchains()
