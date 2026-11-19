@@ -276,6 +276,45 @@ def _darwin_linker_test_impl(ctx):
 # matching plugin in the sandbox and avoid Linux-specific -lm at the same time.
 darwin_linker_test = analysistest.make(_darwin_linker_test_impl)
 
+def _sysroot_value(argv):
+    for arg in argv:
+        if arg.startswith("--sysroot="):
+            return arg[len("--sysroot="):]
+    return None
+
+def _isysroot_value(argv):
+    for i, arg in enumerate(argv[:-1]):
+        if arg == "-isysroot":
+            return argv[i + 1]
+    return None
+
+def _darwin_isysroot_test_impl(ctx):
+    env = analysistest.begin(ctx)
+    actions = [
+        a
+        for a in analysistest.target_actions(env)
+        if a.mnemonic in ["CppCompile", "CppLink"]
+    ]
+    asserts.true(env, len(actions) > 0, "expected compile and link actions")
+    for action in actions:
+        sysroot = _sysroot_value(action.argv)
+        asserts.true(
+            env,
+            sysroot != None,
+            "expected --sysroot on the %s command line, got: %s" % (action.mnemonic, action.argv),
+        )
+        asserts.equals(
+            env,
+            sysroot,
+            _isysroot_value(action.argv),
+            "expected -isysroot to match --sysroot on the %s command line" % action.mnemonic,
+        )
+    return analysistest.end(env)
+
+# Clang reads the SDK version from SDKSettings.json only with -isysroot. Check
+# that Darwin compile and link actions pass the sysroot as -isysroot too.
+darwin_isysroot_test = analysistest.make(_darwin_isysroot_test_impl)
+
 def _sanitizer_combo_flags_test_impl(ctx):
     env = analysistest.begin(ctx)
     cpp_actions = [

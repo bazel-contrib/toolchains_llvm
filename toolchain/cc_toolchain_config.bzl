@@ -410,6 +410,14 @@ def cc_toolchain_config(
     if sysroot_path:
         sysroot_path = paths.ensure_trailing_slash(sysroot_path)
 
+    # On Darwin, clang reads SDKSettings.json only from -isysroot or SDKROOT.
+    # It does not read it from --sysroot. Without it, clang records the
+    # deployment target as the SDK version in LC_BUILD_VERSION. Pass the
+    # sysroot as -isysroot too, so the SDK version comes from the SDK.
+    if target_os == "darwin" and sysroot_path:
+        compile_flags.extend(["-isysroot", sysroot_path])
+        link_flags.extend(["-isysroot", sysroot_path])
+
     # Flags related to C++ standard.
     cxx_flags = [
         "-std=" + cxx_standard,
