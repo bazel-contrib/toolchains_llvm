@@ -181,6 +181,14 @@ darwin_linker_test(
     target_under_test = ":stdlib_bin",
 )
 
+sh_test(
+    name = "darwin_sdk_version_test",
+    srcs = ["darwin_sdk_version_test.sh"],
+    args = ["$(location :stdlib_bin)"],
+    data = [":stdlib_bin"],
+    target_compatible_with = ["@platforms//os:macos"],
+)
+
 # Analysis-only check that two sanitizers can be enabled at once. Not restricted
 # to Linux and not tagged manual: it never links or runs, so it needs no
 # sanitizer runtime, and macOS is where the combination used to fail on the
