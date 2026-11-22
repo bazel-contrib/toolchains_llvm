@@ -747,6 +747,9 @@ def _cc_toolchain_str(
         ])
     elif target_os == "darwin":
         cxx_builtin_include_directories.extend([
+            # Clang reads SDKSettings.json from the SDK root when -isysroot is
+            # set. Declare the root so Bazel accepts that compiler input.
+            sysroot_prefix + "/",
             _join(sysroot_prefix, "/usr/include"),
             _join(sysroot_prefix, "/System/Library/Frameworks"),
         ])
