@@ -22,8 +22,9 @@ bazel_dep(name = "bazel_features", version = "1.38.0")
 bazel_dep(name = "bazel_skylib", version = "1.8.2")
 # bazel_lib is aspect_bazel_lib's 3.x name. Keep the old repo name so
 # WORKSPACE users, who still name the bazel_lib archive aspect_bazel_lib, load
-# the same labels.
-bazel_dep(name = "bazel_lib", version = "3.0.0", repo_name = "aspect_bazel_lib")
+# the same labels. 3.8.0 is the first release that doesn't download bats-core
+# just to register its bats toolchain (bazel-contrib/bazel-lib#1302).
+bazel_dep(name = "bazel_lib", version = "3.8.0", repo_name = "aspect_bazel_lib")
 bazel_dep(name = "rules_cc", version = "0.2.17")
 bazel_dep(name = "platforms", version = "1.0.0")
 bazel_dep(name = "mboworks_bzl", version = "0.8.0")
