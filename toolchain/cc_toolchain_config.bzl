@@ -678,6 +678,26 @@ def cc_toolchain_config(
             ":" + name + "_relocatable_cpp_modules",
         ]
 
+    # Write module map paths relative to the execroot.  Relative to each
+    # map, they grow with every `extern module` hop until they pass PATH_MAX
+    # and Clang silently drops headers, breaking layering_check.
+    cc_args(
+        name = name + "_module_map_home_cwd_args",
+        actions = [
+            "@rules_cc//cc/toolchains/actions:c_compile_actions",
+            "@rules_cc//cc/toolchains/actions:cpp_compile_actions",
+        ] + CPP_MODULE_ACTIONS,
+        args = [
+            "-Xclang",
+            "-fmodule-map-file-home-is-cwd",
+        ],
+    )
+    cc_feature(
+        name = name + "_module_map_home_cwd",
+        feature_name = "module_map_home_cwd",
+        args = [":" + name + "_module_map_home_cwd_args"],
+    )
+
     opt_link_flags = ["-Wl,--gc-sections"] if target_os == "linux" else []
 
     # Coverage flags:
@@ -1100,6 +1120,6 @@ def cc_toolchain_config(
         coverage_link_flags = coverage_link_flags,
         supports_start_end_lib = supports_start_end_lib,
         builtin_sysroot = sysroot_path,
-        extra_enabled_features = nomsan_feature_labels + cpp_modules_enabled_features + extra_enabled_features + sanitizer_runtime_features + darwin_thin_lto_features,
+        extra_enabled_features = nomsan_feature_labels + [":" + name + "_module_map_home_cwd"] + cpp_modules_enabled_features + extra_enabled_features + sanitizer_runtime_features + darwin_thin_lto_features,
         extra_known_features = msan_feature_labels + extra_known_features,
     )
