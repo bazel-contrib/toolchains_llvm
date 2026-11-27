@@ -16,7 +16,7 @@ load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
-load(":transitions.bzl", "darwin_linker_test", "dwp_file", "msan_c_flags_test", "msan_flags_test", "sanitizer_combo_flags_test", "sanitizer_test", "stdlib_flags_test", "toolchain_files_test", "transition_library_to_platform")
+load(":transitions.bzl", "darwin_linker_test", "dwp_file", "msan_c_flags_test", "msan_flags_test", "sanitizer_combo_flags_test", "sanitizer_test", "stdlib_flags_test", "sysroot_layout_test", "toolchain_files_test", "transition_library_to_platform")
 
 exports_files(["linkers.jsonc"])
 
@@ -207,6 +207,18 @@ sanitizer_combo_flags_test(
 stdlib_flags_test(
     name = "stdlib_flags_test",
     target_under_test = ":stdlib",
+)
+
+cc_binary(
+    name = "buildroot_bin",
+    srcs = ["stdlib_test.cc"],
+    tags = ["manual"],
+    deps = [":stdlib"],
+)
+
+sysroot_layout_test(
+    name = "sysroot_layout_test",
+    target_under_test = ":buildroot_bin",
 )
 
 # End-to-end msan test. Built and run with the instrumented-libc++ toolchain

@@ -1,0 +1,25 @@
+# A stub of a Buildroot sysroot for sysroot_layout_test.  Only its paths are
+# checked, so it holds no real files.
+constraint_setting(name = "sysroot_layout")
+
+constraint_value(
+    name = "buildroot",
+    constraint_setting = ":sysroot_layout",
+    visibility = ["//visibility:public"],
+)
+
+platform(
+    name = "platform",
+    constraint_values = [
+        ":buildroot",
+        "@platforms//cpu:aarch64",
+        "@platforms//os:linux",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "sysroot",
+    srcs = glob(["usr/**"]),
+    visibility = ["//visibility:public"],
+)
