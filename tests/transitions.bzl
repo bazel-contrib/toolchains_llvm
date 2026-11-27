@@ -462,10 +462,12 @@ def _sysroot_layout_test_impl(ctx):
     )
     return analysistest.end(env)
 
-# Checks layout templates against a stub Buildroot sysroot.
+# Checks layout templates against a stub Buildroot sysroot.  Clears
+# --extra_toolchains so a toolchain from run_tests.sh -t can't take its place.
 sysroot_layout_test = analysistest.make(
     _sysroot_layout_test_impl,
     config_settings = {
+        "//command_line_option:extra_toolchains": [],
         "//command_line_option:platforms": str(Label("//buildroot_sysroot:platform")),
     },
 )

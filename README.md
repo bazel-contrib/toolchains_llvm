@@ -698,6 +698,7 @@ target OS/arch pair) tune how it is found and linked:
   ```starlark
   llvm.toolchain(
       name = "llvm_buildroot",
+      llvm_version = "23.1.5",
       gcc_lib_dirs = {"linux-aarch64": ["usr/lib/gcc/{triple}/{version}"]},
       libstdcxx_include_dirs = {"linux-aarch64": [
           "usr/include/c++/{version}",
