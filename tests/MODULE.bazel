@@ -72,6 +72,38 @@ LLVM_VERSIONS = {
     # "darwin-x86_64": "15.0.7",  # Verify this works as opposed to using one version.
 }
 
+# A Buildroot sysroot, described with layout templates and checked by
+# sysroot_layout_test.  Registered first but limited to
+# //buildroot_sysroot:platform (for every target), so it is never picked otherwise.
+llvm.toolchain(
+    name = "llvm_toolchain_buildroot",
+    gcc_lib_dirs = {"linux-aarch64": ["usr/lib/gcc/{triple}/{version}"]},
+    libstdcxx_include_dirs = {"linux-aarch64": [
+        "usr/include/c++/{version}",
+        "usr/include/c++/{version}/{multiarch}",
+        "usr/include/c++/{version}/backward",
+    ]},
+    llvm_versions = LLVM_VERSIONS,
+    multiarch = {"linux-aarch64": "aarch64-buildroot-linux-gnu"},
+    stdlib = {"linux-aarch64": "stdc++-14"},
+)
+llvm.toolchain_root(
+    name = "llvm_toolchain_buildroot",
+    label = "@llvm_toolchain_llvm//:BUILD",
+)
+llvm.sysroot(
+    name = "llvm_toolchain_buildroot",
+    label = "//buildroot_sysroot:sysroot",
+    targets = ["linux-aarch64"],
+)
+llvm.extra_target_compatible_with(
+    name = "llvm_toolchain_buildroot",
+    constraints = ["//buildroot_sysroot:buildroot"],
+)
+use_repo(llvm, "llvm_toolchain_buildroot")
+
+register_toolchains("@llvm_toolchain_buildroot//:all")
+
 llvm.toolchain(
     name = "llvm_toolchain",
     # The empty key applies to every target; see conly_flags_test.

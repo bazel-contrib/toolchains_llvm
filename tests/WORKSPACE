@@ -176,6 +176,31 @@ llvm_toolchain(
     llvm_version = "13.0.0",
 )
 
+# A Buildroot sysroot, described with layout templates and checked by
+# sysroot_layout_test.  Registered first but limited to
+# //buildroot_sysroot:platform (for every target), so it is never picked otherwise.
+llvm_toolchain(
+    name = "llvm_toolchain_buildroot",
+    extra_target_compatible_with = {
+        "": ["@//buildroot_sysroot:buildroot"],
+    },
+    gcc_lib_dirs = {"linux-aarch64": ["usr/lib/gcc/{triple}/{version}"]},
+    libstdcxx_include_dirs = {"linux-aarch64": [
+        "usr/include/c++/{version}",
+        "usr/include/c++/{version}/{multiarch}",
+        "usr/include/c++/{version}/backward",
+    ]},
+    llvm_versions = LLVM_VERSIONS,
+    multiarch = {"linux-aarch64": "aarch64-buildroot-linux-gnu"},
+    stdlib = {"linux-aarch64": "stdc++-14"},
+    sysroot = {"linux-aarch64": "@//buildroot_sysroot:sysroot"},
+    toolchain_roots = {"": "@llvm_toolchain_llvm//"},
+)
+
+load("@llvm_toolchain_buildroot//:toolchains.bzl", llvm_register_toolchains_buildroot = "llvm_register_toolchains")
+
+llvm_register_toolchains_buildroot()
+
 load("@llvm_toolchain//:toolchains.bzl", "llvm_register_toolchains")
 
 llvm_register_toolchains()
