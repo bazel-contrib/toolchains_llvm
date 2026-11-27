@@ -13,6 +13,7 @@
 # limitations under the License.
 
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load(":transitions.bzl", "darwin_linker_test", "dwp_file", "msan_c_flags_test", "msan_flags_test", "sanitizer_combo_flags_test", "sanitizer_test", "stdlib_flags_test", "sysroot_layout_test", "toolchain_files_test", "transition_library_to_platform")
@@ -448,4 +449,50 @@ cc_library(
 build_test(
     name = "assembly_test",
     targets = [":assembly_test_lib"],
+)
+
+# layering_check across a chain of 150 libraries, deep enough that module map
+# paths relative to each map would pass PATH_MAX.  Long header names make sure
+# some map lands where Clang can open it but not its header.
+MODULE_MAP_CHAIN_LENGTH = 150
+
+MODULE_MAP_CHAIN_HEADER = "module_map_chain_%d_with_a_header_name_long_enough_to_matter.h"
+
+[
+    write_file(
+        name = "module_map_chain_%d_h" % i,
+        out = MODULE_MAP_CHAIN_HEADER % i,
+        content = [
+            "#pragma once",
+            "inline int module_map_chain_%d() { return 1; }" % i,
+        ],
+    )
+    for i in range(MODULE_MAP_CHAIN_LENGTH)
+]
+
+[
+    cc_library(
+        name = "module_map_chain_%d" % i,
+        hdrs = [":module_map_chain_%d_h" % i],
+        deps = [":module_map_chain_%d" % (i + 1)] if i + 1 < MODULE_MAP_CHAIN_LENGTH else [],
+    )
+    for i in range(MODULE_MAP_CHAIN_LENGTH)
+]
+
+write_file(
+    name = "module_map_chain_test_cc",
+    out = "module_map_chain_test.cc",
+    content = ['#include "%s"' % (MODULE_MAP_CHAIN_HEADER % i) for i in range(MODULE_MAP_CHAIN_LENGTH)] + [
+        "int main() {",
+        "  int sum = 0;",
+    ] + ["  sum += module_map_chain_%d();" % i for i in range(MODULE_MAP_CHAIN_LENGTH)] + [
+        "  return sum == %d ? 0 : 1;" % MODULE_MAP_CHAIN_LENGTH,
+        "}",
+    ],
+)
+
+cc_test(
+    name = "module_map_chain_test",
+    srcs = [":module_map_chain_test_cc"],
+    deps = [":module_map_chain_%d" % i for i in range(MODULE_MAP_CHAIN_LENGTH)],
 )

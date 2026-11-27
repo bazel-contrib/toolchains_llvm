@@ -46,10 +46,8 @@ def _system_module_map(ctx):
         else:
             relative_include_prefixes.append(paths.ensure_trailing_slash(include_dir))
 
-    # The builtin include directories are relative to the execroot, but the
-    # paths in the module map must be relative to the directory that contains
-    # the module map.
-    execroot_prefix = (module_map.dirname.count("/") + 1) * "../"
+    # Paths are relative to the execroot; see `module_map_home_cwd`.
+    execroot_prefix = ""
     textual_header_closure = lambda file: _textual_header(
         file,
         include_prefixes = relative_include_prefixes,
