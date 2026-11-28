@@ -17,7 +17,7 @@ llvm.toolchain(
         "darwin-aarch64": "auto",
         "darwin-x86_64": "auto",
     },
-    llvm_version = "latest:major==23",
+    llvm_version = "getenv(LLVM_VERSION, latest:major==23)",
     stdlib = {
         "linux-aarch64": "stdc++",
         "linux-x86_64": "stdc++",

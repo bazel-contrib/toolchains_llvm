@@ -83,7 +83,13 @@ def _metadata_test_impl(ctx):
 
 def _read_file(path):
     if path == "first":
-        return json.encode(dict({_ARCHIVE: "old"}, _meta = dict(_META, base_url = {"": "https://example.test/{version}/"})))
+        return json.encode(dict({
+            _ARCHIVE: "old",
+            _ARCHIVE.replace("23.1.2", "23.1.6"): "latest",
+        }, _meta = dict(_META, base_url = {
+            "": "https://example.test/llvm-{version}-2/",
+            "23.1.6": "https://example.test/llvm-{version}-1/",
+        })))
     return json.encode({_ARCHIVE: "new"})
 
 def _merge_test_impl(ctx):
@@ -91,9 +97,13 @@ def _merge_test_impl(ctx):
     rctx = struct(path = lambda label: label, read = _read_file)
     entries, urls, metadata = load_distribution_files(rctx, ["first", "second"], with_metadata = True)
     asserts.equals(env, "new", entries[_ARCHIVE])
-    asserts.equals(env, "https://example.test/23.1.2/" + _ARCHIVE, urls[_ARCHIVE])
+    asserts.equals(env, "https://example.test/llvm-23.1.2-2/" + _ARCHIVE, urls[_ARCHIVE])
     asserts.equals(env, _META["requirements"], metadata[_ARCHIVE]["requirements"])
     asserts.equals(env, "", metadata[_ARCHIVE]["strip_prefix"])
+    latest = _ARCHIVE.replace("23.1.2", "23.1.6")
+    asserts.equals(env, "latest", entries[latest])
+    asserts.equals(env, "https://example.test/llvm-23.1.6-1/" + latest, urls[latest])
+    asserts.equals(env, _META["requirements"], metadata[latest]["requirements"])
     return unittest.end(env)
 
 def _selection_test_impl(ctx):

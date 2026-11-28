@@ -130,9 +130,10 @@ was configured. Match the compiler and instrumented runtime LLVM versions.
 ## hermetic-llvm packages
 
 The opt-in `@toolchains_llvm//toolchain/distributions:hermetic_llvm.jsonc`
-catalogue provides LLVM 23.1.2 Linux/macOS packages from release `llvm-23.1.2-2`.
-It is not merged into the default catalogue and is currently curated separately
-from the official LLVM updater.
+catalogue provides LLVM 23.1.2 (`llvm-23.1.2-2`) and 23.1.6 (`llvm-23.1.6-1`)
+Linux/macOS packages for x86_64 and AArch64. Exact pins retain their release's
+checksums; `latest:major==23` selects 23.1.6. It is not merged into the default
+catalogue and is currently curated separately from the official LLVM updater.
 
 The packages contain a multicall LLVM executable and Clang resource headers,
 not libc++, compiler-rt, sanitizer runtimes, or an Apple LTO plugin. Linux support

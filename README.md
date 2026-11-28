@@ -256,13 +256,13 @@ settings produce an `INCOMPATIBLE LLVM DISTRIBUTION` error. See
 and MSan-specific configuration.
 
 An opt-in catalogue of checksum-pinned
-[hermetic-llvm compiler packages](https://github.com/hermeticbuild/hermetic-llvm/releases/tag/llvm-23.1.2-2)
+[hermetic-llvm compiler packages](https://github.com/hermeticbuild/hermetic-llvm/releases/tag/llvm-23.1.6-1)
 is provided:
 
 ```starlark
 llvm.toolchain(
     name = "llvm_toolchain",
-    llvm_version = "23.1.2",
+    llvm_version = "23.1.6",
     use_builtin_llvm_distributions = False,
     extra_llvm_distribution_files = [
         "@toolchains_llvm//toolchain/distributions:hermetic_llvm.jsonc",
