@@ -128,6 +128,7 @@ _attrs.pop("extra_linker_files_dict", None)
 _attrs.pop("feature_condition", None)
 _attrs.pop("feature_variants", None)
 _attrs.pop("feature_base_llvm", None)
+_attrs.pop("catalogue_runtime_roots", None)
 
 # Tags cannot distinguish an omitted value from an explicitly supplied schema
 # default. `reset` clears inherited values in that case; nondefault settings
@@ -148,7 +149,7 @@ def _feature_override(tag):
             settings[key] = value
     return llvm_feature_override(features = tag.features, targets = tag.targets, reset = tag.reset, **settings)
 
-_override_attrs = {key: value for key, value in _llvm_config_attrs.items() if not key.startswith("_") and key not in ["feature_condition", "feature_variants", "feature_base_llvm"]}
+_override_attrs = {key: value for key, value in _llvm_config_attrs.items() if not key.startswith("_") and key not in ["feature_condition", "feature_variants", "feature_base_llvm", "catalogue_runtime_roots"]}
 _override_attrs.update(_llvm_repo_attrs)
 _override_attrs.update({
     "name": _attrs["name"],

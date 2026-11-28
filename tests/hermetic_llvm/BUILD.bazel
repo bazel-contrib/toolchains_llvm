@@ -1,0 +1,20 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+cc_library(
+    name = "c_part",
+    srcs = ["c_part.c"],
+)
+
+cc_library(
+    name = "cpp_part",
+    srcs = ["cpp_part.cc"],
+)
+
+cc_test(
+    name = "stdlib_test",
+    srcs = ["main.cc"],
+    deps = [
+        ":c_part",
+        ":cpp_part",
+    ],
+)

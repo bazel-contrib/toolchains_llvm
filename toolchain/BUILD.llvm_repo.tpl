@@ -68,11 +68,11 @@ filegroup(
 
 filegroup(
     name = "include",
-    srcs = glob([
-        "include/**",
-        "lib/clang/*/include/**",
-    ]) + glob(
+    # The resource headers are required; a compiler-only archive need not
+    # contain any top-level include/ directory.
+    srcs = glob(["lib/clang/*/include/**"]) + glob(
         [
+            "include/**",
             # Sanitizer ignorelists (e.g. msan_ignorelist.txt) that Clang
             # auto-loads from the resource directory when a sanitizer is
             # enabled; they must be available as compiler inputs.
@@ -95,7 +95,7 @@ filegroup(
 
 cc_library(
     name = "clang_headers",
-    hdrs = glob(["include/**"]),
+    hdrs = glob(["include/**"], allow_empty = True),
     strip_include_prefix = "include",
 )
 
@@ -103,10 +103,11 @@ cc_library(
 # We rely on this assumption in system_module_map.bzl.
 filegroup(
     name = "cxx_builtin_include",
-    srcs = [
-        "include/c++",
-        "lib/clang/{LLVM_VERSION}/include",
-    ] + glob(
+    srcs = ["lib/clang/{LLVM_VERSION}/include"] + glob(
+        ["include/c++"],
+        exclude_directories = 0,
+        allow_empty = True,
+    ) + glob(
         # Sanitizer ignorelists (e.g. msan_ignorelist.txt) auto-loaded by Clang
         # from the resource directory when a sanitizer is enabled.
         ["lib/clang/{LLVM_VERSION}/share"],
@@ -141,13 +142,15 @@ filegroup(
 
 filegroup(
     name = "lib",
-    srcs = [
-        # Include the .dylib files in the linker sandbox even though they will
-        # not be available at runtime to allow sanitizers to work locally.
-        # Any library linked from the toolchain to be released should be linked statically.
-        "lib/clang/{LLVM_VERSION}/lib",
-    ] + glob(
+    srcs = glob(
+        ["lib/clang/{LLVM_VERSION}/lib"],
+        exclude_directories = 0,
+        allow_empty = True,
+    ) + glob(
         [
+            # Include the .dylib files in the linker sandbox even though they will
+            # not be available at runtime to allow sanitizers to work locally.
+            # Any library linked from the toolchain to be released should be linked statically.
             "lib/**/libc++*.a",
             "lib/**/libunwind.a",
             # Apple ld must load the LTO plugin matching the compiler bitcode.
@@ -234,10 +237,9 @@ filegroup(
 
 filegroup(
     name = "as",
-    srcs = [
-        "bin/clang",
-        "bin/llvm-as",
-    ],
+    # C/C++ assembly uses Clang's integrated assembler. llvm-as is an LLVM IR
+    # tool, not required by that action, and absent from multicall archives.
+    srcs = ["bin/clang"] + glob(["bin/llvm-as"], allow_empty = True),
 )
 
 filegroup(
@@ -257,12 +259,12 @@ filegroup(
 
 filegroup(
     name = "profdata",
-    srcs = ["bin/llvm-profdata"],
+    srcs = glob(["bin/llvm-profdata"], allow_empty = True),
 )
 
 filegroup(
     name = "dwp",
-    srcs = ["bin/llvm-dwp"],
+    srcs = glob(["bin/llvm-dwp"], allow_empty = True),
 )
 
 filegroup(
