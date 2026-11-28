@@ -15,7 +15,7 @@
 module(name = "toolchains_llvm_tests")
 
 bazel_dep(name = "toolchains_llvm", version = "0.0.0")
-bazel_dep(name = "bazel_features", version = "1.55.0")
+bazel_dep(name = "bazel_features", version = "1.56.0")
 
 local_path_override(
     module_name = "toolchains_llvm",
@@ -29,7 +29,7 @@ bazel_dep(name = "rules_foreign_cc", version = "0.17.0")
 bazel_dep(name = "rules_go", version = "0.65.0", repo_name = "io_bazel_rules_go")
 bazel_dep(name = "rules_license", version = "1.0.0")
 bazel_dep(name = "rules_rust", version = "0.75.0")
-bazel_dep(name = "rules_shell", version = "0.8.0")
+bazel_dep(name = "rules_shell", version = "0.10.0")
 bazel_dep(name = "abseil-cpp", version = "20250814.2", repo_name = "com_google_absl")
 bazel_dep(name = "boringssl", version = "0.20261105.0")
 single_version_override(
@@ -71,6 +71,38 @@ LLVM_VERSIONS = {
     "": "getenv(LLVM_VERSION,latest:>=17.0.0,<20)",
     # "darwin-x86_64": "15.0.7",  # Verify this works as opposed to using one version.
 }
+
+# A Buildroot sysroot, described with layout templates and checked by
+# sysroot_layout_test.  Registered first but limited to
+# //buildroot_sysroot:platform (for every target), so it is never picked otherwise.
+llvm.toolchain(
+    name = "llvm_toolchain_buildroot",
+    gcc_lib_dirs = {"linux-aarch64": ["usr/lib/gcc/{triple}/{version}"]},
+    libstdcxx_include_dirs = {"linux-aarch64": [
+        "usr/include/c++/{version}",
+        "usr/include/c++/{version}/{multiarch}",
+        "usr/include/c++/{version}/backward",
+    ]},
+    llvm_versions = LLVM_VERSIONS,
+    multiarch = {"linux-aarch64": "aarch64-buildroot-linux-gnu"},
+    stdlib = {"linux-aarch64": "stdc++-14"},
+)
+llvm.toolchain_root(
+    name = "llvm_toolchain_buildroot",
+    label = "@llvm_toolchain_llvm//:BUILD",
+)
+llvm.sysroot(
+    name = "llvm_toolchain_buildroot",
+    label = "//buildroot_sysroot:sysroot",
+    targets = ["linux-aarch64"],
+)
+llvm.extra_target_compatible_with(
+    name = "llvm_toolchain_buildroot",
+    constraints = ["//buildroot_sysroot:buildroot"],
+)
+use_repo(llvm, "llvm_toolchain_buildroot")
+
+register_toolchains("@llvm_toolchain_buildroot//:all")
 
 llvm.toolchain(
     name = "llvm_toolchain",

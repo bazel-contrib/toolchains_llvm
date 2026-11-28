@@ -27,9 +27,9 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "bazel_features",
-    sha256 = "2ed1fdce7e51ba2149dfab73eab6e402217c8e27d17e1d4a48d4d86bdd9eaef6",
-    strip_prefix = "bazel_features-1.55.0",
-    url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.55.0/bazel_features-v1.55.0.tar.gz",
+    sha256 = "0788cf12ae161091e328a9b2920b96d20b0116749ceb7e2ba2dd983be7a6c90a",
+    strip_prefix = "bazel_features-1.56.0",
+    url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.56.0/bazel_features-v1.56.0.tar.gz",
 )
 
 load("@bazel_features//:deps.bzl", "bazel_features_deps")
@@ -38,9 +38,9 @@ bazel_features_deps()
 
 http_archive(
     name = "aspect_bazel_lib",
-    sha256 = "2a5ab58b8c021f10ce81d354e66ec4822b01188a2fa6c57be15c7381f8911ced",
-    strip_prefix = "bazel-lib-3.8.0",
-    url = "https://github.com/aspect-build/bazel-lib/releases/download/v3.8.0/bazel-lib-v3.8.0.tar.gz",
+    sha256 = "10599b11061eb630c81c7c3f4662f98bc70504cf9e0b4b97c948dea092919135",
+    strip_prefix = "bazel-lib-3.8.1",
+    url = "https://github.com/aspect-build/bazel-lib/releases/download/v3.8.1/bazel-lib-v3.8.1.tar.gz",
 )
 
 http_archive(
@@ -52,9 +52,9 @@ http_archive(
 
 http_archive(
     name = "rules_shell",
-    sha256 = "20721f63908879c083f94869e618ea8d4ff5edb91ff9a72a2ebee357fdbc352d",
-    strip_prefix = "rules_shell-0.8.0",
-    url = "https://github.com/bazelbuild/rules_shell/releases/download/v0.8.0/rules_shell-v0.8.0.tar.gz",
+    sha256 = "12edf8c13d46c4408a860da4fd109b58e56f68cd1eb757746291f89e9ea6c17c",
+    strip_prefix = "rules_shell-0.10.0",
+    url = "https://github.com/bazelbuild/rules_shell/releases/download/v0.10.0/rules_shell-v0.10.0.tar.gz",
 )
 
 load("@tar.bzl//tar:extensions.bzl", "create_repositories")
@@ -175,6 +175,31 @@ llvm_toolchain(
     name = "llvm_toolchain_13_0_0",
     llvm_version = "13.0.0",
 )
+
+# A Buildroot sysroot, described with layout templates and checked by
+# sysroot_layout_test.  Registered first but limited to
+# //buildroot_sysroot:platform (for every target), so it is never picked otherwise.
+llvm_toolchain(
+    name = "llvm_toolchain_buildroot",
+    extra_target_compatible_with = {
+        "": ["@//buildroot_sysroot:buildroot"],
+    },
+    gcc_lib_dirs = {"linux-aarch64": ["usr/lib/gcc/{triple}/{version}"]},
+    libstdcxx_include_dirs = {"linux-aarch64": [
+        "usr/include/c++/{version}",
+        "usr/include/c++/{version}/{multiarch}",
+        "usr/include/c++/{version}/backward",
+    ]},
+    llvm_versions = LLVM_VERSIONS,
+    multiarch = {"linux-aarch64": "aarch64-buildroot-linux-gnu"},
+    stdlib = {"linux-aarch64": "stdc++-14"},
+    sysroot = {"linux-aarch64": "@//buildroot_sysroot:sysroot"},
+    toolchain_roots = {"": "@llvm_toolchain_llvm//"},
+)
+
+load("@llvm_toolchain_buildroot//:toolchains.bzl", llvm_register_toolchains_buildroot = "llvm_register_toolchains")
+
+llvm_register_toolchains_buildroot()
 
 load("@llvm_toolchain//:toolchains.bzl", "llvm_register_toolchains")
 

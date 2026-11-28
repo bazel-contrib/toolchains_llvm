@@ -61,6 +61,37 @@ def _idirafter(includes):
         for flag in ("-idirafter", include)
     ]
 
+# Where each sysroot layout keeps libstdc++ and the gcc runtime, as paths
+# relative to the sysroot.  `{version}` is the libstdc++ version, `{multiarch}`
+# the multiarch tuple (after any `multiarch` override) and `{triple}` the builtin
+# one.  `gcc_crt_dirs` are also searched for crtbegin.o and friends (`-B`).
+_CXX_INCLUDE_LAYOUTS = {
+    "debian": {
+        "libstdcxx_include_dirs": [
+            "usr/include/c++/{version}",
+            "usr/include/{multiarch}/c++/{version}",
+            "usr/include/c++/{version}/backward",
+        ],
+        "gcc_crt_dirs": [],
+        "gcc_lib_dirs": ["usr/lib/gcc/{multiarch}/{version}"],
+    },
+    "yocto": {
+        "libstdcxx_include_dirs": [
+            "usr/include/c++/{version}",
+            "usr/include/c++/{version}/{multiarch}",
+            "usr/include/c++/{version}/backward",
+        ],
+        "gcc_crt_dirs": ["usr/lib/{multiarch}/{version}"],
+        "gcc_lib_dirs": ["usr/lib/gcc/{multiarch}/{version}"],
+    },
+}
+
+def _sysroot_dirs(compiler_configuration, layout, key, sysroot_path, **substitutions):
+    templates = compiler_configuration.get(key)
+    if templates == None:
+        templates = _CXX_INCLUDE_LAYOUTS[layout][key]
+    return [paths.join(sysroot_path, t.format(**substitutions)) for t in templates]
+
 # Macro for calling cc_toolchain_config from @bazel_tools with setting the
 # right paths and flags for the tools.
 def cc_toolchain_config(
@@ -410,6 +441,13 @@ def cc_toolchain_config(
     if sysroot_path:
         sysroot_path = paths.ensure_trailing_slash(sysroot_path)
 
+    # On Darwin, -isysroot is Clang's native SDK option. Unlike --sysroot, it
+    # makes the driver read SDKSettings.json, including when linking so that
+    # LC_BUILD_VERSION records the SDK version rather than the deployment target.
+    if target_os == "darwin" and sysroot_path:
+        compile_flags.extend(["-isysroot", sysroot_path])
+        link_flags.extend(["-isysroot", sysroot_path])
+
     # Flags related to C++ standard.
     cxx_flags = [
         "-std=" + cxx_standard,
@@ -429,10 +467,13 @@ def cc_toolchain_config(
     # Yocto-style sysroots where libstdc++ headers live under
     # /usr/include/c++/<ver>/<multiarch> instead of the Debian
     # /usr/include/<multiarch>/c++/<ver> layout).
+    triple = multiarch
     multiarch_override = compiler_configuration.get("multiarch", "")
     if multiarch_override:
         multiarch = multiarch_override
     cxx_include_layout = compiler_configuration.get("cxx_include_layout", "") or "debian"
+    if cxx_include_layout not in _CXX_INCLUDE_LAYOUTS:
+        fail("Invalid cxx_include_layout: " + cxx_include_layout)
 
     is_xcompile = not (exec_os == target_os and exec_arch == target_arch)
 
@@ -567,23 +608,10 @@ def cc_toolchain_config(
             # that it's unused, so don't use it here.
             libstdcxx_version = stdlib[len("stdc++-"):]
 
-            # libstdc++ headers live at /usr/include/c++/<ver> plus a
-            # multiarch-specific directory whose layout differs between
-            # Debian-style and Yocto-style sysroots.
-            if cxx_include_layout == "yocto":
-                multiarch_cpp_include = paths.join(sysroot_path, "usr/include/c++", libstdcxx_version, multiarch)
-                stdlib_link_flags.extend([
-                    "-B" + paths.ensure_trailing_slash(paths.join(sysroot_path, "usr/lib", multiarch, libstdcxx_version)),
-                    "-Wl,-L" + paths.ensure_trailing_slash(paths.join(sysroot_path, "usr/lib", multiarch, libstdcxx_version)),
-                ])
-            else:
-                multiarch_cpp_include = paths.join(sysroot_path, "usr/include", multiarch, "c++", libstdcxx_version)
-
-            cpp_system_includes = [
-                paths.join(sysroot_path, "usr/include/c++", libstdcxx_version),
-                multiarch_cpp_include,
-                paths.join(sysroot_path, "usr/include/c++", libstdcxx_version, "backward"),
-            ]
+            # Where libstdc++'s headers and the gcc runtime live in the sysroot:
+            # the layout's templates, unless overridden per target.
+            layout_vars = dict(version = libstdcxx_version, multiarch = multiarch, triple = triple)
+            cpp_system_includes = _sysroot_dirs(compiler_configuration, cxx_include_layout, "libstdcxx_include_dirs", sysroot_path, **layout_vars)
 
             # Clang really wants C system header includes after C++ ones, so
             # drop the default C system paths and add the toolchain's builtin
@@ -591,9 +619,12 @@ def cc_toolchain_config(
             nostdinc = True
             system_includes.append(toolchain_builtin_include)
 
-            stdlib_link_flags.extend([
-                "-L" + paths.join(sysroot_path, "usr/lib/gcc", multiarch, libstdcxx_version),
-            ])
+            for dir in _sysroot_dirs(compiler_configuration, cxx_include_layout, "gcc_crt_dirs", sysroot_path, **layout_vars):
+                stdlib_link_flags.extend([
+                    "-B" + paths.ensure_trailing_slash(dir),
+                    "-Wl,-L" + paths.ensure_trailing_slash(dir),
+                ])
+            stdlib_link_flags.extend(["-L" + dir for dir in _sysroot_dirs(compiler_configuration, cxx_include_layout, "gcc_lib_dirs", sysroot_path, **layout_vars)])
         else:
             fail("Invalid stdlib: " + stdlib)
     elif stdlib == "libc":
@@ -669,6 +700,26 @@ def cc_toolchain_config(
             ":" + name + "_disable_cpp_modules",
             ":" + name + "_relocatable_cpp_modules",
         ]
+
+    # Write module map paths relative to the execroot.  Relative to each
+    # map, they grow with every `extern module` hop until they pass PATH_MAX
+    # and Clang silently drops headers, breaking layering_check.
+    cc_args(
+        name = name + "_module_map_home_cwd_args",
+        actions = [
+            "@rules_cc//cc/toolchains/actions:c_compile_actions",
+            "@rules_cc//cc/toolchains/actions:cpp_compile_actions",
+        ] + CPP_MODULE_ACTIONS,
+        args = [
+            "-Xclang",
+            "-fmodule-map-file-home-is-cwd",
+        ],
+    )
+    cc_feature(
+        name = name + "_module_map_home_cwd",
+        feature_name = "module_map_home_cwd",
+        args = [":" + name + "_module_map_home_cwd_args"],
+    )
 
     opt_link_flags = ["-Wl,--gc-sections"] if target_os == "linux" else []
 
@@ -1092,6 +1143,6 @@ def cc_toolchain_config(
         coverage_link_flags = coverage_link_flags,
         supports_start_end_lib = supports_start_end_lib,
         builtin_sysroot = sysroot_path,
-        extra_enabled_features = nomsan_feature_labels + cpp_modules_enabled_features + extra_enabled_features + sanitizer_runtime_features + darwin_thin_lto_features,
+        extra_enabled_features = nomsan_feature_labels + [":" + name + "_module_map_home_cwd"] + cpp_modules_enabled_features + extra_enabled_features + sanitizer_runtime_features + darwin_thin_lto_features,
         extra_known_features = msan_feature_labels + extra_known_features,
     )

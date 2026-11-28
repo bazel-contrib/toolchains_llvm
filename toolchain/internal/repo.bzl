@@ -198,7 +198,29 @@ _compiler_configuration_attrs = {
                "({}): ".format(_target_pairs) +
                "`debian` (default): `/usr/include/<multiarch>/c++/<ver>` and " +
                "`/usr/lib/gcc/<multiarch>/<ver>`; `yocto`: " +
-               "`/usr/include/c++/<ver>/<multiarch>` and `/usr/lib/<multiarch>/<ver>`."),
+               "`/usr/include/c++/<ver>/<multiarch>` and `/usr/lib/<multiarch>/<ver>`. " +
+               "`libstdcxx_include_dirs`, `gcc_lib_dirs` and `gcc_crt_dirs` override " +
+               "parts of it."),
+    ),
+    "libstdcxx_include_dirs": attr.string_list_dict(
+        mandatory = False,
+        doc = ("libstdc++ header directories, relative to the sysroot, for each target " +
+               "OS and arch pair ({}), replacing those of ".format(_target_pairs) +
+               "`cxx_include_layout`. `{version}` is the libstdc++ version, " +
+               "`{multiarch}` the multiarch tuple and `{triple}` the builtin tuple " +
+               "(e.g. `aarch64-linux-gnu`), which `multiarch` does not change."),
+    ),
+    "gcc_lib_dirs": attr.string_list_dict(
+        mandatory = False,
+        doc = ("gcc runtime library directories (`-L`), relative to the sysroot, " +
+               "replacing those of `cxx_include_layout`. Takes the same templates " +
+               "as `libstdcxx_include_dirs`."),
+    ),
+    "gcc_crt_dirs": attr.string_list_dict(
+        mandatory = False,
+        doc = ("Directories, relative to the sysroot, that also hold crtbegin.o and " +
+               "friends (`-B` and `-L`), replacing those of `cxx_include_layout`. " +
+               "Takes the same templates as `libstdcxx_include_dirs`."),
     ),
     "cxx_builtin_include_directories": attr.string_list_dict(
         mandatory = False,

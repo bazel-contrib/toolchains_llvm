@@ -345,6 +345,9 @@ def llvm_config_impl(rctx):
         sysroot_labels_dict = sysroot_labels_dict,
         multiarch_dict = rctx.attr.multiarch,
         cxx_include_layout_dict = rctx.attr.cxx_include_layout,
+        libstdcxx_include_dirs_dict = rctx.attr.libstdcxx_include_dirs,
+        gcc_lib_dirs_dict = rctx.attr.gcc_lib_dirs,
+        gcc_crt_dirs_dict = rctx.attr.gcc_crt_dirs,
         target_settings_dict = rctx.attr.target_settings,
         additional_include_dirs_dict = rctx.attr.cxx_builtin_include_directories,
         stdlib_dict = rctx.attr.stdlib,
@@ -765,6 +768,9 @@ def _cc_toolchain_str(
         ])
     elif target_os == "darwin":
         cxx_builtin_include_directories.extend([
+            # Clang reads SDKSettings.json from the SDK root when -isysroot is
+            # set. Declare the root so Bazel accepts that compiler input.
+            sysroot_prefix + "/",
             _join(sysroot_prefix, "/usr/include"),
             _join(sysroot_prefix, "/System/Library/Frameworks"),
         ])
@@ -799,6 +805,9 @@ cc_toolchain_config(
       "has_target_runtime": {has_target_runtime},
       "multiarch": "{multiarch_override}",
       "cxx_include_layout": "{cxx_include_layout}",
+      "libstdcxx_include_dirs": {libstdcxx_include_dirs},
+      "gcc_lib_dirs": {gcc_lib_dirs},
+      "gcc_crt_dirs": {gcc_crt_dirs},
       "cxx_standard": "{cxx_standard}",
       "compile_flags": {compile_flags},
       "conly_flags": {conly_flags},
@@ -1068,6 +1077,9 @@ config_setting(
         has_target_runtime = repr(target_toolchain_root != toolchain_info.toolchain_root),
         multiarch_override = toolchain_info.multiarch_dict.get(target_pair, ""),
         cxx_include_layout = toolchain_info.cxx_include_layout_dict.get(target_pair, ""),
+        libstdcxx_include_dirs = _list_to_string(_dict_value(toolchain_info.libstdcxx_include_dirs_dict, target_pair)),
+        gcc_lib_dirs = _list_to_string(_dict_value(toolchain_info.gcc_lib_dirs_dict, target_pair)),
+        gcc_crt_dirs = _list_to_string(_dict_value(toolchain_info.gcc_crt_dirs_dict, target_pair)),
         cxx_standard = _dict_value(toolchain_info.cxx_standard_dict, target_pair, "c++17"),
         compile_flags = _list_to_string(_dict_value(toolchain_info.compile_flags_dict, target_pair)),
         conly_flags = _list_to_string(_dict_value(toolchain_info.conly_flags_dict, target_pair, [])),

@@ -722,9 +722,30 @@ target OS/arch pair) tune how it is found and linked:
   `/usr/include/<multiarch>/c++/<ver>` and `/usr/lib/gcc/<multiarch>/<ver>`;
   `yocto` expects `/usr/include/c++/<ver>/<multiarch>` and
   `/usr/lib/<multiarch>/<ver>`.
+- `libstdcxx_include_dirs`, `gcc_lib_dirs` and `gcc_crt_dirs`: replace the
+  layout's libstdc++ header directories, gcc runtime directories (`-L`) and
+  crtbegin.o directories (`-B`) for sysroots that match neither. They are
+  relative to the sysroot and may use `{version}`, `{multiarch}` and `{triple}`,
+  the builtin tuple that `multiarch` does not change. A Buildroot
+  sysroot, for example, keeps the gcc runtime under the plain triple:
 
-All three are optional: omit them to get static libstdc++ linking, the builtin
-multiarch tuple, and the `debian` layout.
+  ```starlark
+  llvm.toolchain(
+      name = "llvm_buildroot",
+      llvm_version = "23.1.5",
+      gcc_lib_dirs = {"linux-aarch64": ["usr/lib/gcc/{triple}/{version}"]},
+      libstdcxx_include_dirs = {"linux-aarch64": [
+          "usr/include/c++/{version}",
+          "usr/include/c++/{version}/{multiarch}",
+          "usr/include/c++/{version}/backward",
+      ]},
+      multiarch = {"linux-aarch64": "aarch64-buildroot-linux-gnu"},
+      stdlib = {"linux-aarch64": "dynamic-stdc++-14"},
+  )
+  ```
+
+All of these are optional: omit them to get static libstdc++ linking, the
+builtin multiarch tuple, and the `debian` layout.
 
 ### Multi-platform builds
 

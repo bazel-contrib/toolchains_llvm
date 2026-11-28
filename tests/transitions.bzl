@@ -437,3 +437,37 @@ def toolchain_files_test(name, toolchain, suffix, **kwargs):
         runtime_libraries = "{}_llvm//:runtime_shared_libraries".format(toolchain),
         **kwargs
     )
+
+def _sysroot_layout_test_impl(ctx):
+    env = analysistest.begin(ctx)
+    actions = analysistest.target_actions(env)
+    compile_argv = [a.argv for a in actions if a.mnemonic == "CppCompile"]
+    link_argv = [a.argv for a in actions if a.mnemonic == "CppLink"]
+    asserts.true(env, compile_argv and link_argv, "expected CppCompile and CppLink actions")
+
+    sysroot = "buildroot_sysroot"
+    include = sysroot + "/usr/include/c++/14/aarch64-buildroot-linux-gnu"
+    asserts.true(
+        env,
+        [arg for arg in compile_argv[0] if arg.endswith(include)],
+        "expected an include of %s, got: %s" % (include, compile_argv[0]),
+    )
+
+    # The gcc runtime is under the plain target triple, not the multiarch one.
+    gcc_lib = sysroot + "/usr/lib/gcc/aarch64-linux-gnu/14"
+    asserts.true(
+        env,
+        [arg for arg in link_argv[0] if arg.startswith("-L") and arg.endswith(gcc_lib)],
+        "expected -L...%s, got: %s" % (gcc_lib, link_argv[0]),
+    )
+    return analysistest.end(env)
+
+# Checks layout templates against a stub Buildroot sysroot.  Clears
+# --extra_toolchains so a toolchain from run_tests.sh -t can't take its place.
+sysroot_layout_test = analysistest.make(
+    _sysroot_layout_test_impl,
+    config_settings = {
+        "//command_line_option:extra_toolchains": [],
+        "//command_line_option:platforms": str(Label("//buildroot_sysroot:platform")),
+    },
+)
